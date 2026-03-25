@@ -11,10 +11,10 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود التفاعلي v60.0 - Namix Elite Rocket & Nano Dust
- * - صاروخ فخم بتصميم عصري وألوان ناميكس (أزرق داكن وبرتقالي ذهبي).
- * - تأثير انهيار هادئ (غبار نانوي) بكثافة قليلة جداً لضمان الفخامة البصرية.
- * - غيوم رشيقة ومحاور ديناميكية تتبع المسار بدقة.
+ * @fileOverview مفاعل الصعود التفاعلي v65.0 - Namix Metallic Rocket & Jet Trail
+ * - صاروخ معدني فضي مزرق يحمل شعار ناميكس الرسمي.
+ * - أثر نفاث أبيض (Contrail) يتبع مسار التحليق بواقعية.
+ * - تصحيح دقيق لوضعية محرك الدفع النفاث.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   // حساب الزمن المنقضي بناءً على المعادلة (1.07^t)
@@ -28,7 +28,22 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   const currentX = (elapsed / maxTime) * 100;
   const currentY = 100 - ((multiplier - 1) / (maxMult - 1)) * 100;
 
-  // حساب زاوية ميل الصاروخ بناءً على اتجاه المتجه
+  // توليد نقاط الأثر النفاث (Path)
+  const trailPath = useMemo(() => {
+    if (state === 'waiting') return "";
+    let path = "M 0 100";
+    const steps = 20;
+    for (let i = 1; i <= steps; i++) {
+      const t = (elapsed / steps) * i;
+      const m = Math.pow(1.07, t);
+      const px = (t / maxTime) * 100;
+      const py = 100 - ((m - 1) / (maxMult - 1)) * 100;
+      path += ` L ${px} ${py}`;
+    }
+    return path;
+  }, [elapsed, maxTime, maxMult, state]);
+
+  // حساب زاوية ميل الصاروخ
   const angle = useMemo(() => {
     if (state === 'waiting') return -45;
     const dx = 0.5 * currentX;
@@ -44,20 +59,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     { top: '12%', delay: 18, duration: 48, scale: 0.55 },
     { top: '45%', delay: 8, duration: 52, scale: 0.45 }
   ];
-
-  const yTicks = useMemo(() => {
-    const ticks = [];
-    const step = (maxMult - 1) / 3;
-    for (let i = 0; i <= 3; i++) ticks.push(1 + step * i);
-    return ticks;
-  }, [maxMult]);
-
-  const xTicks = useMemo(() => {
-    const ticks = [];
-    const step = maxTime / 5;
-    for (let i = 0; i <= 5; i++) ticks.push(step * i);
-    return ticks;
-  }, [maxTime]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-100 via-blue-50 to-white font-body select-none">
@@ -79,25 +80,36 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
         ))}
       </div>
 
-      {/* 2. Axis Labels */}
+      {/* 2. Axis Labels (Simplified) */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
-        <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-30 z-20" dir="ltr">
-          {yTicks.map((tick, i) => (
-            <motion.span key={i} layout className="text-[8px] font-black text-[#002d4d] tabular-nums">
-              {tick.toFixed(1)}x
-            </motion.span>
+        <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-20 z-20" dir="ltr">
+          {[1, 2, 3, 4].map((v) => (
+            <span key={v} className="text-[8px] font-black text-[#002d4d] tabular-nums">{v.toFixed(1)}x</span>
           ))}
         </div>
-        <div className="absolute bottom-2 inset-x-12 flex justify-between items-end opacity-30 z-20" dir="ltr">
-          {xTicks.map((tick, i) => (
-            <motion.span key={i} layout className="text-[8px] font-black text-[#002d4d] tabular-nums">
-              {Math.round(tick)}s
-            </motion.span>
+        <div className="absolute bottom-2 inset-x-12 flex justify-between items-end opacity-20 z-20" dir="ltr">
+          {[0, 2, 4, 6, 8, 10].map((v) => (
+            <span key={v} className="text-[8px] font-black text-[#002d4d] tabular-nums">{v}s</span>
           ))}
         </div>
 
         {/* 3. Rocket Execution Area */}
         <div className="relative w-full h-full">
+          {/* White Jet Trail (Contrail) */}
+          <svg className="absolute inset-0 w-full h-full overflow-visible z-30">
+            <motion.path
+              d={trailPath}
+              fill="none"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="opacity-60 blur-[1px]"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+            />
+          </svg>
+
           <AnimatePresence>
             {state === 'running' && (
               <motion.div
@@ -109,34 +121,44 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   rotate: angle
                 }}
                 transition={{ type: "tween", ease: "linear", duration: 0.05 }}
-                className="absolute w-14 h-14 -ml-7 -mt-7 z-50 flex items-center justify-center"
+                className="absolute w-16 h-16 -ml-8 -mt-8 z-50 flex items-center justify-center"
               >
-                {/* Elite Rocket Design - Namix Colors */}
                 <div className="relative">
-                  <svg width="28" height="42" viewBox="0 0 28 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
-                    {/* Main Sleek Body (Dark Blue Namix) */}
-                    <path d="M14 0C14 0 6 8 6 22V34C6 34 10 32 14 32C18 32 22 34 22 34V22C22 8 14 0 14 0Z" fill="#002d4d" />
-                    <path d="M14 0C14 0 10 8 10 22V32H14V0Z" fill="white" opacity="0.1" />
+                  {/* Metallic Silver-Blue Rocket Design */}
+                  <svg width="36" height="52" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
+                    <defs>
+                      <linearGradient id="metallicGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#94a3b8" />
+                        <stop offset="50%" stopColor="#f8fafc" />
+                        <stop offset="100%" stopColor="#64748b" />
+                      </linearGradient>
+                    </defs>
                     
-                    {/* Nose Cone Accent */}
-                    <path d="M14 0C14 0 11 4 11 8H17C17 4 14 0 14 0Z" fill="#f9a885" />
+                    {/* Body */}
+                    <path d="M18 0C18 0 8 10 8 28V42C8 42 13 40 18 40C23 40 28 42 28 42V28C28 10 18 0 18 0Z" fill="url(#metallicGrad)" />
                     
-                    {/* Fins (Orange Namix) */}
-                    <path d="M6 28L0 38L6 34V28Z" fill="#f9a885" />
-                    <path d="M22 28L28 38L22 34V28Z" fill="#f9a885" />
+                    {/* Namix Logo (4 Dots 2x2) */}
+                    <circle cx="15" cy="22" r="2.2" fill="#002d4d" />
+                    <circle cx="21" cy="22" r="2.2" fill="#f9a885" />
+                    <circle cx="15" cy="28" r="2.2" fill="#f9a885" />
+                    <circle cx="21" cy="28" r="2.2" fill="#002d4d" />
+
+                    {/* Fins (Namix Dark Blue) */}
+                    <path d="M8 34L0 48L8 42V34Z" fill="#002d4d" />
+                    <path d="M28 34L36 48L28 42V34Z" fill="#002d4d" />
                     
-                    {/* Luxurious Window */}
-                    <circle cx="14" cy="16" r="3" fill="#f9a885" fillOpacity="0.2" stroke="#f9a885" strokeWidth="0.5" />
+                    {/* Nose Tip */}
+                    <path d="M18 0C18 0 14 5 14 10H22C22 5 18 0 18 0Z" fill="#002d4d" opacity="0.8" />
                   </svg>
 
-                  {/* Refined Thruster Flame */}
+                  {/* Corrected Thruster Flame Position */}
                   <motion.div
                     animate={{ 
-                      scaleY: [1, 1.3, 1],
-                      opacity: [0.7, 0.9, 0.7]
+                      scaleY: [1, 1.4, 1],
+                      opacity: [0.8, 1, 0.8]
                     }}
-                    transition={{ duration: 0.1, repeat: Infinity }}
-                    className="absolute top-[92%] left-1/2 -translate-x-1/2 w-3 h-6 bg-gradient-to-b from-[#f9a885] to-transparent rounded-full blur-[1px] origin-top"
+                    transition={{ duration: 0.08, repeat: Infinity }}
+                    className="absolute top-[82%] left-1/2 -translate-x-1/2 w-4 h-8 bg-gradient-to-b from-[#f9a885] via-orange-400 to-transparent rounded-full blur-[1px] origin-top"
                   />
                 </div>
               </motion.div>
@@ -151,7 +173,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                 style={{ left: `${currentX}%`, top: `${currentY}%` }}
                 className="absolute w-10 h-10 -ml-5 -mt-5 z-[60] flex items-center justify-center"
               >
-                {/* Subtle Nano Dust Effect */}
                 <div className="relative w-full h-full">
                    <motion.div 
                      initial={{ scale: 0.5, opacity: 0.5 }}
