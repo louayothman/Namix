@@ -2,59 +2,59 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Zap, ShieldCheck, Rocket } from "lucide-react";
+import { Clock, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview شريط الحالة السيادي v3.0 - Zero-Background Edition
+ * تم تجريد البطاقات لجعل العداد يسبح فوق المفاعل، ونقل الحالة للزاوية اليمنى السفلية.
+ */
 export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | 'crashed', timer: number }) {
   return (
-    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 font-body tracking-normal">
+    <div className="absolute inset-0 pointer-events-none font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         {state === 'waiting' && (
           <motion.div
-            initial={{ y: 20, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -20, opacity: 0, scale: 1.1 }}
-            className="px-10 py-5 bg-white/90 backdrop-blur-2xl border border-white rounded-[40px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col items-center gap-3 min-w-[240px]"
+            key="waiting"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
           >
-             <div className="flex items-center gap-4">
-                <div className="relative">
-                   <div className="h-10 w-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center animate-spin duration-[4s]">
-                      <Clock size={20} />
-                   </div>
-                   <div className="absolute inset-0 bg-blue-500/10 rounded-2xl blur-md" />
-                </div>
-                <div className="text-right">
-                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Next Launch In</p>
-                   <p className="text-2xl font-black text-[#002d4d] tabular-nums leading-none">{timer}s</p>
+             <div className="flex flex-col items-center gap-1">
+                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] leading-none mb-2 animate-pulse">
+                  Next Launch In
+                </p>
+                <div className="flex items-center gap-4">
+                   <Clock size={18} className="text-blue-200 animate-spin duration-[6s]" />
+                   <span className="text-5xl font-black text-[#002d4d] tabular-nums leading-none">
+                     {timer}s
+                   </span>
                 </div>
              </div>
              
-             {/* Progress Rail */}
-             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1 shadow-inner p-0.5">
+             <div className="w-32 h-[1px] bg-gray-100 relative mt-4">
                 <motion.div 
                   initial={{ width: "100%" }}
                   animate={{ width: "0%" }}
                   transition={{ duration: timer, ease: "linear" }}
-                  className="h-full bg-gradient-to-r from-blue-600 to-indigo-400 rounded-full"
+                  className="absolute right-0 h-full bg-blue-500"
                 />
              </div>
-             <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.3em] animate-pulse">Accepting Bets...</p>
           </motion.div>
         )}
 
         {state === 'running' && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="flex items-center gap-4 px-8 py-3.5 bg-[#002d4d] rounded-full border border-white/10 shadow-2xl shadow-blue-900/40"
+            key="running"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute bottom-6 right-6 flex items-center gap-2.5 opacity-40 hover:opacity-100 transition-opacity duration-500"
           >
-             <div className="relative">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping absolute inset-0" />
-                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_15px_#10b981] relative z-10" />
-             </div>
-             <div className="flex items-center gap-3">
-                <Rocket size={14} className="text-[#f9a885] animate-bounce" />
-                <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Protocol Active</span>
+             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+             <div className="flex flex-col items-start leading-none">
+                <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-widest">بروتوكول نشط</span>
+                <span className="text-[7px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Operational Node</span>
              </div>
           </motion.div>
         )}
