@@ -13,13 +13,14 @@ import {
   CrashLiveBets
 } from "@/components/arena/crash";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, increment, collection, query, where } from "firebase/firestore";
+import { ShieldCheck } from "lucide-react";
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش العالمية v110.0 - Professional Casino Architecture
- * تم إعادة بناء الواجهة لتكون Grid-based تضاهي المنصات العالمية (Stake/Roobet).
+ * @fileOverview صفحة الكراش العالمية v115.0 - Professional Server-Driven Architecture
+ * تم إصلاح خطأ الاستيراد وتطوير منطق الجلسة ليكون متزامناً بالكامل مع قاعدة البيانات المركزية.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -33,6 +34,7 @@ export default function CrashPage() {
 
   const requestRef = useRef<number | null>(null);
 
+  // 1. مزامنة بيانات المستخدم السيادية
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -44,10 +46,11 @@ export default function CrashPage() {
     }
   }, [db]);
 
+  // 2. ربط "سيرفر" اللعبة - الحقيقة الواحدة
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
   const { data: globalGame } = useDoc(gameStateRef);
 
-  // حساب المضاعف الفيزيائي المتزامن
+  // تحديث المضاعف الفيزيائي المتزامن بناءً على زمن البداية الموحد
   const updateMultiplier = (startTime: number) => {
     const now = Date.now();
     const elapsed = (now - startTime) / 1000;
@@ -71,7 +74,7 @@ export default function CrashPage() {
       setMultiplier(1.0);
       setHasCashedOut(false);
 
-      // محاكاة السيرفر المركزي لتنفيذ الجولة
+      // محاكاة السيرفر المركزي لتنفيذ الجولة (Master Switch)
       if (elapsed >= 8) {
         const crashPoint = 1 + (Math.random() * (1 / (1 - Math.random())) * 0.96);
         updateDoc(gameStateRef, {
@@ -111,7 +114,7 @@ export default function CrashPage() {
     }
 
     return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); };
-  }, [globalGame]);
+  }, [globalGame, gameStateRef]);
 
   const handlePlaceBet = async (amount: number) => {
     if (!dbUser || amount > (dbUser.totalBalance || 0) || localState !== 'waiting' || currentBet) return;
@@ -147,38 +150,26 @@ export default function CrashPage() {
       <div className="flex flex-col h-[100dvh] bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
         <CrashHeader user={dbUser} />
         
-        {/* Main Grid Layout: Interactive Area + Stats */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden relative">
           
-          {/* Section 1: The Sovereign Reactor (Left - Desktop) */}
           <div className="lg:col-span-8 xl:col-span-9 flex flex-col relative border-l border-gray-100 bg-[#fcfdfe] overflow-hidden">
-             
-             {/* History Rail - Top Fixed */}
              <div className="p-4 z-40 bg-white/40 backdrop-blur-sm border-b border-gray-50">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
-             {/* Dynamic Visualizer Area */}
              <div className="flex-1 relative overflow-hidden">
                 <CrashVisualizer multiplier={multiplier} state={localState} />
-                
                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
                    <CrashMultiplier multiplier={multiplier} state={localState} />
                 </div>
-
                 <CrashStatus state={localState} timer={localTimer} multiplier={multiplier} />
-                
-                {/* Branding vertical rail */}
                 <div className="absolute bottom-6 right-8 z-40 opacity-10 select-none hidden md:block">
                    <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">NAMIX SOVEREIGN ENGINE</p>
                 </div>
              </div>
           </div>
 
-          {/* Section 2: Command & Control Panel (Right - Desktop) */}
           <div className="lg:col-span-4 xl:col-span-3 flex flex-col bg-white shadow-[-20px_0_80px_rgba(0,45,77,0.03)] z-50 overflow-y-auto scrollbar-none border-r border-gray-50">
-             
-             {/* Betting Controls */}
              <div className="p-6 border-b border-gray-50">
                 <CrashControls 
                   state={localState} 
@@ -192,7 +183,6 @@ export default function CrashPage() {
                 />
              </div>
 
-             {/* Live Activity Radar */}
              <div className="flex-1 p-6 bg-gray-50/20">
                 <CrashLiveBets 
                   state={localState}
@@ -202,7 +192,6 @@ export default function CrashPage() {
                 />
              </div>
 
-             {/* Footer Protection Label */}
              <div className="p-4 flex flex-col items-center gap-2 opacity-30 select-none">
                 <div className="flex items-center gap-2">
                    <ShieldCheck size={10} className="text-blue-500" />
