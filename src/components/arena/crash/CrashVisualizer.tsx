@@ -11,10 +11,10 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الأفق السماوي v27.0 - Visible Clouds Edition
+ * @fileOverview مفاعل الأفق السماوي v28.0 - Nano Clouds Edition
  * - الخلفية: تدرج سماوي فاخر.
- * - الغيوم: رمادية متدرجة للأبيض لتصبح مرئية بوضوح وتتحرك من اليمين لليسار.
- * - المحاور: X (0-10s بفاصل 2ث)، Y (1-4x بفاصل 1x).
+ * - الغيوم: 4 غيوم صغيرة في النصف العلوي، رمادية متدرجة، تتحرك ببطء من اليمين لليسار.
+ * - المحاور: X (0-10s بفاصل 2ث)، Y (1-4x بفاصل 1x) على اليسار.
  * - المنحنى: صعود طبيعي سائل يبدأ من (0, 100).
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
@@ -28,12 +28,10 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   const maxMult = useMemo(() => Math.max(4, multiplier), [multiplier]);
 
   // إحداثيات النقطة الحالية (النسبة المئوية داخل الحاوية)
-  // X يتحرك من اليسار (0) لليمين (100)
   const currentX = (elapsed / maxTime) * 100;
-  // Y يتحرك من الأسفل (100) للأعلى (0)
   const currentY = 100 - ((multiplier - 1) / (maxMult - 1)) * 100;
 
-  // توليد علامات المحور الصادي (Y) على اليسار - 3 مستويات (1x, 2x, 3x, 4x)
+  // علامات المحور الصادي (Y) على اليسار - 3 مستويات (1x, 2x, 3x, 4x)
   const yTicks = useMemo(() => {
     const ticks = [];
     const step = (maxMult - 1) / 3;
@@ -43,7 +41,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return ticks;
   }, [maxMult]);
 
-  // توليد علامات المحور السيني (X) في الأسفل - 5 محطات بفاصل 2 ثانية (0, 2, 4, 6, 8, 10)
+  // علامات المحور السيني (X) في الأسفل - 5 محطات بفاصل 2 ثانية
   const xTicks = useMemo(() => {
     const ticks = [];
     const step = maxTime / 5;
@@ -53,7 +51,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return ticks;
   }, [maxTime]);
 
-  // مسار النمو الطبيعي (Quadratic Bezier) يبدأ من نقطة الصفر
   const pathData = useMemo(() => {
     if (state === 'waiting') return "";
     const cpX = currentX * 0.5;
@@ -61,43 +58,37 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return `M 0 100 Q ${cpX} ${cpY}, ${currentX} ${currentY}`;
   }, [currentX, currentY, state]);
 
+  // مصفوفة الغيوم الصغيرة في النصف العلوي
+  const clouds = [
+    { top: '8%', delay: 0, duration: 55, scale: 0.4 },
+    { top: '18%', delay: 15, duration: 45, scale: 0.3 },
+    { top: '32%', delay: 5, duration: 65, scale: 0.5 },
+    { top: '44%', delay: 25, duration: 50, scale: 0.35 }
+  ];
+
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-200 via-blue-50 to-white font-body select-none">
       
-      {/* 1. Atmospheric Cloud Engine - Visible Gray to White Gradient */}
+      {/* 1. Atmospheric Cloud Engine - Small Slow Clouds in Top Half */}
       <div className="absolute inset-0 z-0">
-        {/* Cloud 1 - Top Slow */}
-        <motion.div 
-          animate={{ x: ['120%', '-120%'] }}
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[12%] opacity-[0.6]"
-        >
-          <div className="w-36 h-10 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-xl shadow-sm" />
-        </motion.div>
-
-        {/* Cloud 2 - Mid Medium */}
-        <motion.div 
-          animate={{ x: ['120%', '-120%'] }}
-          transition={{ duration: 28, repeat: Infinity, ease: "linear", delay: 8 }}
-          className="absolute top-[40%] opacity-[0.5]"
-        >
-          <div className="w-56 h-14 bg-gradient-to-r from-gray-300 via-white to-gray-100 rounded-full blur-2xl shadow-sm" />
-        </motion.div>
-
-        {/* Cloud 3 - Bottom Fast */}
-        <motion.div 
-          animate={{ x: ['120%', '-120%'] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear", delay: 3 }}
-          className="absolute top-[70%] opacity-[0.4]"
-        >
-          <div className="w-44 h-12 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-xl shadow-sm" />
-        </motion.div>
+        {clouds.map((cloud, i) => (
+          <motion.div 
+            key={i}
+            initial={{ x: '120%' }}
+            animate={{ x: '-120%' }}
+            transition={{ duration: cloud.duration, repeat: Infinity, ease: "linear", delay: cloud.delay }}
+            className="absolute opacity-[0.6] will-change-transform"
+            style={{ top: cloud.top, scale: cloud.scale }}
+          >
+            <div className="w-24 h-6 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-md shadow-sm" />
+          </motion.div>
+        ))}
       </div>
 
       {/* 2. Grid & Axis Labels */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
         
-        {/* Y Axis (Left Side) - المضاعفات من الأسفل للأعلى */}
+        {/* Y Axis (Left Side) - المضاعفات على اليسار */}
         <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-40 z-20" dir="ltr">
           {yTicks.map((tick, i) => (
             <motion.span 
@@ -110,7 +101,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
           ))}
         </div>
 
-        {/* X Axis (Bottom) - الثواني من اليسار لليمين */}
+        {/* X Axis (Bottom) - الثواني في الأسفل */}
         <div className="absolute bottom-2 inset-x-12 flex justify-between items-end opacity-40 z-20" dir="ltr">
           {xTicks.map((tick, i) => (
             <motion.span 
