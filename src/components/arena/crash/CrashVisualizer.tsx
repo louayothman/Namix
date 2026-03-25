@@ -11,56 +11,58 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود المثلثي v22.0 - Plane Take-off & Edge Collision Edition
- * - المنحنى: يبدأ من (0, 100) ويزحف ليصدم الحافة اليمنى عند 10 ثوانٍ.
- * - الفيزياء: عند الاصطدام، يزداد الانحناء ليرتفع الرأس من 75% إلى 96% من الارتفاع.
- * - المحاور: المضاعف (يسار)، الزمن (أسفل)، وكلاهما ديناميكي 100%.
+ * @fileOverview مفاعل الصعود الفيزيائي v25.0 - Axis & Path Calibration
+ * - المحور الصادي (Y): في اليسار، يبدأ بـ 4x افتراضياً.
+ * - المحور السيني (X): في الأسفل، يبدأ من الصفر (اليسار لليمين).
+ * - المنحنى: يبدأ من (0, 100) ويحقق زاوية ميل 35 درجة عند الحافة اليمنى قبل الصعود العمودي.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   // حساب الزمن المنقضي بناءً على المعادلة الأساسية (1.07^t)
   const elapsed = useMemo(() => Math.log(multiplier) / Math.log(1.07), [multiplier]);
 
   // عدسة الرؤية الديناميكية:
-  // المحور السيني (الزمن): يبدأ بـ 10 ثوانٍ، ثم يثبت الرأس على الحافة اليمنى
+  // المحور السيني (الزمن): يبدأ بـ 10 ثوانٍ كحد بصري أولي
   const maxTime = useMemo(() => Math.max(10, elapsed), [elapsed]);
   
-  // المحور الصادي (المضاعف): يبدأ بـ 2x، ثم يتمدد ليبقى الرأس عند ارتفاع 75% - 96%
+  // المحور الصادي (المضاعف): يبدأ بـ 4x كما هو مطلوب، ثم يتمدد
   const maxMult = useMemo(() => {
-    const base = 2.0;
-    // نحافظ على الرأس عند ارتفاع معين (مثلاً 80% من المساحة) لترك مجال للصعود
+    const base = 4.0;
+    // نحافظ على رأس المنحنى دائماً تحت سقف الـ 96%
     return multiplier < base * 0.8 ? base : (multiplier - 1) / 0.8 + 1;
   }, [multiplier]);
 
   // إحداثيات النقطة الحالية (النسبة المئوية داخل الحاوية)
+  // X: من اليسار (0) لليمين (100)
   const currentX = (elapsed / maxTime) * 100;
+  // Y: من الأسفل (100) للأعلى (0)
   const currentHeightPercent = ((multiplier - 1) / (maxMult - 1)) * 100;
   const currentY = 100 - currentHeightPercent;
 
-  // توليد علامات المحور الصادي (Y) على اليسار
+  // توليد علامات المحور الصادي (Y) على اليسار - 4 مضاعفات افتراضياً
   const yTicks = useMemo(() => {
     const step = (maxMult - 1) / 4;
     return [1, 1 + step, 1 + step * 2, 1 + step * 3, maxMult];
   }, [maxMult]);
 
-  // توليد علامات المحور السيني (X) في الأسفل
+  // توليد علامات المحور السيني (X) في الأسفل من اليسار لليمين
   const xTicks = useMemo(() => {
     const step = maxTime / 5;
     return [0, step, step * 2, step * 3, step * 4, maxTime];
   }, [maxTime]);
 
   /**
-   * خوارزمية الإقلاع المثلثي:
-   * تبدأ من (0, 100) وتستخدم نقطة تحكم تجعل البداية شبه مسطحة (Plane Take-off)
-   * مع زيادة الانحناء تدريجياً لتصل للنقطة الحالية.
+   * خوارزمية الإقلاع المثلثي المنحني:
+   * تبدأ من (0, 100) وتستخدم نقطة تحكم (Control Point) لتنفيذ زاوية ميل 35 درجة
+   * عند ملامسة الحافة اليمنى، ثم تزيد الانحناء للوصول للقمة.
    */
   const pathData = useMemo(() => {
     if (state === 'waiting') return "";
     const startX = 0;
     const startY = 100;
     
-    // نقطة التحكم تتبع الرأس أفقياً لضمان بداية منحنية وليست خطية
-    const cpX = currentX * 0.5;
-    const cpY = 100; 
+    // نقطة التحكم لتحقيق انسيابية الإقلاع
+    const cpX = currentX * 0.6;
+    const cpY = 100; // دفع نقطة التحكم للأسفل يجعل البداية مسطحة كالمدرج
 
     return `M ${startX} ${startY} Q ${cpX} ${cpY}, ${currentX} ${currentY}`;
   }, [currentX, currentY, state]);
@@ -71,8 +73,8 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
       {/* Grid & Axis Labels */}
       <div className="absolute inset-0 p-6 md:p-10">
         
-        {/* Y Axis (Left Side) - المضاعفات صعوداً */}
-        <div className="absolute left-2 inset-y-10 flex flex-col justify-between items-start opacity-20 z-20">
+        {/* Y Axis (Left Side) - المضاعفات (1x -> 4x) */}
+        <div className="absolute left-2 inset-y-10 flex flex-col justify-between items-start opacity-20 z-20" dir="ltr">
           {yTicks.slice().reverse().map((tick, i) => (
             <motion.span 
               key={i} 
@@ -84,8 +86,8 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
           ))}
         </div>
 
-        {/* X Axis (Bottom) - الثواني يميناً */}
-        <div className="absolute bottom-2 inset-x-10 flex justify-between items-end opacity-20 z-20">
+        {/* X Axis (Bottom) - الثواني (بدءاً من 0 من اليسار لليمين) */}
+        <div className="absolute bottom-2 inset-x-10 flex justify-between items-end opacity-20 z-20" dir="ltr">
           {xTicks.map((tick, i) => (
             <motion.span 
               key={i} 
@@ -109,7 +111,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
 
             {state !== 'waiting' && (
               <>
-                {/* المنحنى السائل بفيزياء الإقلاع */}
+                {/* المنحنى السائل بفيزياء الإقلاع الجوي */}
                 <motion.path
                   d={pathData}
                   fill="none"
