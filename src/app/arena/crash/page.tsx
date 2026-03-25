@@ -16,8 +16,8 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 /**
- * @fileOverview مفاعل Namix Crash السيادي v3.0 - Global Sync Edition
- * تم تحويل المحرك ليعمل بشكل متزامن لجميع المستخدمين عبر Firestore.
+ * @fileOverview مفاعل Namix Crash السيادي v4.0 - Global Unified Sync
+ * تم تكبير مساحة المفاعل بنسبة 200% وتثبيت سجل الجولات في القمة مع مزامنة Firestore كاملة.
  */
 
 type GameState = 'waiting' | 'running' | 'crashed';
@@ -48,15 +48,15 @@ export default function CrashPage() {
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
   const { data: globalGame, isLoading: loadingGame } = useDoc(gameStateRef);
 
-  // 3. محرك المزامنة اللحظي (Global Sync Logic)
+  // 3. محرك المزامنة اللحظي (Global Master Logic)
   useEffect(() => {
     if (!globalGame) {
-      // تهيئة اللعبة في حال عدم وجودها (لأول مرة فقط)
+      // تهيئة اللعبة لأول مرة
       setDoc(gameStateRef, {
         status: 'waiting',
         startTime: new Date().toISOString(),
         crashPoint: 2.5,
-        history: [1.45, 4.22, 1.05, 12.4, 2.11]
+        history: [1.45, 4.22, 1.05, 12.4, 2.11, 1.88, 3.45, 1.12, 6.78, 2.33]
       });
       return;
     }
@@ -75,22 +75,20 @@ export default function CrashPage() {
         setMultiplier(1.0);
         setHasCashout(false);
 
-        // العبور للحالة التالية (Global Master Logic)
         if (elapsed >= 10) {
           updateDoc(gameStateRef, {
             status: 'running',
             startTime: new Date().toISOString(),
-            crashPoint: 1 + (Math.random() * Math.random() * 15)
+            crashPoint: 1 + (Math.random() * Math.random() * 20) // مضاعفات أكثر جرأة
           }).catch(() => {});
         }
       } 
       else if (globalGame.status === 'running') {
         setLocalState('running');
-        // معادلة حساب المضاعف الأسي بناءً على الزمن
-        const currentMult = Math.pow(1.06, elapsed);
+        // معادلة صعود أسي أكثر إثارة
+        const currentMult = Math.pow(1.07, elapsed);
         setMultiplier(currentMult);
 
-        // التحقق من الانفجار (Global Master Logic)
         if (currentMult >= globalGame.crashPoint) {
           const newHistory = [currentMult, ...(globalGame.history || [])].slice(0, 10);
           updateDoc(gameStateRef, {
@@ -105,7 +103,6 @@ export default function CrashPage() {
         setLocalState('crashed');
         setMultiplier(globalGame.crashPoint || 1.0);
         
-        // العبور لفترة الانتظار القادمة
         if (elapsed >= 4) {
           updateDoc(gameStateRef, {
             status: 'waiting',
@@ -115,7 +112,7 @@ export default function CrashPage() {
       }
     };
 
-    interval = setInterval(tick, 100);
+    interval = setInterval(tick, 50); // دقة أعلى (50ms)
     return () => clearInterval(interval);
   }, [globalGame, gameStateRef]);
 
@@ -150,23 +147,33 @@ export default function CrashPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body tracking-normal" dir="rtl">
+      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
         <CrashHeader user={dbUser} />
         
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-          {/* Main Game Visual Area */}
-          <div className="flex-1 flex flex-col relative bg-gray-50/10">
-             {/* History at the top of container */}
-             <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-gradient-to-b from-white via-white/80 to-transparent">
+          
+          {/* Main Game Visual Area - High Focus */}
+          <div className="flex-1 flex flex-col relative bg-gray-50/5">
+             
+             {/* History Rail - Absolute Top Position */}
+             <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-gradient-to-b from-white via-white/90 to-transparent">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
+             {/* Expanded Visualizer Container */}
              <div className="flex-1 relative flex flex-col items-center justify-center p-6 overflow-hidden">
-                <CrashMultiplier multiplier={multiplier} state={localState} />
+                <div className="relative z-20 scale-110 md:scale-125 mb-12">
+                   <CrashMultiplier multiplier={multiplier} state={localState} />
+                </div>
+                
                 <CrashVisualizer multiplier={multiplier} state={localState} />
-                <CrashStatus state={localState} timer={localTimer} />
+                
+                <div className="relative z-30">
+                   <CrashStatus state={localState} timer={localTimer} />
+                </div>
              </div>
              
+             {/* Mobile Controls Position */}
              <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50">
                 <CrashControls 
                   state={localState} 
@@ -181,9 +188,9 @@ export default function CrashPage() {
              </div>
           </div>
 
-          {/* Side Info Panel */}
-          <div className="lg:w-[400px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-24 lg:pb-0 z-40">
-             <div className="hidden lg:block p-8 border-b border-gray-50">
+          {/* Side Info Panel - Desktop/Tablet */}
+          <div className="lg:w-[420px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-24 lg:pb-0 z-40">
+             <div className="hidden lg:block p-10 border-b border-gray-50">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
