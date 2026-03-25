@@ -16,9 +16,9 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 /**
- * @fileOverview مفاعل Namix Crash السيادي v8.0 - Absolute Vertical Expansion
- * تم فصل سجل الجولات ليكون سطراً مستقلاً ومنح الحاوية المركزية السيادة الكاملة.
- * الحاوية ممتدة من نهاية السجل حتى بداية لوحة الرهان بدون هوامش وبحجم مضاعف.
+ * @fileOverview مفاعل Namix Crash السيادي v9.0 - Structural Sovereignty
+ * تم إعادة توزيع المساحات بنسبة 2:1 للمفاعل مقابل لوحة الرهان.
+ * تم عزل السجل في القمة ومنع تداخل الطبقات لضمان عدم اختفاء المفاعل.
  */
 
 type GameState = 'waiting' | 'running' | 'crashed';
@@ -143,36 +143,38 @@ export default function CrashPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
+      <div className="flex flex-col h-screen bg-white overflow-hidden font-body" dir="rtl">
+        {/* هيدر الصفحة ثابت في القمة */}
         <CrashHeader user={dbUser} />
         
+        {/* منطقة العمل الرئيسية مقسمة لضمان سيادة المفاعل */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           
-          <div className="flex-1 flex flex-col relative bg-gray-50/5 overflow-hidden">
+          <div className="flex-[2.5] flex flex-col bg-white overflow-hidden relative border-l border-gray-50">
              
-             {/* سجل الجولات - سطر مستقل في القمة لمنع الاقتطاع */}
-             <div className="shrink-0 z-40 p-4 bg-white border-b border-gray-50">
+             {/* 1. سجل الجولات: سطر مستقل تماماً في القمة لمنع التداخل */}
+             <div className="shrink-0 z-[60] p-4 bg-white border-b border-gray-50">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
-             {/* حاوية المفاعل العملاقة - تشغل كامل المساحة المتبقية بدون هوامش */}
-             <div className="flex-1 relative flex flex-col items-center justify-center p-0 overflow-hidden bg-white">
-                {/* المضاعف السعري - حجم نخبوي مضغوط */}
-                <div className="relative z-20 mb-8">
+             {/* 2. حاوية المفاعل السيادية: تشغل 2/3 المساحة الرأسية بتوزيع Flex */}
+             <div className="flex-[2] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-gray-50/5 z-[50]">
+                {/* المضاعف السعري: حجم نخبوي أنيق */}
+                <div className="relative z-[52] mb-4">
                    <CrashMultiplier multiplier={multiplier} state={localState} />
                 </div>
                 
-                {/* المفاعل البصري - خلفية المنحنى */}
+                {/* المفاعل البصري: يملأ الحاوية كخلفية */}
                 <CrashVisualizer multiplier={multiplier} state={localState} />
                 
                 {/* شريط الحالة والعد التنازلي */}
-                <div className="relative z-30 mt-4">
+                <div className="relative z-[53] mt-2">
                    <CrashStatus state={localState} timer={localTimer} />
                 </div>
              </div>
              
-             {/* لوحة التحكم للجوال - تظهر أسفل المفاعل مباشرة */}
-             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.03)] relative z-50 shrink-0">
+             {/* 3. لوحة التحكم للجوال: تشغل 1/3 المساحة الرأسية وتكون قابلة للتمرير إن لزم الأمر */}
+             <div className="flex-1 lg:hidden p-4 bg-white border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-[70] overflow-y-auto scrollbar-none">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
@@ -187,8 +189,8 @@ export default function CrashPage() {
           </div>
 
           {/* الرادار الجانبي لسطح المكتب */}
-          <div className="lg:w-[420px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-24 lg:pb-0 z-40">
-             <div className="hidden lg:block p-10 border-b border-gray-50">
+          <div className="hidden lg:flex lg:w-[420px] bg-white border-r border-gray-100 flex-col shrink-0 overflow-y-auto scrollbar-none z-40">
+             <div className="p-10 border-b border-gray-50">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
@@ -203,6 +205,11 @@ export default function CrashPage() {
              <div className="p-8 space-y-10">
                 <CrashLiveBets state={localState} currentBet={currentBet} hasCashedOut={hasCashedOut} multiplier={multiplier} />
              </div>
+          </div>
+
+          {/* رادار اللاعبين للجوال يظهر في الأسفل تماماً */}
+          <div className="lg:hidden shrink-0 bg-white border-t border-gray-50 max-h-[30vh] overflow-y-auto p-4 z-[65] scrollbar-none">
+             <CrashLiveBets state={localState} currentBet={currentBet} hasCashedOut={hasCashedOut} multiplier={multiplier} />
           </div>
         </div>
       </div>
