@@ -6,6 +6,7 @@ import { Shell } from "@/components/layout/Shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Gem, 
@@ -20,7 +21,8 @@ import {
   Loader2,
   AlertTriangle,
   History,
-  TrendingUp
+  TrendingUp,
+  UserCircle
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
@@ -202,7 +204,7 @@ export default function MinesPage() {
                       disabled={gameState === 'playing'}
                       className="h-16 rounded-[24px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner focus-visible:ring-2 focus-visible:ring-blue-500" 
                     />
-                    <Coins className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
+                    <Coins className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-100" />
                   </div>
                 </div>
 
@@ -374,7 +376,7 @@ export default function MinesPage() {
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="p-4 bg-white rounded-3xl border border-gray-50 flex items-center justify-between opacity-40">
                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-xl bg-gray-50 flex items-center justify-center"><UserCircle size={16}/></div>
+                          <div className="h-8 w-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400"><UserCircle size={16}/></div>
                           <span className="text-[10px] font-black text-[#002d4d]">Investor_{821 + i}</span>
                        </div>
                        <div className="flex items-center gap-4">
