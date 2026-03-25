@@ -14,7 +14,11 @@ import {
 } from "@/components/arena/crash";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
-import { toast } from "@/hooks/use-toast";
+
+/**
+ * @fileOverview مفاعل Namix Crash السيادي v2.0 - Modern Pulse Edition
+ * تم تحديث محرك اللعبة ليدعم التنويهات المدمجة وتطهير الطباعة العربية.
+ */
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
@@ -22,14 +26,14 @@ export default function CrashPage() {
   const [dbUser, setDbUser] = useState<any>(null);
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [multiplier, setMultiplier] = useState(1.0);
-  const [timer, setTimer] = useState(10); // Waiting timer
+  const [timer, setTimer] = useState(10); 
   const [history, setHistory] = useState<number[]>([1.45, 4.22, 1.05, 12.4, 2.11]);
   const [currentBet, setCurrentBet] = useState<number | null>(null);
   const [hasCashedOut, setHasCashout] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
   
   const db = useFirestore();
 
-  // 1. Sync User Balance
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -41,7 +45,6 @@ export default function CrashPage() {
     }
   }, [db]);
 
-  // 2. Game Loop Simulation
   useEffect(() => {
     let interval: any;
 
@@ -58,18 +61,21 @@ export default function CrashPage() {
         });
       }, 1000);
     } else if (gameState === 'running') {
-      const crashPoint = Math.random() * 10 + 1; // Simplified random crash
+      // Realistic crash simulation logic
+      const crashPoint = 1 + (Math.random() * Math.random() * 15); 
       let currentMult = 1.0;
       
       interval = setInterval(() => {
-        currentMult += currentMult * 0.05; // Exponential growth
+        const increment = currentMult < 2 ? 0.01 : currentMult < 5 ? 0.02 : 0.05;
+        currentMult += increment;
         setMultiplier(currentMult);
 
         if (currentMult >= crashPoint) {
           setGameState('crashed');
-          setHistory(prev => [currentMult, ...prev].slice(0, 8));
+          setHistory(prev => [currentMult, ...prev].slice(0, 10));
+          setCurrentBet(null);
           clearInterval(interval);
-          setTimeout(() => setGameState('waiting'), 3000);
+          setTimeout(() => setGameState('waiting'), 4000);
         }
       }, 100);
     }
@@ -82,9 +88,10 @@ export default function CrashPage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amount) });
       setCurrentBet(amount);
-      toast({ title: "تم قبول الرهان", description: "بالتوفيق في جولة النبض الحالية." });
+      setFeedback({ type: 'success', msg: 'تم قبول الرهان بنجاح. بانتظار الانطلاق...' });
+      setTimeout(() => setFeedback(null), 3000);
     } catch (e) {
-      toast({ variant: "destructive", title: "فشل تنفيذ العملية" });
+      setFeedback({ type: 'error', msg: 'فشل تنفيذ بروتوكول الرهان.' });
     }
   };
 
@@ -93,27 +100,33 @@ export default function CrashPage() {
     const profit = currentBet * multiplier;
     setHasCashout(true);
     try {
-      await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(profit) });
-      toast({ title: "تم سحب الأرباح!", description: `حققت عائداً قدره $${profit.toFixed(2)} بمضاعف ${multiplier.toFixed(2)}x` });
+      await updateDoc(doc(db, "users", dbUser.id), { 
+        totalBalance: increment(profit),
+        totalProfits: increment(profit - currentBet)
+      });
+      setFeedback({ type: 'success', msg: `تم السحب بنجاح! +$${profit.toFixed(2)}` });
       setCurrentBet(null);
-    } catch (e) {}
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (e) {
+      setFeedback({ type: 'error', msg: 'خطأ في مزامنة الأرباح.' });
+    }
   };
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
+      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body tracking-normal" dir="rtl">
         <CrashHeader user={dbUser} />
         
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           {/* Main Game Visual Area */}
-          <div className="flex-1 flex flex-col relative bg-gray-50/20">
-             <div className="flex-1 relative flex flex-col items-center justify-center p-6">
+          <div className="flex-1 flex flex-col relative bg-gray-50/10">
+             <div className="flex-1 relative flex flex-col items-center justify-center p-6 overflow-hidden">
                 <CrashMultiplier multiplier={multiplier} state={gameState} />
                 <CrashVisualizer multiplier={multiplier} state={gameState} />
                 <CrashStatus state={gameState} timer={timer} />
              </div>
              
-             <div className="p-4 bg-white border-t border-gray-100 lg:hidden">
+             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50">
                 <CrashControls 
                   state={gameState} 
                   onPlaceBet={handlePlaceBet} 
@@ -122,13 +135,14 @@ export default function CrashPage() {
                   hasCashedOut={hasCashedOut}
                   multiplier={multiplier}
                   balance={dbUser?.totalBalance || 0}
+                  feedback={feedback}
                 />
              </div>
           </div>
 
-          {/* Side Info Panel */}
-          <div className="lg:w-[380px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-20 lg:pb-0">
-             <div className="hidden lg:block p-6 border-b border-gray-50">
+          {/* Side Info Panel - Unified for Desktop/Large Screens */}
+          <div className="lg:w-[400px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-24 lg:pb-0 z-40">
+             <div className="hidden lg:block p-8 border-b border-gray-50">
                 <CrashControls 
                   state={gameState} 
                   onPlaceBet={handlePlaceBet} 
@@ -137,9 +151,10 @@ export default function CrashPage() {
                   hasCashedOut={hasCashedOut}
                   multiplier={multiplier}
                   balance={dbUser?.totalBalance || 0}
+                  feedback={feedback}
                 />
              </div>
-             <div className="p-6 space-y-8">
+             <div className="p-8 space-y-10">
                 <CrashHistory results={history} />
                 <CrashLiveBets state={gameState} currentBet={currentBet} hasCashedOut={hasCashedOut} multiplier={multiplier} />
              </div>
