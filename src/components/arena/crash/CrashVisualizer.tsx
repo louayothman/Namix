@@ -11,27 +11,23 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الأفق السماوي v28.0 - Nano Clouds Edition
- * - الخلفية: تدرج سماوي فاخر.
- * - الغيوم: 4 غيوم صغيرة في النصف العلوي، رمادية متدرجة، تتحرك ببطء من اليمين لليسار.
- * - المحاور: X (0-10s بفاصل 2ث)، Y (1-4x بفاصل 1x) على اليسار.
- * - المنحنى: صعود طبيعي سائل يبدأ من (0, 100).
+ * @fileOverview مفاعل الأفق السماوي v30.0 - Crystal Clear Edition
+ * - الخلفية: تدرج سماوي نقي بدون خطوط شبكية.
+ * - الغيوم: 8 غيوم كبيرة، واضحة، وسريعة الحركة لتعزيز الإحساس بالسرعة.
+ * - المحاور: X (0-10s) و Y (1-4x) على اليسار والأسفل بنقاء تام.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   // حساب الزمن المنقضي بناءً على المعادلة (1.07^t)
   const elapsed = useMemo(() => Math.log(multiplier) / Math.log(1.07), [multiplier]);
 
-  // عدسة الرؤية الديناميكية (الزمن ثابت عند 10 ثوانٍ في البداية)
+  // عدسة الرؤية الديناميكية
   const maxTime = useMemo(() => Math.max(10, elapsed), [elapsed]);
-  
-  // المحور الصادي (المضاعف): يعرض 3 مستويات فوق الأساس = 4x افتراضياً
   const maxMult = useMemo(() => Math.max(4, multiplier), [multiplier]);
 
-  // إحداثيات النقطة الحالية (النسبة المئوية داخل الحاوية)
+  // إحداثيات النقطة الحالية
   const currentX = (elapsed / maxTime) * 100;
   const currentY = 100 - ((multiplier - 1) / (maxMult - 1)) * 100;
 
-  // علامات المحور الصادي (Y) على اليسار - 3 مستويات (1x, 2x, 3x, 4x)
   const yTicks = useMemo(() => {
     const ticks = [];
     const step = (maxMult - 1) / 3;
@@ -41,7 +37,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return ticks;
   }, [maxMult]);
 
-  // علامات المحور السيني (X) في الأسفل - 5 محطات بفاصل 2 ثانية
   const xTicks = useMemo(() => {
     const ticks = [];
     const step = maxTime / 5;
@@ -58,37 +53,42 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return `M 0 100 Q ${cpX} ${cpY}, ${currentX} ${currentY}`;
   }, [currentX, currentY, state]);
 
-  // مصفوفة الغيوم الصغيرة في النصف العلوي
+  // مصفوفة الغيوم المحسنة: عدد أكبر، حجم أكبر، سرعة أعلى، تموضع متنوع
   const clouds = [
-    { top: '8%', delay: 0, duration: 55, scale: 0.4 },
-    { top: '18%', delay: 15, duration: 45, scale: 0.3 },
-    { top: '32%', delay: 5, duration: 65, scale: 0.5 },
-    { top: '44%', delay: 25, duration: 50, scale: 0.35 }
+    { top: '5%', delay: 0, duration: 35, scale: 0.8 },
+    { top: '15%', delay: 5, duration: 42, scale: 1.1 },
+    { top: '25%', delay: 12, duration: 38, scale: 0.7 },
+    { top: '40%', delay: 2, duration: 45, scale: 1.2 },
+    { top: '55%', delay: 8, duration: 32, scale: 0.9 },
+    { top: '70%', delay: 15, duration: 48, scale: 1.0 },
+    { top: '10%', delay: 20, duration: 40, scale: 0.6 },
+    { top: '30%', delay: 25, duration: 36, scale: 1.3 }
   ];
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-200 via-blue-50 to-white font-body select-none">
       
-      {/* 1. Atmospheric Cloud Engine - Small Slow Clouds in Top Half */}
+      {/* 1. Atmospheric Cloud Engine - Larger, More defined clouds */}
       <div className="absolute inset-0 z-0">
         {clouds.map((cloud, i) => (
           <motion.div 
             key={i}
-            initial={{ x: '120%' }}
-            animate={{ x: '-120%' }}
+            initial={{ x: '150%' }}
+            animate={{ x: '-150%' }}
             transition={{ duration: cloud.duration, repeat: Infinity, ease: "linear", delay: cloud.delay }}
-            className="absolute opacity-[0.6] will-change-transform"
+            className="absolute opacity-[0.7] will-change-transform"
             style={{ top: cloud.top, scale: cloud.scale }}
           >
-            <div className="w-24 h-6 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-md shadow-sm" />
+            {/* Reduced blur from blur-md to blur-sm for more definition */}
+            <div className="w-32 h-8 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-sm shadow-sm" />
           </motion.div>
         ))}
       </div>
 
-      {/* 2. Grid & Axis Labels */}
+      {/* 2. Grid & Axis Labels (Grid lines removed, only labels remain) */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
         
-        {/* Y Axis (Left Side) - المضاعفات على اليسار */}
+        {/* Y Axis (Left Side) */}
         <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-40 z-20" dir="ltr">
           {yTicks.map((tick, i) => (
             <motion.span 
@@ -101,7 +101,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
           ))}
         </div>
 
-        {/* X Axis (Bottom) - الثواني في الأسفل */}
+        {/* X Axis (Bottom) */}
         <div className="absolute bottom-2 inset-x-12 flex justify-between items-end opacity-40 z-20" dir="ltr">
           {xTicks.map((tick, i) => (
             <motion.span 
@@ -124,15 +124,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
               </linearGradient>
             </defs>
 
-            {/* شبكة نانوية بيضاء متزامنة مع الأفق السماوي */}
-            <g className="opacity-[0.2]">
-               {xTicks.map((_, i) => (
-                 <line key={`v-${i}`} x1={i * (100/5)} y1="0" x2={i * (100/5)} y2="100" stroke="white" strokeWidth="0.5" />
-               ))}
-               {yTicks.map((_, i) => (
-                 <line key={`h-${i}`} x1="0" y1={i * (100/3)} x2="100" y2={i * (100/3)} stroke="white" strokeWidth="0.5" />
-               ))}
-            </g>
+            {/* Grid lines intentionally removed for a cleaner 'Crystal' look */}
 
             {state !== 'waiting' && (
               <>
@@ -147,7 +139,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   transition={{ duration: 0.1, ease: "linear" }}
                 />
                 
-                {/* نقطة الارتكاز (The Tip Dot) */}
+                {/* رأس السهم السائل (The Tip Dot) */}
                 <motion.circle
                   cx={currentX}
                   cy={currentY}
