@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview محرك المضاعف العملاق v5.0 - Titan Scale
- * تم زيادة أحجام الخطوط بنسبة كبيرة لتتصدر المفاعل الصاعد.
+ * @fileOverview محرك المضاعف المدمج v6.0 - Professional Scale
+ * تم تقليص حجم الخط ليكون أنيقاً ومتناسباً مع الحاوية الموسعة.
  */
 export function CrashMultiplier({ multiplier, state }: { multiplier: number, state: 'waiting' | 'running' | 'crashed' }) {
   return (
@@ -18,14 +18,14 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.5, opacity: 0 }}
-            className="space-y-4"
+            className="space-y-3"
           >
-            <h2 className="text-8xl md:text-[12rem] font-black text-red-500 tabular-nums tracking-tighter drop-shadow-[0_0_50px_rgba(239,68,68,0.5)]">
+            <h2 className="text-6xl md:text-8xl font-black text-red-500 tabular-nums tracking-tighter drop-shadow-[0_0_30px_rgba(239,68,68,0.3)]">
               {multiplier.toFixed(2)}x
             </h2>
-            <div className="flex flex-col items-center gap-2">
-               <p className="text-xl font-black text-red-400 uppercase tracking-[0.6em] leading-none">Crashed</p>
-               <div className="h-1.5 w-20 bg-red-100 rounded-full" />
+            <div className="flex flex-col items-center gap-1.5">
+               <p className="text-sm font-black text-red-400 uppercase tracking-[0.4em] leading-none">Crashed</p>
+               <div className="h-1 w-12 bg-red-100 rounded-full" />
             </div>
           </motion.div>
         ) : (
@@ -33,28 +33,28 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
             key="running"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="space-y-6"
+            className="space-y-4"
           >
             <div className="relative">
                <h2 className={cn(
-                 "text-9xl md:text-[14rem] font-black tabular-nums tracking-tighter transition-colors duration-500",
+                 "text-7xl md:text-9xl font-black tabular-nums tracking-tighter transition-colors duration-500",
                  state === 'waiting' ? "text-gray-100" : "text-[#002d4d]"
                )}>
                  {multiplier.toFixed(2)}x
                </h2>
                {state === 'running' && (
                  <motion.div 
-                   animate={{ opacity: [0.2, 0.5, 0.2] }}
+                   animate={{ opacity: [0.1, 0.3, 0.1] }}
                    transition={{ duration: 2, repeat: Infinity }}
-                   className="absolute inset-0 bg-blue-500/5 blur-[100px] rounded-full" 
+                   className="absolute inset-0 bg-blue-500/5 blur-[80px] rounded-full" 
                  />
                )}
             </div>
             
             {state === 'running' && (
-              <div className="flex items-center justify-center gap-4">
-                 <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_#10b981]" />
-                 <p className="text-sm font-black text-emerald-600 uppercase tracking-[0.5em] tracking-normal">In Flight...</p>
+              <div className="flex items-center justify-center gap-3">
+                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] tracking-normal">In Flight...</p>
               </div>
             )}
           </motion.div>

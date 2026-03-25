@@ -16,8 +16,8 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 /**
- * @fileOverview مفاعل Namix Crash السيادي v5.0 - Giant Visual Edition
- * تم تكبير مساحة المفاعل والمضاعف ليشغل كامل الحيز الرأسي بين السجل ولوحة الرهان.
+ * @fileOverview مفاعل Namix Crash السيادي v6.0 - Professional Layout
+ * تم توسيع حاوية العرض لتشغل كامل المساحة الرأسية مع الحفاظ على حجم مضاعف أنيق.
  */
 
 type GameState = 'waiting' | 'running' | 'crashed';
@@ -156,20 +156,20 @@ export default function CrashPage() {
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
-             {/* Expanded Giant Visualizer Container */}
-             <div className="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden">
-                <div className="relative z-20 scale-[1.6] md:scale-[2.2] mb-20">
+             {/* Expanded Display Container - Realigned for Elegance */}
+             <div className="flex-1 relative flex flex-col items-center justify-center p-0 overflow-hidden">
+                <div className="relative z-20 mb-12">
                    <CrashMultiplier multiplier={multiplier} state={localState} />
                 </div>
                 
                 <CrashVisualizer multiplier={multiplier} state={localState} />
                 
-                <div className="relative z-30 scale-110 md:scale-150 mt-10">
+                <div className="relative z-30 mt-8">
                    <CrashStatus state={localState} timer={localTimer} />
                 </div>
              </div>
              
-             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50">
+             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50 shrink-0">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
