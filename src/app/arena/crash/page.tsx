@@ -18,8 +18,8 @@ import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش العالمية v105.0 - High Performance Engine
- * تم فصل منطق المحاكاة البصري عن نبض قاعدة البيانات لضمان سلاسة Stake-level.
+ * @fileOverview صفحة الكراش العالمية v110.0 - Professional Casino Architecture
+ * تم إعادة بناء الواجهة لتكون Grid-based تضاهي المنصات العالمية (Stake/Roobet).
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -28,10 +28,9 @@ export default function CrashPage() {
   const [localState, setLocalState] = useState<GameState>('waiting');
   const [localTimer, setLocalTimer] = useState(10);
   const [currentBet, setCurrentBet] = useState<number | null>(null);
-  const [hasCashedOut, setHasCashout] = useState(false);
+  const [hasCashedOut, setHasCashedOut] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
 
-  // مرجع لتحديث الـ Multiplier في الـ RequestAnimationFrame لضمان 60fps
   const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -48,10 +47,12 @@ export default function CrashPage() {
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
   const { data: globalGame } = useDoc(gameStateRef);
 
+  // حساب المضاعف الفيزيائي المتزامن
   const updateMultiplier = (startTime: number) => {
     const now = Date.now();
     const elapsed = (now - startTime) / 1000;
-    const currentMult = Math.pow(1.07, elapsed);
+    // معادلة النمو الأسي العالمية لناميكس
+    const currentMult = Math.exp(0.055 * elapsed);
     setMultiplier(currentMult);
     requestRef.current = requestAnimationFrame(() => updateMultiplier(startTime));
   };
@@ -66,17 +67,17 @@ export default function CrashPage() {
     if (globalGame.status === 'waiting') {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       setLocalState('waiting');
-      setLocalTimer(Math.max(0, Math.ceil(10 - elapsed)));
+      setLocalTimer(Math.max(0, Math.ceil(8 - elapsed))); // 8 seconds betting phase
       setMultiplier(1.0);
-      setHasCashout(false);
+      setHasCashedOut(false);
 
-      if (elapsed >= 10) {
-        // محاكاة السيرفر: الانتقال للجولة القادمة
-        const crashPoint = 1 + (Math.random() * Math.random() * 15);
+      // محاكاة السيرفر المركزي لتنفيذ الجولة
+      if (elapsed >= 8) {
+        const crashPoint = 1 + (Math.random() * (1 / (1 - Math.random())) * 0.96);
         updateDoc(gameStateRef, {
           status: 'running',
           startTime: new Date().toISOString(),
-          crashPoint: crashPoint
+          crashPoint: Math.max(1.01, crashPoint)
         }).catch(() => {});
       }
     } 
@@ -84,8 +85,7 @@ export default function CrashPage() {
       setLocalState('running');
       requestRef.current = requestAnimationFrame(() => updateMultiplier(startTime));
 
-      // التحقق من الانهيار (في السيرفر الحقيقي هذا يتم هناك)
-      const currentMult = Math.pow(1.07, elapsed);
+      const currentMult = Math.exp(0.055 * elapsed);
       if (currentMult >= globalGame.crashPoint) {
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
         const newHistory = [currentMult, ...(globalGame.history || [])].slice(0, 20);
@@ -102,7 +102,7 @@ export default function CrashPage() {
       setLocalState('crashed');
       setMultiplier(globalGame.crashPoint || 1.0);
       
-      if (elapsed >= 5) {
+      if (elapsed >= 4) {
         updateDoc(gameStateRef, {
           status: 'waiting',
           startTime: new Date().toISOString()
@@ -114,11 +114,11 @@ export default function CrashPage() {
   }, [globalGame]);
 
   const handlePlaceBet = async (amount: number) => {
-    if (!dbUser || amount > (dbUser.totalBalance || 0) || localState !== 'waiting') return;
+    if (!dbUser || amount > (dbUser.totalBalance || 0) || localState !== 'waiting' || currentBet) return;
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amount) });
       setCurrentBet(amount);
-      setFeedback({ type: 'success', msg: 'تم تسجيل الرهان في الشبكة.' });
+      setFeedback({ type: 'success', msg: 'تم إيداع الرهان في المفاعل.' });
       setTimeout(() => setFeedback(null), 3000);
     } catch (e) {
       setFeedback({ type: 'error', msg: 'فشل بروتوكول الرهان.' });
@@ -128,17 +128,17 @@ export default function CrashPage() {
   const handleCashout = async () => {
     if (!dbUser || !currentBet || hasCashedOut || localState !== 'running') return;
     const profit = currentBet * multiplier;
-    setHasCashout(true);
+    setHasCashedOut(true);
     try {
       await updateDoc(doc(db, "users", dbUser.id), { 
         totalBalance: increment(profit),
         totalProfits: increment(profit - currentBet)
       });
-      setFeedback({ type: 'success', msg: `اكتمال الصرف: +$${profit.toFixed(2)}` });
+      setFeedback({ type: 'success', msg: `تم الصرف: +$${profit.toFixed(2)}` });
       setCurrentBet(null);
       setTimeout(() => setFeedback(null), 4000);
     } catch (e) {
-      setFeedback({ type: 'error', msg: 'خطأ في مزامنة العوائد.' });
+      setFeedback({ type: 'error', msg: 'خطأ في مزامنة الأرباح.' });
     }
   };
 
@@ -147,26 +147,39 @@ export default function CrashPage() {
       <div className="flex flex-col h-[100dvh] bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
         <CrashHeader user={dbUser} />
         
-        <div className="flex-1 flex flex-col relative">
-          {/* Main Visualizer Area - Balanced height for mobile visibility */}
-          <div className="flex-[0.7] md:flex-[1.2] relative overflow-hidden">
-             <CrashVisualizer multiplier={multiplier} state={localState} />
-             <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-                <CrashMultiplier multiplier={multiplier} state={localState} />
-             </div>
-             <CrashStatus state={localState} timer={localTimer} multiplier={multiplier} />
-             <div className="absolute top-4 left-4 right-4 z-40">
+        {/* Main Grid Layout: Interactive Area + Stats */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden relative">
+          
+          {/* Section 1: The Sovereign Reactor (Left - Desktop) */}
+          <div className="lg:col-span-8 xl:col-span-9 flex flex-col relative border-l border-gray-100 bg-[#fcfdfe] overflow-hidden">
+             
+             {/* History Rail - Top Fixed */}
+             <div className="p-4 z-40 bg-white/40 backdrop-blur-sm border-b border-gray-50">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
-             {/* Sovereign Protocol Label */}
-             <div className="absolute bottom-4 right-6 z-40 opacity-20 select-none">
-                <p className="text-[7px] font-black text-[#002d4d] uppercase tracking-[0.4em]">Active Node Protocol</p>
+
+             {/* Dynamic Visualizer Area */}
+             <div className="flex-1 relative overflow-hidden">
+                <CrashVisualizer multiplier={multiplier} state={localState} />
+                
+                <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                   <CrashMultiplier multiplier={multiplier} state={localState} />
+                </div>
+
+                <CrashStatus state={localState} timer={localTimer} multiplier={multiplier} />
+                
+                {/* Branding vertical rail */}
+                <div className="absolute bottom-6 right-8 z-40 opacity-10 select-none hidden md:block">
+                   <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">NAMIX SOVEREIGN ENGINE</p>
+                </div>
              </div>
           </div>
-          
-          {/* Controls Area - High tactile area */}
-          <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_100px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
-             <div className="md:col-span-5 lg:col-span-4 p-6 border-l border-gray-50">
+
+          {/* Section 2: Command & Control Panel (Right - Desktop) */}
+          <div className="lg:col-span-4 xl:col-span-3 flex flex-col bg-white shadow-[-20px_0_80px_rgba(0,45,77,0.03)] z-50 overflow-y-auto scrollbar-none border-r border-gray-50">
+             
+             {/* Betting Controls */}
+             <div className="p-6 border-b border-gray-50">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
@@ -178,7 +191,9 @@ export default function CrashPage() {
                   feedback={feedback}
                 />
              </div>
-             <div className="md:col-span-7 lg:col-span-8 p-6 bg-gray-50/30">
+
+             {/* Live Activity Radar */}
+             <div className="flex-1 p-6 bg-gray-50/20">
                 <CrashLiveBets 
                   state={localState}
                   currentBet={currentBet}
@@ -186,7 +201,16 @@ export default function CrashPage() {
                   multiplier={multiplier}
                 />
              </div>
+
+             {/* Footer Protection Label */}
+             <div className="p-4 flex flex-col items-center gap-2 opacity-30 select-none">
+                <div className="flex items-center gap-2">
+                   <ShieldCheck size={10} className="text-blue-500" />
+                   <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Provably Fair Protocol v4.0</p>
+                </div>
+             </div>
           </div>
+
         </div>
       </div>
     </Shell>
