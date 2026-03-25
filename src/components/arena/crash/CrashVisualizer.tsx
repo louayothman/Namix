@@ -11,28 +11,24 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود التفاعلي v65.0 - Namix Metallic Rocket & Jet Trail
- * - صاروخ معدني فضي مزرق يحمل شعار ناميكس الرسمي.
- * - أثر نفاث أبيض (Contrail) يتبع مسار التحليق بواقعية.
- * - تصحيح دقيق لوضعية محرك الدفع النفاث.
+ * @fileOverview مفاعل الصعود التفاعلي v70.0 - Sovereign Flight Engine
+ * - صاروخ معدني فضي أزرقي يحمل شعار ناميكس (2*2).
+ * - التحام تام بين الصاروخ، لهب المحرك، والأثر النفاث.
+ * - غيوم ضخمة بمتعددة الألوان تغطي كامل المفاعل.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
-  // حساب الزمن المنقضي بناءً على المعادلة (1.07^t)
   const elapsed = useMemo(() => Math.log(multiplier) / Math.log(1.07), [multiplier]);
 
-  // عدسة الرؤية الديناميكية
   const maxTime = useMemo(() => Math.max(10, elapsed), [elapsed]);
   const maxMult = useMemo(() => Math.max(4, multiplier), [multiplier]);
 
-  // إحداثيات الصاروخ (0-100%)
   const currentX = (elapsed / maxTime) * 100;
   const currentY = 100 - ((multiplier - 1) / (maxMult - 1)) * 100;
 
-  // توليد نقاط الأثر النفاث (Path)
   const trailPath = useMemo(() => {
     if (state === 'waiting') return "";
     let path = "M 0 100";
-    const steps = 20;
+    const steps = 25;
     for (let i = 1; i <= steps; i++) {
       const t = (elapsed / steps) * i;
       const m = Math.pow(1.07, t);
@@ -43,7 +39,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return path;
   }, [elapsed, maxTime, maxMult, state]);
 
-  // حساب زاوية ميل الصاروخ
   const angle = useMemo(() => {
     if (state === 'waiting') return -45;
     const dx = 0.5 * currentX;
@@ -51,36 +46,37 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     return Math.atan2(dy, dx) * (180 / Math.PI) + 90;
   }, [currentX, currentY, state]);
 
+  // مصفوفة الغيوم المطورة: ألوان مختلفة وتوزيع على كامل الارتفاع
   const cloudMatrix = [
-    { top: '8%', delay: 0, duration: 45, scale: 0.6 },
-    { top: '18%', delay: 5, duration: 55, scale: 0.4 },
-    { top: '28%', delay: 12, duration: 50, scale: 0.5 },
-    { top: '38%', delay: 2, duration: 60, scale: 0.35 },
-    { top: '12%', delay: 18, duration: 48, scale: 0.55 },
-    { top: '45%', delay: 8, duration: 52, scale: 0.45 }
+    { top: '10%', delay: 0, duration: 35, scale: 1.2, color: 'from-gray-100 to-white' },
+    { top: '25%', delay: 5, duration: 45, scale: 0.8, color: 'from-gray-200 to-gray-50' },
+    { top: '45%', delay: 12, duration: 40, scale: 1.1, color: 'from-white to-gray-100' },
+    { top: '60%', delay: 2, duration: 50, scale: 0.9, color: 'from-gray-100 via-white to-gray-50' },
+    { top: '75%', delay: 18, duration: 38, scale: 1.3, color: 'from-gray-200 to-white' },
+    { top: '88%', delay: 8, duration: 42, scale: 0.7, color: 'from-white via-gray-50 to-white' }
   ];
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-100 via-blue-50 to-white font-body select-none">
       
-      {/* 1. Atmospheric Small Clouds */}
+      {/* 1. Atmospheric Panoramic Clouds */}
       <div className="absolute inset-0 z-0">
         {cloudMatrix.map((cloud, i) => (
           <motion.div 
             key={i}
-            initial={{ left: '120%' }}
-            animate={{ left: '-40%' }}
+            initial={{ left: '130%' }}
+            animate={{ left: '-60%' }}
             transition={{ duration: cloud.duration, repeat: Infinity, ease: "linear", delay: cloud.delay }}
             className="absolute will-change-transform"
             style={{ top: cloud.top, scale: cloud.scale }}
           >
-            <div className="w-16 h-6 bg-gradient-to-r from-gray-200 via-white to-gray-50 rounded-full blur-[2px] opacity-80" />
-            <div className="w-8 h-8 bg-white rounded-full absolute -top-2 left-3 blur-[2px] opacity-90" />
+            <div className={cn("w-24 h-8 rounded-full blur-[2px] opacity-60 shadow-sm bg-gradient-to-r", cloud.color)} />
+            <div className={cn("w-12 h-12 rounded-full absolute -top-4 left-5 blur-[2px] opacity-70 bg-gradient-to-b", cloud.color)} />
           </motion.div>
         ))}
       </div>
 
-      {/* 2. Axis Labels (Simplified) */}
+      {/* 2. Axis Labels - Dynamic & Precise */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
         <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-20 z-20" dir="ltr">
           {[1, 2, 3, 4].map((v) => (
@@ -93,18 +89,18 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
           ))}
         </div>
 
-        {/* 3. Rocket Execution Area */}
+        {/* 3. Flight Execution Area */}
         <div className="relative w-full h-full">
-          {/* White Jet Trail (Contrail) */}
+          {/* Contrail - Aligned with Rocket Base */}
           <svg className="absolute inset-0 w-full h-full overflow-visible z-30">
             <motion.path
               d={trailPath}
               fill="none"
               stroke="white"
-              strokeWidth="2.5"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="opacity-60 blur-[1px]"
+              className="opacity-50 blur-[1px]"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
             />
@@ -121,44 +117,44 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   rotate: angle
                 }}
                 transition={{ type: "tween", ease: "linear", duration: 0.05 }}
-                className="absolute w-16 h-16 -ml-8 -mt-8 z-50 flex items-center justify-center"
+                className="absolute w-20 h-20 -ml-10 -mt-10 z-50 flex items-center justify-center"
               >
                 <div className="relative">
-                  {/* Metallic Silver-Blue Rocket Design */}
-                  <svg width="36" height="52" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
+                  {/* Silver-Blue Metallic Rocket with Namix Seal */}
+                  <svg width="44" height="60" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
                     <defs>
-                      <linearGradient id="metallicGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <linearGradient id="rocketMetal" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#94a3b8" />
-                        <stop offset="50%" stopColor="#f8fafc" />
-                        <stop offset="100%" stopColor="#64748b" />
+                        <stop offset="50%" stopColor="#f1f5f9" />
+                        <stop offset="100%" stopColor="#475569" />
                       </linearGradient>
                     </defs>
                     
-                    {/* Body */}
-                    <path d="M18 0C18 0 8 10 8 28V42C8 42 13 40 18 40C23 40 28 42 28 42V28C28 10 18 0 18 0Z" fill="url(#metallicGrad)" />
+                    {/* Main Body */}
+                    <path d="M22 0C22 0 10 12 10 32V48C10 48 16 46 22 46C28 46 34 48 34 48V32C34 12 22 0 22 0Z" fill="url(#rocketMetal)" />
                     
-                    {/* Namix Logo (4 Dots 2x2) */}
-                    <circle cx="15" cy="22" r="2.2" fill="#002d4d" />
-                    <circle cx="21" cy="22" r="2.2" fill="#f9a885" />
-                    <circle cx="15" cy="28" r="2.2" fill="#f9a885" />
-                    <circle cx="21" cy="28" r="2.2" fill="#002d4d" />
+                    {/* Namix Official Seal (2x2 Grid) */}
+                    <circle cx="18" cy="26" r="2.5" fill="#002d4d" />
+                    <circle cx="26" cy="26" r="2.5" fill="#f9a885" />
+                    <circle cx="18" cy="34" r="2.5" fill="#f9a885" />
+                    <circle cx="26" cy="34" r="2.5" fill="#002d4d" />
 
-                    {/* Fins (Namix Dark Blue) */}
-                    <path d="M8 34L0 48L8 42V34Z" fill="#002d4d" />
-                    <path d="M28 34L36 48L28 42V34Z" fill="#002d4d" />
+                    {/* Sovereign Fins */}
+                    <path d="M10 38L0 56L10 50V38Z" fill="#002d4d" />
+                    <path d="M34 38L44 56L34 50V38Z" fill="#002d4d" />
                     
-                    {/* Nose Tip */}
-                    <path d="M18 0C18 0 14 5 14 10H22C22 5 18 0 18 0Z" fill="#002d4d" opacity="0.8" />
+                    {/* Nose Cone */}
+                    <path d="M22 0C22 0 18 6 18 12H26C26 6 22 0 22 0Z" fill="#002d4d" opacity="0.9" />
                   </svg>
 
-                  {/* Corrected Thruster Flame Position */}
+                  {/* High-Precision Thruster Flame - Locked to Base */}
                   <motion.div
                     animate={{ 
-                      scaleY: [1, 1.4, 1],
-                      opacity: [0.8, 1, 0.8]
+                      scaleY: [1, 1.5, 1],
+                      opacity: [0.7, 1, 0.7]
                     }}
-                    transition={{ duration: 0.08, repeat: Infinity }}
-                    className="absolute top-[82%] left-1/2 -translate-x-1/2 w-4 h-8 bg-gradient-to-b from-[#f9a885] via-orange-400 to-transparent rounded-full blur-[1px] origin-top"
+                    transition={{ duration: 0.06, repeat: Infinity }}
+                    className="absolute top-[78%] left-1/2 -translate-x-1/2 w-5 h-10 bg-gradient-to-b from-[#f9a885] via-orange-500 to-transparent rounded-full blur-[1px] origin-top z-[-1]"
                   />
                 </div>
               </motion.div>
@@ -168,31 +164,31 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
               <motion.div
                 key="nano-dust"
                 initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1.5, opacity: 1 }}
+                animate={{ scale: 1.2, opacity: 1 }}
                 exit={{ opacity: 0 }}
                 style={{ left: `${currentX}%`, top: `${currentY}%` }}
-                className="absolute w-10 h-10 -ml-5 -mt-5 z-[60] flex items-center justify-center"
+                className="absolute w-8 h-8 -ml-4 -mt-4 z-[60] flex items-center justify-center"
               >
                 <div className="relative w-full h-full">
                    <motion.div 
-                     initial={{ scale: 0.5, opacity: 0.5 }}
-                     animate={{ scale: 2, opacity: 0 }}
-                     transition={{ duration: 0.8 }}
-                     className="absolute inset-0 bg-gray-400 rounded-full blur-md" 
+                     initial={{ scale: 0.5, opacity: 0.4 }}
+                     animate={{ scale: 1.8, opacity: 0 }}
+                     transition={{ duration: 0.6 }}
+                     className="absolute inset-0 bg-gray-300 rounded-full blur-sm" 
                    />
-                   <div className="flex gap-1">
-                      {[...Array(4)].map((_, i) => (
+                   <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
                         <motion.div
                           key={i}
-                          initial={{ scale: 0, x: 0, y: 0 }}
+                          initial={{ scale: 0 }}
                           animate={{ 
-                            scale: [0, 1, 0.5], 
-                            x: (i % 2 === 0 ? 1 : -1) * 15, 
-                            y: (i < 2 ? 1 : -1) * 15,
-                            opacity: [0, 0.4, 0]
+                            scale: [0, 1, 0], 
+                            x: (i % 2 === 0 ? 1 : -1) * 12, 
+                            y: (i < 2 ? 1 : -1) * 12,
+                            opacity: [0, 0.3, 0]
                           }}
-                          transition={{ duration: 0.6, delay: i * 0.05 }}
-                          className="w-1.5 h-1.5 bg-gray-300 rounded-full blur-[1px]"
+                          transition={{ duration: 0.5, delay: i * 0.04 }}
+                          className="w-1 h-1 bg-gray-200 rounded-full"
                         />
                       ))}
                    </div>
