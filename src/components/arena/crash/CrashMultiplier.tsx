@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview المضاعف السعري المركزي v11.0
- * تم تعديل المنطق ليختفي تماماً أثناء مرحلة الانتظار لمنع التداخل مع العداد المركزي.
+ * @fileOverview المضاعف السعري المركزي v12.0
+ * تم تعديل المنطق ليختفي تماماً أثناء مرحلة الانتظار لترك الساحة للعداد النقي.
  */
 export function CrashMultiplier({ multiplier, state }: { multiplier: number, state: 'waiting' | 'running' | 'crashed' }) {
   return (
@@ -19,10 +19,10 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
             animate={{ scale: 1, opacity: 1 }}
             className="space-y-1"
           >
-            <h2 className="text-7xl md:text-9xl font-black text-red-500 tabular-nums tracking-tighter drop-shadow-2xl leading-none">
+            <h2 className="text-6xl md:text-8xl font-black text-red-500 tabular-nums tracking-tighter drop-shadow-2xl leading-none">
               {multiplier.toFixed(2)}x
             </h2>
-            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-none">Protocol Crashed</p>
+            <p className="text-[9px] font-black text-red-400 uppercase tracking-widest leading-none">Protocol Crashed</p>
           </motion.div>
         ) : state === 'running' ? (
           <motion.div
