@@ -5,43 +5,48 @@ import { Shell } from "@/components/layout/Shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Rocket, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle } from "lucide-react";
+import { Rocket, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle, Dices, Layers } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview ساحة المغامرة v2.0 - Gaming Hub
+ * تم تحديث الروابط لتفعيل ألعاب Mines و Dice الجديدة.
+ */
+
 const arenaGames = [
-  {
-    id: "crash",
-    name: "Namix Crash",
-    desc: "بروتوكول الصعود الوميضي؛ ضاعف أرباحك قبل الانفجار السعري.",
-    risk: "High",
-    href: "/arena/crash",
-    icon: Zap,
-    color: "text-orange-500",
-    bg: "bg-orange-50"
-  },
   {
     id: "mines",
     name: "Sovereign Mines",
-    desc: "استكشف حقول السيولة المربحة وتجنب العثرات التقنية المفاجئة.",
-    risk: "Medium",
-    href: "#",
-    icon: Sparkles,
+    desc: "استكشف حقول السيولة المربحة وتجنب العثرات التقنية المفاجئة في الشبكة.",
+    risk: "Dynamic",
+    href: "/arena/mines",
+    icon: Layers,
     color: "text-blue-500",
-    bg: "bg-blue-50",
-    disabled: true
+    bg: "bg-blue-50"
   },
   {
     id: "dice",
     name: "Nexus Dice",
-    desc: "توقع المسار الرقمي القادم في شبكة الاحتمالات اللامتناهية.",
-    risk: "Low",
+    desc: "توقع المسار الرقمي القادم عبر مصفوفة الاحتمالات المتقدمة.",
+    risk: "Custom",
+    href: "/arena/dice",
+    icon: Dices,
+    color: "text-orange-500",
+    bg: "bg-orange-50"
+  },
+  {
+    id: "crash",
+    name: "Namix Crash",
+    desc: "بروتوكول الصعود الوميضي؛ ضاعف أرباحك قبل الانفجار السعري المباغت.",
+    risk: "High",
     href: "#",
-    icon: Rocket,
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
-    disabled: true
+    icon: Zap,
+    color: "text-[#f9a885]",
+    bg: "bg-[#f9a885]/10",
+    disabled: true,
+    badge: "UNDER MAINTENANCE"
   }
 ];
 
@@ -62,7 +67,7 @@ export default function ArenaPage() {
           </div>
           
           <Link href="/">
-            <Button variant="ghost" className="rounded-full bg-white shadow-sm h-14 px-8 border border-gray-50 active:scale-95 transition-all hover:shadow-md font-black text-[10px] text-[#002d4d] tracking-normal">
+            <Button variant="ghost" className="rounded-full bg-white shadow-sm h-14 px-8 border border-gray-100 active:scale-95 transition-all hover:shadow-md font-black text-[10px] text-[#002d4d]">
               <ChevronRight className="ml-2 h-5 w-5" /> العودة للرئيسية
             </Button>
           </Link>
@@ -74,13 +79,13 @@ export default function ArenaPage() {
               <ShieldCheck className="h-6 w-6" />
            </div>
            <div className="space-y-1 pt-1">
-              <p className="text-sm font-black text-blue-900 tracking-normal">ميثاق الترفيه المسؤول</p>
-              <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed tracking-normal">تخضع ساحة المغامرة لبروتوكولات الشفافية المطلقة؛ كافة النتائج مولدة برمجياً عبر عقود ذكية لضمان العدالة التامة لجميع المستثمرين.</p>
+              <p className="text-sm font-black text-blue-900">ميثاق الترفيه المسؤول</p>
+              <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed">تخضع ساحة المغامرة لبروتوكولات الشفافية المطلقة؛ كافة النتائج مولدة برمجياً عبر عقود ذكية لضمان العدالة التامة لجميع المستثمرين.</p>
            </div>
         </div>
 
         {/* Games Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {arenaGames.map((game, i) => (
             <motion.div
               key={game.id}
@@ -107,19 +112,22 @@ export default function ArenaPage() {
                   </div>
 
                   <div className="space-y-2 text-right">
-                    <h3 className="text-2xl font-black text-[#002d4d] tracking-normal">{game.name}</h3>
-                    <p className="text-[11px] font-bold text-gray-400 leading-relaxed line-clamp-2 tracking-normal">{game.desc}</p>
+                    <div className="flex items-center gap-3 justify-end">
+                       <h3 className="text-2xl font-black text-[#002d4d]">{game.name}</h3>
+                       {game.badge && <Badge className="bg-[#002d4d] text-[#f9a885] border-none text-[7px] font-black">{game.badge}</Badge>}
+                    </div>
+                    <p className="text-[11px] font-bold text-gray-400 leading-relaxed line-clamp-2">{game.desc}</p>
                   </div>
 
                   <div className="pt-4 mt-auto">
                     {game.disabled ? (
                       <div className="w-full h-14 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] font-black text-gray-300 uppercase tracking-widest">
-                        قريباً في التحديث القادم
+                        قيد التطوير الفائق
                       </div>
                     ) : (
                       <Link href={game.href} className="block">
-                        <Button className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl hover:bg-[#001d33] active:scale-95 transition-all group/btn tracking-normal">
-                          ابدأ الآن
+                        <Button className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl hover:bg-[#001d33] active:scale-95 transition-all group/btn">
+                          بدء المحاولة
                           <PlayCircle className="mr-2 h-5 w-5 group-hover/btn:rotate-12 transition-transform" />
                         </Button>
                       </Link>
@@ -138,7 +146,7 @@ export default function ArenaPage() {
 
         {/* Global Branding Footer */}
         <div className="flex flex-col items-center gap-4 py-16 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Protocol v1.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v2.0</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
            </div>
