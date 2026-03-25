@@ -16,9 +16,9 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 /**
- * @fileOverview مفاعل Namix Crash السيادي v7.0 - Ultra-Vertical Layout
- * تم توسيع حاوية العرض لتمتد من نهاية الشريط العلوي حتى بداية لوحة الرهان.
- * تم ضبط التمركز ليكون المضاعف والمنحنى في قلب المساحة الشاسعة بأسلوب نخبوي.
+ * @fileOverview مفاعل Namix Crash السيادي v8.0 - Absolute Vertical Expansion
+ * تم فصل سجل الجولات ليكون سطراً مستقلاً ومنح الحاوية المركزية السيادة الكاملة.
+ * الحاوية ممتدة من نهاية السجل حتى بداية لوحة الرهان بدون هوامش وبحجم مضاعف.
  */
 
 type GameState = 'waiting' | 'running' | 'crashed';
@@ -33,7 +33,6 @@ export default function CrashPage() {
   const [hasCashedOut, setHasCashout] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
 
-  // 1. مزامنة بيانات المستخدم
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -45,11 +44,9 @@ export default function CrashPage() {
     }
   }, [db]);
 
-  // 2. الاستماع لحالة اللعبة العالمية من Firestore
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
   const { data: globalGame } = useDoc(gameStateRef);
 
-  // 3. محرك المزامنة اللحظي المطور
   useEffect(() => {
     if (!globalGame) {
       setDoc(gameStateRef, {
@@ -151,31 +148,31 @@ export default function CrashPage() {
         
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           
-          <div className="flex-1 flex flex-col relative bg-gray-50/5">
+          <div className="flex-1 flex flex-col relative bg-gray-50/5 overflow-hidden">
              
-             {/* سجل التاريخ في القمة - بدون كلمة سجل */}
-             <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-gradient-to-b from-white via-white/90 to-transparent">
+             {/* سجل الجولات - سطر مستقل في القمة لمنع الاقتطاع */}
+             <div className="shrink-0 z-40 p-4 bg-white border-b border-gray-50">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
-             {/* حاوية العرض الموسعة - تشغل كامل المساحة الرأسية */}
-             <div className="flex-1 relative flex flex-col items-center justify-center p-0 overflow-hidden">
-                {/* المضاعف السعري - حجم أنيق في قلب الحاوية الكبيرة */}
-                <div className="relative z-20 mb-12">
+             {/* حاوية المفاعل العملاقة - تشغل كامل المساحة المتبقية بدون هوامش */}
+             <div className="flex-1 relative flex flex-col items-center justify-center p-0 overflow-hidden bg-white">
+                {/* المضاعف السعري - حجم نخبوي مضغوط */}
+                <div className="relative z-20 mb-8">
                    <CrashMultiplier multiplier={multiplier} state={localState} />
                 </div>
                 
-                {/* المفاعل البصري - يملأ الخلفية بارتفاع شاهق */}
+                {/* المفاعل البصري - خلفية المنحنى */}
                 <CrashVisualizer multiplier={multiplier} state={localState} />
                 
                 {/* شريط الحالة والعد التنازلي */}
-                <div className="relative z-30 mt-8">
+                <div className="relative z-30 mt-4">
                    <CrashStatus state={localState} timer={localTimer} />
                 </div>
              </div>
              
-             {/* لوحة التحكم للجوال - تبدأ من نهاية الحاوية المركزية */}
-             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50 shrink-0">
+             {/* لوحة التحكم للجوال - تظهر أسفل المفاعل مباشرة */}
+             <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.03)] relative z-50 shrink-0">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
