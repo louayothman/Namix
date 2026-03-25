@@ -15,12 +15,6 @@ import {
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
-/**
- * @fileOverview مفاعل Namix Crash السيادي v10.0 - Edge-to-Edge Fluidity
- * تم إلغاء كافة الهوامش وجعل المفاعل يمتد قطرياً من الزاوية للزاوية.
- * تم تجريد العداد من الخلفيات لزيادة النقاء البصري.
- */
-
 type GameState = 'waiting' | 'running' | 'crashed';
 
 export default function CrashPage() {
@@ -117,7 +111,7 @@ export default function CrashPage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amount) });
       setCurrentBet(amount);
-      setFeedback({ type: 'success', msg: 'تم قبول الرهان بنجاح. بانتظار الانطلاق...' });
+      setFeedback({ type: 'success', msg: 'تم قبول الرهان للجولة القادمة.' });
       setTimeout(() => setFeedback(null), 3000);
     } catch (e) {
       setFeedback({ type: 'error', msg: 'فشل تنفيذ بروتوكول الرهان.' });
@@ -133,7 +127,7 @@ export default function CrashPage() {
         totalBalance: increment(profit),
         totalProfits: increment(profit - currentBet)
       });
-      setFeedback({ type: 'success', msg: `تم السحب بنجاح! +$${profit.toFixed(2)}` });
+      setFeedback({ type: 'success', msg: `تم الصرف بنجاح! +$${profit.toFixed(2)}` });
       setCurrentBet(null);
       setTimeout(() => setFeedback(null), 4000);
     } catch (e) {
@@ -143,27 +137,39 @@ export default function CrashPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-white overflow-hidden font-body" dir="rtl">
+      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
         <CrashHeader user={dbUser} />
         
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-          <div className="flex-[2.5] flex flex-col bg-white overflow-hidden relative border-l border-gray-50">
-             
-             <div className="shrink-0 z-[60] p-4 bg-white border-b border-gray-50">
-                <CrashHistory results={globalGame?.history || []} />
-             </div>
-
-             <div className="flex-[2] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-gray-50/5 z-[50]">
-                <div className="relative z-[52] mb-4">
-                   <CrashMultiplier multiplier={multiplier} state={localState} />
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          
+          {/* Top Results Feed - Like Screenshot */}
+          <div className="shrink-0 z-[100] px-4 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between">
+             <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
+                   <button className="px-4 py-1.5 rounded-lg bg-white shadow-sm font-black text-[10px] text-[#002d4d]">كلاسيك</button>
+                   <button className="px-4 py-1.5 rounded-lg text-gray-400 font-black text-[10px] hover:text-[#002d4d] transition-colors">Trenball</button>
                 </div>
-                
-                <CrashVisualizer multiplier={multiplier} state={localState} />
-                
+             </div>
+             <CrashHistory results={globalGame?.history || []} />
+          </div>
+
+          {/* Main Visualizer Container - Huge Space */}
+          <div className="flex-[2.5] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-white z-50">
+             <div className="relative z-[52]">
+                <CrashMultiplier multiplier={multiplier} state={localState} />
+             </div>
+             
+             <CrashVisualizer multiplier={multiplier} state={localState} />
+             
+             {/* Bottom Right Status */}
+             <div className="absolute bottom-6 right-6 z-[60]">
                 <CrashStatus state={localState} timer={localTimer} />
              </div>
-             
-             <div className="flex-1 lg:hidden p-4 bg-white border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-[70] overflow-y-auto scrollbar-none">
+          </div>
+          
+          {/* Betting Control Panel - Screen-fit bottom */}
+          <div className="flex-1 shrink-0 p-6 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-[70] overflow-y-auto scrollbar-none">
+             <div className="max-w-2xl mx-auto">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
@@ -175,28 +181,6 @@ export default function CrashPage() {
                   feedback={feedback}
                 />
              </div>
-          </div>
-
-          <div className="hidden lg:flex lg:w-[420px] bg-white border-r border-gray-100 flex-col shrink-0 overflow-y-auto scrollbar-none z-40">
-             <div className="p-10 border-b border-gray-50">
-                <CrashControls 
-                  state={localState} 
-                  onPlaceBet={handlePlaceBet} 
-                  onCashout={handleCashout}
-                  currentBet={currentBet}
-                  hasCashedOut={hasCashedOut}
-                  multiplier={multiplier}
-                  balance={dbUser?.totalBalance || 0}
-                  feedback={feedback}
-                />
-             </div>
-             <div className="p-8 space-y-10">
-                <CrashLiveBets state={localState} currentBet={currentBet} hasCashedOut={hasCashedOut} multiplier={multiplier} />
-             </div>
-          </div>
-
-          <div className="lg:hidden shrink-0 bg-white border-t border-gray-50 max-h-[30vh] overflow-y-auto p-4 z-[65] scrollbar-none">
-             <CrashLiveBets state={localState} currentBet={currentBet} hasCashedOut={hasCashedOut} multiplier={multiplier} />
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Coins, Zap, Loader2, MousePointerClick, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Coins, Zap, MousePointerClick, CheckCircle2, AlertTriangle, ChevronUp, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,8 +20,8 @@ interface CrashControlsProps {
 }
 
 /**
- * @fileOverview محطة التحكم بمفاعل Crash v2.0 - Modern Interface
- * تم دمج نظام التنويهات المدمجة وتطهير الطباعة العربية.
+ * @fileOverview محطة التحكم بمفاعل Crash v3.0 - Screenshot Simulation
+ * محاكاة دقيقة لتصميم الصورة: حقول مبالغ مع أزرار مضاعفة وأزرار سريعة.
  */
 export function CrashControls({ 
   state, 
@@ -33,79 +33,87 @@ export function CrashControls({
   balance,
   feedback
 }: CrashControlsProps) {
-  const [amount, setAmount] = useState("10");
+  const [amount, setAmount] = useState("10.00");
+  const [autoCashout, setAutoCashout] = useState("2.00");
 
   const canBet = state === 'waiting' && !currentBet;
   const canCashout = state === 'running' && currentBet && !hasCashedOut;
 
+  const handleHalf = () => setAmount(prev => (Number(prev) / 2).toFixed(2));
+  const handleDouble = () => setAmount(prev => (Number(prev) * 2).toFixed(2));
+
   return (
-    <div className="space-y-6 font-body tracking-normal">
+    <div className="space-y-5 font-body tracking-normal" dir="rtl">
       
-      {/* Dynamic Feedback Node */}
-      <AnimatePresence mode="wait">
+      {/* Inline Feedback Notification */}
+      <AnimatePresence>
         {feedback && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
             className={cn(
-              "p-4 rounded-[24px] border flex items-center gap-3 shadow-lg",
-              feedback.type === 'success' ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
-              feedback.type === 'error' ? "bg-red-50 border-red-100 text-red-700" : "bg-blue-50 border-blue-100 text-blue-700"
+              "p-3 rounded-2xl border flex items-center gap-3 shadow-xl mb-4",
+              feedback.type === 'success' ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-red-50 border-red-100 text-red-700"
             )}
           >
-            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-               {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-            </div>
-            <p className="text-[11px] font-black leading-relaxed">{feedback.msg}</p>
+            {feedback.type === 'success' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+            <p className="text-[10px] font-black">{feedback.msg}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-3">
-           <div className="flex items-center gap-2">
-              <Coins className="h-3.5 w-3.5 text-orange-400" />
-              <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">مبلغ الرهان</p>
-           </div>
-           <span className="text-[9px] font-bold text-gray-300 tabular-nums">BALANCE: ${balance.toLocaleString()}</span>
-        </div>
-        
-        <div className="relative group p-1.5 bg-gray-50 rounded-[28px] border border-gray-100 shadow-inner flex items-center">
-           <button 
-             onClick={() => setAmount(prev => Math.max(1, Number(prev) - 10).toString())}
-             disabled={!canBet}
-             className="h-11 w-11 rounded-2xl bg-white text-[#002d4d] flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition-all disabled:opacity-30"
-           >
-              -
-           </button>
-           <Input 
-             type="number" 
-             value={amount} 
-             onChange={e => setAmount(e.target.value)}
-             disabled={!canBet}
-             className="flex-1 bg-transparent border-none font-black text-center text-2xl shadow-none focus-visible:ring-0 tabular-nums text-[#002d4d]" 
-           />
-           <button 
-             onClick={() => setAmount(prev => (Number(prev) + 10).toString())}
-             disabled={!canBet}
-             className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all disabled:opacity-30"
-           >
-              +
-           </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Amount Input Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-2">
+             <div className="flex items-center gap-2">
+                <Info size={10} className="text-gray-300" />
+                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">المبلغ</Label>
+             </div>
+          </div>
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input">
+             <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                <Coins size={14} className="text-[#f9a885]" />
+             </div>
+             <input 
+               type="number"
+               value={amount}
+               onChange={e => setAmount(e.target.value)}
+               disabled={!canBet}
+               className="flex-1 bg-transparent border-none text-right font-black text-lg outline-none tabular-nums text-[#002d4d]" 
+             />
+             <div className="flex items-center gap-1 pl-1">
+                <button onClick={handleHalf} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">1/2</button>
+                <button onClick={handleDouble} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">2x</button>
+                <div className="flex flex-col gap-0.5">
+                   <button onClick={() => adjustAmount(1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center"><ChevronUp size={10}/></button>
+                   <button onClick={() => adjustAmount(-1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center"><ChevronDown size={10}/></button>
+                </div>
+             </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 px-1">
-           {[10, 50, 100, "MAX"].map((v, i) => (
-             <button 
-               key={i} 
-               onClick={() => setAmount(v === "MAX" ? Math.floor(balance).toString() : v.toString())}
+        {/* Auto Cashout Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-2">
+             <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">صرف النقود تلقائياً</Label>
+             <span className="text-[8px] font-bold text-gray-300">%0.99 حظ</span>
+          </div>
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input">
+             <input 
+               type="number"
+               value={autoCashout}
+               onChange={e => setAutoCashout(e.target.value)}
                disabled={!canBet}
-               className="h-9 rounded-xl bg-white text-[9px] font-black text-[#002d4d] hover:bg-[#002d4d] hover:text-white transition-all border border-gray-100 shadow-sm"
-             >
-               {v === "MAX" ? "الكل" : `$${v}`}
-             </button>
-           ))}
+               className="flex-1 bg-transparent border-none text-right font-black text-lg outline-none tabular-nums text-[#002d4d] px-4" 
+             />
+             <div className="flex items-center gap-1 pl-1">
+                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors"><X size={14}/></button>
+                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300"><ChevronLeft size={14}/></button>
+                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300"><ChevronRight size={14}/></button>
+             </div>
+          </div>
         </div>
       </div>
 
@@ -113,11 +121,10 @@ export function CrashControls({
         {canCashout ? (
           <Button 
             onClick={onCashout}
-            className="w-full h-20 rounded-[36px] bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl shadow-2xl shadow-emerald-900/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden"
+            className="w-full h-20 rounded-[28px] bg-[#10b981] hover:bg-[#059669] text-white font-black text-xl shadow-2xl shadow-emerald-900/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1"
           >
-             <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-             <p className="relative z-10 text-[9px] font-black opacity-60 uppercase tracking-widest">سحب الأرباح الآن</p>
-             <span className="relative z-10 text-3xl tabular-nums tracking-tighter flex items-baseline gap-1">
+             <p className="text-[9px] font-black opacity-60 uppercase tracking-[0.2em]">CASH OUT NOW</p>
+             <span className="text-3xl tabular-nums tracking-tighter flex items-baseline gap-1">
                <span className="text-base opacity-40">$</span>{(currentBet * multiplier).toFixed(2)}
              </span>
           </Button>
@@ -126,36 +133,29 @@ export function CrashControls({
             onClick={() => onPlaceBet(Number(amount))}
             disabled={!canBet || Number(amount) <= 0 || Number(amount) > balance}
             className={cn(
-              "w-full h-16 rounded-[36px] font-black text-lg shadow-xl transition-all active:scale-95 group relative overflow-hidden",
-              canBet ? "bg-[#002d4d] text-white" : "bg-gray-100 text-gray-300"
+              "w-full h-16 rounded-[28px] font-black text-lg shadow-xl transition-all active:scale-95",
+              canBet ? "bg-[#10b981] hover:bg-[#059669] text-white" : "bg-gray-100 text-gray-300"
             )}
           >
             {currentBet && state !== 'crashed' ? (
-              <div className="flex items-center gap-3">
-                 <Loader2 className="h-5 w-5 animate-spin" />
-                 <span>بانتظار الانطلاق...</span>
+              <div className="flex flex-col items-center">
+                 <span className="text-base">رهان</span>
+                 <span className="text-[9px] opacity-60">(الجولة القادمة)</span>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                 <span>تأكيد الرهان</span>
-                 <Zap className={cn("h-5 w-5 transition-transform group-hover:scale-125", canBet ? "text-[#f9a885] fill-current" : "text-gray-200")} />
-              </div>
+              "رهان"
             )}
           </Button>
         )}
       </div>
+    </div>
+  );
+}
 
-      <div className="flex items-center justify-center gap-6 opacity-30 py-4 select-none">
-         <div className="flex items-center gap-2">
-            <ShieldCheck size={12} className="text-blue-500" />
-            <span className="text-[8px] font-black uppercase tracking-widest">عدالة مثبتة</span>
-         </div>
-         <div className="h-1 w-1 rounded-full bg-gray-300" />
-         <div className="flex items-center gap-2">
-            <MousePointerClick size={12} className="text-[#f9a885]" />
-            <span className="text-[8px] font-black uppercase tracking-widest">صرف لحظي</span>
-         </div>
-      </div>
+function Info({ size, className }: { size: number, className: string }) {
+  return (
+    <div className={cn("rounded-full border border-current flex items-center justify-center", className)} style={{ width: size, height: size }}>
+      <span className="text-[8px] font-bold">i</span>
     </div>
   );
 }
