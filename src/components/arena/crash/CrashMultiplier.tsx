@@ -4,11 +4,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-/**
- * @fileOverview محرك المضاعف المدمج v12.0 - Optimized Compact Edition
- * - تصميم نقي يتناسب مع الحاوية متوسطة الارتفاع.
- * - تطهير كامل من تباعد الحروف العربية.
- */
 export function CrashMultiplier({ multiplier, state }: { multiplier: number, state: 'waiting' | 'running' | 'crashed' }) {
   return (
     <div className="relative z-20 text-center select-none font-body tracking-normal" dir="rtl">

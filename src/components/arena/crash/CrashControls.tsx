@@ -15,7 +15,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-  ClipboardPaste
+  ClipboardPaste,
+  ShieldCheck,
+  MousePointer2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,10 +33,6 @@ interface CrashControlsProps {
   feedback: { type: 'success' | 'error' | 'info', msg: string } | null;
 }
 
-/**
- * @fileOverview محطة التحكم بمفاعل Crash v4.0 - Sovereign Precision Edition
- * تم إصلاح خطأ Label المفقود وإضافة كافة الأيقونات والدوال اللازمة للتحكم الاحترافي.
- */
 export function CrashControls({ 
   state, 
   onPlaceBet, 
@@ -64,7 +62,6 @@ export function CrashControls({
   return (
     <div className="space-y-5 font-body tracking-normal" dir="rtl">
       
-      {/* Inline Feedback Notification */}
       <AnimatePresence>
         {feedback && (
           <motion.div
@@ -82,8 +79,7 @@ export function CrashControls({
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Amount Input Section */}
+      <div className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
@@ -92,8 +88,9 @@ export function CrashControls({
                 </div>
                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">المبلغ</Label>
              </div>
+             <p className="text-[8px] font-bold text-gray-300 tabular-nums">${balance.toLocaleString()}</p>
           </div>
-          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-[#002d4d]/10 transition-all">
              <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
                 <Coins size={14} className="text-[#f9a885]" />
              </div>
@@ -105,23 +102,20 @@ export function CrashControls({
                className="flex-1 bg-transparent border-none text-right font-black text-lg outline-none tabular-nums text-[#002d4d]" 
              />
              <div className="flex items-center gap-1 pl-1">
-                <button onClick={handleHalf} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">1/2</button>
-                <button onClick={handleDouble} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">2x</button>
-                <div className="flex flex-col gap-0.5">
-                   <button onClick={() => adjustAmount(1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50"><ChevronUp size={10}/></button>
-                   <button onClick={() => adjustAmount(-1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50"><ChevronDown size={10}/></button>
-                </div>
+                <button onClick={handleHalf} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all">1/2</button>
+                <button onClick={handleDouble} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all">2x</button>
              </div>
           </div>
         </div>
 
-        {/* Auto Cashout Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between px-2">
-             <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">صرف النقود تلقائياً</Label>
-             <span className="text-[8px] font-bold text-gray-300">%0.99 حظ</span>
+             <div className="flex items-center gap-2">
+                <ShieldCheck size={10} className="text-blue-400" />
+                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">صرف تلقائي</Label>
+             </div>
           </div>
-          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-[#002d4d]/10 transition-all">
              <input 
                type="number"
                value={autoCashout}
@@ -129,10 +123,8 @@ export function CrashControls({
                disabled={!canBet}
                className="flex-1 bg-transparent border-none text-right font-black text-lg outline-none tabular-nums text-[#002d4d] px-4" 
              />
-             <div className="flex items-center gap-1 pl-1">
-                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors"><X size={14}/></button>
-                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300"><ChevronLeft size={14}/></button>
-                <button disabled={!canBet} className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-300"><ChevronRight size={14}/></button>
+             <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center text-gray-300 shadow-sm shrink-0">
+                <span className="text-[10px] font-black">x</span>
              </div>
           </div>
         </div>
@@ -142,7 +134,7 @@ export function CrashControls({
         {canCashout ? (
           <Button 
             onClick={onCashout}
-            className="w-full h-20 rounded-[28px] bg-[#10b981] hover:bg-[#059669] text-white font-black text-xl shadow-2xl shadow-emerald-900/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1"
+            className="w-full h-20 rounded-[28px] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl shadow-emerald-900/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1"
           >
              <p className="text-[9px] font-black opacity-60 uppercase tracking-[0.2em]">CASH OUT NOW</p>
              <span className="text-3xl tabular-nums tracking-tighter flex items-baseline gap-1">
@@ -154,8 +146,8 @@ export function CrashControls({
             onClick={() => onPlaceBet(Number(amount))}
             disabled={!canBet || Number(amount) <= 0 || Number(amount) > balance}
             className={cn(
-              "w-full h-16 rounded-[28px] font-black text-lg shadow-xl transition-all active:scale-95",
-              canBet ? "bg-[#10b981] hover:bg-[#059669] text-white" : "bg-gray-100 text-gray-300"
+              "w-full h-16 rounded-[28px] font-black text-lg shadow-xl transition-all active:scale-95 flex flex-col items-center justify-center",
+              canBet ? "bg-[#002d4d] hover:bg-[#001d33] text-white" : "bg-gray-100 text-gray-300"
             )}
           >
             {currentBet && state !== 'crashed' ? (
@@ -164,7 +156,7 @@ export function CrashControls({
                  <span className="text-[9px] opacity-60">(الجولة القادمة)</span>
               </div>
             ) : (
-              "رهان"
+              "راهن الآن"
             )}
           </Button>
         )}

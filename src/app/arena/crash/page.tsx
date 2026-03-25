@@ -9,19 +9,14 @@ import {
   CrashVisualizer, 
   CrashControls, 
   CrashHistory, 
-  CrashStatus 
+  CrashStatus,
+  CrashLiveBets
 } from "@/components/arena/crash";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
-/**
- * @fileOverview صفحة مفاعل الكراش السيادي v8.0 - Perfect Balance Edition
- * - تقليل ارتفاع المفاعل لنسبة 1.8:1 لضمان التوازن البصري.
- * - حل مشكلة اقتطاع الحواف العلوية.
- * - تطهير كامل من مسافات النصوص العربية.
- */
 export default function CrashPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -148,7 +143,6 @@ export default function CrashPage() {
         
         <div className="flex-1 flex flex-col overflow-hidden relative">
           
-          {/* شريط النتائج العلوي - نقي ومنفصل */}
           <div className="shrink-0 z-[100] px-4 py-3 bg-white border-b border-gray-50 flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
@@ -159,8 +153,7 @@ export default function CrashPage() {
              <CrashHistory results={globalGame?.history || []} />
           </div>
 
-          {/* حاوية المفاعل السيادية - نسبة 1.8:1 لتوازن أفضل */}
-          <div className="flex-[1.8] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20 overflow-visible">
+          <div className="flex-[1.8] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20 overflow-hidden">
              <div className="relative z-30">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
              </div>
@@ -172,9 +165,8 @@ export default function CrashPage() {
              </div>
           </div>
           
-          {/* لوحة تحكم الرهان - Flex 1 */}
-          <div className="flex-1 shrink-0 p-6 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
-             <div className="max-w-2xl mx-auto">
+          <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
+             <div className="md:col-span-5 lg:col-span-4 p-6 border-l border-gray-50">
                 <CrashControls 
                   state={localState} 
                   onPlaceBet={handlePlaceBet} 
@@ -184,6 +176,14 @@ export default function CrashPage() {
                   multiplier={multiplier}
                   balance={dbUser?.totalBalance || 0}
                   feedback={feedback}
+                />
+             </div>
+             <div className="md:col-span-7 lg:col-span-8 p-6 bg-gray-50/20">
+                <CrashLiveBets 
+                  state={localState}
+                  currentBet={currentBet}
+                  hasCashedOut={hasCashedOut}
+                  multiplier={multiplier}
                 />
              </div>
           </div>
