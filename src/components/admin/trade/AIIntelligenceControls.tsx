@@ -1,0 +1,126 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { BrainCircuit, Zap, Sparkles, Loader2, Target, ShieldCheck, Activity } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface AIIntelligenceControlsProps {
+  data: any;
+  onChange: (newData: any) => void;
+  onSave: () => void;
+  saving: boolean;
+}
+
+export function AIIntelligenceControls({ data, onChange, onSave, saving }: AIIntelligenceControlsProps) {
+  return (
+    <div className="grid gap-10 lg:grid-cols-12 text-right" dir="rtl">
+      <div className="lg:col-span-8 space-y-10">
+        <Card className="rounded-[56px] border-none shadow-xl bg-white overflow-hidden">
+          <CardHeader className="bg-blue-50/20 p-10 border-b border-gray-50">
+            <CardTitle className="text-xl font-black flex items-center gap-4 text-blue-700">
+              <div className="h-12 w-12 rounded-2xl bg-white shadow-inner flex items-center justify-center">
+                <BrainCircuit className="h-6 w-6" />
+              </div>
+              مفاعل معايرة الذكاء الاصطناعي <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mr-2">Neural Tuner</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-12 space-y-12">
+            
+            <div className="grid gap-10 md:grid-cols-2">
+               {/* RSI Thresholds */}
+               <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-8">
+                  <div className="flex items-center gap-3 pr-2">
+                     <Target className="h-5 w-5 text-blue-500" />
+                     <h4 className="font-black text-sm text-[#002d4d]">عتبات مؤشر RSI</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">منطقة التشبع (بيع)</Label>
+                        <Input type="number" value={data.rsiOverbought || 70} onChange={e => onChange({...data, rsiOverbought: Number(e.target.value)})} className="h-12 rounded-xl bg-white border-none font-black text-center text-red-500 shadow-sm" />
+                     </div>
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">منطقة الدعم (شراء)</Label>
+                        <Input type="number" value={data.rsiOversold || 30} onChange={e => onChange({...data, rsiOversold: Number(e.target.value)})} className="h-12 rounded-xl bg-white border-none font-black text-center text-emerald-600 shadow-sm" />
+                     </div>
+                  </div>
+               </div>
+
+               {/* Confidence Calibration */}
+               <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-8">
+                  <div className="flex items-center justify-between pr-2">
+                     <div className="flex items-center gap-3">
+                        <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                        <h4 className="font-black text-sm text-[#002d4d]">معايرة الثقة</h4>
+                     </div>
+                     <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[8px] px-3 py-1 rounded-full shadow-lg">ACTIVE</Badge>
+                  </div>
+                  <div className="space-y-6 px-2">
+                     <div className="flex justify-between text-[10px] font-black uppercase text-blue-400">
+                        <span>أدنى حد للثقة</span>
+                        <span className="text-blue-600 tabular-nums">%{data.aiConfidenceThreshold || 85}</span>
+                     </div>
+                     <Slider 
+                       value={[data.aiConfidenceThreshold || 85]} 
+                       min={50} max={100} step={1}
+                       onValueChange={([val]) => onChange({...data, aiConfidenceThreshold: val})}
+                       className="[&>span]:bg-blue-600"
+                     />
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-10 bg-[#002d4d] rounded-[48px] text-white relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-8 opacity-[0.05] pointer-events-none group-hover:scale-125 transition-transform duration-1000"><Zap size={140} /></div>
+               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="space-y-2 text-right">
+                     <h4 className="text-xl font-black">قوة المحرك (Volatility Weight)</h4>
+                     <p className="text-[11px] text-blue-100/60 leading-relaxed font-bold max-w-sm">تحكم في مدى تأثير التذبذبات السعرية على حساسية الذكاء الاصطناعي في اقتناص الفرص.</p>
+                  </div>
+                  <div className="relative shrink-0">
+                     <Input 
+                       type="number" 
+                       value={data.volatilityWeight || 5} 
+                       onChange={e => onChange({...data, volatilityWeight: Number(e.target.value)})}
+                       className="h-20 w-32 rounded-[32px] bg-white/10 border-white/20 text-center font-black text-4xl text-[#f9a885] backdrop-blur-xl shadow-inner focus:ring-4 focus:ring-[#f9a885]/20 outline-none" 
+                     />
+                  </div>
+               </div>
+            </div>
+
+            <Button onClick={onSave} disabled={saving} className="w-full h-20 rounded-full bg-[#002d4d] text-white font-black text-xl shadow-2xl transition-all active:scale-[0.98] group">
+               {saving ? <Loader2 className="animate-spin h-8 w-8" /> : (
+                 <div className="flex items-center gap-4">
+                   <span>حفظ ومعايرة المحرك العصبي</span>
+                   <Sparkles className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+                 </div>
+               )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-4 space-y-10">
+         <div className="p-10 bg-gray-50 rounded-[48px] border border-gray-100 space-y-8 shadow-inner group">
+            <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm text-blue-600 transition-transform group-hover:rotate-12"><Activity size={32} /></div>
+            <div className="space-y-2">
+               <h4 className="text-lg font-black text-[#002d4d]">لماذا المعايرة؟</h4>
+               <p className="text-[12px] font-bold text-gray-500 leading-[2.2]">
+                 تسمح المعايرة بضبط "شخصية" الذكاء الاصطناعي؛ فرفع عتبة الثقة يجعل الإشارات نادرة ولكنها مؤكدة جداً، بينما خفض عتبات RSI يجعل المحرك أكثر عدوانية في اقتناص القيعان والقمم.
+               </p>
+            </div>
+            <div className="pt-6 border-t border-gray-200">
+               <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Real-time Feedback Active</span>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  );
+}

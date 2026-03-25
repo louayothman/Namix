@@ -1,0 +1,83 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Namix platform.",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "displayName": { "type": "string" },
+        "gender": { "type": "string" },
+        "password": { "type": "string" },
+        "securityPin": { "type": "string", "description": "A 6-digit PIN required for financial transactions." },
+        "totalBalance": { "type": "number" },
+        "activeInvestmentsTotal": { "type": "number" },
+        "totalProfits": { "type": "number" },
+        "referralCode": { "type": "string" },
+        "referredBy": { "type": "string", "description": "The UID of the user who referred this user." },
+        "referralEarnings": { "type": "number" },
+        "favoriteSymbols": { "type": "array", "items": { "type": "string" }, "description": "List of symbol IDs favorited by the user." },
+        "tradingVolume": { "type": "number", "description": "Total volume of quick trades." },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "Raffle": {
+      "title": "Raffle",
+      "type": "object",
+      "description": "A sovereign raffle event configuration.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "prizePool": { "type": "number" },
+        "ticketPrice": { "type": "number" },
+        "drawDate": { "type": "string", "format": "date-time" },
+        "isActive": { "type": "boolean" },
+        "maxTicketsPerUser": { "type": "number" },
+        "winnersCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "RaffleTicket": {
+      "title": "RaffleTicket",
+      "type": "object",
+      "description": "A ticket purchased for a raffle.",
+      "properties": {
+        "id": { "type": "string" },
+        "raffleId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "ticketNumber": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password", "anonymous"]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "description": "Stores user profiles."
+        }
+      },
+      {
+        "path": "/raffle_tickets/{ticketId}",
+        "definition": {
+          "entityName": "RaffleTicket",
+          "description": "User purchased raffle tickets."
+        }
+      }
+    ]
+  }
+}

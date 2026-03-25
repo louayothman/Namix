@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "namix-app"
+  },
+  "targets": {
+    "namix-app": {
+      "hosting": {
+        "namix": [
+          "namix"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

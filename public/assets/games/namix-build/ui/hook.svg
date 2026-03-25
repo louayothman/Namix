@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" id="crane-hook">
+  <defs>
+    <linearGradient id="a" x1="20.99" x2="43" y1="50" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#949aaf"></stop>
+      <stop offset="1" stop-color="#c6ccda"></stop>
+    </linearGradient>
+    <linearGradient xlink:href="#a" id="c" x1="30" x2="34" y1="26" y2="26"></linearGradient>
+    <linearGradient id="b" x1="27" x2="37" y1="33" y2="33" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#474f72"></stop>
+      <stop offset="1" stop-color="#878c9f"></stop>
+    </linearGradient>
+    <linearGradient id="d" x1="17" x2="47" y1="12.5" y2="12.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e9a254"></stop>
+      <stop offset="1" stop-color="#f4bb79"></stop>
+    </linearGradient>
+    <linearGradient xlink:href="#b" id="e" x1="25" x2="39" y1="12" y2="12"></linearGradient>
+    <linearGradient xlink:href="#a" id="f" x1="28" x2="36" y1="12" y2="12"></linearGradient>
+  </defs>
+  <path fill="url(#a)" d="M32,64a11,11,0,0,1-9.38-16.73A2,2,0,1,1,26,49.37,7,7,0,0,0,32.2,60,7.08,7.08,0,0,0,39,53.2a7,7,0,0,0-3.74-6.39A9.65,9.65,0,0,1,30,38a2,2,0,0,1,4,0v.37a5.63,5.63,0,0,0,3.13,4.9,11,11,0,0,1,5.87,10A11.13,11.13,0,0,1,32,64Z"></path>
+  <rect width="4" height="8" x="30" y="22" fill="url(#c)"></rect>
+  <rect width="10" height="10" x="27" y="28" fill="url(#b)" rx="2"></rect>
+  <path fill="url(#d)" d="M17,0H47a0,0,0,0,1,0,0V17a8,8,0,0,1-8,8H25a8,8,0,0,1-8-8V0a0,0,0,0,1,0,0Z"></path>
+  <circle cx="32" cy="12" r="7" fill="url(#e)"></circle>
+  <circle cx="32" cy="12" r="4" fill="url(#f)"></circle>
+</svg>
