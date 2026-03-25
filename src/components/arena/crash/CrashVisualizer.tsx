@@ -11,11 +11,11 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود الطبيعي v75.0 - Sovereign Natural Flight
+ * @fileOverview مفاعل الصعود الطبيعي v80.0 - Sovereign Nano-Precision Flight
  * - صاروخ معدني فضي أزرقي فخم يحمل شعار ناميكس (2*2).
- * - التحام تام ومصحح للهب المحرك بالقاعدة.
- * - أفق سماوي كريستالي نقي (بدون أثر نفاث).
- * - غيوم بانورامية ملونة تسبح في كافة أرجاء المفاعل.
+ * - التحام ميكانيكي تام للهب المحرك باستخدام transform و left: 50%.
+ * - أفق سماوي كريستالي نقي خالي من الخطوط الشبكية.
+ * - غيوم بانورامية ضخمة وملونة تسبح في كافة أرجاء المفاعل.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   // حساب الوقت المنقضي بناءً على المضاعف (المنطق الطبيعي)
@@ -35,41 +35,41 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
     const nextMult = Math.pow(1.07, elapsed + 0.1);
     const nextY = 100 - ((nextMult - 1) / (maxMult - 1)) * 100;
     const dy = nextY - currentY;
-    const dx = 1; // خطوة زمنية صغيرة
+    const dx = 1; 
     return Math.atan2(dy, dx) * (180 / Math.PI) + 90;
   }, [elapsed, currentY, maxMult, state]);
 
-  // مصفوفة الغيوم البانورامية الملونة: أحجام وألوان وتوزيع شامل
+  // مصفوفة الغيوم البانورامية الضخمة: ألوان وتوزيع شامل
   const cloudMatrix = [
-    { top: '15%', delay: 0, duration: 25, scale: 1.4, color: 'from-gray-200 via-white to-gray-50' },
-    { top: '35%', delay: 5, duration: 35, scale: 0.9, color: 'from-blue-100 via-gray-50 to-white' },
-    { top: '55%', delay: 12, duration: 30, scale: 1.2, color: 'from-gray-100 to-white' },
-    { top: '75%', delay: 2, duration: 40, scale: 1.0, color: 'from-blue-50 via-white to-gray-100' },
-    { top: '85%', delay: 18, duration: 28, scale: 1.5, color: 'from-gray-200 to-gray-50' },
-    { top: '5%', delay: 8, duration: 32, scale: 0.8, color: 'from-white via-blue-50 to-white' }
+    { top: '10%', delay: 0, duration: 25, scale: 1.8, color: 'from-gray-200 via-white to-gray-50' },
+    { top: '30%', delay: 5, duration: 35, scale: 1.2, color: 'from-blue-100 via-gray-50 to-white' },
+    { top: '50%', delay: 12, duration: 30, scale: 1.5, color: 'from-gray-100 to-gray-200' },
+    { top: '70%', delay: 2, duration: 40, scale: 1.3, color: 'from-blue-50 via-white to-gray-100' },
+    { top: '85%', delay: 18, duration: 28, scale: 2.0, color: 'from-gray-200 to-gray-100' },
+    { top: '5%', delay: 8, duration: 32, scale: 1.1, color: 'from-white via-blue-50 to-white' }
   ];
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-100 via-blue-50 to-white font-body select-none">
       
-      {/* 1. Atmospheric Panoramic Clouds - Infinite Flow */}
+      {/* 1. Atmospheric Panoramic Clouds - Full Range Flow */}
       <div className="absolute inset-0 z-0">
         {cloudMatrix.map((cloud, i) => (
           <motion.div 
             key={i}
             initial={{ left: '120%' }}
-            animate={{ left: '-50%' }}
+            animate={{ left: '-60%' }}
             transition={{ duration: cloud.duration, repeat: Infinity, ease: "linear", delay: cloud.delay }}
             className="absolute will-change-transform"
             style={{ top: cloud.top, scale: cloud.scale }}
           >
-            <div className={cn("w-20 h-7 rounded-full blur-[2px] opacity-70 shadow-sm bg-gradient-to-r", cloud.color)} />
-            <div className={cn("w-10 h-10 rounded-full absolute -top-3 left-4 blur-[2px] opacity-80 bg-gradient-to-b", cloud.color)} />
+            <div className={cn("w-24 h-8 rounded-full blur-[2px] opacity-60 shadow-sm bg-gradient-to-r", cloud.color)} />
+            <div className={cn("w-12 h-12 rounded-full absolute -top-4 left-5 blur-[2px] opacity-70 bg-gradient-to-b", cloud.color)} />
           </motion.div>
         ))}
       </div>
 
-      {/* 2. Axis Labels - Precise Bottom-Left Orientation */}
+      {/* 2. Axis Labels - Precise Orientation */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
         {/* Y Axis - Multiplier (Left Side) */}
         <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-20 z-20" dir="ltr">
@@ -99,9 +99,11 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                 transition={{ type: "tween", ease: "linear", duration: 0.05 }}
                 className="absolute w-24 h-24 -ml-12 -mt-12 z-50 flex items-center justify-center"
               >
+                {/* Rocket Assembly Container */}
                 <div className="relative flex flex-col items-center">
+                  
                   {/* Silver-Blue Metallic Rocket Body with Namix Seal */}
-                  <svg width="48" height="64" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl relative z-10">
+                  <svg width="52" height="68" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl relative z-10">
                     <defs>
                       <linearGradient id="rocketMetal" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#94a3b8" />
@@ -127,15 +129,20 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                     <path d="M22 0C22 0 18 6 18 12H26C26 6 22 0 22 0Z" fill="#002d4d" opacity="0.9" />
                   </svg>
 
-                  {/* FIXED THRUSTER: Correctly attached to the nozzle base at y=48 */}
-                  <motion.div
-                    animate={{ 
-                      scaleY: [1, 1.6, 1],
-                      opacity: [0.8, 1, 0.8]
-                    }}
-                    transition={{ duration: 0.05, repeat: Infinity }}
-                    className="absolute top-[80%] left-1/2 -translate-x-1/2 w-6 h-12 bg-gradient-to-b from-[#f9a885] via-orange-500 to-transparent rounded-full blur-[1px] origin-top z-0"
-                  />
+                  {/* Flame - Correctly Linked via Transform & Centered */}
+                  <div 
+                    className="absolute left-1/2 top-0 w-full z-0 pointer-events-none" 
+                    style={{ transform: 'translate(-50%, 75%)' }}
+                  >
+                    <motion.div
+                      animate={{ 
+                        scaleY: [1, 1.5, 1],
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{ duration: 0.08, repeat: Infinity }}
+                      className="w-1/2 h-14 mx-auto bg-gradient-to-b from-[#f9a885] via-orange-500 to-transparent rounded-full blur-[1px] origin-top"
+                    />
+                  </div>
                 </div>
               </motion.div>
             )}
