@@ -18,8 +18,8 @@ import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestor
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش السيادية v15.0 - Ultra-Balanced Edition
- * تم تقليل ارتفاع المفاعل لتحقيق توازن مثالي مع لوحة التحكم ورادار المراهنات.
+ * @fileOverview صفحة الكراش العالمية v100.0
+ * تجربة بصرية غامرة تحاكي أفضل المنصات العالمية مثل Stake.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -46,15 +46,7 @@ export default function CrashPage() {
   const { data: globalGame } = useDoc(gameStateRef);
 
   useEffect(() => {
-    if (!globalGame) {
-      setDoc(gameStateRef, {
-        status: 'waiting',
-        startTime: new Date().toISOString(),
-        crashPoint: 2.5,
-        history: [1.45, 4.22, 1.05, 12.4, 2.11, 1.88, 3.45, 1.12, 6.78, 2.33]
-      });
-      return;
-    }
+    if (!globalGame) return;
 
     let interval: any;
     const startTime = new Date(globalGame.startTime).getTime();
@@ -85,7 +77,7 @@ export default function CrashPage() {
         setMultiplier(currentMult);
 
         if (currentMult >= globalGame.crashPoint) {
-          const newHistory = [currentMult, ...(globalGame.history || [])].slice(0, 10);
+          const newHistory = [currentMult, ...(globalGame.history || [])].slice(0, 20);
           updateDoc(gameStateRef, {
             status: 'crashed',
             startTime: new Date().toISOString(),
@@ -98,7 +90,7 @@ export default function CrashPage() {
         setLocalState('crashed');
         setMultiplier(globalGame.crashPoint || 1.0);
         
-        if (elapsed >= 4) {
+        if (elapsed >= 5) {
           updateDoc(gameStateRef, {
             status: 'waiting',
             startTime: new Date().toISOString()
@@ -112,14 +104,14 @@ export default function CrashPage() {
   }, [globalGame, gameStateRef]);
 
   const handlePlaceBet = async (amount: number) => {
-    if (!dbUser || amount > dbUser.totalBalance || localState !== 'waiting') return;
+    if (!dbUser || amount > (dbUser.totalBalance || 0) || localState !== 'waiting') return;
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amount) });
       setCurrentBet(amount);
-      setFeedback({ type: 'success', msg: 'تم قبول الرهان للجولة القادمة.' });
+      setFeedback({ type: 'success', msg: 'تم تسجيل الرهان بنجاح.' });
       setTimeout(() => setFeedback(null), 3000);
     } catch (e) {
-      setFeedback({ type: 'error', msg: 'فشل تنفيذ بروتوكول الرهان.' });
+      setFeedback({ type: 'error', msg: 'فشل بروتوكول الرهان.' });
     }
   };
 
@@ -132,41 +124,34 @@ export default function CrashPage() {
         totalBalance: increment(profit),
         totalProfits: increment(profit - currentBet)
       });
-      setFeedback({ type: 'success', msg: `تم الصرف بنجاح! +$${profit.toFixed(2)}` });
+      setFeedback({ type: 'success', msg: `اكتمال الصرف: +$${profit.toFixed(2)}` });
       setCurrentBet(null);
       setTimeout(() => setFeedback(null), 4000);
     } catch (e) {
-      setFeedback({ type: 'error', msg: 'خطأ في مزامنة الأرباح.' });
+      setFeedback({ type: 'error', msg: 'خطأ في مزامنة العوائد.' });
     }
   };
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-[100dvh] bg-white overflow-hidden font-body tracking-normal" dir="rtl">
+      <div className="flex flex-col h-[100dvh] bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
         <CrashHeader user={dbUser} />
         
         <div className="flex-1 flex flex-col relative">
-          
-          {/* Top History Bar */}
-          <div className="shrink-0 z-[100] px-4 py-2 bg-white border-b border-gray-50">
-             <CrashHistory results={globalGame?.history || []} />
-          </div>
-
-          {/* Main Visualizer Area - Optimized height ratio 0.7 for better balance */}
-          <div className="flex-[0.7] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20">
-             <div className="relative z-30">
+          {/* Main Visualizer Area */}
+          <div className="flex-[1.2] relative overflow-hidden">
+             <CrashVisualizer multiplier={multiplier} state={localState} />
+             <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
              </div>
-             
-             <CrashVisualizer multiplier={multiplier} state={localState} />
-             
-             <div className="absolute inset-0 z-40 pointer-events-none">
-                <CrashStatus state={localState} timer={localTimer} />
+             <CrashStatus state={localState} timer={localTimer} multiplier={multiplier} />
+             <div className="absolute top-4 left-4 right-4 z-40">
+                <CrashHistory results={globalGame?.history || []} />
              </div>
           </div>
           
-          {/* Controls & Bets Area - Occupies remaining space */}
-          <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
+          {/* Controls Area */}
+          <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_100px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
              <div className="md:col-span-5 lg:col-span-4 p-6 border-l border-gray-50">
                 <CrashControls 
                   state={localState} 
@@ -179,7 +164,7 @@ export default function CrashPage() {
                   feedback={feedback}
                 />
              </div>
-             <div className="md:col-span-7 lg:col-span-8 p-6 bg-gray-50/20">
+             <div className="md:col-span-7 lg:col-span-8 p-6 bg-gray-50/30">
                 <CrashLiveBets 
                   state={localState}
                   currentBet={currentBet}

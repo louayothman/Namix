@@ -2,50 +2,41 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck } from "lucide-react";
+import { AlertTriangle, Timer } from "lucide-react";
 
-/**
- * @fileOverview شريط الحالة السيادي v8.5 - Nano Precision Positioning
- * - العداد يظهر منفرداً في المركز بنقاء كريستالي عند الانتظار.
- * - حالة "بروتوكول نشط" استقرت في الزاوية اليمنى السفلية بخط نانو ناعم.
- */
-export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | 'crashed', timer: number }) {
+export function CrashStatus({ state, timer, multiplier }: { state: 'waiting' | 'running' | 'crashed', timer: number, multiplier?: number }) {
   return (
-    <div className="absolute inset-0 pointer-events-none font-body tracking-normal" dir="rtl">
-      
-      {/* حالة المفاعل - الزاوية اليمنى السفلية بخط نانوى ناعم جداً */}
-      <AnimatePresence>
-        {state === 'running' && (
-          <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-4 right-6 flex items-center gap-2 opacity-40"
-          >
-             <ShieldCheck size={8} className="text-emerald-500" />
-             <span className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">بروتوكول نشط</span>
-             <div className="flex items-center gap-0.5">
-                <div className="w-0.5 h-0.5 rounded-full bg-emerald-400 animate-ping" />
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* العداد المركزي النقي - يظهر فقط عند الانتظار بدون أي بطاقة خلفية */}
+    <div className="absolute inset-0 pointer-events-none font-body flex items-center justify-center">
       <AnimatePresence mode="wait">
         {state === 'waiting' && (
           <motion.div
-            key="waiting-counter"
+            key="waiting"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="absolute inset-0 flex items-center justify-center"
+            className="flex flex-col items-center gap-4"
           >
-             <div className="flex flex-col items-center gap-1">
-                <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-2 tracking-normal">الجولة القادمة</span>
-                <span className="text-8xl font-black text-[#002d4d] tabular-nums tracking-tighter opacity-90">
-                  {timer}s
-                </span>
+             <div className="h-16 w-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl">
+                <Timer className="text-[#f9a885] animate-pulse" size={32} />
+             </div>
+             <div className="text-center space-y-1">
+                <p className="text-blue-200/60 font-black text-[10px] uppercase tracking-[0.4em]">Next Flight In</p>
+                <span className="text-6xl font-black text-white tabular-nums tracking-tighter">{timer}s</span>
+             </div>
+          </motion.div>
+        )}
+
+        {state === 'crashed' && (
+          <motion.div
+            key="crashed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-4"
+          >
+             <div className="bg-red-500/20 border border-red-500/50 backdrop-blur-xl px-10 py-6 rounded-[40px] shadow-2xl flex flex-col items-center gap-2">
+                <AlertTriangle className="text-red-500 mb-2" size={40} />
+                <h3 className="text-red-500 font-black text-xl uppercase tracking-widest">Protocol Crashed</h3>
+                <span className="text-5xl font-black text-white tabular-nums tracking-tighter">@{multiplier?.toFixed(2)}x</span>
              </div>
           </motion.div>
         )}
