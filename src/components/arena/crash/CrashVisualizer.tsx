@@ -3,8 +3,12 @@
 
 import { motion } from "framer-motion";
 
+/**
+ * @fileOverview مفاعل الكراش البصري - تم زيادة الارتفاع بنسبة 200% لتوسيع أفق الصعود.
+ */
 export function CrashVisualizer({ multiplier, state }: { multiplier: number, state: string }) {
-  const pathHeight = Math.min(multiplier * 12, 350);
+  // زيادة الارتفاع والمدى بنسبة 200%
+  const pathHeight = Math.min(multiplier * 24, 700); 
   const pathWidth = Math.min(multiplier * 18, 100);
 
   return (
@@ -53,7 +57,7 @@ export function CrashVisualizer({ multiplier, state }: { multiplier: number, sta
             />
           </svg>
 
-          {/* Dynamic Rocket / Dot Node */}
+          {/* Dynamic Rocket Node */}
           <motion.div 
             className="absolute top-0 right-0 h-5 w-5 bg-white rounded-full shadow-[0_0_20px_#f9a885] z-20 border-[3px] border-[#f9a885] flex items-center justify-center"
             animate={{ 
