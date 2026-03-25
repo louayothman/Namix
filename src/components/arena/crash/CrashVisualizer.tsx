@@ -11,24 +11,21 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الأجواء السيادية v130.0 - Unified Rocket Assembly
- * - نظام غيوم ملونة ضخمة تغطي كامل المفاعل وتتحرك باستمرار.
- * - صاروخ معدني فضي ملتحم تماماً بمحرك الدفع عبر الحاوية الأم (Assembly).
- * - هندسة التموضع تعتمد كلياً على transform ونسب مئوية (No PX).
+ * @fileOverview مفاعل الأجواء السيادية v140.0 - Unified Rocket Assembly (transform Edition)
+ * - حاوية موحدة للصاروخ واللهب لضمان الالتحام الفيزيائي التام.
+ * - استخدام transform و origin-top بدلاً من القيم الثابتة.
+ * - غيوم ملونة ضخمة تغطي كامل المفاعل وتتحرك باستمرار.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
-  // حساب الإحداثيات بناءً على المضاعف (مسار Bezier طبيعي)
   const elapsed = useMemo(() => Math.log(multiplier) / 0.055, [multiplier]);
   const progressX = Math.min(5 + (elapsed / 15) * 85, 90);
   const progressY = Math.max(90 - (Math.log(multiplier) / Math.log(10)) * 80, 10);
 
-  // زاوية الدوران: تكييف انسيابي يتبع اتجاه الصعود
   const rotation = useMemo(() => {
     const angle = (Math.log(multiplier) / Math.log(15)) * -80;
     return Math.max(angle, -80);
   }, [multiplier]);
 
-  // محرك السحب البانورامي الملون - 6 غيوم ضخمة موزعة في كامل الأفق (تدرجات فريدة)
   const clouds = useMemo(() => [
     { id: 1, top: '10%', size: 160, dur: 40, color: 'from-gray-200 to-white' },
     { id: 2, top: '35%', size: 200, dur: 55, color: 'from-blue-50 to-gray-100' },
@@ -41,7 +38,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-500 via-blue-400 to-white font-body select-none">
       
-      {/* 1. Panoramic Cloud Layer - Independent Motion */}
       <div className="absolute inset-0 z-0">
         {clouds.map((cloud) => (
           <motion.div
@@ -69,7 +65,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
         ))}
       </div>
 
-      {/* 2. Global Coordinates (Axes) - No Grid Lines */}
       <div className="absolute inset-0 z-20 p-8 flex flex-col justify-between opacity-20">
         <div className="flex flex-col justify-between h-[85%] text-[8px] font-black text-[#002d4d] uppercase tracking-widest">
           <span>10.00x</span><span>5.00x</span><span>2.00x</span><span>1.00x</span>
@@ -79,7 +74,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
         </div>
       </div>
 
-      {/* 3. Sovereign Rocket Assembly - Unified Mechanical System */}
       <div className="relative w-full h-full z-40">
         <AnimatePresence>
           {state === 'running' && (
@@ -91,7 +85,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                 rotate: rotation 
               }}
               animate={{ 
-                // اهتزاز الحاوية الأم بالكامل عند السرعات العالية
                 x: multiplier > 5 ? [0, 1, -1, 0] : 0,
                 y: multiplier > 5 ? [0, -1, 1, 0] : 0,
                 scale: multiplier > 10 ? [1, 1.02, 1] : 1
@@ -99,9 +92,10 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
               transition={{ duration: 0.1, repeat: Infinity }}
               className="absolute w-24 h-24 -ml-12 -mt-12 flex items-center justify-center will-change-transform"
             >
+              {/* Unified Rocket Assembly: Rocket + Flame */}
               <div className="relative flex flex-col items-center">
                 
-                {/* A. Metallic Rocket Body (Sovereign Silver-Blue) */}
+                {/* 1. Metallic Rocket Body */}
                 <div className="relative w-14 h-18">
                   <svg viewBox="0 0 40 60" fill="none" className="drop-shadow-2xl">
                     <defs>
@@ -111,16 +105,11 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                         <stop offset="100%" stopColor="#334155" />
                       </linearGradient>
                     </defs>
-                    
-                    {/* Fins */}
                     <path d="M10 40L0 55L10 50V40Z" fill="#002d4d" />
                     <path d="M30 40L40 55L30 50V40Z" fill="#002d4d" />
-                    
-                    {/* Body */}
                     <path d="M20 0C20 0 5 15 5 35V50H35V35C35 15 20 0 20 0Z" fill="url(#sovereignMetal)" />
                     <rect x="18" y="45" width="4" height="5" fill="#1e293b" />
-
-                    {/* Namix Identity (2*2 Dots) */}
+                    {/* Namix Identity 2*2 */}
                     <g transform="translate(16, 25) scale(0.4)">
                       <circle cx="0" cy="0" r="4" fill="#002d4d" />
                       <circle cx="12" cy="0" r="4" fill="#f9a885" />
@@ -130,7 +119,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   </svg>
                 </div>
 
-                {/* B. Integrated Jet Thruster - Absolute Link to Parent Container */}
+                {/* 2. Integrated Flame: Linked to Parent Assembly via transform */}
                 <div className="absolute left-1/2 bottom-0 pointer-events-none origin-top" style={{ transform: 'translate(-50%, 75%)' }}>
                   <motion.div
                     animate={{ 
@@ -152,7 +141,6 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
             </motion.div>
           )}
 
-          {/* 4. Impact Node (Nano-Dust) */}
           {state === 'crashed' && (
             <motion.div
               key="crash-impact"

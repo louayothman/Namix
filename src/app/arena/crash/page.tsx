@@ -12,30 +12,30 @@ import {
   CrashStatus,
   CrashLiveBets
 } from "@/components/arena/crash";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot, updateDoc, increment, collection, query, where, serverTimestamp } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش العالمية v130.0 - Central Sync Cloud Engine
- * - تم إصلاح خطأ ShieldCheck المفقود.
- * - استبدال محرك الحالة المحلي بـ "الحقيقة السحابية المتزامنة" (Single Source of Truth).
+ * @fileOverview صفحة الكراش العالمية v140.0 - Real Node.js Server Integration
+ * تم ربط الصفحة بخادم WebSocket حقيقي لاستلام الحقيقة السحابية المتزامنة.
  */
 export default function CrashPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
   const [multiplier, setMultiplier] = useState(1.0);
-  const [localState, setLocalState] = useState<GameState>('waiting');
-  const [localTimer, setLocalTimer] = useState(10);
+  const [status, setStatus] = useState<GameState>('waiting');
+  const [timer, setTimer] = useState(10);
+  const [history, setHistory] = useState<number[]>([]);
   const [currentBet, setCurrentBet] = useState<number | null>(null);
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
+  
+  const socketRef = useRef<WebSocket | null>(null);
 
-  const requestRef = useRef<number | null>(null);
-
-  // 1. مزامنة بيانات المستخدم السيادية
+  // 1. مزامنة بيانات المستخدم السيادية من Firestore
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -47,88 +47,78 @@ export default function CrashPage() {
     }
   }, [db]);
 
-  // 2. ربط وثيقة السيرفر - الحقيقة المطلقة لكافة العملاء
-  const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
-  const { data: globalGame, isLoading: loadingGame } = useDoc(gameStateRef);
-
-  // محرك المضاعف الفيزيائي المتزامن - يعمل بتردد 60fps
-  const updateMultiplier = (startTime: number) => {
-    const now = Date.now();
-    const elapsed = (now - startTime) / 1000;
-    // معادلة النمو الأسي العالمية (Deterministic Math)
-    const currentMult = Math.exp(0.055 * elapsed);
-    setMultiplier(currentMult);
-    requestRef.current = requestAnimationFrame(() => updateMultiplier(startTime));
-  };
-
+  // 2. الاتصال بسيرفر Node.js الحقيقي عبر WebSockets
   useEffect(() => {
-    if (!globalGame) return;
-
-    const startTime = new Date(globalGame.startTime).getTime();
-    const now = Date.now();
-    const elapsed = (now - startTime) / 1000;
-
-    // بروتوكول مزامنة الجلسة (Deterministic Lifecycle)
-    if (globalGame.status === 'waiting') {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      setLocalState('waiting');
-      setLocalTimer(Math.max(0, Math.ceil(8 - elapsed))); // 8 seconds betting phase
-      setMultiplier(1.0);
-      setHasCashedOut(false);
-
-      // السيرفر (Firestore) هو من يتخذ قرار البداية والانهيار
-      // (هنا تتم محاكاتها برمجياً لضمان العمل في بيئة Firebase Studio)
-      if (elapsed >= 8) {
-        const crashPoint = 1 + (Math.random() * (1 / (1 - Math.random())) * 0.96);
-        updateDoc(gameStateRef, {
-          status: 'running',
-          startTime: new Date().toISOString(),
-          crashPoint: Math.max(1.01, crashPoint),
-          updatedAt: serverTimestamp()
-        }).catch(() => {});
-      }
-    } 
-    else if (globalGame.status === 'running') {
-      setLocalState('running');
-      requestRef.current = requestAnimationFrame(() => updateMultiplier(startTime));
-
-      const currentMult = Math.exp(0.055 * elapsed);
-      if (currentMult >= globalGame.crashPoint) {
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
-        const newHistory = [currentMult, ...(globalGame.history || [])].slice(0, 20);
-        updateDoc(gameStateRef, {
-          status: 'crashed',
-          startTime: new Date().toISOString(),
-          history: newHistory,
-          updatedAt: serverTimestamp()
-        }).catch(() => {});
-        setCurrentBet(null);
-      }
-    } 
-    else if (globalGame.status === 'crashed') {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      setLocalState('crashed');
-      setMultiplier(globalGame.crashPoint || 1.0);
+    const connect = () => {
+      const ws = new WebSocket('ws://localhost:3001');
       
-      // دورة انتظار السيرفر قبل الجولة الجديدة
-      if (elapsed >= 4) {
-        updateDoc(gameStateRef, {
-          status: 'waiting',
-          startTime: new Date().toISOString(),
-          updatedAt: serverTimestamp()
-        }).catch(() => {});
-      }
-    }
+      ws.onopen = () => {
+        setFeedback({ type: 'info', msg: 'تم الاتصال بالمفاعل المركزي.' });
+        setTimeout(() => setFeedback(null), 2000);
+      };
 
-    return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); };
-  }, [globalGame, gameStateRef]);
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
+          case 'WAITING':
+            setStatus('waiting');
+            setTimer(data.timer);
+            setMultiplier(1.0);
+            setHasCashedOut(false);
+            break;
+          case 'ROUND_START':
+            setStatus('running');
+            break;
+          case 'MULTIPLIER_UPDATE':
+            setMultiplier(data.multiplier);
+            setStatus('running');
+            break;
+          case 'ROUND_CRASHED':
+            setStatus('crashed');
+            setMultiplier(data.multiplier);
+            setHistory(data.history);
+            setCurrentBet(null);
+            break;
+          case 'SYNC_STATE':
+            setStatus(data.state.status);
+            setHistory(data.state.history);
+            setMultiplier(data.state.multiplier);
+            break;
+          case 'ROUND_INIT':
+            setHasCashedOut(false);
+            setCurrentBet(null);
+            break;
+        }
+      };
+
+      ws.onclose = () => {
+        setFeedback({ type: 'error', msg: 'فقد الاتصال بالمفاعل. جاري إعادة المحاولة...' });
+        setTimeout(connect, 3000);
+      };
+
+      socketRef.current = ws;
+    };
+
+    connect();
+    return () => socketRef.current?.close();
+  }, []);
 
   const handlePlaceBet = async (amount: number) => {
-    if (!dbUser || amount > (dbUser.totalBalance || 0) || localState !== 'waiting' || currentBet) return;
+    if (!dbUser || amount > (dbUser.totalBalance || 0) || status !== 'waiting' || currentBet) return;
     try {
+      // تنفيذ المعاملة المالية في Firestore (نظام الرصيد)
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amount) });
+      
+      // إرسال إشارة الرهان للسيرفر الحقيقي
+      socketRef.current?.send(JSON.stringify({ 
+        type: 'PLACE_BET', 
+        user: dbUser.displayName, 
+        amount 
+      }));
+
       setCurrentBet(amount);
-      setFeedback({ type: 'success', msg: 'تم توثيق الرهان في المفاعل المركزي.' });
+      setFeedback({ type: 'success', msg: 'تم توثيق الرهان في السيرفر.' });
       setTimeout(() => setFeedback(null), 3000);
     } catch (e) {
       setFeedback({ type: 'error', msg: 'فشل بروتوكول الرهان.' });
@@ -136,28 +126,29 @@ export default function CrashPage() {
   };
 
   const handleCashout = async () => {
-    if (!dbUser || !currentBet || hasCashedOut || localState !== 'running') return;
+    if (!dbUser || !currentBet || hasCashedOut || status !== 'running') return;
     const profit = currentBet * multiplier;
     setHasCashedOut(true);
     try {
+      // إرسال إشارة الانسحاب للسيرفر
+      socketRef.current?.send(JSON.stringify({ 
+        type: 'CASHOUT', 
+        user: dbUser.displayName 
+      }));
+
+      // تحديث الرصيد الحقيقي في Firestore
       await updateDoc(doc(db, "users", dbUser.id), { 
         totalBalance: increment(profit),
         totalProfits: increment(profit - currentBet)
       });
+
       setFeedback({ type: 'success', msg: `تم تنفيذ الصرف: +$${profit.toFixed(2)}` });
       setCurrentBet(null);
       setTimeout(() => setFeedback(null), 4000);
     } catch (e) {
-      setFeedback({ type: 'error', msg: 'خطأ في حقن الأرباح السيادية.' });
+      setFeedback({ type: 'error', msg: 'خطأ في حقن الأرباح.' });
     }
   };
-
-  if (loadingGame) return (
-    <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-4">
-       <Loader2 className="animate-spin text-[#002d4d]" />
-       <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Booting Sovereign Cloud Engine...</p>
-    </div>
-  );
 
   return (
     <Shell hideMobileNav>
@@ -168,17 +159,17 @@ export default function CrashPage() {
           
           <div className="lg:col-span-8 xl:col-span-9 flex flex-col relative border-l border-gray-100 bg-[#fcfdfe] overflow-hidden">
              <div className="p-4 z-40 bg-white/40 backdrop-blur-sm border-b border-gray-50">
-                <CrashHistory results={globalGame?.history || []} />
+                <CrashHistory results={history} />
              </div>
 
              <div className="flex-1 relative overflow-hidden">
-                <CrashVisualizer multiplier={multiplier} state={localState} />
+                <CrashVisualizer multiplier={multiplier} state={status} />
                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-                   <CrashMultiplier multiplier={multiplier} state={localState} />
+                   <CrashMultiplier multiplier={multiplier} state={status} />
                 </div>
-                <CrashStatus state={localState} timer={localTimer} multiplier={multiplier} />
+                <CrashStatus state={status} timer={timer} multiplier={multiplier} />
                 <div className="absolute bottom-6 right-8 z-40 opacity-10 select-none hidden md:block">
-                   <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">NAMIX SOVEREIGN CLOUD</p>
+                   <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">NAMIX NODE SERVER</p>
                 </div>
              </div>
           </div>
@@ -186,7 +177,7 @@ export default function CrashPage() {
           <div className="lg:col-span-4 xl:col-span-3 flex flex-col bg-white shadow-[-20px_0_80px_rgba(0,45,77,0.03)] z-50 overflow-y-auto scrollbar-none border-r border-gray-50">
              <div className="p-6 border-b border-gray-50">
                 <CrashControls 
-                  state={localState} 
+                  state={status} 
                   onPlaceBet={handlePlaceBet} 
                   onCashout={handleCashout}
                   currentBet={currentBet}
@@ -199,7 +190,7 @@ export default function CrashPage() {
 
              <div className="flex-1 p-6 bg-gray-50/20">
                 <CrashLiveBets 
-                  state={localState}
+                  state={status}
                   currentBet={currentBet}
                   hasCashedOut={hasCashedOut}
                   multiplier={multiplier}
@@ -209,7 +200,7 @@ export default function CrashPage() {
              <div className="p-4 flex flex-col items-center gap-2 opacity-30 select-none">
                 <div className="flex items-center gap-2">
                    <ShieldCheck size={10} className="text-blue-500" />
-                   <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Provably Fair Protocol v4.0</p>
+                   <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Node.js Engine Active</p>
                 </div>
              </div>
           </div>
