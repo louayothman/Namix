@@ -7,13 +7,13 @@ import { ShieldCheck } from "lucide-react";
 /**
  * @fileOverview شريط الحالة السيادي v8.0 - Nano Precision Positioning
  * - العداد يظهر منفرداً في المركز دون أي تداخل.
- * - حالة "بروتوكول نشط" استقرت في الزاوية اليمنى السفلية بخط نانوى ناعم.
+ * - حالة "بروتوكول نشط" استقرت في الزاوية اليمنى السفلية بخط نانوى ناعم دقيق.
  */
 export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | 'crashed', timer: number }) {
   return (
     <div className="absolute inset-0 pointer-events-none font-body tracking-normal" dir="rtl">
       
-      {/* حالة المفاعل - الزاوية اليمنى السفلية بخط نانوى ناعم */}
+      {/* حالة المفاعل - الزاوية اليمنى السفلية بخط نانوى ناعم جداً */}
       <AnimatePresence>
         {state === 'running' && (
           <motion.div
