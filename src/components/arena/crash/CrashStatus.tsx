@@ -23,7 +23,7 @@ export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | '
             className="absolute bottom-4 right-6 flex items-center gap-2 opacity-40"
           >
              <ShieldCheck size={8} className="text-emerald-500" />
-             <span className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest">بروتوكول نشط</span>
+             <span className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">بروتوكول نشط</span>
              <div className="flex items-center gap-0.5">
                 <div className="w-0.5 h-0.5 rounded-full bg-emerald-400 animate-ping" />
              </div>
@@ -42,7 +42,7 @@ export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | '
             className="absolute inset-0 flex items-center justify-center"
           >
              <div className="flex flex-col items-center gap-1">
-                <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] opacity-50 mb-2">الجولة القادمة</span>
+                <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] mb-2 tracking-normal">الجولة القادمة</span>
                 <span className="text-8xl font-black text-[#002d4d] tabular-nums tracking-tighter opacity-90">
                   {timer}s
                 </span>
