@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview محرك المضاعف المدمج v6.0 - Professional Scale
- * تم تقليص حجم الخط ليكون أنيقاً ومتناسباً مع الحاوية الموسعة.
+ * @fileOverview محرك المضاعف المدمج v7.0 - Precision Compact Edition
+ * تم ضبط الحجم ليكون أنيقاً ومتناسباً مع الحاوية الموسعة (ليس ضخماً جداً).
  */
 export function CrashMultiplier({ multiplier, state }: { multiplier: number, state: 'waiting' | 'running' | 'crashed' }) {
   return (
@@ -24,7 +24,7 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
               {multiplier.toFixed(2)}x
             </h2>
             <div className="flex flex-col items-center gap-1.5">
-               <p className="text-sm font-black text-red-400 uppercase tracking-[0.4em] leading-none">Crashed</p>
+               <p className="text-sm font-black text-red-400 uppercase tracking-[0.4em] leading-none tracking-normal">Crashed</p>
                <div className="h-1 w-12 bg-red-100 rounded-full" />
             </div>
           </motion.div>
@@ -37,7 +37,7 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
           >
             <div className="relative">
                <h2 className={cn(
-                 "text-7xl md:text-9xl font-black tabular-nums tracking-tighter transition-colors duration-500",
+                 "text-6xl md:text-8xl font-black tabular-nums tracking-tighter transition-colors duration-500",
                  state === 'waiting' ? "text-gray-100" : "text-[#002d4d]"
                )}>
                  {multiplier.toFixed(2)}x
@@ -54,7 +54,7 @@ export function CrashMultiplier({ multiplier, state }: { multiplier: number, sta
             {state === 'running' && (
               <div className="flex items-center justify-center gap-3">
                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] tracking-normal">In Flight...</p>
+                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest tracking-normal">In Flight...</p>
               </div>
             )}
           </motion.div>

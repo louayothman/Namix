@@ -16,8 +16,9 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestore";
 
 /**
- * @fileOverview مفاعل Namix Crash السيادي v6.0 - Professional Layout
- * تم توسيع حاوية العرض لتشغل كامل المساحة الرأسية مع الحفاظ على حجم مضاعف أنيق.
+ * @fileOverview مفاعل Namix Crash السيادي v7.0 - Ultra-Vertical Layout
+ * تم توسيع حاوية العرض لتمتد من نهاية الشريط العلوي حتى بداية لوحة الرهان.
+ * تم ضبط التمركز ليكون المضاعف والمنحنى في قلب المساحة الشاسعة بأسلوب نخبوي.
  */
 
 type GameState = 'waiting' | 'running' | 'crashed';
@@ -46,9 +47,9 @@ export default function CrashPage() {
 
   // 2. الاستماع لحالة اللعبة العالمية من Firestore
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
-  const { data: globalGame, isLoading: loadingGame } = useDoc(gameStateRef);
+  const { data: globalGame } = useDoc(gameStateRef);
 
-  // 3. محرك المزامنة اللحظي (Global Master Logic)
+  // 3. محرك المزامنة اللحظي المطور
   useEffect(() => {
     if (!globalGame) {
       setDoc(gameStateRef, {
@@ -152,23 +153,28 @@ export default function CrashPage() {
           
           <div className="flex-1 flex flex-col relative bg-gray-50/5">
              
+             {/* سجل التاريخ في القمة - بدون كلمة سجل */}
              <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-gradient-to-b from-white via-white/90 to-transparent">
                 <CrashHistory results={globalGame?.history || []} />
              </div>
 
-             {/* Expanded Display Container - Realigned for Elegance */}
+             {/* حاوية العرض الموسعة - تشغل كامل المساحة الرأسية */}
              <div className="flex-1 relative flex flex-col items-center justify-center p-0 overflow-hidden">
+                {/* المضاعف السعري - حجم أنيق في قلب الحاوية الكبيرة */}
                 <div className="relative z-20 mb-12">
                    <CrashMultiplier multiplier={multiplier} state={localState} />
                 </div>
                 
+                {/* المفاعل البصري - يملأ الخلفية بارتفاع شاهق */}
                 <CrashVisualizer multiplier={multiplier} state={localState} />
                 
+                {/* شريط الحالة والعد التنازلي */}
                 <div className="relative z-30 mt-8">
                    <CrashStatus state={localState} timer={localTimer} />
                 </div>
              </div>
              
+             {/* لوحة التحكم للجوال - تبدأ من نهاية الحاوية المركزية */}
              <div className="p-4 bg-white border-t border-gray-100 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.02)] relative z-50 shrink-0">
                 <CrashControls 
                   state={localState} 
@@ -183,6 +189,7 @@ export default function CrashPage() {
              </div>
           </div>
 
+          {/* الرادار الجانبي لسطح المكتب */}
           <div className="lg:w-[420px] bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-y-auto scrollbar-none pb-24 lg:pb-0 z-40">
              <div className="hidden lg:block p-10 border-b border-gray-50">
                 <CrashControls 
