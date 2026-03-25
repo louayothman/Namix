@@ -18,8 +18,8 @@ import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestor
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش السيادية v12.0 - Precision Scale Edition
- * تم تقليل ارتفاع المفاعل بنسبة 25% إضافية لتحقيق توازن مثالي مع لوحة الرهان.
+ * @fileOverview صفحة الكراش السيادية v12.5 - Precision Scale Edition
+ * تم تقليل ارتفاع المفاعل بنسبة 25% إضافية وحل مشكلات التداخل بذكاء.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -152,8 +152,8 @@ export default function CrashPage() {
              <CrashHistory results={globalGame?.history || []} />
           </div>
 
-          {/* Main Visualizer Area - Reduced flex weight by 25% for a more compact look */}
-          <div className="flex-[0.9] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20">
+          {/* Main Visualizer Area - Compressed height for balance */}
+          <div className="flex-[0.9] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20 overflow-visible">
              <div className="relative z-30">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
              </div>
@@ -165,7 +165,7 @@ export default function CrashPage() {
              </div>
           </div>
           
-          {/* Controls & Bets Area - Gains more visual weight */}
+          {/* Controls & Bets Area */}
           <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
              <div className="md:col-span-5 lg:col-span-4 p-6 border-l border-gray-50">
                 <CrashControls 

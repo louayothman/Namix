@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview المضاعف السعري المركزي v12.0
- * تم تعديل المنطق ليختفي تماماً أثناء مرحلة الانتظار لترك الساحة للعداد النقي.
+ * @fileOverview المضاعف السعري المركزي v12.5
+ * تم تعديل المنطق ليختفي تماماً أثناء مرحلة الانتظار لترك الساحة للعداد النقي ومنع التداخل.
  */
 export function CrashMultiplier({ multiplier, state }: { multiplier: number, state: 'waiting' | 'running' | 'crashed' }) {
   return (

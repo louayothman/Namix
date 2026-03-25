@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 
 /**
- * @fileOverview شريط الحالة السيادي v8.0 - Nano Precision Positioning
- * - العداد يظهر منفرداً في المركز دون أي تداخل.
- * - حالة "بروتوكول نشط" استقرت في الزاوية اليمنى السفلية بخط نانوى ناعم دقيق.
+ * @fileOverview شريط الحالة السيادي v8.5 - Nano Precision Positioning
+ * - العداد يظهر منفرداً في المركز بنقاء كريستالي عند الانتظار.
+ * - حالة "بروتوكول نشط" استقرت في الزاوية اليمنى السفلية بخط نانو ناعم.
  */
 export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | 'crashed', timer: number }) {
   return (
@@ -43,7 +43,7 @@ export function CrashStatus({ state, timer }: { state: 'waiting' | 'running' | '
           >
              <div className="flex flex-col items-center gap-1">
                 <span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em] opacity-50 mb-2">الجولة القادمة</span>
-                <span className="text-8xl font-black text-[#002d4d] tabular-nums tracking-tighter opacity-90 drop-shadow-sm">
+                <span className="text-8xl font-black text-[#002d4d] tabular-nums tracking-tighter opacity-90">
                   {timer}s
                 </span>
              </div>
