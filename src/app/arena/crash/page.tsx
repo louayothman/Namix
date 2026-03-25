@@ -17,8 +17,10 @@ import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestor
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة مفاعل الكراش السيادي v6.0 - Global Layout Edition
- * تم إعادة توزيع العناصر لضمان سيادة حاوية المفاعل بنسبة 2.5:1.
+ * @fileOverview صفحة مفاعل الكراش السيادي v7.0 - Precision Scale Edition
+ * - حاوية مفاعل عملاقة بنسبة 2.5:1.
+ * - مزامنة عالمية عبر Firestore لضمان توحيد النتائج.
+ * - تطهير كامل من مسافات النصوص العربية.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -70,15 +72,18 @@ export default function CrashPage() {
         setHasCashout(false);
 
         if (elapsed >= 10) {
+          // محاكاة احتمالية المنصات الكبرى: توزيع أسي مع نقطة انفجار عشوائية
+          const crashPoint = 1 + (Math.random() * Math.random() * 20);
           updateDoc(gameStateRef, {
             status: 'running',
             startTime: new Date().toISOString(),
-            crashPoint: 1 + (Math.random() * Math.random() * 20)
+            crashPoint: crashPoint
           }).catch(() => {});
         }
       } 
       else if (globalGame.status === 'running') {
         setLocalState('running');
+        // نمو أسي متدرج: 1.07^Time
         const currentMult = Math.pow(1.07, elapsed);
         setMultiplier(currentMult);
 
@@ -140,12 +145,12 @@ export default function CrashPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body" dir="rtl">
+      <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden font-body tracking-normal" dir="rtl">
         <CrashHeader user={dbUser} />
         
         <div className="flex-1 flex flex-col overflow-hidden relative">
           
-          {/* Top Results Feed - Clean Independent Strip */}
+          {/* شريط النتائج العلوي - نقي ومتزامن */}
           <div className="shrink-0 z-[100] px-4 py-3 bg-white border-b border-gray-50 flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
@@ -156,7 +161,7 @@ export default function CrashPage() {
              <CrashHistory results={globalGame?.history || []} />
           </div>
 
-          {/* Main Visualizer Container - Scale 2.5:1 Dominance */}
+          {/* حاوية المفاعل السيادية - نسبة 2.5:1 للمشاهدة الغامرة */}
           <div className="flex-[2.5] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-white z-20">
              <div className="relative z-30">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
@@ -164,13 +169,13 @@ export default function CrashPage() {
              
              <CrashVisualizer multiplier={multiplier} state={localState} />
              
-             {/* Bottom Right Network Status */}
+             {/* حالة الشبكة والبروتوكول - الزاوية اليمنى السفلية */}
              <div className="absolute bottom-6 right-6 z-40">
                 <CrashStatus state={localState} timer={localTimer} />
              </div>
           </div>
           
-          {/* Betting Control Panel - Flex 1 */}
+          {/* لوحة تحكم الرهان - Flex 1 لضمان القرب من متناول اليد */}
           <div className="flex-1 shrink-0 p-6 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
              <div className="max-w-2xl mx-auto">
                 <CrashControls 
