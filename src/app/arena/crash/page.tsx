@@ -9,7 +9,6 @@ import {
   CrashVisualizer, 
   CrashControls, 
   CrashHistory, 
-  CrashLiveBets, 
   CrashStatus 
 } from "@/components/arena/crash";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
@@ -17,6 +16,10 @@ import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestor
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
+/**
+ * @fileOverview صفحة مفاعل الكراش السيادي v6.0 - Global Layout Edition
+ * تم إعادة توزيع العناصر لضمان سيادة حاوية المفاعل بنسبة 2.5:1.
+ */
 export default function CrashPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -142,8 +145,8 @@ export default function CrashPage() {
         
         <div className="flex-1 flex flex-col overflow-hidden relative">
           
-          {/* Top Results Feed - Like Screenshot */}
-          <div className="shrink-0 z-[100] px-4 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between">
+          {/* Top Results Feed - Clean Independent Strip */}
+          <div className="shrink-0 z-[100] px-4 py-3 bg-white border-b border-gray-50 flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
                    <button className="px-4 py-1.5 rounded-lg bg-white shadow-sm font-black text-[10px] text-[#002d4d]">كلاسيك</button>
@@ -153,22 +156,22 @@ export default function CrashPage() {
              <CrashHistory results={globalGame?.history || []} />
           </div>
 
-          {/* Main Visualizer Container - Huge Space */}
-          <div className="flex-[2.5] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-white z-50">
-             <div className="relative z-[52]">
+          {/* Main Visualizer Container - Scale 2.5:1 Dominance */}
+          <div className="flex-[2.5] relative flex flex-col items-center justify-center p-0 m-0 overflow-hidden bg-white z-20">
+             <div className="relative z-30">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
              </div>
              
              <CrashVisualizer multiplier={multiplier} state={localState} />
              
-             {/* Bottom Right Status */}
-             <div className="absolute bottom-6 right-6 z-[60]">
+             {/* Bottom Right Network Status */}
+             <div className="absolute bottom-6 right-6 z-40">
                 <CrashStatus state={localState} timer={localTimer} />
              </div>
           </div>
           
-          {/* Betting Control Panel - Screen-fit bottom */}
-          <div className="flex-1 shrink-0 p-6 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-[70] overflow-y-auto scrollbar-none">
+          {/* Betting Control Panel - Flex 1 */}
+          <div className="flex-1 shrink-0 p-6 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
              <div className="max-w-2xl mx-auto">
                 <CrashControls 
                   state={localState} 

@@ -3,8 +3,20 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Coins, Zap, MousePointerClick, CheckCircle2, AlertTriangle, ChevronUp, ChevronDown, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { 
+  Coins, 
+  Zap, 
+  CheckCircle2, 
+  AlertTriangle, 
+  ChevronUp, 
+  ChevronDown, 
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  ClipboardPaste
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,8 +32,8 @@ interface CrashControlsProps {
 }
 
 /**
- * @fileOverview محطة التحكم بمفاعل Crash v3.0 - Screenshot Simulation
- * محاكاة دقيقة لتصميم الصورة: حقول مبالغ مع أزرار مضاعفة وأزرار سريعة.
+ * @fileOverview محطة التحكم بمفاعل Crash v4.0 - Sovereign Precision Edition
+ * تم إصلاح خطأ Label المفقود وإضافة كافة الأيقونات والدوال اللازمة للتحكم الاحترافي.
  */
 export function CrashControls({ 
   state, 
@@ -39,8 +51,15 @@ export function CrashControls({
   const canBet = state === 'waiting' && !currentBet;
   const canCashout = state === 'running' && currentBet && !hasCashedOut;
 
-  const handleHalf = () => setAmount(prev => (Number(prev) / 2).toFixed(2));
+  const handleHalf = () => setAmount(prev => (Math.max(0, Number(prev) / 2)).toFixed(2));
   const handleDouble = () => setAmount(prev => (Number(prev) * 2).toFixed(2));
+
+  const adjustAmount = (val: number) => {
+    setAmount(prev => {
+      const next = Math.max(0, (Number(prev) || 0) + val);
+      return next.toFixed(2);
+    });
+  };
 
   return (
     <div className="space-y-5 font-body tracking-normal" dir="rtl">
@@ -68,11 +87,13 @@ export function CrashControls({
         <div className="space-y-2">
           <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
-                <Info size={10} className="text-gray-300" />
+                <div className="h-3.5 w-3.5 rounded-full border border-gray-200 flex items-center justify-center">
+                   <span className="text-[8px] font-bold text-gray-300">i</span>
+                </div>
                 <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">المبلغ</Label>
              </div>
           </div>
-          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input">
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
              <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
                 <Coins size={14} className="text-[#f9a885]" />
              </div>
@@ -87,8 +108,8 @@ export function CrashControls({
                 <button onClick={handleHalf} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">1/2</button>
                 <button onClick={handleDouble} disabled={!canBet} className="px-3 h-9 rounded-xl bg-white/80 border border-gray-100 text-[10px] font-black hover:bg-[#002d4d] hover:text-white transition-all disabled:opacity-30">2x</button>
                 <div className="flex flex-col gap-0.5">
-                   <button onClick={() => adjustAmount(1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center"><ChevronUp size={10}/></button>
-                   <button onClick={() => adjustAmount(-1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center"><ChevronDown size={10}/></button>
+                   <button onClick={() => adjustAmount(1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50"><ChevronUp size={10}/></button>
+                   <button onClick={() => adjustAmount(-1)} disabled={!canBet} className="h-4 px-1 rounded-md bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50"><ChevronDown size={10}/></button>
                 </div>
              </div>
           </div>
@@ -100,7 +121,7 @@ export function CrashControls({
              <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">صرف النقود تلقائياً</Label>
              <span className="text-[8px] font-bold text-gray-300">%0.99 حظ</span>
           </div>
-          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input">
+          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner group/input focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
              <input 
                type="number"
                value={autoCashout}
@@ -148,14 +169,6 @@ export function CrashControls({
           </Button>
         )}
       </div>
-    </div>
-  );
-}
-
-function Info({ size, className }: { size: number, className: string }) {
-  return (
-    <div className={cn("rounded-full border border-current flex items-center justify-center", className)} style={{ width: size, height: size }}>
-      <span className="text-[8px] font-bold">i</span>
     </div>
   );
 }
