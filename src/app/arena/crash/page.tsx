@@ -18,8 +18,8 @@ import { doc, onSnapshot, updateDoc, increment, setDoc } from "firebase/firestor
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش السيادية v10.0 - إصدار المطابقة التامة
- * تم إعادة هيكلة الواجهة لضمان سيادة المفاعل بنسبة 2:1 وتطبيق بروتوكول النقاء البصري.
+ * @fileOverview صفحة الكراش السيادية v11.0 - Structural Integrity Edition
+ * تم تقليل ارتفاع المفاعل ومعالجة تداخل العناصر لضمان تجربة مستخدم نقية ومطابقة للصورة.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -145,27 +145,27 @@ export default function CrashPage() {
       <div className="flex flex-col h-[100dvh] bg-white overflow-hidden font-body tracking-normal" dir="rtl">
         <CrashHeader user={dbUser} />
         
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 flex flex-col relative">
           
-          {/* Top History Bar - Exactly as in the image */}
+          {/* Top History Bar */}
           <div className="shrink-0 z-[100] px-4 py-3 bg-white border-b border-gray-50">
              <CrashHistory results={globalGame?.history || []} />
           </div>
 
-          {/* Main Visualizer Area - Occupying 2/3 of screen height */}
-          <div className="flex-[1.8] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20 overflow-hidden">
+          {/* Main Visualizer Area - Reduced flex weight for better height balance */}
+          <div className="flex-[1.2] relative flex flex-col items-center justify-center p-0 m-0 bg-white z-20">
              <div className="relative z-30">
                 <CrashMultiplier multiplier={multiplier} state={localState} />
              </div>
              
              <CrashVisualizer multiplier={multiplier} state={localState} />
              
-             <div className="absolute bottom-6 right-6 z-40">
+             <div className="absolute inset-0 z-40 pointer-events-none">
                 <CrashStatus state={localState} timer={localTimer} />
              </div>
           </div>
           
-          {/* Controls & Bets Area - Occupying 1/3 of screen height */}
+          {/* Controls & Bets Area */}
           <div className="flex-1 shrink-0 grid grid-cols-1 md:grid-cols-12 gap-0 bg-white border-t border-gray-100 shadow-[0_-20px_80px_rgba(0,45,77,0.05)] relative z-50 overflow-y-auto scrollbar-none">
              <div className="md:col-span-5 lg:col-span-4 p-6 border-l border-gray-50">
                 <CrashControls 
