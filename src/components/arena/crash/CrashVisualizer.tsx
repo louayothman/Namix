@@ -3,84 +3,104 @@
 
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 
-export function CrashVisualizer({ multiplier, state }: { multiplier: number, state: string }) {
-  const currentMax = useMemo(() => Math.max(3, multiplier), [multiplier]);
-  const progress = useMemo(() => (multiplier - 1) / (currentMax - 1), [multiplier, currentMax]);
-  
-  const currentX = progress * 100;
-  // Exponential curvature simulation: hits 75% height then accelerates to 96%
-  const visualYProgress = Math.pow(progress, 1.8); 
-  const currentY = 100 - (visualYProgress * 92 + 4); 
+interface CrashVisualizerProps {
+  multiplier: number;
+  state: 'waiting' | 'running' | 'crashed';
+}
 
-  const gridLines = useMemo(() => {
-    const lines = [];
-    const step = currentMax > 10 ? 5 : 1;
-    for (let i = 1; i <= currentMax + 1; i += step) {
-      lines.push(i);
-    }
-    return lines;
-  }, [currentMax]);
+/**
+ * @fileOverview مفاعل الصعود السائل v10.0 - مطابق للصورة المرفقة
+ * يتميز بمحاور X و Y حقيقية، منحنى بارابولي دقيق، ونقطة ارتكاز في النهاية.
+ */
+export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
+  // نطاق العرض الديناميكي (يبدأ بـ 2.0x ويتمدد)
+  const currentMaxY = useMemo(() => Math.max(2.0, multiplier * 1.1), [multiplier]);
+  const currentMaxX = 10; // ثابت للثواني كما في الصورة (أو يمكن جعله ديناميكياً)
+
+  // حساب الإحداثيات (0-100)
+  const progressY = ((multiplier - 1) / (currentMaxY - 1)) * 100;
+  const progressX = Math.min(100, (Math.log(multiplier) / Math.log(currentMaxY)) * 100);
+
+  // إحداثيات النقطة الحالية
+  const currentX = progressX;
+  const currentY = 100 - progressY;
+
+  // توليد علامات المحاور كما في الصورة
+  const yTicks = [1.2, 1.4, 1.6, 1.8];
+  const xTicks = [0, 2, 4, 6, 8];
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-visible z-10 bg-[#fcfdfe] font-body">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-white font-body select-none">
       
-      <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {gridLines.map((val) => {
-          const yPos = 100 - ((val - 1) / (currentMax - 1) * 100);
-          return (
-            <g key={val}>
-              <line x1="0" y1={yPos} x2="100" y2={yPos} stroke="#002d4d" strokeWidth="0.1" />
-            </g>
-          );
-        })}
-      </svg>
+      {/* Grid & Axis Labels */}
+      <div className="absolute inset-0 p-8 md:p-12">
+        {/* Y Axis (Left) */}
+        <div className="absolute left-4 inset-y-8 flex flex-col justify-between items-start opacity-30">
+          {yTicks.reverse().map(tick => (
+            <span key={tick} className="text-[10px] font-black text-gray-400 tabular-nums">{tick.toFixed(1)}x</span>
+          ))}
+        </div>
 
-      <div className="absolute right-4 inset-y-0 flex flex-col justify-between py-8 opacity-20 select-none items-end" dir="ltr">
-        {gridLines.reverse().slice(0, 6).map((val) => (
-          <span key={val} className="text-[8px] font-black text-[#002d4d] tabular-nums text-right">
-            {val.toFixed(0)}x
-          </span>
-        ))}
-      </div>
-      
-      {state === 'running' && (
-        <div className="absolute inset-0">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {/* X Axis (Bottom) */}
+        <div className="absolute bottom-4 inset-x-8 flex justify-between items-end opacity-30 pl-4">
+          {xTicks.map(tick => (
+            <span key={tick} className="text-[10px] font-black text-gray-400 tabular-nums">{tick}s</span>
+          ))}
+        </div>
+
+        {/* The Curve Display Area */}
+        <div className="relative w-full h-full">
+          <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
               <linearGradient id="curveGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#3b82f6" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                <stop offset="100%" stopColor="#10b981" />
               </linearGradient>
             </defs>
-            
-            <motion.path
-              d={`M 0 100 Q ${currentX * 0.7} 100, ${currentX} ${currentY}`}
-              fill="none"
-              stroke="url(#curveGradient)"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.1, ease: "linear" }}
-            />
+
+            {state === 'running' && (
+              <>
+                {/* المنحنى السائل المتدرج */}
+                <motion.path
+                  d={`M 0 100 Q ${currentX * 0.5} 100, ${currentX} ${currentY}`}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.1, ease: "linear" }}
+                />
+                
+                {/* نقطة الارتكاز (التي في نهاية المنحنى بالصورة) */}
+                <motion.circle
+                  cx={currentX}
+                  cy={currentY}
+                  r="1.2"
+                  fill="#10b981"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="shadow-lg"
+                />
+              </>
+            )}
           </svg>
 
-          <div 
-            className="absolute h-3 w-3 bg-white rounded-full shadow-lg z-20 border-[2px] border-blue-500 flex items-center justify-center transition-all duration-100 ease-linear"
-            style={{ 
-              left: `${currentX}%`, 
-              top: `${currentY}%`,
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-             <div className="h-1 w-1 bg-blue-500 rounded-full animate-ping" />
-          </div>
+          {/* تأثير التوهج اللحظي عند النقطة */}
+          {state === 'running' && (
+            <div 
+              className="absolute h-4 w-4 bg-emerald-500/20 rounded-full blur-md animate-pulse"
+              style={{ left: `${currentX}%`, top: `${currentY}%`, transform: 'translate(-50%, -50%)' }}
+            />
+          )}
         </div>
-      )}
+      </div>
 
-      <div className="absolute bottom-4 left-4 opacity-[0.02] select-none">
-         <p className="text-[8px] font-black uppercase tracking-[0.6em] text-[#002d4d]">Namix Momentum Engine</p>
+      {/* Watermark Label */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-10">
+         <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d]">Namix Sovereign Momentum</p>
       </div>
     </div>
   );
