@@ -11,78 +11,73 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود التفاعلي v70.0 - Sovereign Flight Engine
- * - صاروخ معدني فضي أزرقي يحمل شعار ناميكس (2*2).
- * - التحام تام بين الصاروخ، لهب المحرك، والأثر النفاث.
- * - غيوم ضخمة بمتعددة الألوان تغطي كامل المفاعل.
+ * @fileOverview مفاعل الصعود الطبيعي v75.0 - Sovereign Natural Flight
+ * - صاروخ معدني فضي أزرقي فخم يحمل شعار ناميكس (2*2).
+ * - التحام تام ومصحح للهب المحرك بالقاعدة.
+ * - أفق سماوي كريستالي نقي (بدون أثر نفاث).
+ * - غيوم بانورامية ملونة تسبح في كافة أرجاء المفاعل.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
+  // حساب الوقت المنقضي بناءً على المضاعف (المنطق الطبيعي)
   const elapsed = useMemo(() => Math.log(multiplier) / Math.log(1.07), [multiplier]);
 
+  // المحاور الاستراتيجية (10 ثوانٍ و 4 مضاعفات كبداية)
   const maxTime = useMemo(() => Math.max(10, elapsed), [elapsed]);
   const maxMult = useMemo(() => Math.max(4, multiplier), [multiplier]);
 
+  // إحداثيات الرأس (من اليسار 0 إلى اليمين 100، ومن الأسفل 100 إلى الأعلى 0)
   const currentX = (elapsed / maxTime) * 100;
   const currentY = 100 - ((multiplier - 1) / (maxMult - 1)) * 100;
 
-  const trailPath = useMemo(() => {
-    if (state === 'waiting') return "";
-    let path = "M 0 100";
-    const steps = 25;
-    for (let i = 1; i <= steps; i++) {
-      const t = (elapsed / steps) * i;
-      const m = Math.pow(1.07, t);
-      const px = (t / maxTime) * 100;
-      const py = 100 - ((m - 1) / (maxMult - 1)) * 100;
-      path += ` L ${px} ${py}`;
-    }
-    return path;
-  }, [elapsed, maxTime, maxMult, state]);
-
+  // زاوية دوران الصاروخ بناءً على ميل المنحنى الطبيعي
   const angle = useMemo(() => {
     if (state === 'waiting') return -45;
-    const dx = 0.5 * currentX;
-    const dy = currentY - 100;
+    const nextMult = Math.pow(1.07, elapsed + 0.1);
+    const nextY = 100 - ((nextMult - 1) / (maxMult - 1)) * 100;
+    const dy = nextY - currentY;
+    const dx = 1; // خطوة زمنية صغيرة
     return Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-  }, [currentX, currentY, state]);
+  }, [elapsed, currentY, maxMult, state]);
 
-  // مصفوفة الغيوم المطورة: ألوان مختلفة وتوزيع على كامل الارتفاع
+  // مصفوفة الغيوم البانورامية الملونة: أحجام وألوان وتوزيع شامل
   const cloudMatrix = [
-    { top: '10%', delay: 0, duration: 35, scale: 1.2, color: 'from-gray-100 to-white' },
-    { top: '25%', delay: 5, duration: 45, scale: 0.8, color: 'from-gray-200 to-gray-50' },
-    { top: '45%', delay: 12, duration: 40, scale: 1.1, color: 'from-white to-gray-100' },
-    { top: '60%', delay: 2, duration: 50, scale: 0.9, color: 'from-gray-100 via-white to-gray-50' },
-    { top: '75%', delay: 18, duration: 38, scale: 1.3, color: 'from-gray-200 to-white' },
-    { top: '88%', delay: 8, duration: 42, scale: 0.7, color: 'from-white via-gray-50 to-white' }
+    { top: '15%', delay: 0, duration: 25, scale: 1.4, color: 'from-gray-200 via-white to-gray-50' },
+    { top: '35%', delay: 5, duration: 35, scale: 0.9, color: 'from-blue-100 via-gray-50 to-white' },
+    { top: '55%', delay: 12, duration: 30, scale: 1.2, color: 'from-gray-100 to-white' },
+    { top: '75%', delay: 2, duration: 40, scale: 1.0, color: 'from-blue-50 via-white to-gray-100' },
+    { top: '85%', delay: 18, duration: 28, scale: 1.5, color: 'from-gray-200 to-gray-50' },
+    { top: '5%', delay: 8, duration: 32, scale: 0.8, color: 'from-white via-blue-50 to-white' }
   ];
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 bg-gradient-to-b from-blue-100 via-blue-50 to-white font-body select-none">
       
-      {/* 1. Atmospheric Panoramic Clouds */}
+      {/* 1. Atmospheric Panoramic Clouds - Infinite Flow */}
       <div className="absolute inset-0 z-0">
         {cloudMatrix.map((cloud, i) => (
           <motion.div 
             key={i}
-            initial={{ left: '130%' }}
-            animate={{ left: '-60%' }}
+            initial={{ left: '120%' }}
+            animate={{ left: '-50%' }}
             transition={{ duration: cloud.duration, repeat: Infinity, ease: "linear", delay: cloud.delay }}
             className="absolute will-change-transform"
             style={{ top: cloud.top, scale: cloud.scale }}
           >
-            <div className={cn("w-24 h-8 rounded-full blur-[2px] opacity-60 shadow-sm bg-gradient-to-r", cloud.color)} />
-            <div className={cn("w-12 h-12 rounded-full absolute -top-4 left-5 blur-[2px] opacity-70 bg-gradient-to-b", cloud.color)} />
+            <div className={cn("w-20 h-7 rounded-full blur-[2px] opacity-70 shadow-sm bg-gradient-to-r", cloud.color)} />
+            <div className={cn("w-10 h-10 rounded-full absolute -top-3 left-4 blur-[2px] opacity-80 bg-gradient-to-b", cloud.color)} />
           </motion.div>
         ))}
       </div>
 
-      {/* 2. Axis Labels - Dynamic & Precise */}
+      {/* 2. Axis Labels - Precise Bottom-Left Orientation */}
       <div className="absolute inset-0 p-8 md:p-12 z-10">
+        {/* Y Axis - Multiplier (Left Side) */}
         <div className="absolute left-2 inset-y-12 flex flex-col-reverse justify-between items-start opacity-20 z-20" dir="ltr">
           {[1, 2, 3, 4].map((v) => (
             <span key={v} className="text-[8px] font-black text-[#002d4d] tabular-nums">{v.toFixed(1)}x</span>
           ))}
         </div>
+        {/* X Axis - Seconds (Bottom Side) */}
         <div className="absolute bottom-2 inset-x-12 flex justify-between items-end opacity-20 z-20" dir="ltr">
           {[0, 2, 4, 6, 8, 10].map((v) => (
             <span key={v} className="text-[8px] font-black text-[#002d4d] tabular-nums">{v}s</span>
@@ -91,25 +86,10 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
 
         {/* 3. Flight Execution Area */}
         <div className="relative w-full h-full">
-          {/* Contrail - Aligned with Rocket Base */}
-          <svg className="absolute inset-0 w-full h-full overflow-visible z-30">
-            <motion.path
-              d={trailPath}
-              fill="none"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="opacity-50 blur-[1px]"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-            />
-          </svg>
-
           <AnimatePresence>
             {state === 'running' && (
               <motion.div
-                key="active-rocket"
+                key="sovereign-rocket"
                 initial={false}
                 animate={{ 
                   left: `${currentX}%`, 
@@ -117,11 +97,11 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   rotate: angle
                 }}
                 transition={{ type: "tween", ease: "linear", duration: 0.05 }}
-                className="absolute w-20 h-20 -ml-10 -mt-10 z-50 flex items-center justify-center"
+                className="absolute w-24 h-24 -ml-12 -mt-12 z-50 flex items-center justify-center"
               >
-                <div className="relative">
-                  {/* Silver-Blue Metallic Rocket with Namix Seal */}
-                  <svg width="44" height="60" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
+                <div className="relative flex flex-col items-center">
+                  {/* Silver-Blue Metallic Rocket Body with Namix Seal */}
+                  <svg width="48" height="64" viewBox="0 0 44 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl relative z-10">
                     <defs>
                       <linearGradient id="rocketMetal" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#94a3b8" />
@@ -147,14 +127,14 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                     <path d="M22 0C22 0 18 6 18 12H26C26 6 22 0 22 0Z" fill="#002d4d" opacity="0.9" />
                   </svg>
 
-                  {/* High-Precision Thruster Flame - Locked to Base */}
+                  {/* FIXED THRUSTER: Correctly attached to the nozzle base at y=48 */}
                   <motion.div
                     animate={{ 
-                      scaleY: [1, 1.5, 1],
-                      opacity: [0.7, 1, 0.7]
+                      scaleY: [1, 1.6, 1],
+                      opacity: [0.8, 1, 0.8]
                     }}
-                    transition={{ duration: 0.06, repeat: Infinity }}
-                    className="absolute top-[78%] left-1/2 -translate-x-1/2 w-5 h-10 bg-gradient-to-b from-[#f9a885] via-orange-500 to-transparent rounded-full blur-[1px] origin-top z-[-1]"
+                    transition={{ duration: 0.05, repeat: Infinity }}
+                    className="absolute top-[80%] left-1/2 -translate-x-1/2 w-6 h-12 bg-gradient-to-b from-[#f9a885] via-orange-500 to-transparent rounded-full blur-[1px] origin-top z-0"
                   />
                 </div>
               </motion.div>
@@ -162,7 +142,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
 
             {state === 'crashed' && (
               <motion.div
-                key="nano-dust"
+                key="nano-dust-crash"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1.2, opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -174,21 +154,21 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                      initial={{ scale: 0.5, opacity: 0.4 }}
                      animate={{ scale: 1.8, opacity: 0 }}
                      transition={{ duration: 0.6 }}
-                     className="absolute inset-0 bg-gray-300 rounded-full blur-sm" 
+                     className="absolute inset-0 bg-gray-200 rounded-full blur-sm" 
                    />
                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
+                      {[...Array(4)].map((_, i) => (
                         <motion.div
                           key={i}
                           initial={{ scale: 0 }}
                           animate={{ 
                             scale: [0, 1, 0], 
-                            x: (i % 2 === 0 ? 1 : -1) * 12, 
-                            y: (i < 2 ? 1 : -1) * 12,
-                            opacity: [0, 0.3, 0]
+                            x: (i % 2 === 0 ? 1 : -1) * 8, 
+                            y: (i < 2 ? 1 : -1) * 8,
+                            opacity: [0, 0.2, 0]
                           }}
                           transition={{ duration: 0.5, delay: i * 0.04 }}
-                          className="w-1 h-1 bg-gray-200 rounded-full"
+                          className="w-0.5 h-0.5 bg-gray-300 rounded-full"
                         />
                       ))}
                    </div>
@@ -200,7 +180,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
       </div>
 
       <div className="absolute bottom-10 left-3 opacity-[0.03] rotate-[-90deg] origin-bottom-left z-20">
-         <p className="text-[6px] font-black uppercase tracking-[0.8em] text-[#002d4d] tracking-normal">NAMIX SOVEREIGN HORIZON</p>
+         <p className="text-[6px] font-black uppercase tracking-[0.8em] text-[#002d4d]">NAMIX SOVEREIGN HORIZON</p>
       </div>
     </div>
   );
