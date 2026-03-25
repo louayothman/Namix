@@ -14,13 +14,13 @@ import {
 } from "@/components/arena/crash";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, collection, query, where } from "firebase/firestore";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Loader2 } from "lucide-react";
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
 /**
- * @fileOverview صفحة الكراش العالمية v115.0 - Professional Server-Driven Architecture
- * تم إصلاح خطأ الاستيراد وتطوير منطق الجلسة ليكون متزامناً بالكامل مع قاعدة البيانات المركزية.
+ * @fileOverview صفحة الكراش العالمية v120.0 - Sovereign Central Engine
+ * تم إصلاح خطأ ShieldCheck المفقود وتطوير نظام المزامنة اللحظي.
  */
 export default function CrashPage() {
   const db = useFirestore();
@@ -46,9 +46,9 @@ export default function CrashPage() {
     }
   }, [db]);
 
-  // 2. ربط "سيرفر" اللعبة - الحقيقة الواحدة
+  // 2. ربط "سيرفر" اللعبة - الحقيقة الواحدة عبر Firestore
   const gameStateRef = useMemoFirebase(() => doc(db, "system_settings", "crash_game"), [db]);
-  const { data: globalGame } = useDoc(gameStateRef);
+  const { data: globalGame, isLoading: loadingGame } = useDoc(gameStateRef);
 
   // تحديث المضاعف الفيزيائي المتزامن بناءً على زمن البداية الموحد
   const updateMultiplier = (startTime: number) => {
@@ -144,6 +144,13 @@ export default function CrashPage() {
       setFeedback({ type: 'error', msg: 'خطأ في مزامنة الأرباح.' });
     }
   };
+
+  if (loadingGame) return (
+    <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-4">
+       <Loader2 className="animate-spin text-[#002d4d]" />
+       <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Syncing Crash Nodes...</p>
+    </div>
+  );
 
   return (
     <Shell hideMobileNav>
