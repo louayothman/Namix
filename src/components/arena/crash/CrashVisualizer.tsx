@@ -11,25 +11,33 @@ interface CrashVisualizerProps {
 }
 
 /**
- * @fileOverview مفاعل الصعود السائل v12.0 - Dynamic Axis Edition
- * - المحور الصادي (Y) يبدأ بـ 2x ويتمدد ديناميكياً.
- * - المحور السيني (X) يبدأ بـ 10s وينزلق مع التقدم.
- * - المنحنى يتفاعل مع الحافة اليمنى لزيادة انحناء الصعود.
+ * @fileOverview مفاعل الصعود السائل v15.0 - Dynamic Tracking Edition
+ * - المحاور تبدأ ثابتة (2x / 10s) لترك المنحنى يتحرك تدريجياً.
+ * - يبدأ التمدد (Zoom-out) فقط عند وصول المنحنى لـ 80% من المساحة.
+ * - المنحنى يتبع مساراً أسياً نقياً بتدرج لوني وبدون توهج.
  */
 export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
   // حساب الزمن المنقضي بناءً على معادلة اللعبة (mult = 1.07^t)
   const elapsed = useMemo(() => Math.log(multiplier) / Math.log(1.07), [multiplier]);
 
-  // المحاور الديناميكية: تبدأ بحدود دنيا (2x و 10s) وتتمدد مع السعر
-  const currentMaxY = useMemo(() => Math.max(2.0, multiplier * 1.2), [multiplier]);
-  const currentMaxX = useMemo(() => Math.max(10, elapsed * 1.2), [elapsed]);
+  // منطق تتبع الكاميرا: تبدأ بحدود دنيا وتتمدد فقط عند الحاجة لضمان الاحساس بالصعود
+  const currentMaxY = useMemo(() => {
+    const base = 2.0;
+    if (multiplier < base * 0.8) return base;
+    return multiplier / 0.8;
+  }, [multiplier]);
 
-  // إحداثيات النقطة الحالية (النسبة المئوية داخل الحاوية)
-  // نستخدم 90% كحد أقصى للـ X للإيحاء بالاصطدام بالحافة قبل التمدد
-  const currentX = Math.min(90, (elapsed / currentMaxX) * 100);
-  const currentY = 100 - ((multiplier - 1) / (currentMaxY - 1)) * 90;
+  const currentMaxX = useMemo(() => {
+    const base = 10.0;
+    if (elapsed < base * 0.8) return base;
+    return elapsed / 0.8;
+  }, [elapsed]);
 
-  // توليد علامات المحاور الديناميكية
+  // إحداثيات النقطة الحالية بالنسبة المئوية
+  const currentX = (elapsed / currentMaxX) * 100;
+  const currentY = 100 - ((multiplier - 1) / (currentMaxY - 1)) * 100;
+
+  // توليد علامات المحاور الديناميكية (الجهة اليمنى)
   const yTicks = useMemo(() => {
     const step = (currentMaxY - 1) / 4;
     return [1, 1 + step, 1 + step * 2, 1 + step * 3, currentMaxY];
@@ -46,9 +54,9 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
       {/* Grid & Axis Labels */}
       <div className="absolute inset-0 p-6 md:p-10">
         
-        {/* Y Axis (Right Side) - التسميات تتحرك مع السعر */}
-        <div className="absolute right-2 inset-y-10 flex flex-col justify-between items-end opacity-40 z-20">
-          {yTicks.reverse().map((tick, i) => (
+        {/* Y Axis (Right Side) - التسميات تتحرك وتتغير مع السعر */}
+        <div className="absolute right-2 inset-y-10 flex flex-col justify-between items-end opacity-30 z-20">
+          {yTicks.slice().reverse().map((tick, i) => (
             <motion.span 
               key={i} 
               layout
@@ -60,7 +68,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
         </div>
 
         {/* X Axis (Bottom) - التسميات الزمنية */}
-        <div className="absolute bottom-2 inset-x-10 flex justify-between items-end opacity-40 z-20">
+        <div className="absolute bottom-2 inset-x-10 flex justify-between items-end opacity-30 z-20">
           {xTicks.map((tick, i) => (
             <motion.span 
               key={i} 
@@ -76,7 +84,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
         <div className="relative w-full h-full">
           <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
-              {/* تدرج لوني سائل بدون توهج خارجي */}
+              {/* تدرج لوني سائل نقي - Emerald to Blue */}
               <linearGradient id="curveLiquidGradient" x1="0%" y1="100%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#10b981" />
                 <stop offset="100%" stopColor="#3b82f6" />
@@ -85,12 +93,12 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
 
             {state !== 'waiting' && (
               <>
-                {/* المنحنى السائل: يبدأ مسطحاً ثم ينحني للأعلى عند التقدم */}
+                {/* المنحنى السائل: يبدأ أفقياً ويتسارع انحناؤه للأعلى تدريجياً */}
                 <motion.path
-                  d={`M 0 100 Q ${currentX * 0.7} 100, ${currentX} ${currentY}`}
+                  d={`M 0 100 Q ${currentX * 0.5} 100, ${currentX} ${currentY}`}
                   fill="none"
                   stroke="url(#curveLiquidGradient)"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
@@ -105,14 +113,14 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
                   fill="#10b981"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="shadow-md"
+                  className="shadow-sm"
                 />
               </>
             )}
           </svg>
 
-          {/* خطوط الشبكة الخفيفة التي تتفاعل مع المحاور */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          {/* خطوط الشبكة الرقيقة جداً */}
+          <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
              <div className="w-full h-full grid grid-cols-5 grid-rows-4">
                 {[...Array(20)].map((_, i) => (
                   <div key={i} className="border-[0.5px] border-gray-300" />
@@ -123,7 +131,7 @@ export function CrashVisualizer({ multiplier, state }: CrashVisualizerProps) {
       </div>
 
       {/* Watermark Label */}
-      <div className="absolute bottom-4 left-6 opacity-10">
+      <div className="absolute bottom-4 left-6 opacity-[0.05]">
          <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d]">Namix Sovereign Momentum</p>
       </div>
     </div>
