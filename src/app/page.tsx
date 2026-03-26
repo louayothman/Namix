@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/Logo";
+import { Badge } from "@/components/ui/badge";
 import { 
   ShieldCheck, 
   ChevronLeft,
@@ -26,8 +27,8 @@ import { useMarketSync } from "@/hooks/use-market-sync";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview صفحة الهبوط العالمية v2.0 - المستوحاة من NextWare
- * تم تطهيرها من مصطلحات "سيادة" و "بروتوكول" مع دمج ألوان ناميكس (الكحلي والنحاسي).
+ * @fileOverview بوابة ناميكس العالمية v2.1 - تطهير الأخطاء واللغة
+ * تم إصلاح خطأ استيراد Badge واستبدال المصطلحات المطلوبة.
  */
 
 const FloatingCard = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
@@ -218,7 +219,7 @@ export default function LandingPage() {
           <FloatingCard delay={0.8} className="bottom-[20%] -left-48 hidden lg:block">
              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 p-5 rounded-[28px] w-52 space-y-3">
                 <div className="flex justify-between items-center">
-                   <Badge className="bg-emerald-500 text-black border-none text-[8px] font-black">ACTIVE</Badge>
+                   <Badge className="bg-emerald-50 text-black border-none text-[8px] font-black">ACTIVE</Badge>
                    <Activity size={12} className="text-emerald-500 animate-pulse" />
                 </div>
                 <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
@@ -237,7 +238,7 @@ export default function LandingPage() {
           >
             <Link href="/login">
               <Button className="h-16 px-12 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-lg shadow-[0_20px_50px_rgba(249,168,133,0.3)] active:scale-95 transition-all group flex items-center gap-4">
-                <span>ابدأ رحلتك مجاناً</span>
+                <span>ابدأ رحلتي الذكية</span>
                 <div className="h-8 w-8 rounded-full bg-[#002d4d] flex items-center justify-center text-white transition-transform group-hover:rotate-[-45deg]">
                    <ArrowRight size={16} className="rotate-180" />
                 </div>
