@@ -20,10 +20,10 @@ import {
   Plus,
   CheckCircle2,
   Activity,
-  Sparkles,
   Layers,
   Search,
-  Radar
+  Radar,
+  Minus
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
@@ -35,30 +35,95 @@ import { DepositSheet } from "@/components/deposit/DepositSheet";
 const GRID_SIZE = 25;
 
 /**
- * 1. شريط التحكم العلوي النخبوي
+ * 1. افتتاحية الرسم الضوئي (Light-Streak Intro)
+ */
+function LightStreakIntro({ onComplete, gameName, Icon }: { onComplete: () => void, gameName: string, Icon: any }) {
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 3500);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center overflow-hidden"
+    >
+      {/* الشريط الضوئي الناعم */}
+      <motion.div
+        initial={{ y: "100vh", opacity: 0, height: 0 }}
+        animate={{ y: "0vh", opacity: [0, 1, 1], height: 40 }}
+        transition={{ duration: 1.2, ease: "circOut" }}
+        className="w-[1px] bg-[#002d4d] relative"
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#002d4d] rounded-full blur-md opacity-20" />
+      </motion.div>
+
+      {/* رسم الأيقونة */}
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 1.2, duration: 0.8, ease: "backOut" }}
+        className="relative mt-4"
+      >
+        <div className="h-16 w-16 flex items-center justify-center text-[#002d4d]">
+          <Icon size={40} strokeWidth={1.5} />
+        </div>
+        
+        {/* الإطار الدائري */}
+        <svg className="absolute inset-0 -m-2 h-20 w-20 rotate-[-90deg]">
+          <motion.circle
+            cx="40"
+            cy="40"
+            r="38"
+            stroke="#002d4d"
+            strokeWidth="0.5"
+            fill="transparent"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: 1.8, duration: 1, ease: "easeInOut" }}
+          />
+        </svg>
+      </motion.div>
+
+      {/* رسم اسم اللعبة */}
+      <motion.div
+        initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 2.6, duration: 0.6 }}
+        className="mt-8"
+      >
+        <h2 className="text-[13px] font-black text-[#002d4d] tracking-[0.3em] uppercase">{gameName}</h2>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/**
+ * 2. شريط التحكم العلوي الرشيق
  */
 function MinesHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit: () => void }) {
   return (
-    <header className="px-8 py-6 flex items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-xl z-50 shrink-0 shadow-sm sticky top-0">
-      <div className="flex items-center gap-4">
+    <header className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white/80 backdrop-blur-md z-50 shrink-0 sticky top-0">
+      <div className="flex items-center gap-3">
          <Link href="/arena">
-           <Button variant="ghost" size="icon" className="h-12 w-12 rounded-[20px] bg-gray-50 text-[#002d4d] active:scale-90 transition-all hover:bg-[#002d4d] hover:text-white">
-             <ChevronRight className="h-6 w-6" />
+           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-gray-50 text-[#002d4d] active:scale-90 transition-all hover:bg-[#002d4d] hover:text-white">
+             <ChevronRight className="h-5 w-5" />
            </Button>
          </Link>
-         <div className="space-y-0.5 text-right">
-            <h1 className="text-xl font-black text-[#002d4d] leading-none tracking-tight">مناجم السيولة</h1>
-            <p className="text-[8px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1">Liquid Mines Sovereign</p>
+         <div className="space-y-0 text-right">
+            <h1 className="text-sm font-black text-[#002d4d] leading-none">مناجم السيولة</h1>
+            <p className="text-[7px] font-bold text-blue-500 uppercase tracking-widest mt-1">Liquid Mines Hub</p>
          </div>
       </div>
       
-      <div className="flex items-center gap-3 bg-gray-50/80 p-1.5 pr-5 rounded-full border border-gray-100 shadow-inner">
+      <div className="flex items-center gap-2 bg-gray-50/50 px-2.5 py-1 rounded-full border border-gray-100">
          <div className="text-right">
-            <p className="text-[7px] font-black text-gray-400 uppercase leading-none tracking-widest">المحفظة الجارية</p>
-            <p className="text-sm font-black text-[#002d4d] tabular-nums mt-1">${balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-[6px] font-black text-gray-400 uppercase leading-none">Balance</p>
+            <p className="text-[11px] font-black text-[#002d4d] tabular-nums mt-0.5">${balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
          </div>
-         <button onClick={onOpenDeposit} className="h-9 w-9 rounded-full bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all">
-            <Plus size={18} />
+         <button onClick={onOpenDeposit} className="h-7 w-7 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all mr-1">
+            <Plus size={14} />
          </button>
       </div>
     </header>
@@ -66,82 +131,64 @@ function MinesHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposi
 }
 
 /**
- * 2. مفاعل الاستكشاف (The Reactor) - ترقية بصرية شاملة
+ * 3. مفاعل الاستكشاف (The Reactor) - رشيق وزوايا ناعمة طفيفة
  */
-function MinesReactor({ 
-  grid, 
-  gameState, 
-  onTileClick, 
-  betAmount, 
-  currentMultiplier 
-}: any) {
+function MinesReactor({ grid, gameState, onTileClick, betAmount, currentMultiplier }: any) {
   return (
-    <section className="relative aspect-square w-full max-w-[460px] mx-auto bg-white rounded-[48px] p-6 border border-gray-50 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.12)] overflow-hidden group">
-      
-      {/* Dynamic Background Grid Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none group-hover:scale-105 transition-transform duration-[8s]">
-         <div className="grid grid-cols-5 h-full w-full">
-            {[...Array(25)].map((_, i) => <div key={i} className="border border-[#002d4d]" />)}
-         </div>
-      </div>
-
-      <div className="grid grid-cols-5 gap-3.5 h-full relative z-10">
+    <section className="relative w-full max-w-[340px] mx-auto bg-white rounded-[32px] p-4 border border-gray-50 shadow-sm overflow-hidden group">
+      <div className="grid grid-cols-5 gap-2 h-full relative z-10">
         {grid.map((tile: any, i: number) => (
           <motion.button
             key={i}
-            whileHover={gameState === 'playing' && tile.status === 'hidden' ? { scale: 1.05, rotate: 2 } : {}}
-            whileTap={gameState === 'playing' && tile.status === 'hidden' ? { scale: 0.95 } : {}}
+            whileHover={gameState === 'playing' && tile.status === 'hidden' ? { scale: 1.02 } : {}}
+            whileTap={gameState === 'playing' && tile.status === 'hidden' ? { scale: 0.98 } : {}}
             onClick={() => onTileClick(i)}
             className={cn(
-              "relative rounded-[20px] shadow-sm transition-all duration-500 flex items-center justify-center overflow-hidden border",
-              tile.status === 'hidden' && "bg-gray-50 border-gray-100 hover:bg-white hover:shadow-xl hover:border-blue-100",
-              tile.status === 'gem' && "bg-[#002d4d] text-[#f9a885] border-[#002d4d] shadow-2xl",
-              tile.status === 'mine' && tile.isExploded ? "bg-red-500 text-white border-red-600 shadow-2xl animate-shake" : 
-              tile.status === 'mine' ? "bg-red-50 text-red-200 border-red-100 opacity-40" : ""
+              "aspect-square rounded-xl shadow-sm transition-all duration-500 flex items-center justify-center overflow-hidden border",
+              tile.status === 'hidden' && "bg-gray-50/50 border-gray-100 hover:bg-white hover:border-blue-100",
+              tile.status === 'gem' && "bg-[#002d4d] text-[#f9a885] border-[#002d4d] shadow-lg",
+              tile.status === 'mine' && tile.isExploded ? "bg-red-500 text-white border-red-600 shadow-lg" : 
+              tile.status === 'mine' ? "bg-red-50/50 text-red-200 border-red-100 opacity-40" : ""
             )}
           >
             <AnimatePresence mode="wait">
               {tile.status === 'gem' && (
-                <motion.div key="gem" initial={{ scale: 0, rotate: -45, y: 20 }} animate={{ scale: 1, rotate: 0, y: 0 }} transition={{ type: 'spring', damping: 12 }}>
-                  <Gem className="h-8 w-8 fill-current drop-shadow-[0_0_15px_rgba(249,168,133,0.5)]" />
+                <motion.div key="gem" initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-[#f9a885]">
+                  <Gem className="h-5 w-5 fill-current" />
                 </motion.div>
               )}
               {tile.status === 'mine' && (
-                <motion.div key="mine" initial={{ scale: 0, rotate: 45, y: -20 }} animate={{ scale: 1, rotate: 0, y: 0 }} transition={{ type: 'spring' }}>
-                  <Bomb className="h-8 w-8 fill-current" />
+                <motion.div key="mine" initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                  <Bomb className="h-5 w-5 fill-current" />
                 </motion.div>
-              )}
-              {tile.status === 'hidden' && gameState === 'playing' && (
-                <motion.div key="hidden" className="h-2 w-2 rounded-full bg-blue-100/50 animate-pulse" />
               )}
             </AnimatePresence>
           </motion.button>
         ))}
       </div>
 
-      {/* Result Overlays */}
       <AnimatePresence>
         {(gameState === 'won' || gameState === 'lost') && (
           <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }} 
-            animate={{ opacity: 1, backdropFilter: "blur(8px)" }} 
-            className="absolute inset-0 z-50 flex items-center justify-center p-8 pointer-events-none"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-white/10 backdrop-blur-md"
           >
             <motion.div 
-              initial={{ scale: 0.8, y: 20 }} 
+              initial={{ scale: 0.9, y: 10 }} 
               animate={{ scale: 1, y: 0 }} 
               className={cn(
-                "p-12 rounded-[48px] shadow-2xl border border-white/20 text-center space-y-6", 
+                "p-8 rounded-[32px] shadow-2xl border border-white/20 text-center space-y-4", 
                 gameState === 'won' ? "bg-emerald-600/90" : "bg-red-600/90"
               )}
             >
-              <div className="h-24 w-24 rounded-[32px] bg-white/20 flex items-center justify-center mx-auto shadow-inner border border-white/10">
-                {gameState === 'won' ? <CheckCircle2 size={48} className="text-white"/> : <RotateCcw size={48} className="text-white"/>}
+              <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center mx-auto">
+                {gameState === 'won' ? <CheckCircle2 size={32} className="text-white"/> : <RotateCcw size={32} className="text-white"/>}
               </div>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-black text-white">{gameState === 'won' ? 'استخراج ناجح!' : 'عطل تقني'}</h2>
-                <p className="text-[13px] font-bold text-white/80 leading-relaxed">
-                  {gameState === 'won' ? `لقد تم حقن أرباح قدرها $${(Number(betAmount) * currentMultiplier).toFixed(2)} في محفظتك.` : 'لقد اصطدمت بعقدة معطلة، حاول معايرة البحث مجدداً.'}
+              <div className="space-y-1">
+                <h2 className="text-base font-black text-white">{gameState === 'won' ? 'استخراج ناجح' : 'عطل تقني'}</h2>
+                <p className="text-[10px] font-bold text-white/80 leading-relaxed">
+                  {gameState === 'won' ? `تم حقن أرباح قدرها $${(Number(betAmount) * currentMultiplier).toFixed(2)}` : 'اصطدمت بعقدة معطلة، حاول مجدداً.'}
                 </p>
               </div>
             </motion.div>
@@ -153,7 +200,7 @@ function MinesReactor({
 }
 
 /**
- * 3. لوحة الرهان النخبوية (Betting Panel)
+ * 4. لوحة الرهان الرشيقة
  */
 function BettingPanel({ 
   betAmount, 
@@ -169,34 +216,34 @@ function BettingPanel({
   currentMultiplier
 }: any) {
   return (
-    <section className="space-y-6">
-      <Card className="border-none shadow-sm rounded-[40px] bg-white border border-gray-50 overflow-hidden transition-all hover:shadow-xl">
-        <CardContent className="p-10 space-y-10">
-          <div className="grid gap-10 md:grid-cols-2">
-            <div className="space-y-4">
-              <Label className="text-[10px] font-black text-gray-400 uppercase pr-4 tracking-[0.2em]">مبلغ الاستكشاف ($)</Label>
+    <section className="space-y-4 max-w-[340px] mx-auto">
+      <Card className="border-none shadow-sm rounded-[32px] bg-white border border-gray-50 overflow-hidden">
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[8px] font-black text-gray-400 uppercase pr-3 tracking-widest">قيمة المحاولة ($)</Label>
               <div className="relative group">
                 <Input 
                   type="number" 
                   value={betAmount} 
                   onChange={e => setBetAmount(e.target.value)} 
                   disabled={gameState === 'playing'} 
-                  className="h-20 rounded-[32px] bg-gray-50 border-none font-black text-center text-3xl text-[#002d4d] shadow-inner focus-visible:ring-4 focus-visible:ring-blue-500/5 transition-all" 
+                  className="h-12 rounded-xl bg-gray-50 border-none font-black text-center text-sm text-[#002d4d] shadow-inner" 
                 />
-                <Coins className="absolute left-8 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-200 group-focus-within:text-blue-200 transition-colors" />
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
               </div>
             </div>
-            <div className="space-y-4">
-              <Label className="text-[10px] font-black text-gray-400 uppercase pr-4 tracking-[0.2em]">عدد الأعطال (Mines)</Label>
-              <div className="grid grid-cols-4 gap-3">
+            <div className="space-y-2">
+              <Label className="text-[8px] font-black text-gray-400 uppercase pr-3 tracking-widest">عدد الألغام</Label>
+              <div className="grid grid-cols-4 gap-1.5">
                 {[3, 5, 10, 24].map(num => (
                   <button 
                     key={num} 
                     onClick={() => setMinesCount(num)} 
                     disabled={gameState === 'playing'} 
                     className={cn(
-                      "h-14 rounded-[20px] font-black text-base transition-all active:scale-90", 
-                      minesCount === num ? "bg-[#002d4d] text-[#f9a885] shadow-xl scale-105" : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                      "h-9 rounded-lg font-black text-[10px] transition-all", 
+                      minesCount === num ? "bg-[#002d4d] text-[#f9a885] shadow-md" : "bg-gray-50 text-gray-400"
                     )}
                   >
                     {num}
@@ -206,18 +253,17 @@ function BettingPanel({
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-3">
             {gameState === 'playing' ? (
               <Button 
                 onClick={cashout} 
                 disabled={loading} 
-                className="w-full h-24 rounded-[36px] bg-emerald-600 hover:bg-emerald-700 text-white font-black text-2xl shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-6 relative overflow-hidden group"
+                className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3"
               >
-                <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-                {loading ? <Loader2 className="animate-spin h-10 w-10" /> : (
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
                   <>
-                    <span>سحب الأرباح الآن</span>
-                    <Badge className="bg-white/20 text-white border-none font-black text-lg tabular-nums px-6 py-2 rounded-2xl shadow-lg">$ {(Number(betAmount) * currentMultiplier).toFixed(2)}</Badge>
+                    <span>سحب الأرباح</span>
+                    <Badge className="bg-white/20 text-white border-none font-black text-[10px] tabular-nums">$ {(Number(betAmount) * currentMultiplier).toFixed(2)}</Badge>
                   </>
                 )}
               </Button>
@@ -225,21 +271,19 @@ function BettingPanel({
               <Button 
                 onClick={startGame} 
                 disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} 
-                className="w-full h-24 rounded-[36px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-2xl shadow-2xl active:scale-[0.98] transition-all group"
+                className="w-full h-14 rounded-2xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-lg active:scale-[0.98] transition-all group"
               >
-                {loading ? <Loader2 className="animate-spin h-10 w-10" /> : (
-                  <div className="flex items-center gap-6">
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                  <div className="flex items-center gap-3">
                     <span>بدء المحاولة</span>
-                    <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:rotate-12 transition-transform">
-                       <Zap className="h-7 w-7 text-[#f9a885] fill-current" />
-                    </div>
+                    <Zap className="h-4 w-4 text-[#f9a885] fill-current" />
                   </div>
                 )}
               </Button>
             )}
             {(gameState === 'won' || gameState === 'lost') && (
-              <button onClick={() => setGameState('idle')} className="w-full text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] hover:text-[#002d4d] flex items-center justify-center gap-4 transition-all py-2 group">
-                <RotateCcw className="h-4 w-4 group-hover:rotate-[-180deg] transition-transform duration-700" /> جولة استكشاف جديدة
+              <button onClick={() => setGameState('idle')} className="w-full text-[8px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] flex items-center justify-center gap-2 transition-all">
+                <RotateCcw className="h-3 w-3" /> محاولة جديدة
               </button>
             )}
           </div>
@@ -250,30 +294,28 @@ function BettingPanel({
 }
 
 /**
- * 4. تفاصيل الميثاق (Details)
+ * 5. تفاصيل الساحة
  */
 function MinesDetails({ currentMultiplier, nextMultiplier }: any) {
   return (
-    <section className="space-y-6">
-      <div className="grid grid-cols-2 gap-6">
-        <div className="p-8 bg-white rounded-[40px] border border-gray-50 shadow-sm text-center space-y-2 group transition-all hover:shadow-md">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">المضاعف الحالي</p>
-          <p className="text-3xl font-black text-emerald-600 tabular-nums transition-transform group-hover:scale-110">x{currentMultiplier.toFixed(2)}</p>
+    <section className="max-w-[340px] mx-auto space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-4 bg-white rounded-2xl border border-gray-50 shadow-sm text-center space-y-1">
+          <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">المضاعف الحالي</p>
+          <p className="text-sm font-black text-emerald-600 tabular-nums">x{currentMultiplier.toFixed(2)}</p>
         </div>
-        <div className="p-8 bg-white rounded-[40px] border border-gray-50 shadow-sm text-center space-y-2 group transition-all hover:shadow-md">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">العقدة القادمة</p>
-          <p className="text-3xl font-black text-blue-600 tabular-nums transition-transform group-hover:scale-110">x{nextMultiplier.toFixed(2)}</p>
+        <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-center space-y-1">
+          <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">العقدة القادمة</p>
+          <p className="text-sm font-black text-blue-600 tabular-nums">x{nextMultiplier.toFixed(2)}</p>
         </div>
       </div>
 
-      <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 flex items-start gap-6 group transition-all hover:bg-white">
-        <div className="h-14 w-14 rounded-[24px] bg-white flex items-center justify-center text-emerald-500 shadow-inner shrink-0 group-hover:rotate-12 transition-transform">
-           <ShieldCheck size={32} />
+      <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+        <div className="text-right space-y-0.5">
+           <p className="text-[9px] font-black text-[#002d4d]">نظام النزاهة</p>
+           <p className="text-[7px] font-bold text-gray-400 leading-tight">معايرة البحث تتبع معايير السيادة بنسبة 25% فوز.</p>
         </div>
-        <div className="text-right space-y-1 pt-1">
-           <p className="text-base font-black text-[#002d4d]">نظام التوثيق والنزاهة</p>
-           <p className="text-[11px] font-bold text-gray-400 leading-[1.8]">يخضع محرك البحث لبروتوكول الملاءة المالية السيادي بنسبة 25% (Sovereign Accuracy Standard).</p>
-        </div>
+        <ShieldCheck size={20} className="text-emerald-500 opacity-40" />
       </div>
     </section>
   );
@@ -289,7 +331,7 @@ export default function MinesPage() {
   const [minesPositions, setMinesPositions] = useState<number[]>([]);
   const [revealedGems, setRevealedGems] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
 
   useEffect(() => {
@@ -316,44 +358,36 @@ export default function MinesPage() {
   const nextMultiplier = useMemo(() => calculateMultiplier(revealedGems + 1, minesCount), [revealedGems, minesCount]);
 
   const startGame = async () => {
-    if (!dbUser || gameState === 'playing') return;
+    if (!dbUser || gameState === 'playing' || loading) return;
     const amt = Number(betAmount);
     if (amt > dbUser.totalBalance || amt < 1) return;
 
     setLoading(true);
-    setShowIntro(true);
-
-    // شاشة الانترو السينمائية لمدة 2.5 ثانية
-    setTimeout(async () => {
-      setShowIntro(false);
-      try {
-        const positions: number[] = [];
-        while (positions.length < minesCount) {
-          const r = Math.floor(Math.random() * GRID_SIZE);
-          if (!positions.includes(r)) positions.push(r);
-        }
-        await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
-        setMinesPositions(positions);
-        setGrid(Array(GRID_SIZE).fill({ status: 'hidden' }));
-        setRevealedGems(0);
-        setGameState('playing');
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+    try {
+      const positions: number[] = [];
+      while (positions.length < minesCount) {
+        const r = Math.floor(Math.random() * GRID_SIZE);
+        if (!positions.includes(r)) positions.push(r);
       }
-    }, 2500);
+      await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
+      setMinesPositions(positions);
+      setGrid(Array(GRID_SIZE).fill({ status: 'hidden' }));
+      setRevealedGems(0);
+      setGameState('playing');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTileClick = (idx: number) => {
-    if (gameState !== 'playing' || grid[idx].status !== 'hidden') return;
+    if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
-    // حوكمة مالية: 75% فوز للمنصة (25% للمستخدم)
     const forceLoseDecision = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
     if (forceLoseDecision && !isMine) {
-      // إذا كان المفروض يخسر والخانة مش لغم، نحولها للغم وننقل اللغم القديم
       const otherMineIdx = minesPositions.find(p => !grid[p].revealed);
       if (otherMineIdx !== undefined) {
         setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
@@ -377,7 +411,7 @@ export default function MinesPage() {
   };
 
   const cashout = async () => {
-    if (gameState !== 'playing' || revealedGems === 0) return;
+    if (gameState !== 'playing' || revealedGems === 0 || loading) return;
     setLoading(true);
     try {
       const winAmt = Number(betAmount) * currentMultiplier;
@@ -386,12 +420,8 @@ export default function MinesPage() {
         totalProfits: increment(winAmt - Number(betAmount))
       });
       await addDoc(collection(db, "game_history"), {
-        userId: dbUser.id,
-        game: "mines",
-        betAmount: Number(betAmount),
-        multiplier: currentMultiplier,
-        profit: winAmt - Number(betAmount),
-        createdAt: new Date().toISOString()
+        userId: dbUser.id, game: "mines", betAmount: Number(betAmount),
+        multiplier: currentMultiplier, profit: winAmt - Number(betAmount), createdAt: new Date().toISOString()
       });
       setGameState('won');
       setGrid(grid.map((tile, i) => ({ status: minesPositions.includes(i) ? 'mine' : tile.status })));
@@ -404,83 +434,23 @@ export default function MinesPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-[#fcfdfe] font-body text-right overflow-hidden" dir="rtl">
-        
-        <MinesHeader balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
+      <AnimatePresence>
+        {showIntro && <LightStreakIntro onComplete={() => setShowIntro(false)} gameName="Sovereign Mines" Icon={Layers} />}
+      </AnimatePresence>
 
-        <div className="flex-1 overflow-y-auto pb-32">
-          <div className="max-w-2xl mx-auto px-6 py-10 space-y-10">
-            <MinesReactor 
-              grid={grid}
-              gameState={gameState}
-              onTileClick={handleTileClick}
-              betAmount={betAmount}
-              currentMultiplier={currentMultiplier}
-            />
-
-            <BettingPanel 
-              betAmount={betAmount}
-              setBetAmount={setBetAmount}
-              minesCount={minesCount}
-              setMinesCount={setMinesCount}
-              gameState={gameState}
-              loading={loading}
-              dbUser={dbUser}
-              startGame={startGame}
-              cashout={cashout}
-              setGameState={setGameState}
-              currentMultiplier={currentMultiplier}
-            />
-
-            <MinesDetails 
-              currentMultiplier={currentMultiplier}
-              nextMultiplier={nextMultiplier}
-            />
+      {!showIntro && (
+        <div className="flex flex-col h-screen bg-[#fcfdfe] font-body text-right overflow-hidden" dir="rtl">
+          <MinesHeader balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
+          <div className="flex-1 overflow-y-auto pb-32">
+            <div className="max-w-xl mx-auto px-6 py-8 space-y-8">
+              <MinesReactor grid={grid} gameState={gameState} onTileClick={handleTileClick} betAmount={betAmount} currentMultiplier={currentMultiplier} />
+              <BettingPanel betAmount={betAmount} setBetAmount={setBetAmount} minesCount={minesCount} setMinesCount={setMinesCount} gameState={gameState} loading={loading} dbUser={dbUser} startGame={startGame} cashout={cashout} setGameState={setGameState} currentMultiplier={currentMultiplier} />
+              <MinesDetails currentMultiplier={currentMultiplier} nextMultiplier={nextMultiplier} />
+            </div>
           </div>
+          <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
-
-        {/* إنفوجرافيك الافتتاحية النخبوية */}
-        <AnimatePresence>
-          {showIntro && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              className="fixed inset-0 z-[100] bg-[#002d4d] backdrop-blur-3xl flex flex-col items-center justify-center gap-12"
-            >
-               <motion.div 
-                 animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
-                 transition={{ duration: 2.5, repeat: Infinity }}
-                 className="h-44 w-44 rounded-[56px] bg-white/5 flex items-center justify-center border border-white/10 shadow-2xl relative overflow-hidden"
-               >
-                  <Layers size={80} className="text-[#f9a885] animate-pulse" />
-                  <motion.div 
-                    animate={{ y: ["-100%", "100%"] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent"
-                  />
-               </motion.div>
-               <div className="text-center space-y-4">
-                  <div className="flex flex-col items-center gap-2">
-                     <h2 className="text-3xl font-black text-white tracking-tight">مسح حقول السيولة...</h2>
-                     <div className="h-1 w-24 bg-gradient-to-r from-transparent via-[#f9a885] to-transparent rounded-full" />
-                  </div>
-                  <div className="flex items-center gap-3 justify-center text-blue-300">
-                     <Radar size={16} className="text-emerald-500 animate-spin" />
-                     <p className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">Scanning Geodesic Nodes</p>
-                  </div>
-               </div>
-               
-               {/* رادار استخباراتي صغير في الزاوية */}
-               <div className="absolute top-12 right-12 opacity-30">
-                  <Radar size={100} className="text-blue-200 animate-pulse" />
-               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-      </div>
+      )}
     </Shell>
   );
 }
