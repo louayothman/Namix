@@ -6,12 +6,11 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
 import { AnimatePresence } from "framer-motion";
-import { Gem } from "lucide-react";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة
+// المكونات المعزولة كلياً
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
-import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
+import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
@@ -75,7 +74,7 @@ export default function MinesPage() {
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
-    // الحوكمة المالية: 75% فرصة خسارة
+    // حوكمة الملاءة: 75% فرصة خسارة قسرية
     const forceLose = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
@@ -127,11 +126,11 @@ export default function MinesPage() {
   return (
     <Shell hideMobileNav>
       <AnimatePresence>
-        {showIntro && <ArenaIntro icon={Gem} title="Sovereign Mines" onComplete={() => setShowIntro(false)} />}
+        {showIntro && <MinesIntro onComplete={() => setShowIntro(false)} />}
       </AnimatePresence>
 
       {!showIntro && (
-        <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden">
+        <div className="flex flex-col h-screen bg-white overflow-hidden">
           <ArenaHeader title="مناجم السيولة" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
           
           <MinesReactor 

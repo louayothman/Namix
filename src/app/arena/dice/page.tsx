@@ -6,12 +6,11 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
 import { AnimatePresence } from "framer-motion";
-import { Dices } from "lucide-react";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة
+// المكونات المعزولة كلياً
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
-import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
+import { DiceIntro } from "@/components/arena/dice/DiceIntro";
 import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
@@ -51,7 +50,7 @@ export default function DicePage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
-      // الحوكمة المالية: 75% فرصة خسارة
+      // حوكمة الملاءة: 75% فرصة خسارة قسرية
       const forceLose = Math.random() < 0.75;
       let result: number;
       
@@ -86,11 +85,11 @@ export default function DicePage() {
   return (
     <Shell hideMobileNav>
       <AnimatePresence>
-        {showIntro && <ArenaIntro icon={Dices} title="Nexus Dice" onComplete={() => setShowIntro(false)} />}
+        {showIntro && <DiceIntro onComplete={() => setShowIntro(false)} />}
       </AnimatePresence>
 
       {!showIntro && (
-        <div className="flex flex-col h-screen bg-[#fcfdfe] overflow-hidden">
+        <div className="flex flex-col h-screen bg-white overflow-hidden">
           <ArenaHeader title="نكسوس الاحتمالات" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
           
           <DiceReactor 
