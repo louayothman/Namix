@@ -21,18 +21,20 @@ import {
   Users,
   BarChart3,
   MousePointer2,
-  CheckCircle2
+  CheckCircle2,
+  Layers,
+  Cpu
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v4.0 - الإصدار النوراني (Light Mode Elite)
- * تصميم نخبوي بخلفية بيضاء، مزيج لغوي عالمي، وحركات سائلة فائقة النعومة.
- * تم تطهير المصطلحات بالكامل من "سيادة" و "بروتوكول".
+ * @fileOverview بوابة ناميكس العالمية v5.0 - الإصدار السينمائي النوراني
+ * صفحة هبوط تفاعلية تعتمد على "انبثاق الأقسام" مع التمرير، خلفية بيضاء، ومزيج لغوي نخبوي.
+ * تم تطهير المصطلحات (لا سيادة، لا بروتوكول) وتطهير النصوص العربية من التباعد.
  */
 
-// محرك عرض الأسعار اللحظي المتطور
+// محرك عرض الأسعار اللحظي المتطور - تحديث كل 20 ثانية
 function MarketTicker() {
   const [prices, setPrices] = useState<any[]>([
     { id: 'BTC', price: 0, change: 0 },
@@ -60,11 +62,11 @@ function MarketTicker() {
   }, []);
 
   return (
-    <div className="w-full bg-gray-50/50 border-y border-gray-100 backdrop-blur-md py-4 overflow-hidden relative">
+    <div className="w-full bg-white/80 border-y border-gray-100 backdrop-blur-xl py-4 overflow-hidden relative z-50">
       <div className="flex items-center gap-12 animate-marquee whitespace-nowrap">
         {[...prices, ...prices].map((p, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-[#002d4d]/40 uppercase tracking-widest">{p.id}/USDT</span>
+          <div key={i} className="flex items-center gap-3 px-4">
+            <span className="text-[10px] font-black text-[#002d4d]/30 uppercase tracking-widest">{p.id}/USDT</span>
             <span className="text-sm font-black text-[#002d4d] tabular-nums">${p.price > 1000 ? Math.round(p.price).toLocaleString() : p.price.toLocaleString()}</span>
             <span className={cn("text-[9px] font-black tabular-nums", p.change >= 0 ? "text-emerald-500" : "text-red-500")}>
               {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
@@ -118,23 +120,28 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative" dir="rtl">
       
-      {/* 1. السديم النوراني (Soft Atmosphere) */}
+      {/* 1. السديم النوراني الخلفي (Atmospheric Glow) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 10, repeat: Infinity }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-50/40 rounded-full blur-[120px]" 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 15, repeat: Infinity }}
+          className="absolute top-[-5%] left-[-10%] w-[70%] h-[70%] bg-blue-50/30 rounded-full blur-[120px]" 
         />
         <motion.div 
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 12, repeat: Infinity }}
+          animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.3, 0.1] }}
+          transition={{ duration: 18, repeat: Infinity }}
           className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#f9a885]/10 rounded-full blur-[120px]" 
         />
       </div>
 
       {/* 2. شريط الملاحة النخبوي (Modern Navbar) */}
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-6xl px-6">
-        <div className="bg-white/70 backdrop-blur-2xl border border-gray-100 rounded-[32px] h-16 md:h-20 px-6 md:px-10 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)]">
+        <motion.div 
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-white/80 backdrop-blur-2xl border border-gray-100 rounded-[32px] h-16 md:h-20 px-6 md:px-10 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(0,45,77,0.05)]"
+        >
           <Logo size="md" className="scale-90 md:scale-100" />
           
           <div className="hidden lg:flex items-center gap-12">
@@ -149,11 +156,11 @@ export default function LandingPage() {
             </Link>
             <Link href="/login">
               <Button className="rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[10px] md:text-[11px] h-10 md:h-12 px-6 md:px-8 shadow-xl shadow-blue-900/10 active:scale-95 transition-all">
-                ابدأ رحلتي الآن
+                ابدأ رحلتي الذكية
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </nav>
 
       {/* 3. الهيرو السينمائي (Elite Hero Section) */}
@@ -162,14 +169,14 @@ export default function LandingPage() {
           
           {/* الكتلة اليمنى: الرسالة العالمية */}
           <motion.div 
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, x: 60, filter: "blur(10px)" }}
+            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-8 text-center lg:text-right"
           >
             <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100">
                <Sparkles size={14} className="text-blue-600 animate-pulse" />
-               <span className="text-[#002d4d] font-black text-[10px] uppercase tracking-widest">مستقبل النمو الذكي <span className="opacity-30 mx-1">•</span> Smart Growth Future</span>
+               <span className="text-[#002d4d] font-black text-[10px] uppercase tracking-widest">المستقبل الذكي للنمو <span className="opacity-30 mx-1">•</span> Smart Growth Hub</span>
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#002d4d] leading-[1.1] tracking-tighter">
@@ -178,13 +185,13 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-sm md:text-xl text-gray-400 font-medium max-w-lg mx-auto lg:ml-auto lg:mr-0 leading-loose tracking-normal">
-              اكتشف تجربة مالية متطورة تدمج بين الذكاء الاصطناعي وسهولة الاستخدام، مصممة خصيصاً لتناسب طموحاتك في بناء محفظة رقمية مستدامة.
+              اكتشف تجربة مالية عالمية تدمج بين الذكاء الاصطناعي وسهولة الاستخدام، مصممة خصيصاً لتناسب طموحاتك في بناء محفظة رقمية مستدامة.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-6">
                <Link href="/login" className="w-full sm:w-auto">
                   <Button className="w-full sm:w-auto h-16 md:h-20 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group">
-                    تفعيل حسابي الآن
+                    ابدأ رحلتي الذكية
                     <ArrowRight size={20} className="mr-3 rotate-180 transition-transform group-hover:-translate-x-2" />
                   </Button>
                </Link>
@@ -192,7 +199,7 @@ export default function LandingPage() {
                   <ShieldCheck size={20} className="text-emerald-500" />
                   <div className="flex flex-col items-start leading-none">
                      <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">Safe & Secure</span>
-                     <span className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Verified Environment</span>
+                     <span className="text-[8px] font-bold text-gray-400 mt-1 uppercase">بيئة تشغيل موثقة</span>
                   </div>
                </div>
             </div>
@@ -200,18 +207,17 @@ export default function LandingPage() {
 
           {/* الكتلة اليسرى: المفاعل النوراني العائم */}
           <div className="relative flex justify-center items-center h-[450px] md:h-[700px] mt-12 lg:mt-0">
-            {/* الخلفية المضيئة للهاتف */}
             <motion.div 
-              animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute h-[500px] w-[500px] bg-gradient-to-tr from-blue-100/30 via-transparent to-[#f9a885]/20 rounded-full blur-[80px] opacity-60"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              className="absolute h-[500px] w-[500px] bg-gradient-to-tr from-blue-100/20 via-transparent to-[#f9a885]/10 rounded-full blur-[80px] opacity-60"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 60 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-[260px] h-[540px] md:w-[320px] md:h-[640px] bg-white rounded-[60px] border-[8px] border-[#002d4d]/5 shadow-[0_60px_120px_-20px_rgba(0,45,77,0.15)] overflow-hidden"
+              initial={{ opacity: 0, scale: 0.8, y: 80, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
+              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-[260px] h-[540px] md:w-[320px] md:h-[640px] bg-white rounded-[60px] border-[8px] border-[#002d4d]/5 shadow-[0_60px_120px_-20px_rgba(0,45,77,0.1)] overflow-hidden"
             >
               <div className="p-8 md:p-10 space-y-10">
                  <div className="flex justify-between items-center opacity-20">
@@ -230,7 +236,7 @@ export default function LandingPage() {
 
                  <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 space-y-5 shadow-inner">
                     <div className="flex justify-between items-center">
-                       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active Assets</p>
+                       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active Growth</p>
                        <Zap size={12} className="text-[#f9a885] fill-current" />
                     </div>
                     <div className="space-y-2">
@@ -252,7 +258,6 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Nodes عائمة لتعزيز المظهر التقني */}
             <FloatingNode delay={0.2} className="top-[15%] -right-24">
                <div className="bg-white/80 backdrop-blur-xl border border-gray-100 p-5 rounded-[32px] w-56 space-y-4 shadow-2xl">
                   <div className="flex items-center gap-4">
@@ -280,29 +285,38 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* شريط الأسعار السفلي */}
         <div className="absolute bottom-0 left-0 right-0">
            <MarketTicker />
         </div>
       </section>
 
       {/* 4. المميزات الذكية (Smart Features Section) */}
-      <section className="py-32 px-6 relative bg-gray-50/30">
+      <section className="py-32 px-6 relative bg-gray-50/20">
          <div className="container mx-auto space-y-24">
-            <div className="text-center space-y-4 max-w-3xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="text-center space-y-4 max-w-3xl mx-auto"
+            >
                <Badge className="bg-[#002d4d]/5 text-[#002d4d] border-none px-5 py-1.5 rounded-full font-black text-[10px] tracking-widest uppercase">The Intelligent Edge</Badge>
                <h2 className="text-4xl md:text-6xl font-black text-[#002d4d] tracking-tight">لماذا يختار النخبة ناميكس؟</h2>
                <p className="text-base md:text-xl text-gray-400 font-medium leading-loose">نظام متكامل يجمع بين قوة التكنولوجيا المتطورة وسهولة التجربة المالية العصرية.</p>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                {[
-                 { title: "أمان فائق الذكاء", en: "Smart Security", desc: "تشفير بيانات متقدم من الدرجة العسكرية لحماية كافة أصولك الرقمية وتحركاتك المالية.", icon: Lock, color: "text-blue-600", bg: "bg-blue-50" },
-                 { title: "تداول فوري متطور", en: "Instant Engine", desc: "محرك تداول عالمي يربطك بأهم الأسواق الحية بسرعة البرق وبكل سهولة مذهلة.", icon: Zap, color: "text-[#f9a885]", bg: "bg-orange-50" },
-                 { title: "إدارة نمو ذكية", en: "Growth Matrix", desc: "حلول استثمارية مبتكرة تساعدك على تنمية محفظتك بأساليب موثقة وعائد مستدام.", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" }
+                 { title: "أمان فائق الذكاء", en: "Smart Security", desc: "تشفير بيانات متقدم وحماية متعددة الطبقات لكافة أصولك الرقمية وتحركاتك المالية.", icon: Lock, color: "text-blue-600", bg: "bg-blue-50" },
+                 { title: "تنفيذ فوري متطور", en: "Instant Execution", desc: "محرك تداول يربطك بأهم الأسواق العالمية بسرعة البرق وبكل سهولة مذهلة.", icon: Zap, color: "text-[#f9a885]", bg: "bg-orange-50" },
+                 { title: "هندسة نمو ذكية", en: "Growth Matrix", desc: "حلول تقنية مبتكرة تساعدك على تنمية محفظتك بأساليب موثقة وعائد مستدام.", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" }
                ].map((feat, i) => (
                  <motion.div 
                    key={i} 
+                   initial={{ opacity: 0, y: 30 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.8, delay: i * 0.2 }}
                    whileHover={{ y: -12 }}
                    className="p-12 rounded-[56px] bg-white border border-gray-100 hover:border-blue-100 hover:shadow-[0_40px_80px_-20px_rgba(0,45,77,0.08)] transition-all duration-700 group"
                  >
@@ -322,9 +336,15 @@ export default function LandingPage() {
          </div>
       </section>
 
-      {/* 5. قسم صندوق الثقة (Reliability & Trust) */}
+      {/* 5. قسم جرد الشبكة (Reliability & Stats) */}
       <section className="py-32 px-6 relative">
-         <div className="container mx-auto bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-white overflow-hidden relative group">
+         <motion.div 
+           initial={{ opacity: 0, scale: 0.95 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           viewport={{ once: true }}
+           transition={{ duration: 1.2 }}
+           className="container mx-auto bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-white overflow-hidden relative group"
+         >
             <div className="absolute top-0 right-0 p-20 opacity-[0.03] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110 group-hover:rotate-0">
                <Globe size={500} />
             </div>
@@ -337,10 +357,10 @@ export default function LandingPage() {
                   <div className="space-y-4">
                     <h2 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">
                       شريكك الموثوق في <br/>
-                      <span className="text-[#f9a885]">رحلة الثراء الرقمي.</span>
+                      <span className="text-[#f9a885]">رحلة النمو الرقمي.</span>
                     </h2>
                     <p className="text-base md:text-lg text-white/40 font-medium leading-loose max-w-lg mx-auto lg:mr-0">
-                      نحن نؤمن بأن الوصول للحرية المالية هو حق للجميع. ناميكس توفر لك الأدوات والبيئة الآمنة لتحقيق طموحاتك بذكاء.
+                      نحن نؤمن بأن الوصول للأدوات المالية المتطورة هو حق للجميع. ناميكس توفر لك البيئة الآمنة لتحقيق طموحاتك بذكاء.
                     </p>
                   </div>
                   <Link href="/login" className="block">
@@ -358,31 +378,38 @@ export default function LandingPage() {
                     { label: "أصول مدارة", val: "$150M+", icon: Wallet, color: "text-[#f9a885]" },
                     { label: "دولة مدعومة", val: "12+", icon: Globe, color: "text-purple-400" }
                   ].map((stat, i) => (
-                    <div key={i} className="p-10 rounded-[48px] bg-white/5 border border-white/5 backdrop-blur-md text-center space-y-3 transition-all hover:bg-white/10">
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="p-10 rounded-[48px] bg-white/5 border border-white/5 backdrop-blur-md text-center space-y-3 transition-all hover:bg-white/10"
+                    >
                        <stat.icon size={24} className={cn("mx-auto opacity-30", stat.color)} />
                        <p className="text-3xl font-black text-white tabular-nums tracking-tighter">{stat.val}</p>
                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none">{stat.label}</p>
-                    </div>
+                    </motion.div>
                   ))}
                </div>
             </div>
-         </div>
+         </motion.div>
       </section>
 
       {/* 6. التذييل العالمي (Global Elite Footer) */}
       <footer className="bg-white pt-24 pb-12 border-t border-gray-50 px-6">
          <div className="container mx-auto space-y-20">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 text-right">
                
                <div className="col-span-2 space-y-8">
                   <Logo size="md" />
                   <p className="text-sm text-gray-400 font-medium leading-loose max-w-xs">
                     منصة عالمية متطورة لإدارة وتنمية الأصول الرقمية بذكاء وأمان. انضم لمستقبل المال اليوم بكل ثقة.
                   </p>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 justify-end">
                      {[1, 2, 3, 4].map(i => (
-                       <div key={i} className="h-10 w-10 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center hover:bg-[#002d4d] hover:text-white cursor-pointer transition-all">
-                          <Globe size={16} className="opacity-40" />
+                       <div key={i} className="h-10 w-10 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center hover:bg-[#002d4d] hover:text-white cursor-pointer transition-all opacity-40 hover:opacity-100">
+                          <Globe size={16} />
                        </div>
                      ))}
                   </div>
