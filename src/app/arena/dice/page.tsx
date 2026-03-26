@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -5,18 +6,18 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
+import { Dices } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
+import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
 import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
-/**
- * DicePage - Container v1000.0
- * تم حذف الانترو نهائياً للوصول المباشر للمفاعل.
- */
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
+  const [showIntro, setShowIntro] = useState(true);
   const [betAmount, setBetAmount] = useState("10");
   const [targetValue, setTargetValue] = useState(50.5);
   const [isRollOver, setIsRollOver] = useState(true);
@@ -80,34 +81,47 @@ export default function DicePage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
-        <ArenaHeader 
-          title="نكسوس الاحتمالات" 
-          balance={dbUser?.totalBalance} 
-          onOpenDeposit={() => setDepositOpen(true)} 
-        />
-        
-        <DiceReactor 
-          lastResult={lastResult} 
-          gameState={gameState} 
-          isRollOver={isRollOver} 
-          targetValue={targetValue} 
-          setTargetValue={setTargetValue} 
-          setIsRollOver={setIsRollOver} 
-        />
-        
-        <DiceBetPanel 
-          betAmount={betAmount} 
-          setBetAmount={setBetAmount} 
-          loading={loading} 
-          canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
-          multiplier={multiplier} 
-          winChance={winChance} 
-          onRoll={handleRoll} 
-        />
-        
-        <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-      </div>
+      <AnimatePresence>
+        {showIntro && (
+          <ArenaIntro 
+            key="intro"
+            icon={Dices} 
+            title="NEXUS DICE" 
+            onComplete={() => setShowIntro(false)} 
+          />
+        )}
+      </AnimatePresence>
+
+      {!showIntro && (
+        <div className="flex flex-col h-screen bg-white overflow-hidden animate-in fade-in duration-1000" dir="rtl">
+          <ArenaHeader 
+            title="نكسوس الاحتمالات" 
+            balance={dbUser?.totalBalance} 
+            onOpenDeposit={() => setDepositOpen(true)} 
+          />
+          
+          <DiceReactor 
+            lastResult={lastResult} 
+            gameState={gameState} 
+            isRollOver={isRollOver} 
+            targetValue={targetValue} 
+            setTargetValue={setTargetValue} 
+            setIsRollOver={setIsRollOver} 
+          />
+          
+          <DiceBetPanel 
+            betAmount={betAmount} 
+            setBetAmount={setBetAmount} 
+            loading={loading} 
+            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
+            multiplier={multiplier} 
+            winChance={winChance} 
+            onRoll={handleRoll} 
+          />
+          
+          <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
+        </div>
+      )}
     </Shell>
   );
 }
