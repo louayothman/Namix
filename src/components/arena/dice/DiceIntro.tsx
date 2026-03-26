@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -146,7 +145,7 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + i * 0.06, ease: "easeOut" }}
-                    className="text-[#002d4d] font-black text-[10px] tracking-[0.25em] inline-block"
+                    className="text-[#002d4d] font-black text-[12px] tracking-[0.25em] inline-block"
                   >
                     {char === " " ? "\u00A0" : char}
                   </motion.span>
