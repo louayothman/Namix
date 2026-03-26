@@ -15,7 +15,7 @@ interface MinesReactorProps {
 }
 
 /**
- * MinesReactor - مفاعل السيادة v800.0
+ * MinesReactor - مفاعل السيادة v900.0
  * تم ضبط الحجم ليكون طبيعياً ومريحاً للهواتف بخط 13px وتطهير النصوص.
  */
 export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentMultiplier }: MinesReactorProps) {
@@ -25,7 +25,10 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
          <div className="h-full w-full bg-[radial-gradient(circle,#002d4d_1px,transparent_1px)] bg-[size:30px_30px]" />
       </div>
 
-      <div className="relative w-full max-w-[320px] aspect-square bg-white rounded-[32px] p-4 border border-gray-100 shadow-xl overflow-hidden">
+      <div className="relative w-full max-w-[320px] aspect-square bg-white rounded-[32px] p-4 border border-gray-100 shadow-xl overflow-hidden group">
+        {/* Glow behind grid */}
+        <div className="absolute inset-0 bg-blue-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+        
         <div className="grid grid-cols-5 gap-2 h-full relative z-10">
           {grid.map((tile, i) => (
             <motion.button
@@ -42,7 +45,7 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
             >
               <AnimatePresence mode="wait">
                 {tile.status === 'gem' && (
-                  <motion.div key="gem" initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                  <motion.div key="gem" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }}>
                     <Gem size={20} className="fill-current" />
                   </motion.div>
                 )}
@@ -63,7 +66,7 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
               className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-white/10 backdrop-blur-sm"
             >
               <motion.div 
-                initial={{ scale: 0.9 }} animate={{ scale: 1 }} 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} 
                 className={cn(
                   "p-6 rounded-[28px] shadow-2xl border-2 border-white/20 text-center space-y-4 w-full", 
                   gameState === 'won' ? "bg-emerald-600" : "bg-red-600"
@@ -73,8 +76,10 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
                   {gameState === 'won' ? <CheckCircle2 size={28} className="text-white"/> : <RotateCcw size={28} className="text-white"/>}
                 </div>
                 <div className="space-y-1">
-                  <h2 className="text-base font-black text-white leading-none tracking-normal">{gameState === 'won' ? 'استخراج ناجح' : 'عطل تقني'}</h2>
-                  <p className="text-[13px] font-bold text-white/80 leading-relaxed tracking-normal">
+                  <h2 className="text-[13px] font-black text-white leading-none tracking-normal uppercase">
+                    {gameState === 'won' ? 'استخراج ناجح' : 'عطل تقني مفاجئ'}
+                  </h2>
+                  <p className="text-[11px] font-bold text-white/80 leading-relaxed tracking-normal">
                     {gameState === 'won' ? `تم حقن $${(Number(betAmount) * currentMultiplier).toFixed(2)} في رصيدك.` : 'اصطدمت بعقدة معطلة في الشبكة.'}
                   </p>
                 </div>
@@ -84,9 +89,9 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
         </AnimatePresence>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 opacity-20">
+      <div className="mt-6 flex items-center gap-2 opacity-20">
          <Activity size={10} className="text-[#002d4d]" />
-         <span className="text-[10px] font-black uppercase tracking-widest tracking-normal">Matrix Feed Active</span>
+         <span className="text-[10px] font-black uppercase tracking-[0.4em] tracking-normal">Matrix Grid Synchronized</span>
       </div>
     </section>
   );

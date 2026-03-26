@@ -13,6 +13,10 @@ import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
+/**
+ * MinesPage - Container v900.0
+ * يدير الحالة المنطقية للعبة وحوكمة السيولة (75% خسارة مبرمجة).
+ */
 export default function MinesPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -43,7 +47,7 @@ export default function MinesPage() {
     for (let i = 0; i < revealedGems; i++) {
       mult *= (25 - i) / (25 - minesCount - i);
     }
-    return mult * 0.98;
+    return mult * 0.98; // House Edge
   }, [revealedGems, minesCount]);
 
   const startGame = async () => {
@@ -53,6 +57,7 @@ export default function MinesPage() {
 
     setLoading(true);
     try {
+      // Logic: Generate mines but don't finalize yet (can be moved if forceLose triggers)
       const positions: number[] = [];
       while (positions.length < minesCount) {
         const r = Math.floor(Math.random() * 25);
@@ -73,11 +78,13 @@ export default function MinesPage() {
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
+    // GOVERNANCE: 75% Force Lose on Tile Click
     const forceLose = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
     if (forceLose && !isMine) {
-      const otherMineIdx = minesPositions.find(p => !grid[p].status || grid[p].status === 'hidden');
+      // Swap a hidden mine to this location
+      const otherMineIdx = minesPositions.find(p => grid[p].status === 'hidden');
       if (otherMineIdx !== undefined) {
         setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
         isMine = true;
@@ -85,10 +92,14 @@ export default function MinesPage() {
     }
 
     if (isMine) {
-      setGrid(grid.map((tile, i) => ({ 
-        status: minesPositions.includes(i) ? 'mine' : 'hidden', 
-        isExploded: i === idx 
-      })));
+      const finalGrid = grid.map((tile, i) => {
+        const isCurrentMine = minesPositions.includes(i) || (forceLose && i === idx);
+        return { 
+          status: isCurrentMine ? 'mine' : 'hidden', 
+          isExploded: i === idx 
+        };
+      });
+      setGrid(finalGrid);
       setGameState('lost');
     } else {
       const newGrid = [...grid];
@@ -123,9 +134,34 @@ export default function MinesPage() {
 
       {!showIntro && (
         <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
-          <ArenaHeader title="مناجم السيولة" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
-          <MinesReactor grid={grid} gameState={gameState} onTileClick={handleTileClick} betAmount={betAmount} currentMultiplier={currentMultiplier} />
-          <MinesBetPanel betAmount={betAmount} setBetAmount={setBetAmount} minesCount={minesCount} setMinesCount={setMinesCount} gameState={gameState} loading={loading} canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} onStart={startGame} onCashout={cashout} onReset={() => setGameState('idle')} currentMultiplier={currentMultiplier} />
+          <ArenaHeader 
+            title="مناجم السيولة" 
+            balance={dbUser?.totalBalance} 
+            onOpenDeposit={() => setDepositOpen(true)} 
+          />
+          
+          <MinesReactor 
+            grid={grid} 
+            gameState={gameState} 
+            onTileClick={handleTileClick} 
+            betAmount={betAmount} 
+            currentMultiplier={currentMultiplier} 
+          />
+          
+          <MinesBetPanel 
+            betAmount={betAmount} 
+            setBetAmount={setBetAmount} 
+            minesCount={minesCount} 
+            setMinesCount={setMinesCount} 
+            gameState={gameState} 
+            loading={loading} 
+            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
+            onStart={startGame} 
+            onCashout={cashout} 
+            onReset={() => setGameState('idle')} 
+            currentMultiplier={currentMultiplier} 
+          />
+          
           <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
       )}

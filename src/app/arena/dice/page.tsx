@@ -13,6 +13,10 @@ import { DiceIntro } from "@/components/arena/dice/DiceIntro";
 import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
+/**
+ * DicePage - Container v900.0
+ * يدير الحالة المنطقية للعبة وحوكمة السيولة (75% خسارة مبرمجة).
+ */
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -49,14 +53,19 @@ export default function DicePage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
+      // GOVERNANCE: 75% Force Lose
       const forceLose = Math.random() < 0.75;
       let result: number;
       
       if (!forceLose) {
         result = Math.random() * 100;
       } else {
-        if (isRollOver) result = Math.random() * targetValue;
-        else result = targetValue + (Math.random() * (100 - targetValue));
+        // Generate a losing result
+        if (isRollOver) {
+          result = Math.random() * targetValue; // Definitely below target
+        } else {
+          result = targetValue + (Math.random() * (100 - targetValue)); // Definitely above target
+        }
       }
       
       setLastResult(result);
@@ -83,9 +92,31 @@ export default function DicePage() {
 
       {!showIntro && (
         <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
-          <ArenaHeader title="نكسوس الاحتمالات" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
-          <DiceReactor lastResult={lastResult} gameState={gameState} isRollOver={isRollOver} targetValue={targetValue} setTargetValue={setTargetValue} setIsRollOver={setIsRollOver} />
-          <DiceBetPanel betAmount={betAmount} setBetAmount={setBetAmount} loading={loading} canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} multiplier={multiplier} winChance={winChance} onRoll={handleRoll} />
+          <ArenaHeader 
+            title="نكسوس الاحتمالات" 
+            balance={dbUser?.totalBalance} 
+            onOpenDeposit={() => setDepositOpen(true)} 
+          />
+          
+          <DiceReactor 
+            lastResult={lastResult} 
+            gameState={gameState} 
+            isRollOver={isRollOver} 
+            targetValue={targetValue} 
+            setTargetValue={setTargetValue} 
+            setIsRollOver={setIsRollOver} 
+          />
+          
+          <DiceBetPanel 
+            betAmount={betAmount} 
+            setBetAmount={setBetAmount} 
+            loading={loading} 
+            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
+            multiplier={multiplier} 
+            winChance={winChance} 
+            onRoll={handleRoll} 
+          />
+          
           <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
       )}
