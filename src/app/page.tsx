@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -15,8 +16,8 @@ import { StatsSection } from "@/components/landing/StatsSection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v6.5 - Strategic Triple Hero Edition
- * تم تقسيم الهيرو إلى 3 أقسام استراتيجية لتعزيز تجربة المستخدم.
+ * @fileOverview بوابة ناميكس الموحدة v4.0 - إصدار الاندماج النوراني
+ * تم تحويل شريط الملاحة ليكون مدمجاً بالكامل في بنية الصفحة.
  */
 
 export default function LandingPage() {
@@ -26,7 +27,10 @@ export default function LandingPage() {
   useEffect(() => {
     setMounted(true);
     const user = localStorage.getItem("namix_user");
-    if (user) router.replace("/home");
+    if (user) {
+      // Logic remained but destination updated to /home as per architecture
+      router.replace("/home");
+    }
   }, [router]);
 
   if (!mounted) return null;
@@ -43,6 +47,7 @@ export default function LandingPage() {
         />
       </div>
 
+      {/* شريط الملاحة المدمج (غير ثابت) */}
       <LandingNavbar />
 
       <HeroSection1 />

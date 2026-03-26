@@ -5,26 +5,22 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/Logo";
-import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview شريط الملاحة العالمي v3.0 - The Monolithic Sovereign Edition
- * تصميم فخم بدون زوايا علوية، مع منطق ذكي للأزرار وتجربة جوال راقية.
+ * @fileOverview شريط الملاحة المدمج v4.0 - The Seamless Sovereign Edition
+ * تصميم مدمج كلياً بدون ظلال، مع زر قائمة "ذري" مبتكر للهواتف.
  */
+
 export function LandingNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("namix_user");
     setIsLoggedIn(!!user);
-
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
@@ -34,86 +30,106 @@ export function LandingNavbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] w-full pointer-events-none">
-      <motion.div 
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className={cn(
-          "w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-700 pointer-events-auto",
-          "rounded-b-[40px] md:rounded-b-[56px]",
-          scrolled ? "py-3 md:py-4" : "py-5 md:py-7"
-        )}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
-          
-          {/* الجانب الأيمن: الشعار السديمي */}
-          <Link href="/">
-            <Logo size="sm" className="md:scale-110" />
+    <nav className="absolute top-0 left-0 right-0 z-[1000] w-full bg-transparent py-8 md:py-10 px-6 md:px-12">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
+        {/* الجانب الأيمن: الشعار السديمي */}
+        <Link href="/" className="relative z-[1100]">
+          <Logo size="sm" className="md:scale-110" />
+        </Link>
+
+        {/* المنتصف: الروابط (للكمبيوتر فقط) */}
+        <div className="hidden md:flex items-center gap-12" dir="rtl">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.name} 
+              href={link.href}
+              className="text-[11px] font-black text-[#002d4d]/40 hover:text-[#002d4d] transition-all tracking-normal relative group"
+            >
+              {link.name}
+              <span className="absolute -bottom-1 right-0 w-0 h-[1.5px] bg-[#f9a885] transition-all duration-500 group-hover:w-full" />
+            </Link>
+          ))}
+        </div>
+
+        {/* الجانب الأيسر: زر التفاعل الذكي + زر القائمة المبتكر */}
+        <div className="flex items-center gap-6 relative z-[1100]">
+          <Link href={isLoggedIn ? "/home" : "/login"} className="hidden md:block">
+            <Button className="h-12 md:h-14 px-10 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[11px] shadow-2xl shadow-blue-900/10 active:scale-95 transition-all group overflow-hidden relative border-none">
+              <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
+              <div className="relative z-10 flex items-center gap-3">
+                <span>{isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}</span>
+                <Sparkles size={14} className="text-[#f9a885] animate-pulse" />
+              </div>
+            </Button>
           </Link>
 
-          {/* المنتصف: الروابط (للكمبيوتر فقط بتنسيق فخم) */}
-          <div className="hidden md:flex items-center gap-12" dir="rtl">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                href={link.href}
-                className="text-[11px] font-black text-[#002d4d]/40 hover:text-[#002d4d] transition-all tracking-normal relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 right-0 w-0 h-[1.5px] bg-[#f9a885] transition-all duration-500 group-hover:w-full" />
-              </Link>
-            ))}
-          </div>
-
-          {/* الجانب الأيسر: زر التفاعل الذكي */}
-          <div className="flex items-center gap-4">
-            <Link href={isLoggedIn ? "/home" : "/login"} className="hidden md:block">
-              <Button className="h-12 md:h-14 px-10 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[11px] shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group overflow-hidden relative">
-                <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
-                <div className="relative z-10 flex items-center gap-3">
-                  <span>{isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}</span>
-                  <Sparkles size={14} className="text-[#f9a885] animate-pulse" />
-                </div>
-              </Button>
-            </Link>
-
-            {/* زر القائمة للجوال - تصميم راقي */}
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden h-11 w-11 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] shadow-inner active:scale-90 transition-all border border-gray-100"
-            >
-              {isOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
+          {/* زر القائمة "الذري" المبتكر (Atomic Morphing Trigger) */}
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden relative h-10 w-10 flex items-center justify-center outline-none group"
+          >
+            <div className="grid grid-cols-2 gap-1.5 transition-transform duration-500 group-active:scale-90">
+              {[...Array(4)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={isOpen ? {
+                    scale: [1, 1.5, 1],
+                    rotate: 45,
+                    x: i === 0 || i === 2 ? 2 : -2,
+                    borderRadius: "2px"
+                  } : {
+                    scale: 1,
+                    rotate: 0,
+                    x: 0,
+                    borderRadius: "50%"
+                  }}
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full transition-colors duration-500",
+                    isOpen ? "bg-red-500" : (i === 1 || i === 2 ? "bg-[#f9a885]" : "bg-[#002d4d]")
+                  )}
+                />
+              ))}
+            </div>
+          </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* قائمة الجوال المنزلقة - فخامة وعصرية */}
+      {/* قائمة الجوال "الانبثاق الكمومي" - Quantum Expansion Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden w-full bg-white pointer-events-auto overflow-hidden rounded-b-[48px] shadow-[0_40px_80px_rgba(0,0,0,0.1)] border-t border-gray-50"
+            initial={{ opacity: 0, clipPath: "circle(0% at 90% 5%)" }}
+            animate={{ opacity: 1, clipPath: "circle(150% at 90% 5%)" }}
+            exit={{ opacity: 0, clipPath: "circle(0% at 90% 5%)" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 bg-white z-[1050] flex flex-col items-center justify-center px-10"
           >
-            <div className="px-8 py-10 space-y-8 text-right" dir="rtl">
-              <div className="space-y-6">
+            {/* الخلفية السديمية للقائمة */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] font-black text-[#002d4d] italic">NAMIX</div>
+            </div>
+
+            <div className="w-full space-y-12 text-right relative z-10" dir="rtl">
+              <div className="space-y-8">
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.name}
-                    initial={{ x: 20, opacity: 0 }}
+                    initial={{ x: 40, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
+                    transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
                   >
                     <Link 
                       href={link.href} 
                       onClick={() => setIsOpen(false)}
-                      className="text-xl font-black text-[#002d4d] flex items-center justify-between group"
+                      className="flex items-center justify-between group"
                     >
-                      <span>{link.name}</span>
-                      <div className="h-8 w-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#f9a885] group-hover:text-[#002d4d] transition-all">
-                        <ChevronLeft size={16} />
+                      <div className="flex flex-col">
+                        <span className="text-4xl font-black text-[#002d4d] group-hover:text-[#f9a885] transition-colors">{link.name}</span>
+                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mt-1">Explore Section</span>
+                      </div>
+                      <div className="h-12 w-12 rounded-[20px] bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shadow-inner">
+                        <ChevronLeft size={24} strokeWidth={3} />
                       </div>
                     </Link>
                   </motion.div>
@@ -121,41 +137,26 @@ export function LandingNavbar() {
               </div>
 
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="pt-6 border-t border-gray-50"
+                transition={{ delay: 0.5 }}
+                className="pt-10 border-t border-gray-100"
               >
                 <Link href={isLoggedIn ? "/home" : "/login"} onClick={() => setIsOpen(false)}>
-                  <Button className="w-full h-16 rounded-[24px] bg-[#002d4d] text-[#f9a885] font-black text-base shadow-xl flex items-center justify-center gap-4 group">
-                    {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن للنخبة"}
-                    <ArrowRight size={20} className="rotate-180 transition-transform group-hover:-translate-x-2" />
+                  <Button className="w-full h-20 rounded-[32px] bg-[#002d4d] text-[#f9a885] font-black text-xl shadow-2xl flex items-center justify-center gap-4 group active:scale-95 transition-all">
+                    <span>{isLoggedIn ? "متابعة الاستخدام" : "انضم الآن للنخبة"}</span>
+                    <ArrowRight size={24} className="rotate-180 transition-transform group-hover:-translate-x-2" />
                   </Button>
                 </Link>
               </motion.div>
               
-              <div className="flex justify-center opacity-10">
-                 <p className="text-[8px] font-black uppercase tracking-[0.8em]">Namix Network</p>
+              <div className="flex justify-center opacity-10 pt-10">
+                 <p className="text-[10px] font-black uppercase tracking-[1em] mr-[-1em]">NAMIX NETWORK</p>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </nav>
-  );
-}
-
-// أيقونة العودة المستخدمة في قائمة الجوال
-function ChevronLeft({ size, className }: { size: number, className?: string }) {
-  return (
-    <svg 
-      width={size} height={size} 
-      viewBox="0 0 24 24" fill="none" 
-      stroke="currentColor" strokeWidth="3" 
-      strokeLinecap="round" strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="m15 18-6-6 6-6"/>
-    </svg>
   );
 }
