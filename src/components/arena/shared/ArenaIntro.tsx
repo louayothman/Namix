@@ -12,9 +12,9 @@ interface ArenaIntroProps {
 }
 
 /**
- * @fileOverview Cinematic Fusion Reactor v7000.0 - Sovereign Liquid Edition
+ * @fileOverview Cinematic Fusion Reactor v8000.0 - Sovereign Liquid Edition
  * محرك انصهار سينمائي يدمج بين فيزياء السوائل المورفية ودوران اللوجو المعتمد على القصور الذاتي.
- * الترتيب: نبض النواة -> دوران مورفي متسارع -> ومضة انصهار -> ارتقاء وطباعة LTR.
+ * التعديلات: تصغير اسم اللعبة، إضافة حلقات الصدمة، وإضافة التوقيع السيادي في الأسفل.
  */
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
   useEffect(() => {
@@ -23,8 +23,6 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
   }, [onComplete]);
 
   const letters = title.split("");
-
-  // منحنيات Bezier المخصصة للفخامة
   const luxuryEasing = [0.16, 1, 0.3, 1];
 
   return (
@@ -67,7 +65,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
       <div className="relative flex flex-col items-center">
         
         {/* 2. The Liquid Metamorphosis Reactor - مفاعل التحول السائل */}
-        <div className="relative h-72 w-72 flex items-center justify-center">
+        <div className="relative h-64 w-64 md:h-72 md:w-72 flex items-center justify-center">
           
           {/* Atmosphere Glow */}
           <motion.div
@@ -102,27 +100,27 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
 
           {/* 3. The Central Logic - الهوية المورفية */}
           <div className="relative z-10">
-            {/* Phase 1: Namix Cinematic Rotation (Accelerate -> Decelerate) */}
+            {/* Phase 1: Namix Cinematic Rotation */}
             <motion.div
               initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
               animate={{ 
                 opacity: [0, 1, 1, 0],
                 scale: [0.5, 1, 1.1, 0.8],
-                rotate: [0, 720], // دوران مضاعف وسينمائي
+                rotate: [0, 720],
                 filter: ["blur(10px)", "blur(0px)", "blur(0px)", "blur(20px)"]
               }}
               transition={{ 
                 duration: 2.8, 
                 times: [0, 0.2, 0.8, 1],
-                ease: [0.34, 1.56, 0.64, 1] // استجابة ميكانيكية حية
+                ease: [0.34, 1.56, 0.64, 1]
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
               <div className="grid grid-cols-2 gap-3">
-                <div className="h-4 w-4 rounded-full bg-[#002d4d] shadow-[0_0_15px_rgba(0,45,77,0.2)]" />
-                <div className="h-4 w-4 rounded-full bg-[#f9a885] shadow-[0_0_15px_rgba(249,168,133,0.3)]" />
-                <div className="h-4 w-4 rounded-full bg-[#f9a885] shadow-[0_0_15px_rgba(249,168,133,0.3)]" />
-                <div className="h-4 w-4 rounded-full bg-[#002d4d] shadow-[0_0_15px_rgba(0,45,77,0.2)]" />
+                <div className="h-4 w-4 rounded-full bg-[#002d4d]" />
+                <div className="h-4 w-4 rounded-full bg-[#f9a885]" />
+                <div className="h-4 w-4 rounded-full bg-[#f9a885]" />
+                <div className="h-4 w-4 rounded-full bg-[#002d4d]" />
               </div>
             </motion.div>
 
@@ -137,7 +135,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
               className="absolute inset-[-40px] bg-gradient-to-r from-white via-blue-50 to-white rounded-full blur-2xl z-20"
             />
 
-            {/* Phase 2: Sovereign Icon Reveal with Focus Jump */}
+            {/* Phase 2: Sovereign Icon Reveal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.3, filter: "blur(30px)", y: 20 }}
               animate={{ 
@@ -153,39 +151,44 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
                 animate={{ 
                   y: [0, -8, 0],
                   scale: [1, 1.02, 1],
-                  filter: ["drop-shadow(0 0 0px transparent)", "drop-shadow(0 20px 40px rgba(0,45,77,0.15))", "drop-shadow(0 0 0px transparent)"]
                 }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Icon size={96} strokeWidth={1} />
+                <Icon size={80} strokeWidth={1} />
               </motion.div>
             </motion.div>
           </div>
 
-          {/* Shockwave Rings */}
+          {/* Quantum Shockwave Rings - حلقات الصدمة */}
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: [0.5, 2.5], opacity: [0, 0.4, 0] }}
-            transition={{ delay: 2.7, duration: 2.5, repeat: Infinity, ease: "easeOut" }}
-            className="absolute inset-0 rounded-full border border-blue-100/30"
+            animate={{ scale: [0.5, 3], opacity: [0, 0.3, 0] }}
+            transition={{ delay: 2.7, duration: 2, repeat: Infinity, ease: "easeOut" }}
+            className="absolute inset-0 rounded-full border-[0.5px] border-blue-200/40"
+          />
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0.5, 2.5], opacity: [0, 0.2, 0] }}
+            transition={{ delay: 2.9, duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+            className="absolute inset-0 rounded-full border-[0.5px] border-[#f9a885]/30"
           />
         </div>
 
-        {/* 4. Cinematic LTR Typography - أوركسترا الحروف العالمية */}
-        <div className="mt-24 flex items-center justify-center gap-3" dir="ltr">
+        {/* 4. Cinematic LTR Typography - تصغير الخط */}
+        <div className="mt-16 flex items-center justify-center gap-2.5" dir="ltr">
           {letters.map((letter, i) => (
             <motion.span
               key={i}
-              initial={{ x: -30, opacity: 0, filter: "blur(20px)", scale: 0.8 }}
+              initial={{ x: -20, opacity: 0, filter: "blur(15px)", scale: 0.8 }}
               animate={{ x: 0, opacity: 1, filter: "blur(0px)", scale: 1 }}
               transition={{ 
-                duration: 1.2, 
-                delay: 3.2 + i * 0.1, 
+                duration: 1, 
+                delay: 3.2 + i * 0.08, 
                 ease: luxuryEasing 
               }}
               className={cn(
-                "text-xl md:text-2xl font-black text-[#002d4d] tracking-[0.1em]",
-                letter === " " ? "w-6" : ""
+                "text-base md:text-lg font-black text-[#002d4d] tracking-[0.15em]",
+                letter === " " ? "w-4" : ""
               )}
             >
               {letter}
@@ -196,24 +199,25 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
         {/* Dynamic Light Rail */}
         <motion.div 
           initial={{ width: 0, opacity: 0 }}
-          animate={{ width: "240px", opacity: 0.2 }}
+          animate={{ width: "180px", opacity: 0.15 }}
           transition={{ duration: 2.5, delay: 4 }}
-          className="h-[0.5px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent mt-8 shadow-[0_0_20px_#f9a885]"
+          className="h-[0.5px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent mt-6 shadow-[0_0_15px_#f9a885]"
         />
       </div>
 
-      {/* 5. Sovereign Signature Footer */}
+      {/* 5. Sovereign Signature Footer - التوقيع السيادي الفخم */}
       <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.4 }}
-        transition={{ delay: 4.5 }}
-        className="absolute bottom-16 flex flex-col items-center gap-5 select-none pointer-events-none"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 0.3, y: 0 }}
+        transition={{ delay: 4.2, duration: 1.5, ease: luxuryEasing }}
+        className="absolute bottom-12 flex flex-col items-center gap-4 select-none pointer-events-none"
       >
-        <div className="flex items-center gap-6">
-           <div className="h-[0.5px] w-16 bg-gradient-to-r from-transparent to-gray-200" />
-           <p className="text-[10px] font-black uppercase tracking-[1em] text-[#002d4d] ml-[1em]">NAMIX PROTOCOL</p>
-           <div className="h-[0.5px] w-16 bg-gradient-to-l from-transparent to-gray-200" />
+        <div className="flex items-center gap-8">
+           <motion.div initial={{ width: 0 }} animate={{ width: "40px" }} transition={{ delay: 4.5, duration: 1.5 }} className="h-[0.5px] bg-gradient-to-r from-transparent to-gray-300" />
+           <p className="text-[8px] font-black uppercase tracking-[1.2em] text-[#002d4d] ml-[1.2em]">NAMIX PROTOCOL</p>
+           <motion.div initial={{ width: 0 }} animate={{ width: "40px" }} transition={{ delay: 4.5, duration: 1.5 }} className="h-[0.5px] bg-gradient-to-l from-transparent to-gray-300" />
         </div>
+        <p className="text-[6px] font-bold text-gray-300 uppercase tracking-widest">Authorized Execution Environment</p>
       </motion.div>
     </motion.div>
   );
