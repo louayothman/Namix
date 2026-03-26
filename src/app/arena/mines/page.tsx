@@ -14,6 +14,9 @@ import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
+/**
+ * @fileOverview صفحة المناجم السيادية v1700.0 - معالجة أخطاء الاستيراد
+ */
 export default function MinesPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -122,7 +125,7 @@ export default function MinesPage() {
 
   return (
     <Shell hideMobileNav>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showIntro && (
           <ArenaIntro 
             key="intro"
