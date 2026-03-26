@@ -12,31 +12,42 @@ interface ArenaIntroProps {
 }
 
 /**
- * @fileOverview محرك الأوركسترا السينمائية v2200.0 - Sovereign Mechanical Edition
- * سيمفونية بصرية مبرمجة بدقة مجهرية لتعكس فخامة الهوية المؤسسية لناميكس.
+ * @fileOverview محرك الأوركسترا السينمائية v3000.0 - Sovereign Mechanical Reactor
+ * إعادة هيكلة شاملة للمكون ليعمل كـ "سيمفونية ميكانيكية" متصلة مع بروتوكول خروج عكسي صارم.
  */
+
+type Stage = 
+  | 'building' 
+  | 'rotating' 
+  | 'transforming' 
+  | 'lifting' 
+  | 'exit_name' 
+  | 'exit_descend' 
+  | 'exit_swap' 
+  | 'exit_fade';
+
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
-  const [stage, setStage] = useState<'building' | 'rotating' | 'transforming' | 'lifting' | 'exit_name' | 'exit_descend' | 'exit_swap' | 'exit_fade'>('building');
+  const [stage, setStage] = useState<Stage>('building');
 
   useEffect(() => {
-    // سلسلة الحركات الميكانيكية المتداخلة (Overlap: 300ms)
+    // سلسلة الحركات الميكانيكية المتداخلة (Overlap Protocol)
     const t1 = setTimeout(() => setStage('rotating'), 1500);     // يبدأ الدوران بعد بناء الإطارات
-    const t2 = setTimeout(() => setStage('transforming'), 3500); // الومضة والتبديل
-    const t3 = setTimeout(() => setStage('lifting'), 3800);      // الارتقاء والطباعة
-    
-    // بدء بروتوكول الهندسة العكسية
-    const t4 = setTimeout(() => setStage('exit_name'), 7000);    // مسح الاسم
-    const t5 = setTimeout(() => setStage('exit_descend'), 8000); // العودة للمركز
-    const t6 = setTimeout(() => setStage('exit_swap'), 8500);    // ومضة استعادة اللوجو
-    const t7 = setTimeout(() => setStage('exit_fade'), 9000);    // تلاشي المكونات
-    const t8 = setTimeout(onComplete, 10500);                    // إنهاء الانترو
+    const t2 = setTimeout(() => setStage('transforming'), 3500); // الومضة والتبديل الموضعي
+    const t3 = setTimeout(() => setStage('lifting'), 3800);      // الارتقاء والطباعة في مساحة بيضاء
+
+    // بدء بروتوكول الهندسة العكسية (Reverse Engine)
+    const t4 = setTimeout(() => setStage('exit_name'), 7000);    // مسح الاسم أولاً
+    const t5 = setTimeout(() => setStage('exit_descend'), 8000); // عودة المفاعل لمركز الصفحة
+    const t6 = setTimeout(() => setStage('exit_swap'), 8500);    // ومضة استعادة الهوية الأصلية
+    const t7 = setTimeout(() => setStage('exit_fade'), 9000);    // تلاشي المكونات الهندسية
+    const t8 = setTimeout(onComplete, 10500);                    // الانتقال لواجهة اللعب
 
     return () => {
       [t1, t2, t3, t4, t5, t6, t7, t8].forEach(clearTimeout);
     };
   }, [onComplete]);
 
-  const bezierCurve = [0.76, 0, 0.24, 1]; // منحنى القصور الذاتي الفاخر
+  const bezierCurve = [0.76, 0, 0.24, 1]; // منحنى القصور الذاتي الفاخر لتروس الساعة
 
   return (
     <motion.div 
@@ -46,7 +57,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
     >
       <div className="relative flex flex-col items-center">
         
-        {/* المفاعل المركزي (الإطارات، النقاط، الهوية) */}
+        {/* المفاعل المركزي (الإطارات، النقاط، الهوية المركزية) */}
         <motion.div
           animate={
             stage === 'lifting' || stage === 'exit_name' ? { y: -120 } : 
@@ -55,7 +66,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
           transition={{ duration: 1.2, ease: bezierCurve }}
           className="relative h-40 w-40 flex items-center justify-center"
         >
-          {/* الإطارات الدائرية الهندسية */}
+          {/* الإطارات الدائرية الهندسية (Plotter Stroke) */}
           <svg className="absolute inset-0 h-full w-full -rotate-90 pointer-events-none">
             <motion.circle
               cx="80" cy="80" r="45"
@@ -85,7 +96,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
             />
           </svg>
 
-          {/* النقاط التناظرية الموزعة بدقة بين الإطارين (r=55px) */}
+          {/* النقاط التناظرية الموزعة بدقة هندسية بين الإطارين (r=55px) */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <motion.div
               animate={{ 
@@ -115,7 +126,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
             </motion.div>
           </div>
 
-          {/* النواة المركزية - تبديل الهوية مع الوميض الموضعي */}
+          {/* النواة المركزية - تبديل الهوية مع الوميض الموضعي (The Core Switch) */}
           <div className="relative z-10 h-16 w-16 flex items-center justify-center">
             <AnimatePresence mode="wait">
               {stage === 'building' || stage === 'rotating' || stage === 'exit_swap' || stage === 'exit_fade' ? (
@@ -152,7 +163,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
               )}
             </AnimatePresence>
 
-            {/* الوميض الموضعي المحصور داخل النواة */}
+            {/* الوميض الموضعي المحصور في النواة (Localized Pulse) */}
             <AnimatePresence>
               {(stage === 'transforming' || stage === 'exit_swap') && (
                 <motion.div
@@ -166,7 +177,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
           </div>
         </motion.div>
 
-        {/* الهوية النصية - محرك الآلة الكاتبة في مساحة بيضاء صافية */}
+        {/* الهوية النصية - محرك الآلة الكاتبة في مساحة بيضاء صافية (Typewriter Protocol) */}
         <div className="absolute top-24 w-full flex justify-center">
           <AnimatePresence>
             {(stage === 'lifting') && (
@@ -195,7 +206,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
         </div>
       </div>
 
-      {/* الختم السيادي المجهري */}
+      {/* الختم السيادي المجهري الصامت */}
       <motion.div 
         animate={{ opacity: (stage === 'exit_fade') ? 0 : 0.15 }}
         className="absolute bottom-12 flex flex-col items-center gap-2 select-none pointer-events-none"
