@@ -15,6 +15,11 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview القسم الأول - مدخل النمو الذكي v5.0
+ * تم تطهير النصوص من مصطلحات سيادة وبروتوكول مع الحفاظ على الفخامة البيضاء.
+ */
+
 const FloatingNode = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -34,7 +39,7 @@ const FloatingNode = ({ children, delay = 0, className = "" }: { children: React
 
 export function HeroSection1() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 md:pt-40 bg-white">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-40 md:pt-48 bg-white overflow-hidden">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center relative z-10">
         
         {/* Right Block: Global Messaging */}
@@ -46,7 +51,7 @@ export function HeroSection1() {
           className="space-y-8 text-center lg:text-right"
           dir="rtl"
         >
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm">
              <Sparkles size={14} className="text-blue-600 animate-pulse" />
              <span className="text-[#002d4d] font-black text-[10px] uppercase tracking-widest">المستقبل الذكي للنمو <span className="opacity-30 mx-1">•</span> Smart Growth Hub</span>
           </div>
@@ -57,17 +62,17 @@ export function HeroSection1() {
           </h1>
           
           <p className="text-sm md:text-xl text-gray-400 font-medium max-w-lg mx-auto lg:ml-auto lg:mr-0 leading-loose tracking-normal">
-            اكتشف تجربة مالية عالمية تدمج بين الذكاء الاصطناعي وسهولة الاستخدام، مصممة لرحلة نمو مستدامة.
+            اكتشف تجربة مالية عالمية تدمج بين الذكاء الاصطناعي وسهولة الاستخدام، مصممة لرحلة نمو مستدامة وموثوقة.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-6">
              <Link href="/login" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto h-16 md:h-20 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group">
+                <Button className="w-full sm:w-auto h-16 md:h-20 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group border-none">
                   ابدأ رحلتي الذكية
                   <ArrowRight size={20} className="mr-3 rotate-180 transition-transform group-hover:-translate-x-2" />
                 </Button>
              </Link>
-             <div className="flex items-center gap-4 px-8 h-16 md:h-20 rounded-full border border-gray-100 bg-gray-50/50 backdrop-blur-md">
+             <div className="flex items-center gap-4 px-8 h-16 md:h-20 rounded-full border border-gray-100 bg-gray-50/50 backdrop-blur-md shadow-sm">
                 <ShieldCheck size={20} className="text-emerald-500" />
                 <div className="flex flex-col items-start leading-none">
                    <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">Safe & Secure</span>
