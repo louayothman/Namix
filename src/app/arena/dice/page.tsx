@@ -18,8 +18,7 @@ import {
   Loader2,
   RotateCcw,
   ChevronDown,
-  Coins,
-  Sparkles
+  Coins
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
@@ -29,7 +28,7 @@ import Link from "next/link";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
 /**
- * 1. الافتتاحية السينمائية (Sovereign Drawing Intro)
+ * 1. مكون الانترو (Sovereign Drawing Intro)
  */
 function SovereignIntro({ onComplete, title }: { onComplete: () => void, title: string }) {
   return (
@@ -66,17 +65,17 @@ function SovereignIntro({ onComplete, title }: { onComplete: () => void, title: 
           
           {/* تفاعل الأيقونة بعد الرسم */}
           <motion.g
-            initial={{ scale: 1, filter: "brightness(1)" }}
+            initial={{ scale: 1 }}
             animate={{ 
               scale: [1, 1.15, 1.1],
               filter: ["brightness(1)", "brightness(1.5)", "brightness(1.2)"]
             }}
             transition={{ delay: 2.5, duration: 0.8 }}
           >
-             <Dices className="text-[#f9a885] x-50 y-50" style={{ x: 25, y: 25, width: 50, height: 50 }} />
+             <Dices className="text-[#f9a885]" style={{ x: 25, y: 25, width: 50, height: 50 }} />
           </motion.g>
 
-          {/* نجمة اللمعان */}
+          {/* نجمة اللمعان الفضائية */}
           <motion.path
             d="M50 15 L52 22 L58 24 L52 26 L50 33 L48 26 L42 24 L48 22 Z"
             fill="#f9a885"
@@ -105,7 +104,7 @@ function SovereignIntro({ onComplete, title }: { onComplete: () => void, title: 
         </div>
       </div>
 
-      {/* شعار المنصة في الأسفل */}
+      {/* شعار ناميكس في الأسفل */}
       <div className="absolute bottom-12 flex items-center gap-3 opacity-20">
          <div className="grid grid-cols-2 gap-1">
             <div className="h-1.5 w-1.5 rounded-full bg-white" />
@@ -116,7 +115,6 @@ function SovereignIntro({ onComplete, title }: { onComplete: () => void, title: 
          <span className="text-[10px] font-black tracking-[0.4em] text-white uppercase">Namix</span>
       </div>
 
-      {/* التوجيه النهائي */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -128,7 +126,7 @@ function SovereignIntro({ onComplete, title }: { onComplete: () => void, title: 
 }
 
 /**
- * 2. شريط التحكم العلوي (Sovereign Header)
+ * 2. مكون الشريط الرأسي (Sovereign Header)
  */
 function DiceHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit: () => void }) {
   return (
@@ -141,7 +139,7 @@ function DiceHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit
          </Link>
          <div className="text-right">
             <h1 className="text-[11px] font-black text-[#002d4d] leading-none uppercase">نكسوس الاحتمالات</h1>
-            <p className="text-[7px] font-bold text-blue-500 uppercase tracking-widest mt-1">Logic Center</p>
+            <p className="text-[7px] font-bold text-blue-50 uppercase tracking-widest mt-1">Logic Center</p>
          </div>
       </div>
       <div className="flex items-center gap-2 bg-gray-50/80 px-2 py-1 rounded-full border border-gray-100 shadow-inner">
@@ -158,16 +156,16 @@ function DiceHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit
 }
 
 /**
- * 3. مفاعل اللعبة (The Reactor)
+ * 3. مكون مفاعل اللعبة (The Reactor)
  */
 function DiceReactor({ lastResult, gameState, isRollOver, targetValue, setTargetValue, setIsRollOver }: any) {
   return (
-    <section className="relative w-full max-w-[280px] mx-auto bg-white rounded-2xl p-6 border border-gray-100 shadow-sm overflow-hidden group">
+    <section className="flex-1 flex flex-col items-center justify-center p-6 space-y-12">
       <AnimatePresence>
         {lastResult !== null && (
-          <motion.div initial={{ scale: 0.5, y: -10, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+          <motion.div initial={{ scale: 0.5, y: -20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} className="absolute top-24 z-30">
             <div className={cn(
-              "px-6 py-2 rounded-xl font-black text-xl shadow-2xl border-2 border-white tabular-nums tracking-tighter", 
+              "px-8 py-3 rounded-2xl font-black text-3xl shadow-2xl border-2 border-white tabular-nums tracking-tighter", 
               gameState === 'won' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
             )}>
               {lastResult.toFixed(2)}
@@ -176,41 +174,41 @@ function DiceReactor({ lastResult, gameState, isRollOver, targetValue, setTarget
         )}
       </AnimatePresence>
 
-      <div className="space-y-8 pt-8">
-        <div className="relative pt-8">
+      <div className="relative w-full max-w-[280px] space-y-8">
+        <div className="relative pt-10">
           {/* مسار الاحتمالات المعكوس */}
-          <div className="h-2 w-full bg-gray-100 rounded-full relative overflow-hidden shadow-inner">
+          <div className="h-2.5 w-full bg-gray-100 rounded-full relative overflow-hidden shadow-inner">
             <motion.div animate={{ left: isRollOver ? `${targetValue}%` : '0%', right: isRollOver ? '0%' : `${100 - targetValue}%` }} className="absolute top-0 bottom-0 bg-emerald-500/80 transition-all duration-700" />
             <motion.div animate={{ left: isRollOver ? '0%' : `${targetValue}%`, right: isRollOver ? `${100 - targetValue}%` : '0%' }} className="absolute top-0 bottom-0 bg-red-500/80 transition-all duration-700" />
           </div>
 
           <div className="relative mt-2">
-             <Slider value={[targetValue]} onValueChange={([val]) => setTargetValue(val)} max={98} min={2} step={0.01} className="relative z-20 h-4" />
+             <Slider value={[targetValue]} onValueChange={([val]) => setTargetValue(val)} max={98} min={2} step={0.01} className="relative z-20" />
              
              {/* المؤشر الرقمي الطائر */}
              <motion.div 
-               className="absolute top-[-35px] flex flex-col items-center pointer-events-none" 
+               className="absolute top-[-45px] flex flex-col items-center pointer-events-none" 
                style={{ left: `${targetValue}%`, transform: 'translateX(-50%)' }}
                animate={{ left: `${targetValue}%` }}
              >
-                <div className="bg-[#002d4d] text-[#f9a885] px-2 py-0.5 rounded-lg text-[9px] font-black shadow-2xl flex items-center gap-1 border border-white/10 tabular-nums tracking-tighter">
+                <div className="bg-[#002d4d] text-[#f9a885] px-3 py-1 rounded-xl text-[10px] font-black shadow-2xl flex items-center gap-1 border border-white/10 tabular-nums">
                    {targetValue.toFixed(2)}
                 </div>
-                <ChevronDown className="text-[#002d4d] h-3 w-3 mt-[-4px]" fill="currentColor" />
+                <ChevronDown className="text-[#002d4d] h-4 w-4 mt-[-6px]" fill="currentColor" />
              </motion.div>
           </div>
 
-          <div className="flex justify-between items-center mt-4 font-black text-[7px] text-gray-300 uppercase tracking-widest">
-            <span className="tabular-nums">0.00</span>
-            <span className="opacity-30 tabular-nums">50.00</span>
-            <span className="tabular-nums">100.00</span>
+          <div className="flex justify-between items-center mt-6 font-black text-[8px] text-gray-300 uppercase tracking-widest px-1">
+            <span>0.00</span>
+            <span className="opacity-30">50.00</span>
+            <span>100.00</span>
           </div>
         </div>
 
         <div className="flex justify-center">
           <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
-            <button onClick={() => setIsRollOver(true)} className={cn("px-4 h-7 rounded-lg font-black text-[9px] transition-all", isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400")}>Over</button>
-            <button onClick={() => setIsRollOver(false)} className={cn("px-4 h-7 rounded-lg font-black text-[9px] transition-all", !isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400")}>Under</button>
+            <button onClick={() => setIsRollOver(true)} className={cn("px-6 h-9 rounded-lg font-black text-[10px] transition-all", isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400")}>Over</button>
+            <button onClick={() => setIsRollOver(false)} className={cn("px-6 h-9 rounded-lg font-black text-[10px] transition-all", !isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400")}>Under</button>
           </div>
         </div>
       </div>
@@ -219,33 +217,34 @@ function DiceReactor({ lastResult, gameState, isRollOver, targetValue, setTarget
 }
 
 /**
- * 4. لوحة الرهان (Betting Panel)
+ * 4. مكون لوحة الرهان (Betting Panel)
  */
-function BettingPanel({ betAmount, setBetAmount, loading, dbUser, handleRoll, multiplier, winChance }: any) {
+function DiceBetPanel({ betAmount, setBetAmount, loading, dbUser, handleRoll, multiplier, winChance }: any) {
   return (
-    <section className="space-y-3 max-w-[280px] mx-auto font-body">
-      <Card className="border-none shadow-sm rounded-2xl bg-white border border-gray-50">
+    <section className="p-6 bg-white border-t border-gray-50 shrink-0 font-body">
+      <Card className="border-none shadow-sm rounded-2xl bg-gray-50/50">
         <CardContent className="p-4 space-y-4">
-          <div className="space-y-1.5 text-right">
-            <Label className="text-[8px] font-black text-gray-400 uppercase pr-2 tracking-widest">المبلغ ($)</Label>
-            <div className="relative">
-              <Input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="h-9 rounded-xl bg-gray-50 border-none font-black text-center text-xs text-[#002d4d] shadow-inner" />
-              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-200" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1 text-right">
+              <Label className="text-[8px] font-black text-gray-400 uppercase pr-2">المبلغ ($)</Label>
+              <div className="relative">
+                <Input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="h-9 rounded-xl bg-white border-none font-black text-center text-xs text-[#002d4d]" />
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-200" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+               <div className="text-center">
+                  <p className="text-[7px] font-black text-gray-400 uppercase">المضاعف</p>
+                  <p className="text-xs font-black text-[#002d4d] tabular-nums">x{multiplier.toFixed(4)}</p>
+               </div>
+               <div className="text-center">
+                  <p className="text-[7px] font-black text-gray-400 uppercase">الاحتمال</p>
+                  <p className="text-xs font-black text-emerald-600 tabular-nums">%{winChance.toFixed(2)}</p>
+               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 bg-gray-50 rounded-xl text-center space-y-0.5 shadow-inner">
-              <p className="text-[6px] font-black text-gray-400 uppercase">المضاعف</p>
-              <p className="text-xs font-black text-[#002d4d] tabular-nums">x{multiplier.toFixed(4)}</p>
-            </div>
-            <div className="p-2 bg-gray-50 rounded-xl text-center space-y-0.5 shadow-inner">
-              <p className="text-[6px] font-black text-gray-400 uppercase">الاحتمال</p>
-              <p className="text-xs font-black text-emerald-600 tabular-nums">%{winChance.toFixed(2)}</p>
-            </div>
-          </div>
-
-          <Button onClick={handleRoll} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-10 rounded-xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[10px] shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Button onClick={handleRoll} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-10 rounded-xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
             {loading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : (
               <>
                 <span>بدء المحاولة</span>
@@ -260,20 +259,8 @@ function BettingPanel({ betAmount, setBetAmount, loading, dbUser, handleRoll, mu
 }
 
 /**
- * 5. تفاصيل الساحة (Arena Details)
+ * 5. مكون منطق اللعبة (Integrated Logic Page)
  */
-function DiceDetails() {
-  return (
-    <section className="p-4 max-w-[280px] mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between font-body">
-      <div className="text-right space-y-0.5">
-        <h4 className="font-black text-[9px] text-[#002d4d]">نظام المعايرة الرقمية</h4>
-        <p className="text-[7px] font-bold text-gray-400 leading-relaxed">تخضع الاحتمالات لمراجعة آلية تضمن استقرار السيولة.</p>
-      </div>
-      <ShieldCheck size={16} className="text-emerald-500 opacity-30" />
-    </section>
-  );
-}
-
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -310,6 +297,7 @@ export default function DicePage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
+      // الحوكمة المالية: 75% فرصة خسارة
       const forceLose = Math.random() < 0.75;
       let result: number;
       
@@ -349,13 +337,8 @@ export default function DicePage() {
       {!showIntro && (
         <div className="flex flex-col h-screen bg-[#fcfdfe] font-body text-right overflow-hidden" dir="rtl">
           <DiceHeader balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
-          <div className="flex-1 overflow-y-auto pb-24">
-            <div className="max-w-xl mx-auto px-6 py-6 space-y-6">
-              <DiceReactor lastResult={lastResult} gameState={gameState} isRollOver={isRollOver} targetValue={targetValue} setTargetValue={setTargetValue} setIsRollOver={setIsRollOver} />
-              <BettingPanel betAmount={betAmount} setBetAmount={setBetAmount} loading={loading} dbUser={dbUser} handleRoll={handleRoll} multiplier={multiplier} winChance={winChance} />
-              <DiceDetails />
-            </div>
-          </div>
+          <DiceReactor lastResult={lastResult} gameState={gameState} isRollOver={isRollOver} targetValue={targetValue} setTargetValue={setTargetValue} setIsRollOver={setIsRollOver} />
+          <DiceBetPanel betAmount={betAmount} setBetAmount={setBetAmount} loading={loading} dbUser={dbUser} handleRoll={handleRoll} multiplier={multiplier} winChance={winChance} />
           <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
       )}
