@@ -1,24 +1,20 @@
 
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/Logo";
 import { 
   ShieldCheck, 
-  Zap, 
   Globe, 
-  TrendingUp, 
-  ArrowRight, 
   Activity, 
-  Coins, 
-  ChevronRight,
   ChevronLeft,
   Sparkles,
   Lock,
-  Cpu
+  Cpu,
+  Zap
 } from "lucide-react";
 import Link from "next/link";
 import { useMarketStore } from "@/store/use-market-store";
@@ -26,17 +22,11 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import { useMarketSync } from "@/hooks/use-market-sync";
 
-/**
- * @fileOverview بوابة ناميكس العالمية v1.0 - Landing Page
- * صفحة الهبوط الفاخرة للزوار غير المسجلين، تعكس القوة والسيادة المالية.
- */
-
 export default function LandingPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const db = useFirestore();
 
-  // مزامنة الأسعار الحية لإبهار الزوار
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
   const { data: symbols } = useCollection(symbolsQuery);
   useMarketSync(symbols || []);
@@ -46,7 +36,7 @@ export default function LandingPage() {
     setMounted(true);
     const user = localStorage.getItem("namix_user");
     if (user) {
-      router.replace("/dashboard");
+      router.replace("/home");
     }
   }, [router]);
 
@@ -55,7 +45,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
       
-      {/* 1. Luxurious Navbar */}
       <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-b border-gray-50 z-[100] flex items-center px-6 md:px-12 justify-between">
         <Logo size="md" />
         <div className="flex items-center gap-4">
@@ -72,9 +61,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* 2. Hero Section - The Liquid Power */}
       <section className="relative pt-48 pb-32 px-6 overflow-hidden">
-        {/* Background Fluid Reactor */}
         <div className="absolute top-0 right-0 w-[80%] h-[80%] opacity-[0.03] pointer-events-none -rotate-12 translate-x-1/4">
            <Activity size={800} strokeWidth={0.5} className="text-[#002d4d]" />
         </div>
@@ -119,7 +106,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3. Live Pulse Strip */}
       <section className="bg-gray-50/50 border-y border-gray-100 py-12">
         <div className="container mx-auto px-6 overflow-hidden">
            <div className="flex items-center justify-center gap-12 overflow-x-auto scrollbar-none pb-4 px-4">
@@ -136,7 +122,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 4. Strategic Pillars */}
       <section className="py-32 px-6 bg-white">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
            {[
@@ -161,7 +146,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. Trust Footer */}
       <footer className="bg-[#002d4d] pt-32 pb-12 px-6 text-white relative overflow-hidden">
          <div className="absolute bottom-0 right-0 p-20 opacity-[0.03] pointer-events-none">
             <Logo size="lg" className="brightness-200" />

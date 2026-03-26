@@ -29,10 +29,6 @@ import { doc, updateDoc } from "firebase/firestore";
 import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
 
-/**
- * Shell - إطار العمل السيادي v5.6
- * تم تصحيح استيراد الأيقونات المفقودة لضمان استقرار الملاحة.
- */
 const NavItem = memo(({ item, active, isAdmin }: { item: any, active: boolean, isAdmin: boolean }) => (
   <Link 
     href={item.href}
@@ -76,7 +72,6 @@ export function Shell({
       const parsedUser = JSON.parse(userSession);
       setUser(parsedUser);
 
-      // تحديث نبض النشاط بشكل معزول
       const uid = managedUserId || parsedUser.id;
       if (uid) {
         const updatePulse = () => updateDoc(doc(db, "users", uid), { lastActive: new Date().toISOString() }).catch(() => {});
@@ -101,7 +96,7 @@ export function Shell({
   ], []);
 
   const userNav = useMemo(() => [
-    { name: "الرئيسية", href: "/dashboard", icon: Home },
+    { name: "الرئيسية", href: "/home", icon: Home },
     { name: "الأسواق", href: "/trade", icon: Activity },
     { name: "المختبر", href: "/invest", icon: Zap },
     { name: "الساحة", href: "/arena", icon: Target },

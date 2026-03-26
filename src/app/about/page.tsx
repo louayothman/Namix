@@ -4,7 +4,7 @@
 import { Shell } from "@/components/layout/Shell";
 import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ShieldCheck, Target, Zap, Globe, Sparkles, Loader2, Info } from "lucide-react";
+import { ChevronRight, ShieldCheck, Target, Zap, Globe, Sparkles, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -56,15 +56,11 @@ export default function AboutPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">تأمين اتصال الهوية...</p>
               </div>
-            ) : legal?.aboutUs ? (
+            ) : (
               <div className="relative z-10">
                 <p className="font-bold text-gray-600 leading-[2.2] text-[14px] whitespace-pre-wrap">
-                  {legal.aboutUs}
+                  {legal?.aboutUs || "ناميكس (Namix) هي رائدتكم في الاستثمار الرقمي. نحن نوفر بيئة آمنة للمستثمرين لتنمية رؤوس أموالهم."}
                 </p>
-              </div>
-            ) : (
-              <div className="relative z-10 text-center py-10 opacity-40">
-                <p className="font-bold text-gray-400">ناميكس (Namix) هي رائدتكم في الاستثمار الرقمي. نحن نوفر بيئة آمنة للمستثمرين لتنمية رؤوس أموالهم.</p>
               </div>
             )}
 
@@ -94,15 +90,6 @@ export default function AboutPage() {
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-4 py-6">
-             <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">Global Digital Asset Protocol</p>
-             <div className="flex gap-2">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-100" />
-                ))}
-             </div>
           </div>
         </div>
       </div>
