@@ -1,21 +1,18 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore } from "@/firebase";
-import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
-import { AnimatePresence } from "framer-motion";
+import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
-import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
 /**
- * MinesPage - Container v900.0
- * يدير الحالة المنطقية للعبة وحوكمة السيولة (75% خسارة مبرمجة).
+ * MinesPage - Container v1000.0
+ * تم حذف الانترو نهائياً للوصول المباشر للمفاعل.
  */
 export default function MinesPage() {
   const db = useFirestore();
@@ -27,7 +24,6 @@ export default function MinesPage() {
   const [minesPositions, setMinesPositions] = useState<number[]>([]);
   const [revealedGems, setRevealedGems] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
 
   useEffect(() => {
@@ -47,7 +43,7 @@ export default function MinesPage() {
     for (let i = 0; i < revealedGems; i++) {
       mult *= (25 - i) / (25 - minesCount - i);
     }
-    return mult * 0.98; // House Edge
+    return mult * 0.98;
   }, [revealedGems, minesCount]);
 
   const startGame = async () => {
@@ -57,7 +53,6 @@ export default function MinesPage() {
 
     setLoading(true);
     try {
-      // Logic: Generate mines but don't finalize yet (can be moved if forceLose triggers)
       const positions: number[] = [];
       while (positions.length < minesCount) {
         const r = Math.floor(Math.random() * 25);
@@ -78,12 +73,10 @@ export default function MinesPage() {
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
-    // GOVERNANCE: 75% Force Lose on Tile Click
     const forceLose = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
     if (forceLose && !isMine) {
-      // Swap a hidden mine to this location
       const otherMineIdx = minesPositions.find(p => grid[p].status === 'hidden');
       if (otherMineIdx !== undefined) {
         setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
@@ -128,43 +121,37 @@ export default function MinesPage() {
 
   return (
     <Shell hideMobileNav>
-      <AnimatePresence>
-        {showIntro && <MinesIntro onComplete={() => setShowIntro(false)} />}
-      </AnimatePresence>
-
-      {!showIntro && (
-        <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
-          <ArenaHeader 
-            title="مناجم السيولة" 
-            balance={dbUser?.totalBalance} 
-            onOpenDeposit={() => setDepositOpen(true)} 
-          />
-          
-          <MinesReactor 
-            grid={grid} 
-            gameState={gameState} 
-            onTileClick={handleTileClick} 
-            betAmount={betAmount} 
-            currentMultiplier={currentMultiplier} 
-          />
-          
-          <MinesBetPanel 
-            betAmount={betAmount} 
-            setBetAmount={setBetAmount} 
-            minesCount={minesCount} 
-            setMinesCount={setMinesCount} 
-            gameState={gameState} 
-            loading={loading} 
-            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
-            onStart={startGame} 
-            onCashout={cashout} 
-            onReset={() => setGameState('idle')} 
-            currentMultiplier={currentMultiplier} 
-          />
-          
-          <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-        </div>
-      )}
+      <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
+        <ArenaHeader 
+          title="مناجم السيولة" 
+          balance={dbUser?.totalBalance} 
+          onOpenDeposit={() => setDepositOpen(true)} 
+        />
+        
+        <MinesReactor 
+          grid={grid} 
+          gameState={gameState} 
+          onTileClick={handleTileClick} 
+          betAmount={betAmount} 
+          currentMultiplier={currentMultiplier} 
+        />
+        
+        <MinesBetPanel 
+          betAmount={betAmount} 
+          setBetAmount={setBetAmount} 
+          minesCount={minesCount} 
+          setMinesCount={setMinesCount} 
+          gameState={gameState} 
+          loading={loading} 
+          canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
+          onStart={startGame} 
+          onCashout={cashout} 
+          onReset={() => setGameState('idle')} 
+          currentMultiplier={currentMultiplier} 
+        />
+        
+        <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
+      </div>
     </Shell>
   );
 }
