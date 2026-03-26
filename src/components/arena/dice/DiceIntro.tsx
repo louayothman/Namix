@@ -10,23 +10,23 @@ interface DiceIntroProps {
 }
 
 /**
- * @fileOverview DiceIntro - محرك الافتتاحية السينمائية المتطور v400.0
- * تنفيذ تسلسل: رسم الإطارات -> النقاط -> شعار ناميكس -> دوران متعاكس -> تحول الأيقونة -> الآلة الكاتبة.
+ * @fileOverview DiceIntro - مفاعل الأوركسترا السينمائية v500.0
+ * تنفيذ تسلسل: رسم الإطارات -> النقاط -> شعار ناميكس -> دوران متزامن معاكس -> تحول الأيقونة -> ارتقاء -> آلة كاتبة (EN).
  */
 export function DiceIntro({ onComplete }: DiceIntroProps) {
   const [phase, setPhase] = useState<'drawing' | 'rotating' | 'transforming' | 'naming' | 'finishing'>('drawing');
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase('rotating'), 2500),
-      setTimeout(() => setPhase('transforming'), 5500),
-      setTimeout(() => setPhase('naming'), 6500),
-      setTimeout(() => setPhase('finishing'), 9000),
+      setTimeout(() => setPhase('rotating'), 1500),
+      setTimeout(() => setPhase('transforming'), 4500),
+      setTimeout(() => setPhase('naming'), 5500),
+      setTimeout(() => setPhase('finishing'), 8000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const gameName = "نكسوس الاحتمالات";
+  const gameName = "NEXUS DICE";
 
   return (
     <motion.div 
@@ -38,68 +38,72 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
         
         {/* الحاوية المركزية للمفاعل السينمائي */}
         <motion.div 
-          animate={{ y: phase === 'naming' || phase === 'finishing' ? -40 : 0 }}
-          transition={{ duration: 1, ease: "easeInOut" }}
-          className="relative flex items-center justify-center w-64 h-64"
+          animate={{ y: phase === 'naming' || phase === 'finishing' ? -50 : 0 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex items-center justify-center w-72 h-72"
         >
-          {/* الإطارات الدائرية والنقاط التناظرية */}
+          {/* الإطارات الدائرية والنقاط التناظرية - دوران معاكس */}
           <motion.div 
             className="absolute inset-0 flex items-center justify-center"
             animate={{ rotate: phase === 'rotating' ? [0, -720] : 0 }}
             transition={{ duration: 3, ease: "easeInOut" }}
           >
-            <svg width="240" height="240" viewBox="0 0 100 100" className="overflow-visible">
-              {/* الإطار الداخلي */}
+            <svg width="280" height="280" viewBox="0 0 100 100" className="overflow-visible">
+              {/* الإطار المركزي */}
               <motion.circle
-                cx="50" cy="50" r="30"
-                fill="none" stroke="#002d4d" strokeWidth="0.5"
+                cx="50" cy="50" r="32"
+                fill="none" stroke="#002d4d" strokeWidth="0.4"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
               />
               {/* الإطار الخارجي */}
               <motion.circle
-                cx="50" cy="50" r="42"
-                fill="none" stroke="#f9a885" strokeWidth="0.3"
+                cx="50" cy="50" r="44"
+                fill="none" stroke="#f9a885" strokeWidth="0.2"
+                strokeDasharray="2 2"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
+                transition={{ delay: 0.3, duration: 1.2, ease: "easeInOut" }}
               />
               
               {/* النقاط التناظرية الأربعة */}
-              <AnimatePresence>
-                {(phase !== 'drawing' || true) && (
-                  <g>
-                    {[0, 90, 180, 270].map((angle, i) => (
-                      <motion.circle
-                        key={i}
-                        cx={50 + 36 * Math.cos((angle * Math.PI) / 180)}
-                        cy={50 + 36 * Math.sin((angle * Math.PI) / 180)}
-                        r="1.2"
-                        fill="#002d4d"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 0.4 }}
-                        transition={{ delay: 1.8 + i * 0.1 }}
-                      />
-                    ))}
-                  </g>
-                )}
-              </AnimatePresence>
+              <g>
+                {[0, 90, 180, 270].map((angle, i) => (
+                  <motion.circle
+                    key={i}
+                    cx={50 + 38 * Math.cos((angle * Math.PI) / 180)}
+                    cy={50 + 38 * Math.sin((angle * Math.PI) / 180)}
+                    r="1.2"
+                    fill="#002d4d"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: phase === 'rotating' ? 0.8 : 0.2 }}
+                    transition={{ delay: 1 + i * 0.1 }}
+                  />
+                ))}
+              </g>
             </svg>
           </motion.div>
 
-          {/* شعار ناميكس / أيقونة اللعبة */}
+          {/* شعار ناميكس / أيقونة اللعبة - دوران أصلي */}
           <div className="relative z-10 flex items-center justify-center">
             <AnimatePresence mode="wait">
               {phase === 'transforming' || phase === 'naming' || phase === 'finishing' ? (
                 <motion.div
                   key="game-icon"
-                  initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
-                  animate={{ scale: 1.2, opacity: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                  className="text-[#002d4d] drop-shadow-[0_0_20px_rgba(0,45,77,0.2)]"
+                  initial={{ scale: 0.5, opacity: 0, filter: "blur(10px)" }}
+                  animate={{ scale: 1.3, opacity: 1, filter: "blur(0px)" }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  className="text-[#002d4d] relative"
                 >
-                  <Dices size={42} className="fill-current" />
+                  <Dices size={48} className="drop-shadow-[0_0_20px_rgba(0,45,77,0.3)]" />
+                  {/* نبضة طاقة عند التحول */}
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0.5 }}
+                    animate={{ scale: 2, opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0 bg-blue-400 rounded-full blur-xl"
+                  />
                 </motion.div>
               ) : (
                 <motion.div
@@ -114,51 +118,60 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
                     scale: { duration: 0.8, ease: "easeOut" },
                     rotate: { duration: 3, ease: "easeInOut" }
                   }}
-                  className="grid grid-cols-2 gap-1.5 p-2 bg-white/50 backdrop-blur-sm rounded-xl"
+                  className="grid grid-cols-2 gap-1.5 p-3 bg-white/80 backdrop-blur-md rounded-[20px] shadow-2xl border border-white"
                 >
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
+                  <div className="h-3.5 w-3.5 rounded-full bg-[#002d4d]" />
+                  <div className="h-3.5 w-3.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-3.5 w-3.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-3.5 w-3.5 rounded-full bg-[#002d4d]" />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </motion.div>
 
-        {/* اسم اللعبة - انميشن الآلة الكاتبة */}
+        {/* اسم اللعبة بالإنجليزية - انميشن الآلة الكاتبة مع شيمر */}
         <AnimatePresence>
           {(phase === 'naming' || phase === 'finishing') && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-4 flex flex-row-reverse items-center justify-center"
+              className="mt-2 flex items-center justify-center relative"
             >
-              {gameName.split("").map((char, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, display: "none" }}
-                  animate={{ opacity: 1, display: "inline-block" }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="text-[#002d4d] font-black text-sm tracking-normal"
-                >
-                  {char === " " ? "\u00A0" : char}
-                </motion.span>
-              ))}
+              <div className="flex">
+                {gameName.split("").map((char, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.06, ease: "easeOut" }}
+                    className="text-[#002d4d] font-black text-xs tracking-[0.2em] inline-block"
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </motion.span>
+                ))}
+              </div>
+              {/* تأثير الشيمر النهائي */}
+              <motion.div 
+                initial={{ x: "-100%" }}
+                animate={{ x: "200%" }}
+                transition={{ delay: 1.5, duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-[-20deg] pointer-events-none"
+              />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* التذييل السيادي */}
-      <div className="absolute bottom-12 flex items-center gap-2 opacity-30 select-none scale-75">
+      {/* التذييل السيادي - شعار ناميكس والاسم بحجم نانو */}
+      <div className="absolute bottom-16 flex items-center gap-2.5 opacity-20 select-none scale-[0.65] grayscale">
          <div className="grid grid-cols-2 gap-0.5">
             <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
             <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
             <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
             <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
          </div>
-         <span className="text-[10px] font-black text-[#002d4d] tracking-[0.4em] uppercase">namix</span>
+         <span className="text-[11px] font-black text-[#002d4d] tracking-[0.5em] uppercase" style={{ fontFamily: 'sans-serif' }}>namix</span>
       </div>
 
       {/* بوابة العبور النهائية */}
@@ -167,7 +180,7 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            onAnimationComplete={() => setTimeout(onComplete, 1000)}
+            onAnimationComplete={() => setTimeout(onComplete, 800)}
             className="absolute inset-0 bg-white pointer-events-none z-[210]"
           />
         )}
