@@ -43,7 +43,7 @@ export default function DicePage() {
   const handleRoll = async () => {
     if (!dbUser || loading) return;
     const amt = Number(betAmount);
-    if (amt > dbUser.totalBalance || amt < 1) return;
+    if (amt > (dbUser.totalBalance || 0) || amt < 1) return;
 
     setLoading(true);
     setGameState('idle');
@@ -82,46 +82,50 @@ export default function DicePage() {
   return (
     <Shell hideMobileNav>
       <AnimatePresence mode="wait">
-        {showIntro && (
+        {showIntro ? (
           <ArenaIntro 
             key="intro"
             icon={Dices} 
             title="NEXUS DICE" 
             onComplete={() => setShowIntro(false)} 
           />
+        ) : (
+          <motion.div 
+            key="main"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col h-screen bg-white overflow-hidden font-body"
+            dir="rtl"
+          >
+            <ArenaHeader 
+              title="نكسوس الاحتمالات" 
+              balance={dbUser?.totalBalance} 
+              onOpenDeposit={() => setDepositOpen(true)} 
+            />
+            
+            <DiceReactor 
+              lastResult={lastResult} 
+              gameState={gameState} 
+              isRollOver={isRollOver} 
+              targetValue={targetValue} 
+              setTargetValue={setTargetValue} 
+              setIsRollOver={setIsRollOver} 
+            />
+            
+            <DiceBetPanel 
+              betAmount={betAmount} 
+              setBetAmount={setBetAmount} 
+              loading={loading} 
+              canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
+              multiplier={multiplier} 
+              winChance={winChance} 
+              onRoll={handleRoll} 
+            />
+            
+            <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
+          </motion.div>
         )}
       </AnimatePresence>
-
-      {!showIntro && (
-        <div className="flex flex-col h-screen bg-white overflow-hidden animate-in fade-in duration-1000" dir="rtl">
-          <ArenaHeader 
-            title="نكسوس الاحتمالات" 
-            balance={dbUser?.totalBalance} 
-            onOpenDeposit={() => setDepositOpen(true)} 
-          />
-          
-          <DiceReactor 
-            lastResult={lastResult} 
-            gameState={gameState} 
-            isRollOver={isRollOver} 
-            targetValue={targetValue} 
-            setTargetValue={setTargetValue} 
-            setIsRollOver={setIsRollOver} 
-          />
-          
-          <DiceBetPanel 
-            betAmount={betAmount} 
-            setBetAmount={setBetAmount} 
-            loading={loading} 
-            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
-            multiplier={multiplier} 
-            winChance={winChance} 
-            onRoll={handleRoll} 
-          />
-          
-          <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-        </div>
-      )}
     </Shell>
   );
 }
