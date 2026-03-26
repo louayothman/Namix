@@ -4,7 +4,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
-import { ChevronDown, Zap, Activity } from "lucide-react";
+import { Zap, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DiceReactorProps {
@@ -17,34 +17,24 @@ interface DiceReactorProps {
 }
 
 /**
- * DiceReactor - مفاعل نكسوس المطور v7.0
- * تم اعتماد حجم خط 13px للمؤشر الطائر وتطهير النصوص العربية.
+ * DiceReactor - مفاعل النكسوس v800.0
+ * تم ضبط الحجم ليكون طبيعياً ومريحاً للهواتف بخط 13px وتطهير النصوص.
  */
 export function DiceReactor({ lastResult, gameState, isRollOver, targetValue, setTargetValue, setIsRollOver }: DiceReactorProps) {
   return (
-    <section className="flex-1 w-full flex flex-col items-center justify-center p-6 relative font-body select-none overflow-hidden">
-      
-      {/* سديم خلفي تفاعلي */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.02]">
-         <motion.div 
-           animate={{ rotate: 360 }}
-           transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-         >
-            <Activity size={300} className="text-[#002d4d]" />
-         </motion.div>
+    <section className="flex-1 w-full flex flex-col items-center justify-center p-4 relative font-body select-none overflow-hidden">
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.01]">
+         <Activity size={200} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#002d4d]" />
       </div>
 
-      {/* النتيجة اللحظية الطائرة */}
       <AnimatePresence>
         {lastResult !== null && (
           <motion.div 
-            initial={{ scale: 0.5, y: 40, opacity: 0 }} 
-            animate={{ scale: 1.1, y: -10, opacity: 1 }} 
-            className="absolute top-[12%] z-30"
+            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} 
+            className="absolute top-[15%] z-30"
           >
             <div className={cn(
-              "px-8 py-3 rounded-[28px] font-black text-2xl shadow-2xl border-[3px] border-white tabular-nums tracking-tighter", 
+              "px-6 py-2 rounded-2xl font-black text-xl shadow-xl border-2 border-white tabular-nums tracking-tighter", 
               gameState === 'won' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
             )}>
               {lastResult.toFixed(2)}
@@ -53,64 +43,60 @@ export function DiceReactor({ lastResult, gameState, isRollOver, targetValue, se
         )}
       </AnimatePresence>
 
-      <div className="relative w-full max-w-[360px] space-y-10 z-10">
-        <div className="relative pt-12">
-          
-          {/* مسار الاحتمالات السيادي */}
-          <div className="h-3 w-full bg-gray-100 rounded-full relative overflow-hidden shadow-inner border border-gray-100">
+      <div className="relative w-full max-w-[320px] space-y-8 z-10 pt-10">
+        <div className="relative">
+          <div className="h-2.5 w-full bg-gray-100 rounded-full relative overflow-hidden shadow-inner">
             <motion.div 
               animate={{ 
                 left: isRollOver ? '0%' : `${targetValue}%`, 
                 right: isRollOver ? `${100 - targetValue}%` : '0%' 
               }} 
-              className="absolute top-0 bottom-0 bg-red-500/80 transition-all duration-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.05)]" 
+              className="absolute top-0 bottom-0 bg-red-500/80 transition-all duration-500" 
             />
             <motion.div 
               animate={{ 
                 left: isRollOver ? `${targetValue}%` : '0%', 
                 right: '0%' 
               }} 
-              className="absolute top-0 bottom-0 bg-emerald-500/80 transition-all duration-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.05)]" 
+              className="absolute top-0 bottom-0 bg-emerald-500/80 transition-all duration-500" 
             />
           </div>
 
-          <div className="relative mt-5">
+          <div className="relative mt-4">
              <Slider 
                value={[targetValue]} 
                onValueChange={([val]) => setTargetValue(val)} 
                max={98} min={2} step={0.01} 
-               className="relative z-20 cursor-pointer h-10" 
+               className="relative z-20 h-8" 
              />
              
-             {/* المؤشر الرقمي الطائر - حجم 13px */}
              <motion.div 
-               className="absolute top-[-50px] flex flex-col items-center pointer-events-none z-30" 
+               className="absolute top-[-45px] flex flex-col items-center pointer-events-none z-30" 
                style={{ left: `${targetValue}%`, transform: 'translateX(-50%)' }}
                animate={{ left: `${targetValue}%` }}
              >
-                <div className="bg-[#002d4d] text-white px-4 py-1.5 rounded-xl text-[13px] font-black shadow-2xl flex items-center gap-2 border border-white/10 tabular-nums tracking-tighter">
-                   <Zap size={12} className="text-[#f9a885] fill-current" />
+                <div className="bg-[#002d4d] text-white px-3 py-1 rounded-lg text-[13px] font-black shadow-lg flex items-center gap-1.5 tabular-nums tracking-tighter border border-white/10">
+                   <Zap size={10} className="text-[#f9a885] fill-current" />
                    {targetValue.toFixed(2)}
                 </div>
-                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#002d4d] mt-[-1px]" />
+                <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#002d4d] mt-[-1px]" />
              </motion.div>
           </div>
 
-          <div className="flex justify-between items-center mt-6 font-black text-[9px] text-gray-300 uppercase tracking-widest px-2">
-            <span className="bg-gray-50 px-2.5 py-0.5 rounded-lg border border-gray-100">0.00</span>
-            <span className="opacity-10 flex items-center gap-2">Nexus Node Calibration <Activity size={8} /></span>
-            <span className="bg-gray-50 px-2.5 py-0.5 rounded-lg border border-gray-100">100.00</span>
+          <div className="flex justify-between items-center mt-4 font-black text-[9px] text-gray-300 uppercase tracking-widest tracking-normal">
+            <span>0.00</span>
+            <span className="opacity-20">Nexus Calibrator</span>
+            <span>100.00</span>
           </div>
         </div>
 
-        {/* وضعية الرهان التفاعلية */}
         <div className="flex justify-center">
-          <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner">
+          <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
             <button 
               onClick={() => setIsRollOver(true)} 
               className={cn(
-                "px-6 h-10 rounded-[18px] font-black text-[11px] uppercase transition-all tracking-normal", 
-                isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-xl" : "text-gray-400 hover:text-gray-600"
+                "px-5 h-9 rounded-xl font-black text-[11px] uppercase transition-all tracking-normal", 
+                isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-md" : "text-gray-400"
               )}
             >
               Roll Over
@@ -118,8 +104,8 @@ export function DiceReactor({ lastResult, gameState, isRollOver, targetValue, se
             <button 
               onClick={() => setIsRollOver(false)} 
               className={cn(
-                "px-6 h-10 rounded-[18px] font-black text-[11px] uppercase transition-all tracking-normal", 
-                !isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-xl" : "text-gray-400 hover:text-gray-600"
+                "px-5 h-9 rounded-xl font-black text-[11px] uppercase transition-all tracking-normal", 
+                !isRollOver ? "bg-[#002d4d] text-[#f9a885] shadow-md" : "text-gray-400"
               )}
             >
               Roll Under

@@ -8,16 +8,11 @@ import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "fireb
 import { AnimatePresence } from "framer-motion";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة كلياً v6.0
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
 import { DiceIntro } from "@/components/arena/dice/DiceIntro";
 import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
-/**
- * DicePage - منطق حوكمة النكسوس v6.0
- * تم دمج حوكمة الملاءة (75% للمنصة) مع ملء الشاشة الكامل.
- */
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -54,21 +49,14 @@ export default function DicePage() {
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
-      // حوكمة الملاءة: 75% فرصة خسارة قسرية
       const forceLose = Math.random() < 0.75;
       let result: number;
       
       if (!forceLose) {
         result = Math.random() * 100;
       } else {
-        // توليد نتيجة تضمن الخسارة بناءً على اختيار المستخدم
-        if (isRollOver) {
-          // الخسارة هي أن تكون النتيجة أقل من الهدف
-          result = Math.random() * targetValue;
-        } else {
-          // الخسارة هي أن تكون النتيجة أكبر من الهدف
-          result = targetValue + (Math.random() * (100 - targetValue));
-        }
+        if (isRollOver) result = Math.random() * targetValue;
+        else result = targetValue + (Math.random() * (100 - targetValue));
       }
       
       setLastResult(result);
@@ -84,21 +72,7 @@ export default function DicePage() {
       } else {
         setGameState('lost');
       }
-      
-      await addDoc(collection(db, "game_history"), {
-        userId: dbUser.id, 
-        game: "dice", 
-        betAmount: amt, 
-        resultValue: result, 
-        targetValue, 
-        mode: isRollOver ? 'over' : 'under', 
-        createdAt: new Date().toISOString()
-      });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) {} finally { setLoading(false); }
   };
 
   return (
@@ -108,28 +82,10 @@ export default function DicePage() {
       </AnimatePresence>
 
       {!showIntro && (
-        <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
+        <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
           <ArenaHeader title="نكسوس الاحتمالات" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
-          
-          <DiceReactor 
-            lastResult={lastResult} 
-            gameState={gameState} 
-            isRollOver={isRollOver} 
-            targetValue={targetValue} 
-            setTargetValue={setTargetValue} 
-            setIsRollOver={setIsRollOver} 
-          />
-          
-          <DiceBetPanel 
-            betAmount={betAmount} 
-            setBetAmount={setBetAmount} 
-            loading={loading} 
-            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
-            multiplier={multiplier} 
-            winChance={winChance} 
-            onRoll={handleRoll} 
-          />
-
+          <DiceReactor lastResult={lastResult} gameState={gameState} isRollOver={isRollOver} targetValue={targetValue} setTargetValue={setTargetValue} setIsRollOver={setIsRollOver} />
+          <DiceBetPanel betAmount={betAmount} setBetAmount={setBetAmount} loading={loading} canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} multiplier={multiplier} winChance={winChance} onRoll={handleRoll} />
           <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
       )}

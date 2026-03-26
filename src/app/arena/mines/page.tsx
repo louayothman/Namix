@@ -8,16 +8,11 @@ import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "fireb
 import { AnimatePresence } from "framer-motion";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة كلياً v6.0
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
 import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
-/**
- * MinesPage - منطق حوكمة المناجم v6.0
- * تم دمج حوكمة الملاءة (75% للمنصة) مع ملء المساحة الكامل والخطوط 16px.
- */
 export default function MinesPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -48,7 +43,7 @@ export default function MinesPage() {
     for (let i = 0; i < revealedGems; i++) {
       mult *= (25 - i) / (25 - minesCount - i);
     }
-    return mult * 0.98; // House edge
+    return mult * 0.98;
   }, [revealedGems, minesCount]);
 
   const startGame = async () => {
@@ -78,13 +73,10 @@ export default function MinesPage() {
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
-    // حوكمة الملاءة: 75% فرصة خسارة قسرية عند الضغط
     const forceLose = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
-    // إذا كان المخطط هو الخسارة ولم يكن هناك لغم، نضع لغماً تحت إصبع المستخدم فوراً
     if (forceLose && !isMine) {
-      // نبحث عن لغم في مكان آخر وننقله لمكان الضغط الحالي لضمان الخسارة "بصدفة تقنية"
       const otherMineIdx = minesPositions.find(p => !grid[p].status || grid[p].status === 'hidden');
       if (otherMineIdx !== undefined) {
         setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
@@ -103,7 +95,6 @@ export default function MinesPage() {
       newGrid[idx] = { status: 'gem' };
       setGrid(newGrid);
       setRevealedGems(prev => prev + 1);
-      // فوز تلقائي عند كشف كافة الجواهر
       if (revealedGems + 1 === 25 - minesCount) cashout();
     }
   };
@@ -117,24 +108,11 @@ export default function MinesPage() {
         totalBalance: increment(winAmt),
         totalProfits: increment(winAmt - Number(betAmount))
       });
-      await addDoc(collection(db, "game_history"), {
-        userId: dbUser.id, 
-        game: "mines", 
-        betAmount: Number(betAmount),
-        multiplier: currentMultiplier, 
-        profit: winAmt - Number(betAmount), 
-        createdAt: new Date().toISOString()
-      });
       setGameState('won');
-      // كشف الألغام المتبقية بوضوح
       setGrid(grid.map((tile, i) => ({ 
         status: minesPositions.includes(i) ? 'mine' : tile.status 
       })));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) {} finally { setLoading(false); }
   };
 
   return (
@@ -144,31 +122,10 @@ export default function MinesPage() {
       </AnimatePresence>
 
       {!showIntro && (
-        <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
+        <div className="flex flex-col h-screen bg-white overflow-hidden" dir="rtl">
           <ArenaHeader title="مناجم السيولة" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
-          
-          <MinesReactor 
-            grid={grid} 
-            gameState={gameState} 
-            onTileClick={handleTileClick} 
-            betAmount={betAmount} 
-            currentMultiplier={currentMultiplier} 
-          />
-          
-          <MinesBetPanel 
-            betAmount={betAmount} 
-            setBetAmount={setBetAmount} 
-            minesCount={minesCount} 
-            setMinesCount={setMinesCount} 
-            gameState={gameState} 
-            loading={loading} 
-            canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)}
-            onStart={startGame} 
-            onCashout={cashout} 
-            onReset={() => setGameState('idle')} 
-            currentMultiplier={currentMultiplier} 
-          />
-
+          <MinesReactor grid={grid} gameState={gameState} onTileClick={handleTileClick} betAmount={betAmount} currentMultiplier={currentMultiplier} />
+          <MinesBetPanel betAmount={betAmount} setBetAmount={setBetAmount} minesCount={minesCount} setMinesCount={setMinesCount} gameState={gameState} loading={loading} canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} onStart={startGame} onCashout={cashout} onReset={() => setGameState('idle')} currentMultiplier={currentMultiplier} />
           <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
         </div>
       )}

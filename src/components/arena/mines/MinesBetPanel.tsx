@@ -25,41 +25,41 @@ interface MinesBetPanelProps {
 }
 
 /**
- * MinesBetPanel - لوحة الرهان v7.0
- * تم اعتماد حجم خط 13px وتطهير النصوص العربية.
+ * MinesBetPanel - لوحة التحكم v800.0
+ * تم ضبط الحجم ليكون طبيعياً ومريحاً للهواتف بخط 13px وتطهير النصوص.
  */
 export function MinesBetPanel({
   betAmount, setBetAmount, minesCount, setMinesCount, gameState, loading, canBet, onStart, onCashout, onReset, currentMultiplier
 }: MinesBetPanelProps) {
   return (
-    <section className="px-6 pb-8 pt-2 bg-white border-t border-gray-50 shrink-0 font-body" dir="rtl">
-      <Card className="border-none shadow-xl rounded-[36px] bg-gray-50/80 backdrop-blur-md border border-white/50">
-        <CardContent className="p-5 space-y-5">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1.5 text-right">
-              <Label className="text-[9px] font-black text-gray-400 uppercase pr-3 tracking-normal">قيمة الدخول ($)</Label>
+    <section className="px-4 pb-6 pt-2 bg-white border-t border-gray-50 shrink-0 font-body" dir="rtl">
+      <Card className="border-none shadow-lg rounded-[28px] bg-gray-50/80 border border-white">
+        <CardContent className="p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 text-right">
+              <Label className="text-[10px] font-black text-gray-400 uppercase pr-2 tracking-normal">مبلغ الدخول ($)</Label>
               <div className="relative">
                 <Input 
                   type="number" 
                   value={betAmount} 
                   onChange={e => setBetAmount(e.target.value)} 
                   disabled={gameState === 'playing'} 
-                  className="h-12 rounded-xl bg-white border-none font-black text-center text-[13px] text-[#002d4d] shadow-inner focus-visible:ring-2 focus-visible:ring-[#002d4d]" 
+                  className="h-11 rounded-xl bg-white border-none font-black text-center text-[13px] text-[#002d4d] shadow-inner outline-none" 
                 />
-                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-200" />
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-200" />
               </div>
             </div>
-            <div className="space-y-1.5 text-right">
-              <Label className="text-[9px] font-black text-gray-400 uppercase pr-3 tracking-normal">الأعطال (Mines)</Label>
-              <div className="grid grid-cols-4 gap-1.5">
+            <div className="space-y-1 text-right">
+              <Label className="text-[10px] font-black text-gray-400 uppercase pr-2 tracking-normal">الأعطال</Label>
+              <div className="grid grid-cols-4 gap-1">
                 {[3, 10, 15, 24].map(num => (
                   <button 
                     key={num} 
                     onClick={() => setMinesCount(num)} 
                     disabled={gameState === 'playing'} 
                     className={cn(
-                      "h-9 rounded-lg font-black text-[10px] transition-all", 
-                      minesCount === num ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "bg-white text-gray-400 border border-gray-100"
+                      "h-8 rounded-lg font-black text-[10px] transition-all", 
+                      minesCount === num ? "bg-[#002d4d] text-[#f9a885]" : "bg-white text-gray-400 border border-gray-100"
                     )}
                   >
                     {num}
@@ -69,18 +69,17 @@ export function MinesBetPanel({
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {gameState === 'playing' ? (
               <Button 
                 onClick={onCashout} 
                 disabled={loading} 
-                className="w-full h-14 rounded-[22px] bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[13px] shadow-2xl transition-all flex items-center justify-center gap-3 active:scale-95 group relative overflow-hidden"
+                className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[13px] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all"
               >
-                <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : (
                   <>
-                    <span className="tracking-normal">سحب الأرباح الآمنة</span>
-                    <Badge className="bg-white/20 text-white border-none font-black text-[11px] tabular-nums px-3 py-0.5 rounded-lg shadow-sm">
+                    <span>سحب الأرباح الآمنة</span>
+                    <Badge className="bg-white/20 text-white border-none font-black text-[11px] tabular-nums px-2">
                       $ {(Number(betAmount) * currentMultiplier).toFixed(2)}
                     </Badge>
                   </>
@@ -90,19 +89,19 @@ export function MinesBetPanel({
               <Button 
                 onClick={onStart} 
                 disabled={loading || !canBet} 
-                className="w-full h-14 rounded-[22px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[13px] shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 group"
+                className="w-full h-12 rounded-xl bg-[#002d4d] text-white font-black text-[13px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : (
                   <>
-                    <span className="tracking-normal">بدء محاولة الاستخراج</span>
-                    <Zap size={16} className="text-[#f9a885] fill-current group-hover:rotate-12 transition-transform" />
+                    <span>بدء استخراج السيولة</span>
+                    <Zap size={14} className="text-[#f9a885] fill-current" />
                   </>
                 )}
               </Button>
             )}
             {(gameState === 'won' || gameState === 'lost') && (
-              <button onClick={onReset} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-[#002d4d] flex items-center justify-center gap-2 py-1.5 transition-colors">
-                <RotateCcw className="h-3 w-3" /> إعادة معايرة المفاعل
+              <button onClick={onReset} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-[#002d4d] flex items-center justify-center gap-1 transition-colors">
+                <RotateCcw className="h-2.5 w-2.5" /> تصفير المفاعل
               </button>
             )}
           </div>
