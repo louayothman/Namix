@@ -41,6 +41,22 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
 
   return (
     <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center overflow-hidden font-body">
+      {/* هالة النبض المركزي - تعطي عمق وفخامة */}
+      <AnimatePresence>
+        {(phase === 'rotate' || phase === 'swap' || phase === 'naming' || phase === 'stable') && !isExiting && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ 
+              opacity: [0.05, 0.1, 0.05],
+              scale: [1, 1.2, 1]
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute h-64 w-64 rounded-full bg-orange-500 blur-[80px] pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
       <div className="relative flex flex-col items-center">
         
         {/* المفاعل الهندسي المركزي */}
@@ -82,26 +98,40 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
                 animate={{ pathLength: isExiting ? 0 : 1 }}
                 transition={{ delay: 0.3, duration: 1, ease: "easeInOut" }}
               />
-              {/* النقاط التناظرية */}
-              {[0, 90, 180, 270].map((angle, i) => (
-                <motion.circle
-                  key={i}
-                  cx={50 + 35 * Math.cos((angle * Math.PI) / 180)}
-                  cy={50 + 35 * Math.sin((angle * Math.PI) / 180)}
-                  r="1.2"
-                  fill="#002d4d"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ 
-                    opacity: isExiting ? 0 : 1, 
-                    scale: isExiting ? 0 : 1 
-                  }}
-                  transition={{ delay: 0.8 + i * 0.1 }}
-                />
-              ))}
+              
+              {/* النقاط التناظرية مع نبضات الصدى */}
+              {[0, 90, 180, 270].map((angle, i) => {
+                const x = 50 + 35 * Math.cos((angle * Math.PI) / 180);
+                const y = 50 + 35 * Math.sin((angle * Math.PI) / 180);
+                return (
+                  <g key={i}>
+                    {/* نبضة الصدى */}
+                    {!isExiting && (
+                      <motion.circle
+                        cx={x} cy={y} r={1.2}
+                        fill="none" stroke="#002d4d" strokeWidth="0.2"
+                        initial={{ scale: 1, opacity: 0 }}
+                        animate={{ scale: [1, 4], opacity: [0.5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                      />
+                    )}
+                    <motion.circle
+                      cx={x} cy={y} r="1.2"
+                      fill="#002d4d"
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ 
+                        opacity: isExiting ? 0 : 1, 
+                        scale: isExiting ? 0 : 1 
+                      }}
+                      transition={{ delay: 0.8 + i * 0.1 }}
+                    />
+                  </g>
+                );
+              })}
             </svg>
           </motion.div>
 
-          {/* محتوى المركز: تبديل شعار ناميكس بالأيقونة */}
+          {/* محتوى المركز: تبديل شعار ناميكس بالأيقونة مع تأثير انفجار الهوية */}
           <div className="relative z-10 flex items-center justify-center">
             <AnimatePresence mode="wait">
               {(phase === 'swap' || phase === 'naming' || phase === 'stable') ? (
@@ -112,6 +142,13 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
                   exit={{ scale: 0, opacity: 0 }}
                   className="text-[#002d4d]"
                 >
+                  {/* وميض التحول */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 4, opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 bg-orange-400 rounded-full blur-xl -z-10"
+                  />
                   <Dices size={38} className="drop-shadow-sm text-orange-500" />
                 </motion.div>
               ) : (
@@ -162,16 +199,22 @@ export function DiceIntro({ onComplete }: DiceIntroProps) {
                     {char}
                   </motion.span>
                 ))}
+                {/* تأثير الشيمر فوق الاسم */}
+                <motion.div
+                  animate={{ left: ['-100%', '200%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 1 }}
+                  className="absolute top-0 bottom-0 w-8 bg-gradient-to-r from-transparent via-[#f9a885]/20 to-transparent skew-x-[-20deg] pointer-events-none"
+                />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* ختم ناميكس السفلي */}
+      {/* ختم ناميكس السفلي - مصغر Grayscale */}
       <motion.div 
-        animate={{ opacity: isExiting ? 0 : 0.15 }}
-        className="absolute bottom-10 flex items-center gap-2"
+        animate={{ opacity: isExiting ? 0 : 0.1 }}
+        className="absolute bottom-10 flex items-center gap-2 filter grayscale"
       >
          <div className="grid grid-cols-2 gap-0.5">
             <div className="h-1 w-1 rounded-full bg-[#002d4d]" />
