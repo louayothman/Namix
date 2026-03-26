@@ -75,7 +75,7 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
                   {gameState === 'won' ? <CheckCircle2 size={32} className="text-white"/> : <RotateCcw size={32} className="text-white"/>}
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-[15px] font-black text-white leading-none tracking-normal uppercase">
+                  <h2 className="text-[13px] font-black text-white leading-none tracking-normal uppercase">
                     {gameState === 'won' ? 'استخراج ناجح' : 'عطل في الشبكة'}
                   </h2>
                   <p className="text-[13px] font-bold text-white/80 leading-relaxed tracking-normal">

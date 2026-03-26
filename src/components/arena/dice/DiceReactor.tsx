@@ -4,7 +4,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
-import { Zap, Activity, ChevronUp } from "lucide-react";
+import { Zap, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DiceReactorProps {
