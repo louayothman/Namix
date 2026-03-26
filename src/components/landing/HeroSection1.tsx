@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -36,6 +37,7 @@ export function HeroSection1() {
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 md:pt-40 bg-white">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center relative z-10">
         
+        {/* Right Block: Global Messaging */}
         <motion.div 
           initial={{ opacity: 0, x: 60, filter: "blur(10px)" }}
           whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
@@ -75,6 +77,7 @@ export function HeroSection1() {
           </div>
         </motion.div>
 
+        {/* Left Block: The Floating Reactor */}
         <div className="relative flex justify-center items-center h-[450px] md:h-[700px] mt-12 lg:mt-0">
           <motion.div 
             animate={{ rotate: 360 }}
