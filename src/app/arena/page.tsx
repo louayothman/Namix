@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ساحة المغامرة v4.0 - Gaming Hub
- * تحديث الأيقونات لتشمل الجوهرة للمناجم والنرد للنكسوس.
+ * @fileOverview ساحة المغامرة v5.0 - Gaming Hub
+ * تحديث الأيقونات: الجوهرة للمناجم والنرد للنكسوس.
  */
 
 const arenaGames = [
@@ -137,7 +137,7 @@ export default function ArenaPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4 py-12 opacity-20 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v4.0</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v5.0</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
            </div>

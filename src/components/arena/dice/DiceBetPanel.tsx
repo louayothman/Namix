@@ -20,30 +20,30 @@ interface DiceBetPanelProps {
 
 export function DiceBetPanel({ betAmount, setBetAmount, loading, canBet, multiplier, winChance, onRoll }: DiceBetPanelProps) {
   return (
-    <section className="px-6 pb-10 pt-4 bg-white border-t border-gray-50 shrink-0 font-body" dir="rtl">
+    <section className="px-6 pb-8 pt-2 bg-white border-t border-gray-50 shrink-0 font-body" dir="rtl">
       <Card className="border-none shadow-sm rounded-[32px] bg-gray-50/50">
-        <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-2 text-right">
-              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2 tracking-widest">المبلغ المستثمر ($)</Label>
+        <CardContent className="p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1.5 text-right">
+              <Label className="text-[9px] font-black text-gray-400 uppercase pr-3 tracking-widest">مبلغ الدخول ($)</Label>
               <div className="relative">
                 <Input 
                   type="number" 
                   value={betAmount} 
                   onChange={e => setBetAmount(e.target.value)} 
-                  className="h-12 rounded-xl bg-white border-none font-black text-center text-sm text-[#002d4d] shadow-inner focus:ring-2 focus:ring-blue-500/20" 
+                  className="h-11 rounded-xl bg-white border-none font-black text-center text-sm text-[#002d4d] shadow-inner" 
                 />
-                <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
+                <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-200" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div className="text-center space-y-1.5 pt-1">
+            <div className="grid grid-cols-2 gap-2">
+               <div className="text-center space-y-1 pt-1">
                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">المضاعف</p>
-                  <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-tighter">x{multiplier.toFixed(4)}</p>
+                  <p className="text-base font-black text-[#002d4d] tabular-nums tracking-tighter">x{multiplier.toFixed(4)}</p>
                </div>
-               <div className="text-center space-y-1.5 pt-1">
+               <div className="text-center space-y-1 pt-1">
                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">الاحتمال</p>
-                  <p className="text-lg font-black text-emerald-600 tabular-nums tracking-tighter">%{winChance.toFixed(2)}</p>
+                  <p className="text-base font-black text-emerald-600 tabular-nums tracking-tighter">%{winChance.toFixed(2)}</p>
                </div>
             </div>
           </div>
@@ -51,12 +51,12 @@ export function DiceBetPanel({ betAmount, setBetAmount, loading, canBet, multipl
           <Button 
             onClick={onRoll} 
             disabled={loading || !canBet} 
-            className="w-full h-16 rounded-2xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4"
+            className="w-full h-14 rounded-2xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
           >
-            {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
+            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
               <>
-                <span>تحليل الاحتمالية</span>
-                <Zap size={18} className="text-[#f9a885] fill-current" />
+                <span>تنبؤ المسار</span>
+                <Zap size={16} className="text-[#f9a885] fill-current" />
               </>
             )}
           </Button>
