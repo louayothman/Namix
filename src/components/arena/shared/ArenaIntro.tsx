@@ -16,7 +16,7 @@ interface ArenaIntroProps {
  * محرك ميكانيكي متصل: رسم متزامن -> دوران معاكس -> ومضة تحول -> ارتقاء وطباعة -> خروج عكسي متسلسل.
  */
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
-  // phases: 'plotting' | 'spinning' | 'switching' | 'lifting' | 'static' | 'exit_text' | 'exit_main'
+  // phases: 'initial' | 'plotting' | 'spinning' | 'switching' | 'lifting' | 'static' | 'exit_text' | 'exit_main'
   const [phase, setPhase] = useState('initial');
 
   useEffect(() => {
