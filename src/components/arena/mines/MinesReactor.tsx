@@ -17,8 +17,8 @@ interface MinesReactorProps {
 export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentMultiplier }: MinesReactorProps) {
   return (
     <section className="flex-1 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-[240px] aspect-square bg-white rounded-2xl p-2 border border-gray-50 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-5 gap-1.5 h-full relative z-10">
+      <div className="relative w-full max-w-[320px] aspect-square bg-white rounded-2xl p-3 border border-gray-100 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-5 gap-2 h-full relative z-10">
           {grid.map((tile, i) => (
             <motion.button
               key={i}
@@ -35,12 +35,12 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
               <AnimatePresence mode="wait">
                 {tile.status === 'gem' && (
                   <motion.div key="gem" initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                    <Gem size={14} className="fill-current" />
+                    <Gem size={20} className="fill-current" />
                   </motion.div>
                 )}
                 {tile.status === 'mine' && (
                   <motion.div key="mine" initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                    <Bomb size={14} className="fill-current" />
+                    <Bomb size={20} className="fill-current" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -59,16 +59,16 @@ export function MinesReactor({ grid, gameState, onTileClick, betAmount, currentM
                 initial={{ scale: 0.9 }} 
                 animate={{ scale: 1 }} 
                 className={cn(
-                  "p-5 rounded-[32px] shadow-2xl border border-white/20 text-center space-y-2", 
+                  "p-6 rounded-[32px] shadow-2xl border border-white/20 text-center space-y-3", 
                   gameState === 'won' ? "bg-emerald-600/95" : "bg-red-600/95"
                 )}
               >
-                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center mx-auto">
-                  {gameState === 'won' ? <CheckCircle2 size={24} className="text-white"/> : <RotateCcw size={24} className="text-white"/>}
+                <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center mx-auto">
+                  {gameState === 'won' ? <CheckCircle2 size={28} className="text-white"/> : <RotateCcw size={28} className="text-white"/>}
                 </div>
-                <div className="space-y-0.5">
-                  <h2 className="text-[11px] font-black text-white uppercase">{gameState === 'won' ? 'استخراج ناجح' : 'عطل فني'}</h2>
-                  <p className="text-[8px] font-bold text-white/80">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-black text-white uppercase">{gameState === 'won' ? 'استخراج ناجح' : 'عطل فني'}</h2>
+                  <p className="text-[10px] font-bold text-white/80">
                     {gameState === 'won' ? `تم حقن $${(Number(betAmount) * currentMultiplier).toFixed(2)}` : 'اصطدمت بعقدة معطلة.'}
                   </p>
                 </div>

@@ -5,14 +5,14 @@ import { Shell } from "@/components/layout/Shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Rocket, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle, Dices, Layers } from "lucide-react";
+import { Gem, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle, Dices } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ساحة المغامرة v3.0 - Gaming Hub
- * تم تطهير الواجهة من مصطلحات "بروتوكول" وتحديث الزوايا لتكون ناعمة بشكل طفيف.
+ * @fileOverview ساحة المغامرة v4.0 - Gaming Hub
+ * تحديث الأيقونات لتشمل الجوهرة للمناجم والنرد للنكسوس.
  */
 
 const arenaGames = [
@@ -22,7 +22,7 @@ const arenaGames = [
     desc: "استكشف حقول السيولة المربحة وتجنب العثرات التقنية المفاجئة في الشبكة.",
     risk: "Dynamic",
     href: "/arena/mines",
-    icon: Layers,
+    icon: Gem,
     color: "text-blue-500",
     bg: "bg-blue-50"
   },
@@ -55,7 +55,6 @@ export default function ArenaPage() {
     <Shell>
       <div className="max-w-4xl mx-auto space-y-8 px-6 pt-10 pb-32 font-body text-right tracking-normal" dir="rtl">
         
-        {/* Header - Compact Sovereign Style */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#f9a885] font-black text-[9px] uppercase tracking-[0.4em] justify-start">
@@ -73,7 +72,6 @@ export default function ArenaPage() {
           </Link>
         </div>
 
-        {/* Info Banner */}
         <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm shrink-0">
               <ShieldCheck className="h-5 w-5" />
@@ -84,7 +82,6 @@ export default function ArenaPage() {
            </div>
         </div>
 
-        {/* Games Grid */}
         <div className="grid gap-6 md:grid-cols-2">
           {arenaGames.map((game, i) => (
             <motion.div
@@ -122,7 +119,7 @@ export default function ArenaPage() {
                   <div className="pt-2 mt-auto">
                     {game.disabled ? (
                       <div className="w-full h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-300 uppercase tracking-widest">
-                        قيد التطوير الفائق
+                        تحت الصيانة
                       </div>
                     ) : (
                       <Link href={game.href} className="block">
@@ -139,9 +136,8 @@ export default function ArenaPage() {
           ))}
         </div>
 
-        {/* Global Branding Footer */}
         <div className="flex flex-col items-center gap-4 py-12 opacity-20 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v3.0</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v4.0</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
            </div>

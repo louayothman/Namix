@@ -8,7 +8,7 @@ import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "fireb
 import { AnimatePresence } from "framer-motion";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة كلياً
+// المكونات المعزولة كلياً بنظام الوحدات الخمس
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
 import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
