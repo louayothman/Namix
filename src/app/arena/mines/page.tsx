@@ -8,12 +8,16 @@ import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "fireb
 import { AnimatePresence } from "framer-motion";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
-// المكونات المعزولة كلياً بنظام الوحدات الخمس
+// المكونات المعزولة كلياً v6.0
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
 import { MinesIntro } from "@/components/arena/mines/MinesIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
+/**
+ * MinesPage - منطق حوكمة المناجم v6.0
+ * تم دمج حوكمة الملاءة (75% للمنصة) مع ملء المساحة الكامل والخطوط 16px.
+ */
 export default function MinesPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -44,7 +48,7 @@ export default function MinesPage() {
     for (let i = 0; i < revealedGems; i++) {
       mult *= (25 - i) / (25 - minesCount - i);
     }
-    return mult * 0.98;
+    return mult * 0.98; // House edge
   }, [revealedGems, minesCount]);
 
   const startGame = async () => {
@@ -74,12 +78,14 @@ export default function MinesPage() {
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden' || loading) return;
 
-    // حوكمة الملاءة: 75% فرصة خسارة قسرية
+    // حوكمة الملاءة: 75% فرصة خسارة قسرية عند الضغط
     const forceLose = Math.random() < 0.75;
     let isMine = minesPositions.includes(idx);
 
+    // إذا كان المخطط هو الخسارة ولم يكن هناك لغم، نضع لغماً تحت إصبع المستخدم فوراً
     if (forceLose && !isMine) {
-      const otherMineIdx = minesPositions.find(p => !grid[p].revealed);
+      // نبحث عن لغم في مكان آخر وننقله لمكان الضغط الحالي لضمان الخسارة "بصدفة تقنية"
+      const otherMineIdx = minesPositions.find(p => !grid[p].status || grid[p].status === 'hidden');
       if (otherMineIdx !== undefined) {
         setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
         isMine = true;
@@ -97,6 +103,7 @@ export default function MinesPage() {
       newGrid[idx] = { status: 'gem' };
       setGrid(newGrid);
       setRevealedGems(prev => prev + 1);
+      // فوز تلقائي عند كشف كافة الجواهر
       if (revealedGems + 1 === 25 - minesCount) cashout();
     }
   };
@@ -111,11 +118,18 @@ export default function MinesPage() {
         totalProfits: increment(winAmt - Number(betAmount))
       });
       await addDoc(collection(db, "game_history"), {
-        userId: dbUser.id, game: "mines", betAmount: Number(betAmount),
-        multiplier: currentMultiplier, profit: winAmt - Number(betAmount), createdAt: new Date().toISOString()
+        userId: dbUser.id, 
+        game: "mines", 
+        betAmount: Number(betAmount),
+        multiplier: currentMultiplier, 
+        profit: winAmt - Number(betAmount), 
+        createdAt: new Date().toISOString()
       });
       setGameState('won');
-      setGrid(grid.map((tile, i) => ({ status: minesPositions.includes(i) ? 'mine' : tile.status })));
+      // كشف الألغام المتبقية بوضوح
+      setGrid(grid.map((tile, i) => ({ 
+        status: minesPositions.includes(i) ? 'mine' : tile.status 
+      })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -130,7 +144,7 @@ export default function MinesPage() {
       </AnimatePresence>
 
       {!showIntro && (
-        <div className="flex flex-col h-screen bg-white overflow-hidden">
+        <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
           <ArenaHeader title="مناجم السيولة" balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
           
           <MinesReactor 
