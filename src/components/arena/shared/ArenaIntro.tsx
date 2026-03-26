@@ -12,27 +12,31 @@ interface ArenaIntroProps {
 }
 
 /**
- * @fileOverview محرك الأوركسترا السينمائية v2100.0 - 2D Mechanical Edition
+ * @fileOverview محرك الأوركسترا السينمائية v2200.0 - Sovereign Mechanical Edition
  * سيمفونية بصرية مبرمجة بدقة مجهرية لتعكس فخامة الهوية المؤسسية لناميكس.
  */
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
-  const [stage, setStage] = useState<'drawing' | 'rotating' | 'swapping' | 'lifting' | 'exit'>('drawing');
+  const [stage, setStage] = useState<'building' | 'rotating' | 'transforming' | 'lifting' | 'exit_name' | 'exit_descend' | 'exit_swap' | 'exit_fade'>('building');
 
   useEffect(() => {
     // سلسلة الحركات الميكانيكية المتداخلة (Overlap: 300ms)
-    const t1 = setTimeout(() => setStage('rotating'), 1200);
-    const t2 = setTimeout(() => setStage('swapping'), 3200);
-    const t3 = setTimeout(() => setStage('lifting'), 3500);
-    const t4 = setTimeout(() => setStage('exit'), 7000);
-    const t5 = setTimeout(onComplete, 9500);
+    const t1 = setTimeout(() => setStage('rotating'), 1500);     // يبدأ الدوران بعد بناء الإطارات
+    const t2 = setTimeout(() => setStage('transforming'), 3500); // الومضة والتبديل
+    const t3 = setTimeout(() => setStage('lifting'), 3800);      // الارتقاء والطباعة
+    
+    // بدء بروتوكول الهندسة العكسية
+    const t4 = setTimeout(() => setStage('exit_name'), 7000);    // مسح الاسم
+    const t5 = setTimeout(() => setStage('exit_descend'), 8000); // العودة للمركز
+    const t6 = setTimeout(() => setStage('exit_swap'), 8500);    // ومضة استعادة اللوجو
+    const t7 = setTimeout(() => setStage('exit_fade'), 9000);    // تلاشي المكونات
+    const t8 = setTimeout(onComplete, 10500);                    // إنهاء الانترو
 
     return () => {
-      [t1, t2, t3, t4, t5].forEach(clearTimeout);
+      [t1, t2, t3, t4, t5, t6, t7, t8].forEach(clearTimeout);
     };
   }, [onComplete]);
 
-  const bezierCurve = [0.76, 0, 0.24, 1];
-  const transition = { duration: 1.5, ease: bezierCurve };
+  const bezierCurve = [0.76, 0, 0.24, 1]; // منحنى القصور الذاتي الفاخر
 
   return (
     <motion.div 
@@ -42,39 +46,37 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
     >
       <div className="relative flex flex-col items-center">
         
-        {/* المفاعل المركزي */}
+        {/* المفاعل المركزي (الإطارات، النقاط، الهوية) */}
         <motion.div
           animate={
-            stage === 'lifting' ? { y: -120 } : 
-            stage === 'exit' ? { y: 0, opacity: 0, scale: 0.8 } : { y: 0 }
+            stage === 'lifting' || stage === 'exit_name' ? { y: -120 } : 
+            { y: 0 }
           }
-          transition={transition}
+          transition={{ duration: 1.2, ease: bezierCurve }}
           className="relative h-40 w-40 flex items-center justify-center"
         >
           {/* الإطارات الدائرية الهندسية */}
           <svg className="absolute inset-0 h-full w-full -rotate-90 pointer-events-none">
-            {/* الإطار المركزي r=45 */}
             <motion.circle
               cx="80" cy="80" r="45"
               fill="none" stroke="#f1f5f9" strokeWidth="1.5"
               initial={{ pathLength: 0 }}
               animate={{ 
-                pathLength: stage === 'exit' ? 0 : 1,
-                rotate: stage === 'rotating' ? -360 : 0
+                pathLength: (stage === 'exit_fade') ? 0 : 1,
+                rotate: (stage === 'rotating' || stage === 'transforming' || stage === 'lifting' || stage === 'exit_name' || stage === 'exit_descend') ? -360 : 0
               }}
               transition={{ 
                 pathLength: { duration: 1.2, ease: "easeInOut" },
                 rotate: { duration: 2.5, ease: bezierCurve }
               }}
             />
-            {/* الإطار الخارجي r=65 */}
             <motion.circle
               cx="80" cy="80" r="65"
               fill="none" stroke="#f1f5f9" strokeWidth="1"
               initial={{ pathLength: 0 }}
               animate={{ 
-                pathLength: stage === 'exit' ? 0 : 1,
-                rotate: stage === 'rotating' ? -180 : 0
+                pathLength: (stage === 'exit_fade') ? 0 : 1,
+                rotate: (stage === 'rotating' || stage === 'transforming' || stage === 'lifting' || stage === 'exit_name' || stage === 'exit_descend') ? -180 : 0
               }}
               transition={{ 
                 pathLength: { duration: 1.5, ease: "easeInOut", delay: 0.2 },
@@ -83,45 +85,47 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
             />
           </svg>
 
-          {/* النقاط التناظرية الموزعة هندسياً في المدار الأوسط (r=55) */}
+          {/* النقاط التناظرية الموزعة بدقة بين الإطارين (r=55px) */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <motion.div
-              animate={stage === 'rotating' ? { rotate: -360 } : { rotate: 0 }}
+              animate={{ 
+                rotate: (stage === 'rotating' || stage === 'transforming' || stage === 'lifting' || stage === 'exit_name' || stage === 'exit_descend') ? -360 : 0 
+              }}
               transition={{ duration: 2.5, ease: bezierCurve }}
-              className="relative h-[110px] w-[110px]"
+              className="relative h-full w-full"
             >
               {[0, 90, 180, 270].map((angle) => (
                 <motion.div
                   key={angle}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ 
-                    scale: stage === 'exit' ? 0 : 1, 
-                    opacity: stage === 'exit' ? 0 : 1 
+                    scale: (stage === 'exit_fade') ? 0 : 1, 
+                    opacity: (stage === 'exit_fade') ? 0 : 1 
                   }}
                   transition={{ delay: 0.6 + angle/500 }}
                   style={{ 
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
-                    transform: `rotate(${angle}deg) translateY(-55px) translateX(-50%)`
+                    transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-55px)`
                   }}
-                  className="h-1.5 w-1.5 rounded-full bg-[#002d4d]/10 shadow-sm"
+                  className="h-1.5 w-1.5 rounded-full bg-[#002d4d]/10"
                 />
               ))}
             </motion.div>
           </div>
 
-          {/* النواة المركزية - تحول الهوية والوميض الموضعي */}
+          {/* النواة المركزية - تبديل الهوية مع الوميض الموضعي */}
           <div className="relative z-10 h-16 w-16 flex items-center justify-center">
             <AnimatePresence mode="wait">
-              {stage === 'drawing' || stage === 'rotating' ? (
+              {stage === 'building' || stage === 'rotating' || stage === 'exit_swap' || stage === 'exit_fade' ? (
                 <motion.div
-                  key="namix-grid"
+                  key="namix-dots"
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ 
                     opacity: 1, 
                     scale: 1, 
-                    rotate: stage === 'rotating' ? 360 : 0 
+                    rotate: (stage === 'rotating' || stage === 'exit_swap') ? 360 : 0 
                   }}
                   exit={{ opacity: 0, scale: 1.2 }}
                   transition={{ 
@@ -130,10 +134,10 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
                   }}
                   className="grid grid-cols-2 gap-2"
                 >
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d] shadow-sm" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885] shadow-sm" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885] shadow-sm" />
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d] shadow-sm" />
+                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
+                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
+                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
+                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
                 </motion.div>
               ) : (
                 <motion.div
@@ -143,14 +147,14 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
                   exit={{ opacity: 0, scale: 0.5 }}
                   className="text-[#002d4d]"
                 >
-                  <Icon size={48} strokeWidth={1.5} className="drop-shadow-2xl" />
+                  <Icon size={48} strokeWidth={1.5} className="drop-shadow-xl" />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* الوميض الموضعي (The Central Flash) */}
+            {/* الوميض الموضعي المحصور داخل النواة */}
             <AnimatePresence>
-              {stage === 'swapping' && (
+              {(stage === 'transforming' || stage === 'exit_swap') && (
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: [0, 2], opacity: [0, 1, 0] }}
@@ -162,10 +166,10 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
           </div>
         </motion.div>
 
-        {/* الهوية النصية - محرك الآلة الكاتبة */}
+        {/* الهوية النصية - محرك الآلة الكاتبة في مساحة بيضاء صافية */}
         <div className="absolute top-24 w-full flex justify-center">
           <AnimatePresence>
-            {stage === 'lifting' && (
+            {(stage === 'lifting') && (
               <motion.div 
                 key="name-rail"
                 initial={{ opacity: 0 }}
@@ -193,7 +197,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
 
       {/* الختم السيادي المجهري */}
       <motion.div 
-        animate={{ opacity: stage === 'exit' ? 0 : 0.15 }}
+        animate={{ opacity: (stage === 'exit_fade') ? 0 : 0.15 }}
         className="absolute bottom-12 flex flex-col items-center gap-2 select-none pointer-events-none"
       >
         <p className="text-[7.5px] font-black uppercase tracking-[0.8em] text-[#002d4d]">Namix Universal Ledger</p>
