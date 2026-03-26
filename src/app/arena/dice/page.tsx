@@ -17,7 +17,7 @@ import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
-  const [showIntro && setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(true);
   const [betAmount, setBetAmount] = useState("10");
   const [targetValue, setTargetValue] = useState(50.5);
   const [isRollOver, setIsRollOver] = useState(true);
@@ -81,7 +81,7 @@ export default function DicePage() {
 
   return (
     <Shell hideMobileNav>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showIntro && (
           <ArenaIntro 
             key="intro"
