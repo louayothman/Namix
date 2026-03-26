@@ -94,6 +94,9 @@ function LoginContent() {
     if (refFromUrl) {
       setFormData(prev => ({ ...prev, invitationCode: refFromUrl }));
     }
+    
+    const stepParam = searchParams.get("step");
+    if (stepParam === "signup") setStep("email"); // Logic handled in handleEmailSubmit
   }, [searchParams]);
 
   useEffect(() => {
@@ -101,7 +104,7 @@ function LoginContent() {
     if (userSession) {
       const parsed = JSON.parse(userSession);
       if (parsed.role === 'admin') router.replace("/admin");
-      else router.replace("/");
+      else router.replace("/dashboard");
     }
   }, [router]);
 
@@ -229,7 +232,7 @@ function LoginContent() {
       });
 
       localStorage.setItem("namix_user", JSON.stringify(newUser));
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } catch (e: any) {
       setError("فشل بروتوكول إنشاء الحساب.");
     } finally {
@@ -248,7 +251,7 @@ function LoginContent() {
       lastActive: new Date().toISOString()
     });
     localStorage.setItem("namix_user", JSON.stringify(existingUser));
-    window.location.href = existingUser.role === 'admin' ? "/admin" : "/";
+    window.location.href = existingUser.role === 'admin' ? "/admin" : "/dashboard";
   };
 
   return (

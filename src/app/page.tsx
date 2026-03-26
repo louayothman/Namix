@@ -1,318 +1,207 @@
 
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Shell } from "@/components/layout/Shell";
-import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, addDoc, arrayUnion } from "firebase/firestore";
-import { differenceInMilliseconds, parseISO } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/layout/Logo";
+import { 
+  ShieldCheck, 
+  Zap, 
+  Globe, 
+  TrendingUp, 
+  ArrowRight, 
+  Activity, 
+  Coins, 
+  ChevronRight,
+  Sparkles,
+  Lock,
+  Cpu
+} from "lucide-react";
+import Link from "next/link";
+import { useMarketStore } from "@/store/use-market-store";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 import { useMarketSync } from "@/hooks/use-market-sync";
 
-// التحميل الكسول المتقدم لتقليل حجم الحزمة الأولية
-const PortfolioHero = lazy(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })));
-const EliteWatchlist = lazy(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })));
-const FeaturedProtocols = lazy(() => import("@/components/dashboard/FeaturedProtocols").then(m => ({ default: m.FeaturedProtocols })));
-const ServiceGateway = lazy(() => import("@/components/dashboard/ServiceGateway").then(m => ({ default: m.ServiceGateway })));
-const InvestmentInventory = lazy(() => import("@/components/dashboard/InvestmentInventory").then(m => ({ default: m.InvestmentInventory })));
-const TierProgress = lazy(() => import("@/components/dashboard/TierProgress").then(m => ({ default: m.TierProgress })));
-const YieldSimulator = lazy(() => import("@/components/dashboard/YieldSimulator").then(m => ({ default: m.YieldSimulator })));
-const GlobalStats = lazy(() => import("@/components/dashboard/GlobalStats").then(m => ({ default: m.GlobalStats })));
-const NewsTicker = lazy(() => import("@/components/dashboard/NewsTicker").then(m => ({ default: m.NewsTicker })));
-const UpcomingEvents = lazy(() => import("@/components/dashboard/UpcomingEvents").then(m => ({ default: m.UpcomingEvents })));
-const GuidanceCenter = lazy(() => import("@/components/dashboard/GuidanceCenter").then(m => ({ default: m.GuidanceCenter })));
-const ActivationDialog = lazy(() => import("@/components/invest/ActivationDialog").then(m => ({ default: m.ActivationDialog })));
-const DepositSheet = lazy(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })));
-const WithdrawSheet = lazy(() => import("@/components/withdraw/WithdrawSheet").then(m => ({ default: m.WithdrawSheet })));
+/**
+ * @fileOverview بوابة ناميكس العالمية v1.0 - Landing Page
+ * صفحة الهبوط الفاخرة للزوار غير المسجلين، تعكس القوة والسيادة المالية.
+ */
 
-const SectionLoader = () => (
-  <div className="flex flex-col items-center justify-center py-12 gap-4 opacity-40">
-    <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
-    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Syncing Node...</p>
-  </div>
-);
-
-export default function DashboardPage() {
-  const [localUser, setLocalUser] = useState<any>(null);
-  const [dbUser, setDbUser] = useState<any>(null);
-  const [depositOpen, setDepositOpen] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [processingPayouts, setProcessingPayouts] = useState(false);
-  const [processingReward, setProcessingReward] = useState(false);
-  const [rewardNotice, setRewardNotice] = useState<string | null>(null);
-  const [referralCount, setReferralCount] = useState(0);
-  const [now, setNow] = useState(new Date());
-  
-  const [dynamicStats, setDynamicStats] = useState({
-    withdrawals: 0,
-    activeUsers: 0,
-    investments: 0
-  });
-
-  const [calcAmount, setCalcAmount] = useState("1000");
-  
+export default function LandingPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const db = useFirestore();
 
-  // جلب البيانات الأساسية
-  const marketingDocRef = useMemoFirebase(() => doc(db, "system_settings", "marketing"), [db]);
-  const { data: marketingConfig } = useDoc(marketingDocRef);
-
-  const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
-  const { data: tiersData } = useDoc(tiersDocRef);
-
-  const vaultDocRef = useMemoFirebase(() => doc(db, "system_settings", "vault_bonus"), [db]);
-  const { data: vaultConfig } = useDoc(vaultDocRef);
-
-  const insuranceRef = useMemoFirebase(() => doc(db, "system_settings", "insurance"), [db]);
-  const { data: insuranceConfig } = useDoc(insuranceRef);
-
+  // مزامنة الأسعار الحية لإبهار الزوار
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
-  const { data: allSymbols } = useCollection(symbolsQuery);
-
-  // تفعيل المزامنة المركزية للأسعار (اتصال واحد فقط)
-  useMarketSync(allSymbols || []);
-
-  const plansQuery = useMemoFirebase(() => query(collection(db, "investment_plans"), where("isActive", "==", true)), [db]);
-  const { data: allPlans } = useCollection(plansQuery);
-
-  const featuredPlans = useMemo(() => {
-    if (!allPlans) return [];
-    return allPlans.filter(p => p.isPopular || p.isFlash).slice(0, 3);
-  }, [allPlans]);
-
-  const scheduledPlans = useMemo(() => {
-    if (!allPlans) return [];
-    return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
-  }, [allPlans, now]);
-
-  const investmentsQuery = useMemoFirebase(() => {
-    if (!localUser?.id) return null;
-    return query(
-      collection(db, "investments"),
-      where("userId", "==", localUser.id),
-      where("status", "==", "active"),
-      orderBy("createdAt", "desc")
-    );
-  }, [db, localUser?.id]);
-  const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
-
-  const displayUser = dbUser || localUser;
-
-  const favorites = useMemo(() => {
-    if (!allSymbols || !displayUser?.favoriteSymbols) return [];
-    return allSymbols.filter(s => displayUser.favoriteSymbols.includes(s.id));
-  }, [allSymbols, displayUser?.favoriteSymbols]);
-
-  const liveStats = useMemo(() => {
-    if (!investments || investments.length === 0) return { accruedProfit: 0 };
-    return investments.reduce((acc, inv) => {
-      try {
-        const start = parseISO(inv.startTime);
-        const end = parseISO(inv.endTime);
-        const totalMs = differenceInMilliseconds(end, start);
-        const elapsedMs = differenceInMilliseconds(now, start);
-        const progress = Math.min(Math.max(elapsedMs / totalMs, 0), 1);
-        const currentProfit = progress * (inv.expectedProfit || 0);
-        return { accruedProfit: acc.accruedProfit + currentProfit };
-      } catch (e) { return acc; }
-    }, { accruedProfit: 0 });
-  }, [investments, now]);
-
-  const totalLiveProfits = displayUser ? (displayUser.totalProfits || 0) + liveStats.accruedProfit : 0;
-
-  const calculatedTier = useMemo(() => {
-    if (!displayUser || !tiersData?.list) return null;
-    const list = tiersData.list;
-    const currentStats = {
-      balance: displayUser.totalBalance || 0,
-      profits: displayUser.totalProfits || 0,
-      historical: (displayUser.activeInvestmentsTotal || 0) + (displayUser.totalProfits || 0),
-      invites: referralCount
-    };
-
-    const achievedTier = [...list]
-      .sort((a,b) => (b.minBalance + b.minTotalProfits) - (a.minBalance + a.minTotalProfits))
-      .find(t => 
-        currentStats.balance >= t.minBalance &&
-        currentStats.profits >= (t.minTotalProfits || 0) &&
-        currentStats.historical >= (t.minHistoricalInvest || 0) &&
-        currentStats.invites >= (t.minInvites || 0)
-      );
-
-    const nextTier = [...list]
-      .sort((a,b) => a.minBalance - b.minBalance)
-      .find(t => 
-        currentStats.balance < t.minBalance || 
-        currentStats.invites < (t.minInvites || 0) ||
-        currentStats.profits < (t.minTotalProfits || 0) ||
-        currentStats.historical < (t.minHistoricalInvest || 0)
-      );
-
-    let progress = 0;
-    const remaining: any = { balance: 0, invites: 0, profits: 0, historical: 0 };
-
-    if (nextTier) {
-      const balanceProgress = Math.min((currentStats.balance / (nextTier.minBalance || 1)) * 100, 100);
-      const inviteProgress = nextTier.minInvites > 0 ? Math.min((currentStats.invites / nextTier.minInvites) * 100, 100) : 100;
-      const profitProgress = nextTier.minTotalProfits > 0 ? Math.min((currentStats.profits / nextTier.minTotalProfits) * 100, 100) : 100;
-      const historicalProgress = nextTier.minHistoricalInvest > 0 ? Math.min((currentStats.historical / nextTier.minHistoricalInvest) * 100, 100) : 100;
-      
-      progress = (balanceProgress + inviteProgress + profitProgress + historicalProgress) / 4;
-
-      if (currentStats.balance < nextTier.minBalance) remaining.balance = nextTier.minBalance - currentStats.balance;
-      if (currentStats.invites < (nextTier.minInvites || 0)) remaining.invites = (nextTier.minInvites || 0) - currentStats.invites;
-      if (currentStats.profits < (nextTier.minTotalProfits || 0)) remaining.profits = (nextTier.minTotalProfits || 0) - currentStats.profits;
-      if (currentStats.historical < (nextTier.minHistoricalInvest || 0)) remaining.historical = (nextTier.minHistoricalInvest || 0) - currentStats.historical;
-    }
-
-    return { 
-      current: achievedTier || list[0], 
-      next: nextTier, 
-      progress,
-      remaining
-    };
-  }, [tiersData, displayUser, referralCount]);
-
-  const handleClaimReward = async () => {
-    if (!dbUser || !calculatedTier?.current || processingReward || !localUser?.id) return;
-    const currentTierId = calculatedTier.current.id;
-    const rewardAmount = calculatedTier.current.rewardAmount || 0;
-    
-    setProcessingReward(true);
-    try {
-      await updateDoc(doc(db, "users", localUser.id), {
-        totalBalance: increment(rewardAmount),
-        claimedTierRewards: arrayUnion(currentTierId)
-      });
-      setRewardNotice(`تمت إضافة $${rewardAmount} لمحفظتك بنجاح!`);
-      setTimeout(() => setRewardNotice(null), 5000);
-    } catch (e) { console.error(e); } finally { setProcessingReward(false); }
-  };
+  const { data: symbols } = useCollection(symbolsQuery);
+  useMarketSync(symbols || []);
+  const prices = useMarketStore(state => state.prices);
 
   useEffect(() => {
-    const userSession = localStorage.getItem("namix_user");
-    if (!userSession) {
-      router.push("/login");
-    } else {
-      const parsed = JSON.parse(userSession);
-      if (parsed.role === 'admin') {
-        router.push("/admin");
-        return;
-      }
-      setLocalUser(parsed);
-      const userRef = doc(db, "users", parsed.id);
-      const unsubUser = onSnapshot(userRef, (snap) => {
-        if (snap.exists()) setDbUser(snap.data());
-      });
-      const q = query(collection(db, "notifications"), where("userId", "==", parsed.id), where("isRead", "==", false));
-      const unsubNotifs = onSnapshot(q, (snap) => setUnreadCount(snap.size));
-      const refQuery = query(collection(db, "users"), where("referredBy", "==", parsed.id));
-      const unsubRef = onSnapshot(refQuery, (snap) => setReferralCount(snap.size));
-      return () => { unsubUser(); unsubNotifs(); unsubRef(); };
+    setMounted(true);
+    const user = localStorage.getItem("namix_user");
+    if (user) {
+      router.replace("/dashboard");
     }
-  }, [router, db]);
+  }, [router]);
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 500);
-    return () => clearInterval(timer);
-  }, []);
-
-  if (!localUser) return null;
+  if (!mounted) return null;
 
   return (
-    <Shell>
-      <div className="pb-32 overflow-x-hidden font-body bg-[#fcfdfe] relative" dir="rtl">
-        
-        <Suspense fallback={<div className="h-[400px] w-full bg-[#002d4d] animate-pulse rounded-b-[64px]" />}>
-          <PortfolioHero 
-            user={displayUser}
-            totalLiveProfits={totalLiveProfits}
-            vaultYield={0}
-            unreadCount={unreadCount}
-            isVaultEnabled={vaultConfig?.isVaultEnabled}
-            calculatedTier={calculatedTier}
-            insuranceConfig={insuranceConfig}
-            onDeposit={() => setDepositOpen(true)}
-            onWithdraw={() => setWithdrawOpen(true)}
-          />
-        </Suspense>
-
-        <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">
-          <Suspense fallback={<SectionLoader />}>
-            <ServiceGateway />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <EliteWatchlist favorites={favorites} />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <FeaturedProtocols plans={featuredPlans} onSelect={setSelectedPlan} />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <InvestmentInventory investments={investments || null} isLoading={loadingInv} now={now} />
-          </Suspense>
-          
-          <Suspense fallback={<SectionLoader />}>
-            <TierProgress 
-              calculatedTier={calculatedTier}
-              referralCount={referralCount}
-              hasUnclaimedReward={false}
-              processingReward={processingReward}
-              rewardNotice={rewardNotice}
-              onClaimReward={handleClaimReward}
-              onDeposit={() => setDepositOpen(true)}
-            />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <YieldSimulator 
-              marketingConfig={marketingConfig}
-              calcAmount={calcAmount}
-              onAmountChange={setCalcAmount}
-              onIncrement={() => setCalcAmount(prev => (parseInt(prev || "0") + 100).toString())}
-              onDecrement={() => setCalcAmount(prev => Math.max(0, parseInt(prev || "0") - 100).toString())}
-            />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <UpcomingEvents scheduledPlans={scheduledPlans} />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <GuidanceCenter />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <GlobalStats marketingConfig={marketingConfig} dynamicStats={dynamicStats} />
-          </Suspense>
-
-          <Suspense fallback={<SectionLoader />}>
-            <NewsTicker marketingConfig={marketingConfig} />
-          </Suspense>
+    <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
+      
+      {/* 1. Luxurious Navbar */}
+      <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-b border-gray-50 z-[100] flex items-center px-6 md:px-12 justify-between">
+        <Logo size="md" />
+        <div className="flex items-center gap-4">
+          <Link href="/login">
+            <Button variant="ghost" className="rounded-full px-8 font-black text-xs text-[#002d4d] hover:bg-gray-50 transition-all">
+              دخول المستثمرين
+            </Button>
+          </Link>
+          <Link href="/login?step=signup">
+            <Button className="rounded-full px-8 bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl transition-all active:scale-95">
+              ابدأ رحلتك الآن
+            </Button>
+          </Link>
         </div>
+      </nav>
 
-        <Suspense fallback={null}>
-          <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-          <WithdrawSheet 
-            open={withdrawOpen} 
-            onOpenChange={setWithdrawOpen} 
-            onOpenDeposit={() => { setWithdrawOpen(false); setTimeout(() => setDepositOpen(true), 300); }} 
-          />
-          <ActivationDialog 
-            plan={selectedPlan} 
-            onClose={() => setSelectedPlan(null)} 
-            dbUser={dbUser} 
-            onOpenDeposit={() => { setSelectedPlan(null); setDepositOpen(true); }}
-          />
-        </Suspense>
-      </div>
-    </Shell>
+      {/* 2. Hero Section - The Liquid Power */}
+      <section className="relative pt-48 pb-32 px-6 overflow-hidden">
+        {/* Background Fluid Reactor */}
+        <div className="absolute top-0 right-0 w-[80%] h-[80%] opacity-[0.03] pointer-events-none -rotate-12 translate-x-1/4">
+           <Activity size={800} strokeWidth={0.5} className="text-[#002d4d]" />
+        </div>
+        
+        <div className="max-w-6xl mx-auto flex flex-col items-center text-center space-y-12 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+               <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
+               <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.5em] opacity-40">The Sovereign Investment Protocol</span>
+            </div>
+            <h1 className="text-5xl md:text-8xl font-black text-[#002d4d] leading-[1.1] tracking-tight">
+              حيث تتحول السيولة <br />
+              <span className="text-[#f9a885] drop-shadow-[0_10px_20px_rgba(249,168,133,0.2)]">إلى سيادة مطلقة.</span>
+            </h1>
+            <p className="text-base md:text-xl text-gray-400 font-medium max-w-2xl mx-auto leading-loose">
+              ناميكس هي الوجهة الرقمية للنخبة؛ محرك ذكاء اصطناعي يقتنص فجوات السيولة ليعظم عوائدك ببروتوكولات أمان فائقة.
+            </p>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="flex flex-col sm:flex-row items-center gap-6"
+          >
+            <Link href="/login">
+              <Button className="h-16 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group">
+                تفعيل حسابي السيادي
+                <ChevronLeft className="mr-3 h-6 w-6 transition-transform group-hover:-translate-x-1" />
+              </Button>
+            </Link>
+            <div className="flex items-center gap-4 text-[#8899AA] font-black text-[10px] uppercase tracking-widest px-6 h-16 rounded-full border border-gray-100 bg-white/50 backdrop-blur-sm">
+               <ShieldCheck className="h-4 w-4 text-emerald-500" />
+               Fully Encrypted & Verified
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 3. Live Pulse Strip */}
+      <section className="bg-gray-50/50 border-y border-gray-100 py-12">
+        <div className="container mx-auto px-6 overflow-hidden">
+           <div className="flex items-center justify-center gap-12 overflow-x-auto scrollbar-none pb-4 px-4">
+              {symbols?.slice(0, 5).map(s => (
+                <div key={s.id} className="flex flex-col items-center gap-2 group transition-all hover:scale-110">
+                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">{s.code}</span>
+                   <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-tighter">
+                     ${prices[s.id]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || s.currentPrice}
+                   </p>
+                   <div className="h-1 w-8 bg-blue-500 rounded-full opacity-20 group-hover:opacity-100 transition-all duration-700" />
+                </div>
+              ))}
+           </div>
+        </div>
+      </section>
+
+      {/* 4. Strategic Pillars */}
+      <section className="py-32 px-6 bg-white">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
+           {[
+             { icon: Cpu, title: "الذكاء الوميضي", desc: "خوارزميات AI تراقب نبض الأسواق العالمية لتوفر لك إشارات تداول بدقة مجهرية." },
+             { icon: Lock, title: "حوكمة الأمان", desc: "نظام تشفير AES-256 ورمز PIN للخزنة لضمان سيادتك الكاملة على كافة معاملاتك." },
+             { icon: Zap, title: "السيولة الفورية", desc: "بروتوكولات سحب وإيداع ذكية تعمل عبر البلوكشين لتنفيذ طلباتك خلال دقائق." }
+           ].map((item, i) => (
+             <motion.div 
+               key={i} 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               transition={{ delay: i * 0.2 }}
+               className="p-10 rounded-[48px] bg-gray-50 hover:bg-white hover:shadow-2xl hover:-translate-y-2 border border-gray-100 transition-all duration-700 group"
+             >
+                <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-inner mb-8 group-hover:bg-[#002d4d] transition-all">
+                   <item.icon className="h-8 w-8 text-[#002d4d] group-hover:text-[#f9a885]" />
+                </div>
+                <h3 className="text-xl font-black text-[#002d4d] mb-4">{item.title}</h3>
+                <p className="text-gray-400 font-bold leading-loose text-sm">{item.desc}</p>
+             </motion.div>
+           ))}
+        </div>
+      </section>
+
+      {/* 5. Trust Footer */}
+      <footer className="bg-[#002d4d] pt-32 pb-12 px-6 text-white relative overflow-hidden">
+         <div className="absolute bottom-0 right-0 p-20 opacity-[0.03] pointer-events-none">
+            <Logo size="lg" className="brightness-200" />
+         </div>
+         
+         <div className="max-w-6xl mx-auto space-y-24 relative z-10 text-right">
+            <div className="grid md:grid-cols-2 gap-20">
+               <div className="space-y-8">
+                  <Logo size="md" className="brightness-200" />
+                  <p className="text-blue-100/60 font-bold leading-[2.2] max-w-sm">
+                    ناميكس هي مستقبل الاقتصاد الرقمي. نحن نبني الجسور بين السيولة التقليدية والنمو اللامركزي لتأمين حياة مالية أفضل.
+                  </p>
+               </div>
+               <div className="grid grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                     <h4 className="font-black text-xs uppercase tracking-widest text-[#f9a885]">المستندات</h4>
+                     <ul className="space-y-4 text-[11px] font-bold text-white/40">
+                        <li className="hover:text-white cursor-pointer transition-colors">ميثاق الاستخدام</li>
+                        <li className="hover:text-white cursor-pointer transition-colors">سياسة السيادة</li>
+                        <li className="hover:text-white cursor-pointer transition-colors">الأكاديمية</li>
+                     </ul>
+                  </div>
+                  <div className="space-y-6">
+                     <h4 className="font-black text-xs uppercase tracking-widest text-blue-400">التواصل</h4>
+                     <ul className="space-y-4 text-[11px] font-bold text-white/40">
+                        <li className="hover:text-white cursor-pointer transition-colors">الدعم المباشر</li>
+                        <li className="hover:text-white cursor-pointer transition-colors">المجتمع العالمي</li>
+                        <li className="hover:text-white cursor-pointer transition-colors">الشركاء</li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+
+            <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 opacity-30 text-center md:text-right">
+               <p className="text-[10px] font-black uppercase tracking-[0.6em]">© 2024 Namix Universal Protocol</p>
+               <div className="flex gap-2">
+                  {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-white" />))}
+               </div>
+            </div>
+         </div>
+      </footer>
+    </div>
   );
 }

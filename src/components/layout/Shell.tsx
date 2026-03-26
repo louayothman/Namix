@@ -17,7 +17,8 @@ import {
   Headset,
   Activity,
   Settings,
-  BarChart3
+  BarChart3,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
@@ -26,8 +27,8 @@ import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Shell - إطار العمل السيادي v5.0
- * تم تحسينه لمنع إعادة الرندر غير الضرورية وفصل منطق النبض (Pulse) عن الواجهة.
+ * Shell - إطار العمل السيادي v5.5
+ * تم تحديث روابط التنقل لتدعم الفصل بين صفحة الهبوط ولوحة القيادة.
  */
 const NavItem = memo(({ item, active, isAdmin }: { item: any, active: boolean, isAdmin: boolean }) => (
   <Link 
@@ -94,6 +95,14 @@ export function Shell({
     { name: "المستخدمين", href: "/admin/users", icon: Users },
     { name: "الإشعارات", href: "/admin/notifications", icon: Bell },
     { name: "الإعدادات", href: "/admin/settings", icon: Settings },
+  ], []);
+
+  const userNav = useMemo(() => [
+    { name: "الرئيسية", href: "/dashboard", icon: Home },
+    { name: "الأسواق", href: "/trade", icon: Activity },
+    { name: "المختبر", href: "/invest", icon: Zap },
+    { name: "الساحة", href: "/arena", icon: Target },
+    { name: "الملف الشخصي", href: "/profile", icon: UserCircle }
   ], []);
 
   if (!mounted) return <div className="min-h-screen bg-white" />;
