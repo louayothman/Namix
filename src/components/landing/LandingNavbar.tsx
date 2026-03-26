@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -18,8 +17,8 @@ export function LandingNavbar() {
       >
         <Logo size="md" className="scale-90 md:scale-100" />
         
-        <div className="hidden lg:flex items-center gap-12">
-          {['الخدمات', 'الأسعار', 'عن نامكس', 'المساعدة'].map((item) => (
+        <div className="hidden lg:flex items-center gap-12" dir="rtl">
+          {['الخدمات', 'الأسعار', 'عن ناميكس', 'المساعدة'].map((item) => (
             <button key={item} className="text-[11px] font-black text-[#002d4d]/40 hover:text-[#002d4d] transition-all tracking-normal">{item}</button>
           ))}
         </div>

@@ -1,16 +1,7 @@
-
 "use client";
 
-import React from "react";
 import { motion } from "framer-motion";
-import { 
-  Users, 
-  Activity, 
-  Wallet, 
-  Globe, 
-  ShieldCheck, 
-  ChevronLeft 
-} from "lucide-react";
+import { Users, Activity, Wallet, Globe, ShieldCheck, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -24,20 +15,20 @@ const stats = [
 
 export function StatsSection() {
   return (
-    <section className="py-32 px-6 relative">
+    <section className="py-32 px-6 relative bg-white">
        <motion.div 
          initial={{ opacity: 0, scale: 0.95 }}
          whileInView={{ opacity: 1, scale: 1 }}
          viewport={{ once: true }}
          transition={{ duration: 1.2 }}
-         className="container mx-auto bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-white overflow-hidden relative group"
+         className="container mx-auto bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-white overflow-hidden relative group shadow-2xl"
        >
           <div className="absolute top-0 right-0 p-20 opacity-[0.03] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110 group-hover:rotate-0">
              <Globe size={500} />
           </div>
           
           <div className="relative z-10 grid lg:grid-cols-2 gap-20 items-center">
-             <div className="space-y-10 text-center lg:text-right">
+             <div className="space-y-10 text-center lg:text-right" dir="rtl">
                 <div className="h-20 w-20 rounded-[28px] bg-[#f9a885] flex items-center justify-center shadow-2xl shadow-orange-900/40 mx-auto lg:mr-0">
                    <ShieldCheck size={40} className="text-[#002d4d]" />
                 </div>
@@ -58,7 +49,7 @@ export function StatsSection() {
                 </Link>
              </div>
 
-             <div className="grid grid-cols-2 gap-6">
+             <div className="grid grid-cols-2 gap-6" dir="rtl">
                 {stats.map((stat, i) => (
                   <motion.div 
                     key={i} 

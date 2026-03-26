@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -7,15 +6,17 @@ import { motion } from "framer-motion";
 
 // Modular Components
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroSection1 } from "@/components/landing/HeroSection1";
+import { HeroSection2 } from "@/components/landing/HeroSection2";
+import { HeroSection3 } from "@/components/landing/HeroSection3";
 import { MarketTicker } from "@/components/landing/MarketTicker";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v6.0 - Modular Architecture Edition
- * تم تفكيك الصفحة إلى مكونات مستقلة لسهولة الإدارة مع الحفاظ على الروح السينمائية.
+ * @fileOverview بوابة ناميكس العالمية v6.5 - Strategic Triple Hero Edition
+ * تم تقسيم الهيرو إلى 3 أقسام استراتيجية لتعزيز تجربة المستخدم.
  */
 
 export default function LandingPage() {
@@ -31,38 +32,31 @@ export default function LandingPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative" dir="rtl">
+    <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative">
       
-      {/* 1. السديم النوراني الخلفي (Atmospheric Glow) */}
+      {/* سديم نوراني خلفي هادئ */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity }}
-          className="absolute top-[-5%] left-[-10%] w-[70%] h-[70%] bg-blue-50/30 rounded-full blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.3, 0.1] }}
-          transition={{ duration: 18, repeat: Infinity }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#f9a885]/10 rounded-full blur-[120px]" 
+          className="absolute top-[-5%] left-[-10%] w-[70%] h-[70%] bg-blue-50/20 rounded-full blur-[120px]" 
         />
       </div>
 
-      {/* 2. شريط الملاحة (Bilingual Navbar) */}
       <LandingNavbar />
 
-      {/* 3. الهيرو السينمائي (Elite Hero) */}
-      <HeroSection />
-
-      {/* 4. نبض الأسواق اللحظي (Live Ticker) */}
+      <HeroSection1 />
+      
       <MarketTicker />
 
-      {/* 5. المميزات الذكية (Smart Features) */}
+      <HeroSection2 />
+
+      <HeroSection3 />
+
       <FeaturesSection />
 
-      {/* 6. جرد الشبكة (Reliability & Stats) */}
       <StatsSection />
 
-      {/* 7. التذييل العالمي (Global Footer) */}
       <LandingFooter />
 
     </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -19,7 +18,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-32 px-6 relative bg-gray-50/20">
+    <section className="py-32 px-6 relative bg-white">
        <div className="container mx-auto space-y-24">
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
@@ -27,6 +26,7 @@ export function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 1 }}
             className="text-center space-y-4 max-w-3xl mx-auto"
+            dir="rtl"
           >
              <Badge className="bg-[#002d4d]/5 text-[#002d4d] border-none px-5 py-1.5 rounded-full font-black text-[10px] tracking-widest uppercase">The Intelligent Edge</Badge>
              <h2 className="text-4xl md:text-6xl font-black text-[#002d4d] tracking-tight">لماذا يختار النخبة ناميكس؟</h2>
@@ -47,7 +47,7 @@ export function FeaturesSection() {
                   <div className={cn("h-16 w-16 rounded-[24px] flex items-center justify-center mb-10 shadow-inner transition-transform group-hover:rotate-12 duration-500", feat.bg)}>
                      <feat.icon size={32} className={feat.color} />
                   </div>
-                  <div className="space-y-4 text-right">
+                  <div className="space-y-4 text-right" dir="rtl">
                      <div className="flex flex-col">
                         <h3 className="text-2xl font-black text-[#002d4d] tracking-tight">{feat.title}</h3>
                         <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-1">{feat.en}</span>
