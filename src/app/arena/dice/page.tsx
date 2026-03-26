@@ -7,7 +7,7 @@ import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 import { Dices } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { ArenaHeader } from "@/components/arena/shared/ArenaHeader";
 import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
