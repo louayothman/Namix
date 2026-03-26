@@ -3,198 +3,197 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LucideIcon } from "lucide-react";
+import { Logo } from "@/components/layout/Logo";
+import { cn } from "@/lib/utils";
 
 interface ArenaIntroProps {
-  icon: LucideIcon;
+  icon: any;
   title: string;
   onComplete: () => void;
 }
 
 /**
- * @fileOverview SOVEREIGN KINETIC INTRO v1500.0
- * محرك ميكانيكي متصل: رسم متزامن -> دوران معاكس -> ومضة تحول -> ارتقاء وطباعة -> خروج عكسي متسلسل.
+ * @fileOverview محرك الأوركسترا السينمائية v1500.0 - Sovereign Kinetic Engine
+ * هندسة متكاملة لدخول وخروج العناصر بتسلسل ميكانيكي (عنصر تلو الآخر).
  */
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
-  // phases: 'initial' | 'plotting' | 'spinning' | 'switching' | 'lifting' | 'static' | 'exit_text' | 'exit_main'
-  const [phase, setPhase] = useState('initial');
+  const [step, setStep] = useState<"building" | "rotating" | "swapping" | "lifted" | "exiting">("building");
 
   useEffect(() => {
-    const sequence = async () => {
-      // 1. بدء البناء (رسم الإطارات)
-      setPhase('plotting');
-      await new Promise(r => setTimeout(r, 1200)); 
-      
-      // 2. الأوركسترا الدورانية (تداخل مع نهاية البناء)
-      setPhase('spinning');
-      await new Promise(r => setTimeout(r, 2200)); 
-      
-      // 3. ومضة التحول (The Flash Switch)
-      setPhase('switching');
-      await new Promise(r => setTimeout(r, 400)); 
-      
-      // 4. الارتقاء وطباعة الاسم
-      setPhase('lifting');
-      await new Promise(r => setTimeout(r, 2500)); 
-      
-      // 5. حالة الثبات السيادي
-      setPhase('static');
-      await new Promise(r => setTimeout(r, 1500)); 
-      
-      // 6. بدء الخروج العكسي (مسح الاسم أولاً)
-      setPhase('exit_text');
-      await new Promise(r => setTimeout(r, 800));
-      
-      // 7. الخروج الميكانيكي الشامل
-      setPhase('exit_main');
-      await new Promise(r => setTimeout(r, 1500));
-      
-      onComplete();
-    };
-    sequence();
+    const timer = setTimeout(() => {
+      setStep("exiting");
+      setTimeout(onComplete, 2500); // إجمالي وقت الخروج العكسي
+    }, 4500); // مدة العرض الكلي قبل الخروج
+    return () => clearTimeout(timer);
   }, [onComplete]);
 
-  const isSpinning = phase === 'spinning';
-  const isSwitching = phase === 'switching';
-  const isLifting = phase === 'lifting' || phase === 'static' || phase === 'exit_text';
-  const isExiting = phase === 'exit_main';
-  const showText = isLifting && phase !== 'exit_text';
+  // تواقيت مراحل الدخول
+  useEffect(() => {
+    if (step === "building") {
+      setTimeout(() => setStep("rotating"), 1200);
+    }
+    if (step === "rotating") {
+      setTimeout(() => setStep("swapping"), 1800);
+    }
+    if (step === "swapping") {
+      setTimeout(() => setStep("lifted"), 400);
+    }
+  }, [step]);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center overflow-hidden font-body">
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[500] flex flex-col items-center justify-center bg-white overflow-hidden font-body"
+    >
       <div className="relative flex flex-col items-center">
         
-        {/* المفاعل الهندسي المركزي */}
-        <motion.div 
-          animate={{ 
-            y: isLifting ? -35 : 0,
-            scale: isExiting ? 0.8 : 1,
-            opacity: isExiting ? 0 : 1
-          }}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-          className="relative flex items-center justify-center w-64 h-64"
-        >
-          {/* الإطارات والنقاط - محرك الرسم المتزامن */}
-          <motion.div 
-            className="absolute inset-0 flex items-center justify-center"
-            animate={{ 
-              rotate: isSpinning ? 360 : (isExiting ? -360 : 0),
-            }}
-            transition={{ 
-              duration: isSpinning ? 2.2 : (isExiting ? 1.2 : 0), 
-              ease: [0.76, 0, 0.24, 1] 
-            }}
-          >
-            <svg width="220" height="220" viewBox="0 0 100 100">
-              {/* الإطار المركزي */}
-              <motion.circle
-                cx="50" cy="50" r="30"
-                fill="none" stroke="#002d4d" strokeWidth="0.8"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: isExiting ? 0 : 1 }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-              />
-              {/* الإطار الخارجي */}
-              <motion.circle
-                cx="50" cy="50" r="42"
-                fill="none" stroke="#002d4d" strokeWidth="0.4"
-                opacity="0.15"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: isExiting ? 0 : 1 }}
-                transition={{ delay: 0.2, duration: 1.2, ease: "easeInOut" }}
-              />
-              
-              {/* النقاط التناظرية */}
-              <AnimatePresence>
-                {phase !== 'initial' && phase !== 'plotting' && !isExiting && [0, 90, 180, 270].map((angle, i) => {
-                  const x = 50 + 36 * Math.cos((angle * Math.PI) / 180);
-                  const y = 50 + 36 * Math.sin((angle * Math.PI) / 180);
-                  return (
-                    <motion.circle
-                      key={i} cx={x} cy={y} r="1.2" fill="#002d4d"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                    />
-                  );
-                })}
-              </AnimatePresence>
-            </svg>
-          </motion.div>
+        {/* محرك الإطارات المتزامن */}
+        <div className="relative flex items-center justify-center">
+          <svg width="240" height="240" className="rotate-[-90deg]">
+            {/* الإطار المركزي */}
+            <motion.circle
+              cx="120" cy="120" r="50"
+              fill="none" stroke="#f1f5f9" strokeWidth="1"
+              initial={{ pathLength: 0 }}
+              animate={{ 
+                pathLength: step === "exiting" ? 0 : 1,
+                rotate: step === "rotating" ? -360 : 0
+              }}
+              transition={{ 
+                pathLength: { duration: 1, ease: "easeInOut" },
+                rotate: { duration: 2, ease: "easeInOut" }
+              }}
+            />
+            {/* الإطار الخارجي */}
+            <motion.circle
+              cx="120" cy="120" r="85"
+              fill="none" stroke="#f1f5f9" strokeWidth="1.5"
+              initial={{ pathLength: 0 }}
+              animate={{ 
+                pathLength: step === "exiting" ? 0 : 1,
+                rotate: step === "rotating" ? -360 : 0
+              }}
+              transition={{ 
+                pathLength: { duration: 1.2, ease: "easeInOut", delay: 0.2 },
+                rotate: { duration: 2, ease: "easeInOut" }
+              }}
+            />
+          </svg>
 
-          {/* محرك الهوية - ومضة التحول */}
-          <div className="relative z-10 flex items-center justify-center">
+          {/* النقاط التناظرية */}
+          {[0, 90, 180, 270].map((angle, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 bg-[#002d4d] rounded-full"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: step === "exiting" ? 0 : 1, 
+                opacity: step === "exiting" ? 0 : 0.2,
+                rotate: step === "rotating" ? -360 : 0 
+              }}
+              style={{
+                top: `calc(50% + ${Math.sin((angle * Math.PI) / 180) * 68}px)`,
+                left: `calc(50% + ${Math.cos((angle * Math.PI) / 180) * 68}px)`,
+                transform: 'translate(-50%, -50%)'
+              }}
+              transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
+            />
+          ))}
+
+          {/* بؤرة الهوية المركزية */}
+          <div className="absolute inset-0 flex items-center justify-center">
             <AnimatePresence mode="wait">
-              {isLifting ? (
-                <motion.div
-                  key="game-icon"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="text-[#002d4d]"
-                >
-                  <Icon size={44} strokeWidth={1.5} />
-                </motion.div>
-              ) : (phase === 'spinning' || phase === 'plotting') ? (
+              {/* شعار ناميكس في البداية */}
+              {(step === "building" || step === "rotating") && (
                 <motion.div
                   key="namix-logo"
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ 
-                    opacity: 1, 
-                    scale: 1,
-                    rotate: isSpinning ? -360 : 0
+                    scale: 1, 
+                    opacity: 1,
+                    rotate: step === "rotating" ? 360 : 0
                   }}
-                  exit={{ opacity: 0 }}
+                  exit={{ opacity: 0, scale: 1.2 }}
                   transition={{ 
-                    rotate: { duration: 2.2, ease: [0.76, 0, 0.24, 1] }
+                    opacity: { duration: 0.6 },
+                    scale: { duration: 0.6 },
+                    rotate: { duration: 2, ease: "easeInOut" }
                   }}
-                  className="grid grid-cols-2 gap-1.5"
                 >
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
-                  <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
-                  <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
+                  <Logo size="sm" />
                 </motion.div>
-              ) : null}
+              )}
+
+              {/* أيقونة اللعبة بعد الومضة */}
+              {(step === "swapping" || step === "lifted" || (step === "exiting" && step !== "building")) && (
+                <motion.div
+                  key="game-icon"
+                  initial={{ scale: 1.5, opacity: 0 }}
+                  animate={{ 
+                    scale: 1, 
+                    opacity: step === "exiting" ? 0 : 1,
+                    y: step === "lifted" ? -40 : 0 
+                  }}
+                  transition={{ 
+                    scale: { type: "spring", stiffness: 300, damping: 20 },
+                    y: { duration: 0.8, ease: [0.76, 0, 0.24, 1] }
+                  }}
+                  className="text-[#002d4d]"
+                >
+                  <Icon size={48} strokeWidth={1.5} />
+                </motion.div>
+              )}
             </AnimatePresence>
 
-            {/* الومضة الضوئية (The Switch Flash) */}
+            {/* ومضة التحول (The Flash) */}
             <AnimatePresence>
-              {isSwitching && (
+              {step === "swapping" && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: [0, 1, 0], scale: [0, 2.5, 3] }}
-                  className="absolute inset-0 bg-white rounded-full z-20 blur-xl"
+                  animate={{ opacity: [0, 1, 0], scale: [0, 2, 3] }}
+                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.4 }}
+                  className="absolute inset-0 bg-white rounded-full z-20"
                 />
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
 
-        {/* اسم اللعبة - الآلة الكاتبة العالمية (LTR) */}
-        <div className="h-10 flex items-center justify-center overflow-hidden" dir="ltr">
+        {/* اسم اللعبة - محرك الآلة الكاتبة */}
+        <div className="absolute top-[60%] w-full flex justify-center">
           <AnimatePresence>
-            {showText && (
-              <motion.div className="flex relative mt-[-15px]">
-                {title.split("").map((char, i) => (
-                  <motion.span
-                    key={i}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 5 }}
-                    transition={{ delay: i * 0.04, duration: 0.3 }}
-                    className="text-[#002d4d] font-black text-[12px] tracking-[0.3em] inline-block whitespace-pre"
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-                {/* تأثير الشيمر الضوئي */}
+            {step === "lifted" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className="flex overflow-hidden">
+                  {title.split("").map((char, i) => (
+                    <motion.span
+                      key={i}
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "auto", opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ 
+                        delay: i * 0.05, 
+                        duration: 0.3,
+                        exit: { delay: (title.length - i) * 0.03 }
+                      }}
+                      className="text-[12px] font-black text-[#002d4d] uppercase tracking-[0.3em] whitespace-pre"
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                </div>
+                {/* خيط الشيمر الفاخر */}
                 <motion.div 
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 1 }}
-                  className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] pointer-events-none"
+                  initial={{ width: 0 }}
+                  animate={{ width: 40 }}
+                  className="h-[1px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent"
                 />
               </motion.div>
             )}
@@ -202,20 +201,15 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
         </div>
       </div>
 
-      {/* ختم ناميكس السفلي - مجهري وصامت */}
+      {/* تذييل ناميكس الصامت */}
       <motion.div 
         initial={{ opacity: 0 }}
-        animate={{ opacity: isExiting ? 0 : 0.15 }}
-        className="absolute bottom-10 flex items-center gap-2 grayscale pointer-events-none select-none"
+        animate={{ opacity: step === "exiting" ? 0 : 0.15 }}
+        className="absolute bottom-12 flex flex-col items-center gap-2 grayscale"
       >
-         <div className="grid grid-cols-2 gap-0.5">
-            <div className="h-1 w-1 rounded-full bg-[#002d4d]" />
-            <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-            <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-            <div className="h-1 w-1 rounded-full bg-[#002d4d]" />
-         </div>
-         <span className="text-[8px] font-black text-[#002d4d] tracking-[0.4em] uppercase">namix</span>
+        <Logo size="sm" />
+        <p className="text-[7px] font-black uppercase tracking-[0.6em]">Sovereign Network</p>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
