@@ -15,7 +15,7 @@ import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
 /**
- * @fileOverview صفحة المناجم السيادية v1700.0 - معالجة أخطاء الاستيراد
+ * @fileOverview صفحة المناجم السيادية v1800.0 - تفعيل AnimatePresence
  */
 export default function MinesPage() {
   const db = useFirestore();

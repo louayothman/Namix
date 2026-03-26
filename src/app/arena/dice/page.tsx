@@ -15,7 +15,7 @@ import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
 /**
- * @fileOverview صفحة النرد السيادية v1700.0 - معالجة أخطاء السنتاكس
+ * @fileOverview صفحة النرد السيادية v1800.0 - تصحيح أخطاء السنتاكس والاستيراد
  */
 export default function DicePage() {
   const db = useFirestore();
