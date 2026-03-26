@@ -18,7 +18,10 @@ import {
   Activity,
   Settings,
   BarChart3,
-  Home
+  Home,
+  Zap,
+  Target,
+  UserCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
@@ -27,8 +30,8 @@ import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Shell - إطار العمل السيادي v5.5
- * تم تحديث روابط التنقل لتدعم الفصل بين صفحة الهبوط ولوحة القيادة.
+ * Shell - إطار العمل السيادي v5.6
+ * تم تصحيح استيراد الأيقونات المفقودة لضمان استقرار الملاحة.
  */
 const NavItem = memo(({ item, active, isAdmin }: { item: any, active: boolean, isAdmin: boolean }) => (
   <Link 
