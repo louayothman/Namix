@@ -165,7 +165,7 @@ export default function TradeWatchlistPage() {
                  {isSearchOpen ? <X size={18}/> : <Search size={18}/>}
               </button>
 
-              <button onClick={() => router.push('/')} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] flex items-center justify-center transition-all active:scale-90 shadow-inner border border-gray-100 bg-white text-gray-400 hover:text-[#002d4d] hover:bg-gray-50/50">
+              <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] flex items-center justify-center transition-all active:scale-90 shadow-inner border border-gray-100 bg-white text-gray-400 hover:text-[#002d4d] hover:bg-gray-50/50">
                  <ChevronLeft size={20} className="transition-transform hover:-translate-x-1" />
               </button>
            </div>

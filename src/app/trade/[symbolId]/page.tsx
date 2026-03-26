@@ -178,7 +178,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
                 </button>
 
                 <button onClick={() => setHistoryOpen(true)} className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 transition-all shadow-sm active:scale-90" title="سجل التداول"><Clock size={16} /></button>
-                <button onClick={() => router.push('/trade')} className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#002d4d] border border-gray-100 active:scale-90 shadow-inner"><ChevronLeft size={18} /></button>
+                <button onClick={() => router.back()} className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#002d4d] border border-gray-100 active:scale-90 shadow-inner"><ChevronLeft size={18} /></button>
               </div>
            </div>
         </header>

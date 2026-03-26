@@ -12,11 +12,12 @@ import { Gift, Clock, CheckCircle2, ChevronRight, Sparkles, Zap, Coins, Hash, Us
 import { format } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function MyVouchersPage() {
+  const router = useRouter();
   const [localUser, setLocalUser] = useState<any>(null);
   const db = useFirestore();
 
@@ -61,11 +62,9 @@ export default function MyVouchersPage() {
             <h1 className="text-3xl font-black text-[#002d4d]">القسائم والهدايا</h1>
             <p className="text-muted-foreground font-bold text-[10px]">سجل الصكوك الاستثمارية الصادرة والمستلمة.</p>
           </div>
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
-              <ChevronRight className="h-6 w-6 text-[#002d4d]" />
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
+            <ChevronRight className="h-6 w-6 text-[#002d4d]" />
+          </Button>
         </div>
 
         <Tabs defaultValue="issued" className="w-full space-y-8">

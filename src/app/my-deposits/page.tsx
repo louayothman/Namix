@@ -13,10 +13,11 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 export default function MyDepositsPage() {
+  const router = useRouter();
   const [localUser, setLocalUser] = useState<any>(null);
   const db = useFirestore();
 
@@ -49,11 +50,9 @@ export default function MyDepositsPage() {
             <h1 className="text-2xl font-black text-[#002d4d] tracking-tight">إيداعاتي</h1>
             <p className="text-muted-foreground font-bold text-[10px]">تتبع كافة طلبات شحن الرصيد والعمليات المؤكدة.</p>
           </div>
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-12 w-12 border border-gray-50">
-              <ChevronRight className="h-6 w-6 text-[#002d4d]" />
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-12 w-12 border border-gray-50">
+            <ChevronRight className="h-6 w-6 text-[#002d4d]" />
+          </Button>
         </div>
 
         {error && (

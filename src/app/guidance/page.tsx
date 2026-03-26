@@ -153,7 +153,7 @@ export default function GuidancePage() {
             <h1 className="text-3xl font-black text-[#002d4d]">بوصلة التوجيه</h1>
             <p className="text-muted-foreground font-bold text-[10px]">هندسة المسار المالي لتحقيق طموحاتك الاستثمارية.</p>
           </div>
-          <button onClick={() => router.push('/')} className="h-12 w-12 rounded-full bg-white shadow-sm border border-gray-50 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all">
+          <button onClick={() => router.back()} className="h-12 w-12 rounded-full bg-white shadow-sm border border-gray-50 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all">
             <ChevronRight className="h-6 w-6" />
           </button>
         </div>

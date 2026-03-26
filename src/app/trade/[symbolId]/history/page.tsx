@@ -79,7 +79,7 @@ function HistoryContent({ params }: { params: Promise<{ symbolId: string }> }) {
     <div className="max-w-6xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right relative" dir="rtl">
       <div className="absolute top-8 right-6 z-50">
         <button 
-          onClick={() => router.push(`/trade/${symbolId}`)} 
+          onClick={() => router.back()} 
           className="h-12 w-12 rounded-[20px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] hover:shadow-xl transition-all active:scale-90 group"
         >
           <ChevronRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />

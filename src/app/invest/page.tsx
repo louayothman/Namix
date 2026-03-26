@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -57,7 +58,7 @@ function InvestContent() {
         <header className="px-6 pt-6 pb-4 flex items-center justify-between shrink-0 z-50">
           <div className="flex items-center gap-3">
              <button 
-               onClick={() => router.push('/')} 
+               onClick={() => router.back()} 
                className="h-9 w-9 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all"
              >
                <ChevronRight className="h-5 w-5" />

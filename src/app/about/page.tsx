@@ -5,11 +5,12 @@ import { Shell } from "@/components/layout/Shell";
 import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ShieldCheck, Target, Zap, Globe, Sparkles, Loader2, Info } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 export default function AboutPage() {
+  const router = useRouter();
   const db = useFirestore();
   const legalDocRef = useMemoFirebase(() => doc(db, "system_settings", "legal"), [db]);
   const { data: legal, isLoading } = useDoc(legalDocRef);
@@ -26,11 +27,9 @@ export default function AboutPage() {
             <h1 className="text-3xl font-black text-[#002d4d]">من نحن</h1>
             <p className="text-muted-foreground font-bold text-[10px]">تعرف على رؤية ناميكس في عالم الاقتصاد الرقمي.</p>
           </div>
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
-              <ChevronRight className="h-6 w-6 text-[#002d4d]" />
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
+            <ChevronRight className="h-6 w-6 text-[#002d4d]" />
+          </Button>
         </div>
 
         <div className="flex flex-col items-center text-center space-y-8 py-10 relative">

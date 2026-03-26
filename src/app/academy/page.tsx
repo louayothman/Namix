@@ -38,7 +38,7 @@ import {
   Gem,
   Award
 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -51,6 +51,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function AcademyPage() {
+  const router = useRouter();
   const db = useFirestore();
   const academyRef = useMemoFirebase(() => doc(db, "system_settings", "academy"), [db]);
   const { data: academy, isLoading } = useDoc(academyRef);
@@ -67,17 +68,15 @@ export default function AcademyPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[8px] uppercase tracking-[0.3em]">
-              <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               Namix Insight Academy
             </div>
             <h1 className="text-2xl font-black text-[#002d4d] tracking-tight">أكاديمية الذكاء المالي</h1>
             <p className="text-muted-foreground font-bold text-[9px]">اتقن مهارات الاستثمار الرقمي وفهم بروتوكولات السيادة المالية.</p>
           </div>
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-12 w-12 border border-gray-50 active:scale-95 transition-all hover:shadow-md">
-              <ChevronRight className="h-5 w-5 text-[#002d4d]" />
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-12 w-12 border border-gray-50 active:scale-95 transition-all hover:shadow-md">
+            <ChevronRight className="h-5 w-5 text-[#002d4d]" />
+          </Button>
         </div>
 
         {/* Hero Banner - Compact Glassmorphism */}

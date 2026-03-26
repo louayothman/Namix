@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [localUser, setLocalUser] = useState<any>(null);
   const db = useFirestore();
 
@@ -68,11 +69,9 @@ export default function NotificationsPage() {
             <h1 className="text-3xl font-black text-[#002d4d] tracking-tight">مركز التنبيهات</h1>
             <p className="text-muted-foreground font-bold text-[10px]">تابع آخر التحديثات والرسائل الإدارية على حسابك.</p>
           </div>
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
-              <ChevronRight className="h-6 w-6 text-[#002d4d]" />
-            </Button>
-          </Link>
+          <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-14 w-14 border border-gray-50 transition-all hover:shadow-md">
+            <ChevronRight className="h-6 w-6 text-[#002d4d]" />
+          </Button>
         </div>
 
         <div className="flex justify-between items-center px-4">

@@ -15,6 +15,7 @@ import {
   Activity, 
   Coins, 
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   Lock,
   Cpu

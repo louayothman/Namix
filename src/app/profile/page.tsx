@@ -85,7 +85,7 @@ function ProfileContent() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
              <button 
-               onClick={() => router.push('/')} 
+               onClick={() => router.back()} 
                className="h-12 w-12 rounded-[20px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
              >
                <ChevronRight className="h-6 w-6" />
@@ -143,7 +143,7 @@ function ProfileContent() {
 
         <ChangePasswordDialog 
           open={changePasswordOpen}
-          onOpenChange={setChangePasswordOpen}
+          onOpenChange={changePasswordOpen}
           userId={user.id}
           dbUser={dbUser}
         />
