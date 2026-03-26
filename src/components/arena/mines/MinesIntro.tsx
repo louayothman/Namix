@@ -10,35 +10,37 @@ interface MinesIntroProps {
 }
 
 /**
- * @fileOverview SOVEREIGN MINES MECHANICAL INTRO v1400.0
- * محرك ميكانيكي متصل: تداخل الحركات، دخول انسيابي للهوية، ووميض حصري للتحول.
+ * @fileOverview SOVEREIGN MINES CINEMATIC INTRO v1500.0
+ * محرك ميكانيكي متصل: رسم متزامن -> دوران معاكس -> ومضة تحول -> ارتقاء وطباعة -> خروج عكسي.
  */
 export function MinesIntro({ onComplete }: MinesIntroProps) {
-  // phases: 'drawing' | 'points' | 'namix_entry' | 'rotating' | 'flash_swap' | 'lift_type' | 'exit'
+  // phases: 'plotting' | 'logo' | 'spinning' | 'flash' | 'reveal' | 'exit'
   const [phase, setPhase] = useState('initial');
   const gameName = "SOVEREIGN MINES";
 
   useEffect(() => {
     const sequence = async () => {
-      setPhase('drawing');
-      await new Promise(r => setTimeout(r, 800)); // تداخل مع الرسم
+      // 1. رسم الإطارات (البداية)
+      setPhase('plotting');
+      await new Promise(r => setTimeout(r, 800)); 
       
-      setPhase('points');
-      await new Promise(r => setTimeout(r, 400)); // تداخل مع ظهور النقاط
+      // 2. ظهور شعار ناميكس (تداخل مع نهاية الرسم)
+      setPhase('logo');
+      await new Promise(r => setTimeout(r, 600)); 
       
-      setPhase('namix_entry');
-      await new Promise(r => setTimeout(r, 600)); // دخول انسيابي للشعار
+      // 3. الأوركسترا الدورانية المعاكسة
+      setPhase('spinning');
+      await new Promise(r => setTimeout(r, 2200)); 
       
-      setPhase('rotating');
-      await new Promise(r => setTimeout(r, 2000)); // دوران ميكانيكي
+      // 4. ومضة التحول (Flash)
+      setPhase('flash');
+      await new Promise(r => setTimeout(r, 400)); 
       
-      setPhase('flash_swap');
-      await new Promise(r => setTimeout(r, 300)); // ومضة التبديل الخاطفة
+      // 5. الارتقاء وطباعة الاسم
+      setPhase('reveal');
+      await new Promise(r => setTimeout(r, 2800)); 
       
-      setPhase('lift_type');
-      await new Promise(r => setTimeout(r, 2500)); // ارتقاء وطباعة
-      
-      // بروتوكول الخروج العكسي المتصل
+      // 6. بروتوكول الخروج العكسي المتسلسل
       setPhase('exit');
       await new Promise(r => setTimeout(r, 2200));
       
@@ -47,39 +49,47 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
     sequence();
   }, [onComplete]);
 
-  const isLifted = phase === 'lift_type';
+  const isSpinning = phase === 'spinning';
+  const isRevealed = phase === 'reveal';
   const isExiting = phase === 'exit';
-  const showIcon = phase === 'flash_swap' || isLifted;
-  const isNamixActive = phase === 'namix_entry' || phase === 'rotating';
+  const isFlashActive = phase === 'flash';
+  
+  // التحكم في ظهور أيقونة اللعبة (تظهر من الومضة حتى الخروج)
+  const showGameIcon = (isFlashActive || isRevealed) && !isExiting;
+  // التحكم في ظهور شعار ناميكس (يظهر من مرحلة اللوجو حتى الومضة)
+  const showNamixLogo = (phase === 'logo' || phase === 'spinning') && !isFlashActive;
 
   return (
     <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center overflow-hidden font-body">
       <div className="relative flex flex-col items-center">
         
-        {/* المفاعل الهندسي المركزي */}
+        {/* المفاعل الهندسي المركزي - انزياح للأعلى/الأسفل */}
         <motion.div 
           animate={{ 
-            y: isLifted ? -35 : (isExiting ? 0 : 0),
-            scale: isLifted ? 0.85 : (isExiting ? 0.7 : 1),
+            y: isRevealed ? -35 : 0,
+            scale: isExiting ? 0.7 : 1,
             opacity: isExiting ? 0 : 1
           }}
           transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
           className="relative flex items-center justify-center w-64 h-64"
         >
-          {/* الإطارات والنقاط - الحركة الدورانية المعاكسة */}
+          {/* الإطارات والنقاط - الدوران المعاكس */}
           <motion.div 
             className="absolute inset-0 flex items-center justify-center"
             animate={{ 
-              rotate: (phase === 'rotating' || isLifted) ? 360 : 0,
+              rotate: isSpinning ? 360 : (isExiting ? -360 : 0),
             }}
-            transition={{ duration: 2.2, ease: "easeInOut" }}
+            transition={{ 
+              duration: isSpinning ? 2.2 : (isExiting ? 1.5 : 0), 
+              ease: [0.76, 0, 0.24, 1] 
+            }}
           >
             <svg width="220" height="220" viewBox="0 0 100 100">
               <motion.circle
                 cx="50" cy="50" r="30"
                 fill="none" stroke="#002d4d" strokeWidth="0.8"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: isExiting ? 0 : (phase !== 'initial' ? 1 : 0) }}
+                animate={{ pathLength: isExiting ? 0 : 1 }}
                 transition={{ duration: 1.2, ease: "easeInOut" }}
               />
               <motion.circle
@@ -87,13 +97,13 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                 fill="none" stroke="#002d4d" strokeWidth="0.4"
                 opacity="0.15"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: isExiting ? 0 : (phase !== 'initial' ? 1 : 0) }}
+                animate={{ pathLength: isExiting ? 0 : 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "easeInOut" }}
               />
               
               {/* النقاط التناظرية */}
               <AnimatePresence>
-                {(phase !== 'initial' && phase !== 'drawing' && !isExiting) && [0, 90, 180, 270].map((angle, i) => {
+                {phase !== 'initial' && phase !== 'plotting' && !isExiting && [0, 90, 180, 270].map((angle, i) => {
                   const x = 50 + 36 * Math.cos((angle * Math.PI) / 180);
                   const y = 50 + 36 * Math.sin((angle * Math.PI) / 180);
                   return (
@@ -110,10 +120,10 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
             </svg>
           </motion.div>
 
-          {/* محرك الهوية: تلاشي ناميكس -> ومضة -> أيقونة اللعبة */}
+          {/* محرك الهوية والتحول بالومضة */}
           <div className="relative z-10 flex items-center justify-center">
             <AnimatePresence mode="wait">
-              {showIcon && !isExiting ? (
+              {showGameIcon ? (
                 <motion.div
                   key="game-icon"
                   initial={{ opacity: 0, scale: 0.5 }}
@@ -123,19 +133,19 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                 >
                   <Gem size={44} strokeWidth={1.5} />
                 </motion.div>
-              ) : isNamixActive && (
+              ) : showNamixLogo ? (
                 <motion.div
                   key="namix-logo"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ 
                     opacity: 1, 
                     scale: 1,
-                    rotate: phase === 'rotating' ? -360 : 0
+                    rotate: isSpinning ? -360 : 0
                   }}
                   exit={{ opacity: 0 }}
                   transition={{ 
-                    opacity: { duration: 0.6 },
-                    rotate: { duration: 2.2, ease: "easeInOut" }
+                    opacity: { duration: 0.4 },
+                    rotate: { duration: 2.2, ease: [0.76, 0, 0.24, 1] }
                   }}
                   className="grid grid-cols-2 gap-1.5"
                 >
@@ -144,12 +154,12 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                   <div className="h-3 w-3 rounded-full bg-[#f9a885]" />
                   <div className="h-3 w-3 rounded-full bg-[#002d4d]" />
                 </motion.div>
-              )}
+              ) : null}
             </AnimatePresence>
 
-            {/* الومضة التفاعلية الحصرية للتبديل */}
+            {/* الومضة الضوئية (Flash) */}
             <AnimatePresence>
-              {phase === 'flash_swap' && (
+              {(isFlashActive || (isExiting && phase === 'exit')) && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: [0, 1, 0], scale: [0, 2.5, 3] }}
@@ -161,10 +171,10 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
           </div>
         </motion.div>
 
-        {/* اسم اللعبة - LTR Typewriter */}
+        {/* اسم اللعبة - الآلة الكاتبة (LTR) */}
         <div className="h-10 flex items-center justify-center overflow-hidden" dir="ltr">
           <AnimatePresence>
-            {isLifted && !isExiting && (
+            {isRevealed && !isExiting && (
               <motion.div className="flex relative mt-[-15px]">
                 {gameName.split("").map((char, i) => (
                   <motion.span
@@ -178,23 +188,17 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                     {char}
                   </motion.span>
                 ))}
-                {/* Shimmer Effect */}
-                <motion.div 
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 1.5 }}
-                  className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg]"
-                />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* ختم ناميكس السفلي - Grayscale الصامت */}
+      {/* ختم ناميكس السفلي */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: isExiting ? 0 : 0.15 }}
-        className="absolute bottom-10 flex items-center gap-2 grayscale pointer-events-none"
+        className="absolute bottom-10 flex items-center gap-2 grayscale pointer-events-none select-none"
       >
          <div className="grid grid-cols-2 gap-0.5">
             <div className="h-1 w-1 rounded-full bg-[#002d4d]" />
