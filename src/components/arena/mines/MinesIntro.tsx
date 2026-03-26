@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gem, Sparkles } from "lucide-react";
+import { Gem } from "lucide-react";
 
 interface MinesIntroProps {
   onComplete: () => void;
@@ -49,18 +49,18 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
             transition={{ duration: 3, ease: "easeInOut" }}
           >
             <svg width="280" height="280" viewBox="0 0 100 100" className="overflow-visible">
-              {/* الإطار المركزي */}
+              {/* الإطار المركزي - زيادة السماكة */}
               <motion.circle
                 cx="50" cy="50" r="32"
-                fill="none" stroke="#002d4d" strokeWidth="0.4"
+                fill="none" stroke="#002d4d" strokeWidth="0.8"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{ duration: 1.2, ease: "easeInOut" }}
               />
-              {/* الإطار الخارجي */}
+              {/* الإطار الخارجي - زيادة السماكة */}
               <motion.circle
                 cx="50" cy="50" r="44"
-                fill="none" stroke="#f9a885" strokeWidth="0.2"
+                fill="none" stroke="#f9a885" strokeWidth="0.4"
                 strokeDasharray="2 2"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -118,7 +118,7 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                     scale: { duration: 0.8, ease: "easeOut" },
                     rotate: { duration: 3, ease: "easeInOut" }
                   }}
-                  className="grid grid-cols-2 gap-1.5 p-3 bg-white/80 backdrop-blur-md rounded-[20px] shadow-2xl border border-white"
+                  className="grid grid-cols-2 gap-1.5 p-0 bg-transparent border-none shadow-none"
                 >
                   <div className="h-3.5 w-3.5 rounded-full bg-[#002d4d]" />
                   <div className="h-3.5 w-3.5 rounded-full bg-[#f9a885]" />
@@ -130,13 +130,14 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
           </div>
         </motion.div>
 
-        {/* اسم اللعبة بالإنجليزية - انميشن الآلة الكاتبة مع شيمر */}
+        {/* اسم اللعبة بالإنجليزية - انميشن الآلة الكاتبة مع شيمر (LTR) */}
         <AnimatePresence>
           {(phase === 'naming' || phase === 'finishing') && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mt-2 flex items-center justify-center relative"
+              dir="ltr"
             >
               <div className="flex">
                 {gameName.split("").map((char, i) => (
@@ -145,7 +146,7 @@ export function MinesIntro({ onComplete }: MinesIntroProps) {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + i * 0.06, ease: "easeOut" }}
-                    className="text-[#002d4d] font-black text-xs tracking-[0.2em] inline-block"
+                    className="text-[#002d4d] font-black text-[10px] tracking-[0.25em] inline-block"
                   >
                     {char === " " ? "\u00A0" : char}
                   </motion.span>
