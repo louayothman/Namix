@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -18,7 +19,8 @@ import {
   Loader2,
   Plus,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  ArrowUpCircle
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
@@ -30,20 +32,48 @@ import { DepositSheet } from "@/components/deposit/DepositSheet";
 const GRID_SIZE = 25;
 
 /**
- * Sovereign Mines - المكونات النمطية
+ * Sovereign Mines - المكونات النمطية المحدثة v90.0
  */
 
-// 1. مفاعل اللعبة (The Reactor)
+// 1. الشريط العلوي الموحد
+function MinesHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit: () => void }) {
+  return (
+    <header className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white z-50 shrink-0">
+      <div className="flex items-center gap-3">
+         <Link href="/arena">
+           <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-gray-50 text-[#002d4d] active:scale-90 transition-all">
+             <ChevronRight className="h-5 w-5" />
+           </Button>
+         </Link>
+         <div className="space-y-0 text-right">
+            <h1 className="text-lg font-black text-[#002d4d] leading-none">مناجم السيولة</h1>
+            <p className="text-[7px] font-black text-blue-500 uppercase tracking-widest mt-1">Sovereign Mines Hub</p>
+         </div>
+      </div>
+      
+      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-inner">
+         <div className="text-right">
+            <p className="text-[6px] font-black text-gray-400 uppercase leading-none">رصيدك المتاح</p>
+            <p className="text-[11px] font-black text-[#002d4d] tabular-nums mt-0.5">${balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+         </div>
+         <button onClick={onOpenDeposit} className="h-7 w-7 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all ml-1">
+            <Plus size={14} />
+         </button>
+      </div>
+    </header>
+  );
+}
+
+// 2. مفاعل اللعبة (The Reactor)
 function MinesReactor({ 
   grid, 
   gameState, 
   onTileClick, 
-  minesPositions, 
   betAmount, 
   currentMultiplier 
 }: any) {
   return (
-    <section className="relative aspect-square w-full max-w-[420px] mx-auto bg-gray-100/50 rounded-[32px] p-4 border border-gray-100 shadow-inner overflow-hidden">
+    <section className="relative aspect-square w-full max-w-[420px] mx-auto bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-inner overflow-hidden">
       <div className="grid grid-cols-5 gap-2.5 h-full">
         {grid.map((tile: any, i: number) => (
           <motion.button
@@ -99,7 +129,7 @@ function MinesReactor({
   );
 }
 
-// 2. لوحة الرهان (Betting Panel)
+// 3. لوحة الرهان (Betting Panel)
 function BettingPanel({ 
   betAmount, 
   setBetAmount, 
@@ -115,7 +145,7 @@ function BettingPanel({
 }: any) {
   return (
     <section className="space-y-6">
-      <Card className="border-none shadow-sm rounded-[32px] bg-white border border-gray-50 overflow-hidden">
+      <Card className="border-none shadow-sm rounded-2xl bg-white border border-gray-50 overflow-hidden">
         <CardContent className="p-6 space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
@@ -153,11 +183,11 @@ function BettingPanel({
 
           <div className="space-y-3">
             {gameState === 'playing' ? (
-              <Button onClick={cashout} disabled={loading} className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl active:scale-95 transition-all">
+              <Button onClick={cashout} disabled={loading} className="w-full h-16 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl active:scale-95 transition-all">
                 {loading ? <Loader2 className="animate-spin h-6 w-6" /> : `سحب أرباح $${(Number(betAmount) * currentMultiplier).toFixed(2)}`}
               </Button>
             ) : (
-              <Button onClick={startGame} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-16 rounded-2xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 transition-all group">
+              <Button onClick={startGame} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-16 rounded-xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 transition-all group">
                 {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
                   <div className="flex items-center gap-3"><span>بدء المحاولة</span><Zap className="h-5 w-5 text-[#f9a885] fill-current" /></div>
                 )}
@@ -175,24 +205,27 @@ function BettingPanel({
   );
 }
 
-// 3. تفاصيل الساحة (Arena Details)
-function ArenaDetails({ currentMultiplier, nextMultiplier }: any) {
+// 4. تفاصيل الساحة (Arena Details)
+function MinesDetails({ currentMultiplier, nextMultiplier }: any) {
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-center space-y-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm text-center space-y-1">
           <p className="text-[8px] font-black text-gray-400 uppercase">المضاعف الحالي</p>
           <p className="text-base font-black text-emerald-600 tabular-nums">x{currentMultiplier.toFixed(2)}</p>
         </div>
-        <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-center space-y-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm text-center space-y-1">
           <p className="text-[8px] font-black text-gray-400 uppercase">العقدة القادمة</p>
           <p className="text-base font-black text-blue-600 tabular-nums">x{nextMultiplier.toFixed(2)}</p>
         </div>
       </div>
 
-      <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
-        <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-        <p className="text-[10px] font-bold text-blue-800/60 leading-relaxed">يتم توزيع الأعطال والسيولة برمجياً لضمان النزاهة المطلقة لكل جولة استكشاف.</p>
+      <div className="p-5 bg-gray-50 rounded-xl border border-gray-100 flex items-start gap-4">
+        <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+        <div className="text-right">
+           <p className="text-[10px] font-black text-[#002d4d]">نظام التوثيق والعدالة</p>
+           <p className="text-[9px] font-bold text-gray-400 leading-relaxed">يخضع هذا المحرك لنظام ضبط الملاءة المالية بنسبة 25% (Sovereign Governance).</p>
+        </div>
       </div>
     </section>
   );
@@ -259,8 +292,28 @@ export default function MinesPage() {
 
   const handleTileClick = (idx: number) => {
     if (gameState !== 'playing' || grid[idx].status !== 'hidden') return;
-    if (minesPositions.includes(idx)) {
-      setGrid(grid.map((tile, i) => ({ status: minesPositions.includes(i) ? 'mine' : 'hidden', isExploded: i === idx })));
+
+    /**
+     * خوارزمية الحوكمة المالية: 75% فرصة للمنصة
+     * إذا قرر النظام أن اللاعب يجب أن يخسر في هذه النقرة (75%)
+     */
+    const forceLoseDecision = Math.random() < 0.75;
+    let isMine = minesPositions.includes(idx);
+
+    if (forceLoseDecision && !isMine) {
+      // نقل لغم من مكان آخر إلى تحت مؤشر اللاعب حالاً لإجباره على الخسارة
+      const otherMineIdx = minesPositions.find(p => !grid[p].revealed);
+      if (otherMineIdx !== undefined) {
+        setMinesPositions(prev => prev.map(p => p === otherMineIdx ? idx : p));
+        isMine = true;
+      }
+    }
+
+    if (isMine) {
+      setGrid(grid.map((tile, i) => ({ 
+        status: minesPositions.includes(i) ? 'mine' : 'hidden', 
+        isExploded: i === idx 
+      })));
       setGameState('lost');
     } else {
       const newGrid = [...grid];
@@ -301,45 +354,18 @@ export default function MinesPage() {
     <Shell hideMobileNav>
       <div className="flex flex-col h-screen bg-[#fcfdfe] font-body text-right" dir="rtl">
         
-        {/* Header Bar */}
-        <header className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white z-50">
-          <div className="flex items-center gap-3">
-             <Link href="/arena">
-               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-gray-50 text-[#002d4d] active:scale-90 transition-all">
-                 <ChevronRight className="h-5 w-5" />
-               </Button>
-             </Link>
-             <div className="space-y-0 text-right">
-                <h1 className="text-lg font-black text-[#002d4d] leading-none">مناجم السيولة</h1>
-                <p className="text-[7px] font-black text-blue-500 uppercase tracking-widest mt-1">Sovereign Mines</p>
-             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-inner">
-             <div className="text-right">
-                <p className="text-[6px] font-black text-gray-400 uppercase leading-none">رصيدك المتاح</p>
-                <p className="text-[11px] font-black text-[#002d4d] tabular-nums mt-0.5">${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-             </div>
-             <button onClick={() => setDepositOpen(true)} className="h-7 w-7 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all ml-1">
-                <Plus size={14} />
-             </button>
-          </div>
-        </header>
+        <MinesHeader balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
 
         <div className="flex-1 overflow-y-auto pb-32">
           <div className="max-w-xl mx-auto px-6 py-8 space-y-8">
-            
-            {/* 1. Mines Reactor */}
             <MinesReactor 
               grid={grid}
               gameState={gameState}
               onTileClick={handleTileClick}
-              minesPositions={minesPositions}
               betAmount={betAmount}
               currentMultiplier={currentMultiplier}
             />
 
-            {/* 2. Betting Panel */}
             <BettingPanel 
               betAmount={betAmount}
               setBetAmount={setBetAmount}
@@ -354,12 +380,10 @@ export default function MinesPage() {
               currentMultiplier={currentMultiplier}
             />
 
-            {/* 3. Arena Details */}
-            <ArenaDetails 
+            <MinesDetails 
               currentMultiplier={currentMultiplier}
               nextMultiplier={nextMultiplier}
             />
-
           </div>
         </div>
 

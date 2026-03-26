@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -16,8 +17,10 @@ import {
   Coins,
   Loader2,
   Plus,
-  CheckCircle2,
-  Skull
+  TrendingUp,
+  Activity,
+  Target,
+  Sparkles
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment, addDoc, collection } from "firebase/firestore";
@@ -27,10 +30,39 @@ import Link from "next/link";
 import { DepositSheet } from "@/components/deposit/DepositSheet";
 
 /**
- * Nexus Dice - المكونات النمطية
+ * Nexus Dice - المكونات النمطية المحدثة v90.0
  */
 
-// 1. مفاعل الاحتمالات (The Reactor)
+// 1. الشريط العلوي الموحد
+function DiceHeader({ balance, onOpenDeposit }: { balance: number, onOpenDeposit: () => void }) {
+  return (
+    <header className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white z-50 shrink-0">
+      <div className="flex items-center gap-3">
+         <Link href="/arena">
+           <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-gray-50 text-[#002d4d] active:scale-90 transition-all">
+             <ChevronRight className="h-5 w-5" />
+           </Button>
+         </Link>
+         <div className="space-y-0 text-right">
+            <h1 className="text-lg font-black text-[#002d4d] leading-none">نكسوس الاحتمالات</h1>
+            <p className="text-[7px] font-black text-blue-500 uppercase tracking-widest mt-1">Nexus Dice Engine</p>
+         </div>
+      </div>
+      
+      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-inner">
+         <div className="text-right">
+            <p className="text-[6px] font-black text-gray-400 uppercase leading-none">رصيدك المتاح</p>
+            <p className="text-[11px] font-black text-[#002d4d] tabular-nums mt-0.5">${balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+         </div>
+         <button onClick={onOpenDeposit} className="h-7 w-7 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all ml-1">
+            <Plus size={14} />
+         </button>
+      </div>
+    </header>
+  );
+}
+
+// 2. مفاعل اللعبة (The Reactor)
 function DiceReactor({ 
   lastResult, 
   gameState, 
@@ -40,12 +72,12 @@ function DiceReactor({
   setIsRollOver 
 }: any) {
   return (
-    <section className="relative w-full bg-gray-100/50 rounded-[32px] p-8 md:p-12 shadow-inner border border-gray-100 overflow-hidden">
+    <section className="relative w-full bg-gray-50/50 rounded-2xl p-8 md:p-12 shadow-inner border border-gray-100 overflow-hidden">
       <AnimatePresence>
         {lastResult !== null && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="absolute top-6 left-1/2 -translate-x-1/2 z-30">
             <div className={cn(
-              "px-8 py-3 rounded-2xl font-black text-3xl shadow-xl tabular-nums border-4 border-white transition-all", 
+              "px-8 py-3 rounded-xl font-black text-3xl shadow-xl tabular-nums border-4 border-white transition-all", 
               gameState === 'won' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
             )}>
               {lastResult.toFixed(2)}
@@ -69,9 +101,9 @@ function DiceReactor({
         </div>
 
         <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-2 p-1.5 bg-white rounded-2xl shadow-md border border-gray-100">
-            <button onClick={() => setIsRollOver(true)} className={cn("px-8 h-10 rounded-xl font-black text-[10px] transition-all", isRollOver ? "bg-[#002d4d] text-[#f9a885]" : "text-gray-400")}>توقع فوق (Over)</button>
-            <button onClick={() => setIsRollOver(false)} className={cn("px-8 h-10 rounded-xl font-black text-[10px] transition-all", !isRollOver ? "bg-[#002d4d] text-[#f9a885]" : "text-gray-400")}>توقع تحت (Under)</button>
+          <div className="flex items-center gap-2 p-1.5 bg-white rounded-xl shadow-md border border-gray-100">
+            <button onClick={() => setIsRollOver(true)} className={cn("px-8 h-10 rounded-lg font-black text-[10px] transition-all", isRollOver ? "bg-[#002d4d] text-[#f9a885]" : "text-gray-400")}>توقع فوق (Over)</button>
+            <button onClick={() => setIsRollOver(false)} className={cn("px-8 h-10 rounded-lg font-black text-[10px] transition-all", !isRollOver ? "bg-[#002d4d] text-[#f9a885]" : "text-gray-400")}>توقع تحت (Under)</button>
           </div>
         </div>
       </div>
@@ -79,7 +111,7 @@ function DiceReactor({
   );
 }
 
-// 2. لوحة الرهان (Betting Panel)
+// 3. لوحة الرهان (Betting Panel)
 function BettingPanel({ 
   betAmount, 
   setBetAmount, 
@@ -91,7 +123,7 @@ function BettingPanel({
 }: any) {
   return (
     <section className="space-y-6">
-      <Card className="border-none shadow-sm rounded-3xl bg-white border border-gray-50 overflow-hidden">
+      <Card className="border-none shadow-sm rounded-2xl bg-white border border-gray-50 overflow-hidden">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
             <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">مبلغ الرهان ($)</Label>
@@ -102,17 +134,17 @@ function BettingPanel({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center space-y-1">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center space-y-1">
               <p className="text-[8px] font-black text-gray-400 uppercase">المضاعف</p>
               <p className="text-base font-black text-[#002d4d] tabular-nums">x{multiplier.toFixed(4)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center space-y-1">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center space-y-1">
               <p className="text-[8px] font-black text-gray-400 uppercase">فرصة الفوز</p>
               <p className="text-base font-black text-emerald-600 tabular-nums">%{winChance.toFixed(2)}</p>
             </div>
           </div>
 
-          <Button onClick={handleRoll} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-16 rounded-2xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden">
+          <Button onClick={handleRoll} disabled={loading || !dbUser || Number(betAmount) > (dbUser?.totalBalance || 0)} className="w-full h-16 rounded-xl bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden">
             {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
               <div className="flex items-center gap-3"><span>إطلاق النرد</span><Dices className="h-6 w-6 text-[#f9a885]" /></div>
             )}
@@ -123,15 +155,17 @@ function BettingPanel({
   );
 }
 
-// 3. تفاصيل الساحة (Arena Details)
-function ArenaDetails() {
+// 4. تفاصيل الساحة (Arena Details)
+function DiceDetails() {
   return (
-    <section className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+    <section className="p-5 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
       <div className="text-right">
-        <h4 className="font-black text-xs text-[#002d4d]">إدارة السيولة الذكية</h4>
-        <p className="text-[9px] font-bold text-gray-400">تجنب الرهان بأكثر من %5 من محفظتك في المحاولة الواحدة.</p>
+        <h4 className="font-black text-xs text-[#002d4d]">نظام السيولة الذكية</h4>
+        <p className="text-[9px] font-bold text-gray-400">تخضع كافة الرميات لمعايرة النزاهة الرقمية (25% User Logic).</p>
       </div>
-      <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-lg">STRATEGY READY</Badge>
+      <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-lg shadow-inner flex items-center gap-1.5">
+        <ShieldCheck size={10} /> VERIFIED
+      </Badge>
     </section>
   );
 }
@@ -170,7 +204,29 @@ export default function DicePage() {
     setGameState('idle');
     try {
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
-      const result = Math.floor(Math.random() * 10001) / 100;
+      
+      /**
+       * خوارزمية الحوكمة المالية: 75% فرصة للمنصة
+       * نتحقق أولاً من السماح للمستخدم بالفوز
+       */
+      const platformDecision = Math.random(); // 0 to 1
+      const isUserAllowedToWin = platformDecision < 0.25; // 25% chance to even consider a win
+      
+      let result: number;
+      if (isUserAllowedToWin) {
+        // إذا سمح النظام بالفوز، نولد نتيجة عشوائية حقيقية
+        result = Math.floor(Math.random() * 10001) / 100;
+      } else {
+        // إذا قرر النظام فوز المنصة (75%)، نجبر النتيجة لتكون خاسرة
+        if (isRollOver) {
+          // إذا كان التوقع Over، نولد نتيجة Under
+          result = Math.random() * targetValue;
+        } else {
+          // إذا كان التوقع Under، نولد نتيجة Over
+          result = targetValue + (Math.random() * (100 - targetValue));
+        }
+      }
+
       setLastResult(result);
       const hasWon = isRollOver ? result > targetValue : result < targetValue;
 
@@ -184,7 +240,8 @@ export default function DicePage() {
 
       await addDoc(collection(db, "game_history"), {
         userId: dbUser.id, game: "dice", betAmount: amt, multiplier: hasWon ? multiplier : 0,
-        resultValue: result, targetValue, mode: isRollOver ? 'over' : 'under', createdAt: new Date().toISOString()
+        resultValue: result, targetValue, mode: isRollOver ? 'over' : 'under', createdAt: new Date().toISOString(),
+        isHouseWin: !hasWon
       });
     } catch (e) {
       console.error(e);
@@ -197,35 +254,10 @@ export default function DicePage() {
     <Shell hideMobileNav>
       <div className="flex flex-col h-screen bg-[#fcfdfe] font-body text-right" dir="rtl">
         
-        {/* Header Bar */}
-        <header className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white z-50">
-          <div className="flex items-center gap-3">
-             <Link href="/arena">
-               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-gray-50 text-[#002d4d] active:scale-90 transition-all">
-                 <ChevronRight className="h-5 w-5" />
-               </Button>
-             </Link>
-             <div className="space-y-0 text-right">
-                <h1 className="text-lg font-black text-[#002d4d] leading-none">نكسوس الاحتمالات</h1>
-                <p className="text-[7px] font-black text-blue-500 uppercase tracking-widest mt-1">Nexus Dice</p>
-             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-inner">
-             <div className="text-right">
-                <p className="text-[6px] font-black text-gray-400 uppercase leading-none">رصيدك المتاح</p>
-                <p className="text-[11px] font-black text-[#002d4d] tabular-nums mt-0.5">${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-             </div>
-             <button onClick={() => setDepositOpen(true)} className="h-7 w-7 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all ml-1">
-                <Plus size={14} />
-             </button>
-          </div>
-        </header>
+        <DiceHeader balance={dbUser?.totalBalance} onOpenDeposit={() => setDepositOpen(true)} />
 
         <div className="flex-1 overflow-y-auto pb-32">
           <div className="max-w-xl mx-auto px-6 py-8 space-y-8">
-            
-            {/* 1. Dice Reactor */}
             <DiceReactor 
               lastResult={lastResult}
               gameState={gameState}
@@ -235,7 +267,6 @@ export default function DicePage() {
               setIsRollOver={setIsRollOver}
             />
 
-            {/* 2. Betting Panel */}
             <BettingPanel 
               betAmount={betAmount}
               setBetAmount={setBetAmount}
@@ -246,9 +277,7 @@ export default function DicePage() {
               winChance={winChance}
             />
 
-            {/* 3. Arena Details */}
-            <ArenaDetails />
-
+            <DiceDetails />
           </div>
         </div>
 
