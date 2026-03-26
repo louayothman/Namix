@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -14,9 +13,6 @@ import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
 import { MinesReactor } from "@/components/arena/mines/MinesReactor";
 import { MinesBetPanel } from "@/components/arena/mines/MinesBetPanel";
 
-/**
- * @fileOverview صفحة المناجم السيادية v1900.0 - معالجة أخطاء الاستيراد والـ Intro
- */
 export default function MinesPage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -14,9 +13,6 @@ import { ArenaIntro } from "@/components/arena/shared/ArenaIntro";
 import { DiceReactor } from "@/components/arena/dice/DiceReactor";
 import { DiceBetPanel } from "@/components/arena/dice/DiceBetPanel";
 
-/**
- * @fileOverview صفحة النرد السيادية v1900.0 - معالجة أخطاء السنتاكس والاستيراد
- */
 export default function DicePage() {
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
