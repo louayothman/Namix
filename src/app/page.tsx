@@ -22,14 +22,15 @@ import {
   Wallet,
   Coins,
   LineChart,
-  Target
+  Target,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v3.0 - Mobile Optimized & Market Sync
- * تم إصلاح التداخل في الموبايل وإضافة محرك الأسعار وأقسام تفاعلية جديدة.
+ * @fileOverview بوابة ناميكس العالمية v3.1 - Mobile Refined & Terminology Purged
+ * تم إصلاح خطأ استيراد Users، وإزالة قسم المختبر، وتطهير المصطلحات.
  */
 
 // مكون العناصر العائمة في الخلفية
@@ -76,7 +77,7 @@ function MarketMarquee() {
 
   useEffect(() => {
     fetchPrices();
-    const interval = setInterval(fetchPrices, 20000); // تحديث كل 20 ثانية
+    const interval = setInterval(fetchPrices, 20000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -123,7 +124,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#001a2d] text-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden relative" dir="rtl">
       
-      {/* 1. الخلفية الدرامية (Dramatic Atmosphere) */}
+      {/* 1. الخلفية الدرامية (Dynamic Atmosphere) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
           animate={{ opacity: [0.15, 0.25, 0.15] }}
@@ -158,7 +159,7 @@ export default function LandingPage() {
       </nav>
 
       {/* 3. القسم الرئيسي (Hero Section) */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 md:pt-20">
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 md:pt-20">
         
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
           
@@ -171,7 +172,7 @@ export default function LandingPage() {
           >
             <div className="flex items-center justify-center lg:justify-start gap-3 text-[#f9a885] font-black text-[9px] uppercase tracking-[0.3em]">
                <Sparkles size={12} />
-               <span>مستقبل الاستثمار الرقمي</span>
+               <span>مستقبل الاستثمار الذكي</span>
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight">
               استثمر بذكاء <br />
@@ -196,14 +197,13 @@ export default function LandingPage() {
           </motion.div>
 
           {/* الكتلة اليسرى: الهاتف العائم */}
-          <div className="relative flex justify-center items-center h-[500px] md:h-[650px]">
+          <div className="relative flex justify-center items-center h-[400px] md:h-[650px] mt-10 lg:mt-0">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 100 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-[260px] h-[540px] md:w-[300px] md:h-[600px] bg-[#002d4d] rounded-[50px] border-[6px] border-white/5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
+              className="relative w-[240px] h-[500px] md:w-[300px] md:h-[600px] bg-[#002d4d] rounded-[50px] border-[6px] border-white/5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
             >
-              {/* واجهة الهاتف (UI Mockup) */}
               <div className="p-6 md:p-8 space-y-8">
                  <div className="flex justify-between items-center opacity-40">
                     <div className="h-1 w-10 bg-white/20 rounded-full" />
@@ -212,7 +212,7 @@ export default function LandingPage() {
                  
                  <div className="space-y-2 text-center pt-2">
                     <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Balance</p>
-                    <h3 className="text-3xl md:text-4xl font-black tabular-nums tracking-tighter">$12,450.00</h3>
+                    <h3 className="text-2xl md:text-4xl font-black tabular-nums tracking-tighter">$12,450.00</h3>
                     <div className="inline-flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                        <TrendingUp size={10} className="text-emerald-400" />
                        <span className="text-[9px] font-black text-emerald-400">+18.4%</span>
@@ -236,10 +236,6 @@ export default function LandingPage() {
                     <div className="h-10 rounded-2xl bg-[#f9a885] flex items-center justify-center text-[#002d4d] font-black text-[9px]">Trade</div>
                     <div className="h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 font-black text-[9px]">Wallet</div>
                  </div>
-
-                 <div className="pt-6 flex justify-center gap-4 opacity-10">
-                    {[1, 2, 3].map(i => <div key={i} className="h-8 w-8 rounded-full bg-white/10" />)}
-                 </div>
               </div>
             </motion.div>
 
@@ -257,7 +253,7 @@ export default function LandingPage() {
             <FloatingCard delay={0.8} className="bottom-[25%] -left-32">
                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 p-4 rounded-[24px] w-44 space-y-2 text-center">
                   <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[7px] font-black px-2 py-0.5 rounded-full">OPTIMIZED</Badge>
-                  <p className="text-[10px] font-black">AI Analysis Active</p>
+                  <p className="text-[10px] font-black">Analysis Active</p>
                </div>
             </FloatingCard>
           </div>
