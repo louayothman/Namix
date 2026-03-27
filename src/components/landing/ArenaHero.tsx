@@ -5,43 +5,38 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Target, Gem, Sparkles, Trophy, Dices } from "lucide-react";
+import { Target, Gem, Trophy, Dices, Sparkles } from "lucide-react";
 
 /**
- * @fileOverview هيرو ساحة المغامرة - التفاعل والمتعة
+ * @fileOverview هيرو الساحة - إصدار النقاء
  */
 export function ArenaHero() {
   return (
-    <section id="arena" className="relative min-h-screen w-full flex items-center px-6 md:px-24 overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[150px] animate-pulse" />
-      </div>
-
+    <section id="arena" className="relative min-h-screen w-full flex items-center px-6 md:px-24 bg-white overflow-hidden">
       <div className="container mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
         
         {/* Content Side */}
         <motion.div 
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: 1 }}
           className="text-right space-y-8"
           dir="rtl"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#f9a885]/10 rounded-full border border-[#f9a885]/20">
-             <Trophy size={14} className="text-[#f9a885]" />
-             <span className="text-[#f9a885] font-black text-[10px] uppercase tracking-widest">ساحة المغامرة التفاعلية</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-50 rounded-full border border-orange-100">
+             <Trophy size={14} className="text-orange-600" />
+             <span className="text-orange-600 font-black text-[10px] uppercase tracking-widest">ساحة التفاعل الذكي</span>
           </div>
-          <h2 className="text-5xl md:text-7xl font-black text-white leading-[1.1]">
-            المخاطرة الذكية <br/> <span className="text-white/30 text-purple-400/40">متعة الربح.</span>
+          <h2 className="text-5xl md:text-7xl font-black text-[#002d4d] leading-[1.1] tracking-tight">
+            ذكاء التوقع <br/> <span className="text-gray-300">متعة الربح.</span>
           </h2>
-          <p className="text-gray-400 text-base md:text-lg font-medium leading-loose max-w-xl">
-            استمتع بتجربة استثمارية تفاعلية فريدة. ألعاب عادلة برمجياً تتيح لك اختبار استراتيجياتك ومضاعفة أرباحك بلمسة من الجرأة والمرح.
+          <p className="text-gray-500 text-base md:text-lg font-medium leading-loose max-w-xl">
+            استمتع بتجربة تفاعلية فريدة لاختبار استراتيجياتك. نظام عادل برمجياً يتيح لك مضاعفة أرباحك بلمسة من الحماس والذكاء.
           </p>
           <div className="pt-4">
             <Link href="/login" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto h-16 px-16 rounded-2xl bg-gradient-to-r from-[#f9a885] to-[#ff8c5a] text-[#0a0e17] hover:brightness-110 font-black text-lg shadow-2xl transition-all active:scale-95">
+              <Button className="w-full sm:w-auto h-16 px-16 rounded-2xl bg-[#f9a885] text-[#002d4d] hover:bg-[#002d4d] hover:text-white font-black text-lg shadow-xl transition-all">
                 دخول الساحة
               </Button>
             </Link>
@@ -50,16 +45,15 @@ export function ArenaHero() {
 
         {/* Simulation Side */}
         <div className="relative flex justify-center items-center h-[400px]">
-           {/* Floating Floating Gems & Dice */}
            <motion.div 
              animate={{ 
                y: [0, -30, 0],
                rotate: [0, 10, -10, 0]
              }}
              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-             className="absolute top-10 right-10 text-blue-400 drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+             className="absolute top-10 right-10 text-blue-500 drop-shadow-xl"
            >
-              <Gem size={80} strokeWidth={1} />
+              <Gem size={80} strokeWidth={1.5} />
            </motion.div>
 
            <motion.div 
@@ -68,21 +62,24 @@ export function ArenaHero() {
                rotate: [0, -20, 20, 0]
              }}
              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-             className="absolute bottom-10 left-10 text-[#f9a885] drop-shadow-[0_0_20px_rgba(249,168,133,0.5)]"
+             className="absolute bottom-10 left-10 text-[#f9a885] drop-shadow-xl"
            >
-              <Dices size={100} strokeWidth={1} />
+              <Dices size={100} strokeWidth={1.5} />
            </motion.div>
 
            <div className="relative z-10 text-center space-y-4">
-              <div className="h-32 w-32 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center relative">
+              <div className="h-32 w-32 rounded-full border-4 border-gray-50 flex items-center justify-center relative shadow-inner bg-white">
                  <motion.div 
                    animate={{ rotate: 360 }}
                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                   className="absolute inset-0 rounded-full border-t-2 border-[#f9a885] opacity-40"
+                   className="absolute inset-0 rounded-full border-t-4 border-[#f9a885]"
                  />
-                 <Target size={48} className="text-white/20" />
+                 <Target size={48} className="text-gray-100" />
               </div>
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Provably Fair Matrix</p>
+              <div className="flex flex-col items-center gap-1">
+                 <span className="text-[10px] font-black text-gray-200 uppercase tracking-[0.5em]">Provably Fair</span>
+                 <Sparkles size={12} className="text-[#f9a885] animate-pulse" />
+              </div>
            </div>
         </div>
 

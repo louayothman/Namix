@@ -8,6 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+/**
+ * @fileOverview شريط الملاحة الصرف v1.0
+ * تصميم أبيض صلب بدون شفافيات زجاجية، متوافق تماماً مع الهواتف.
+ */
 export function LandingNavbar() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -19,7 +23,7 @@ export function LandingNavbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] px-6 py-4 md:px-12 backdrop-blur-md bg-[#0a0e17]/60 border-b border-white/5">
+    <header className="fixed top-0 left-0 right-0 z-[100] px-6 py-4 md:px-12 bg-white border-b border-gray-100 shadow-sm">
       <div className="container mx-auto flex items-center justify-between">
         
         {/* Right Side: Logo */}
@@ -28,72 +32,66 @@ export function LandingNavbar() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <Logo size="sm" className="brightness-200" />
+          <Logo size="sm" />
         </motion.div>
 
         {/* Center: Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-10">
           {navLinks.map((link, i) => (
-            <motion.div
-              key={link.name}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * i, duration: 0.5 }}
+            <Link 
+              key={link.name} 
+              href={link.href} 
+              className="text-[13px] font-black text-gray-400 hover:text-[#002d4d] transition-colors uppercase tracking-widest"
             >
-              <Link 
-                href={link.href} 
-                className="text-[13px] font-black text-white/50 hover:text-[#00d1ff] transition-colors uppercase tracking-widest"
-              >
-                {link.name}
-              </Link>
-            </motion.div>
+              {link.name}
+            </Link>
           ))}
         </nav>
 
         {/* Left Side: Actions */}
         <div className="flex items-center gap-4">
           <Link href="/login" className="hidden md:block">
-            <Button variant="ghost" className="text-[13px] font-black text-white/60 hover:text-white group">
+            <Button variant="ghost" className="text-[13px] font-black text-gray-400 hover:text-[#002d4d] group">
               تسجيل الدخول
               <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             </Button>
           </Link>
           
           <Link href="/login">
-            <Button className="h-10 px-6 rounded-xl bg-[#00d1ff] hover:bg-[#00b8e6] text-[#0a0e17] font-black text-[13px] shadow-[0_10px_30px_rgba(0,209,255,0.2)] border-none transition-all active:scale-95">
+            <Button className="h-10 px-6 rounded-xl bg-[#002d4d] text-white font-black text-[13px] shadow-lg active:scale-95 border-none">
               ابدأ الآن
             </Button>
           </Link>
 
           {/* Mobile Toggle */}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white/60 hover:text-white transition-colors">
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-[#002d4d] transition-colors p-2">
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - Solid White */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden absolute top-full left-0 right-0 bg-[#0a0e17] border-b border-white/10 overflow-hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl overflow-hidden"
           >
-            <div className="flex flex-col p-8 gap-6 text-right">
+            <div className="flex flex-col p-8 gap-6 text-right" dir="rtl">
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 
                   href={link.href} 
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-black text-white/60 hover:text-[#00d1ff]"
+                  className="text-xl font-black text-[#002d4d] border-b border-gray-50 pb-4 last:border-0"
                 >
                   {link.name}
                 </Link>
               ))}
-              <Link href="/login" className="pt-4 border-t border-white/5">
-                <Button className="w-full h-14 rounded-2xl bg-white/5 text-white font-black">تسجيل الدخول</Button>
+              <Link href="/login" className="pt-4">
+                <Button className="w-full h-14 rounded-2xl bg-[#002d4d] text-white font-black">تسجيل الدخول</Button>
               </Link>
             </div>
           </motion.div>

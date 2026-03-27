@@ -9,19 +9,19 @@ import { ArenaHero } from "@/components/landing/ArenaHero";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v20.0 - الإصدار الثلاثي
- * تم تقسيم الصفحة لثلاثة محاور استراتيجية: المختبر، التداول، والساحة.
+ * @fileOverview بوابة ناميكس العالمية v16.0 - إصدار النقاء الرقمي
+ * تم توحيد الصفحة بخلفية بيضاء صلبة وثلاثة محاور استراتيجية للنمو.
  */
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0a0e17] text-white font-body selection:bg-[#00d1ff]/30 overflow-x-hidden relative">
+    <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/30 overflow-x-hidden relative">
       <LandingNavbar />
       
       <main className="relative">
         <ContractHero />
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="h-px w-full bg-gray-100" />
         <TradingHero />
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="h-px w-full bg-gray-100" />
         <ArenaHero />
       </main>
 
