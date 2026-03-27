@@ -34,14 +34,15 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-size: 13px; /* Standardized to 13px as requested */
+    font-size: 13px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Typography Normalization - Anti-Tracking for Arabic */
-.font-body, .font-headline {
+/* Typography Normalization - Anti-Tracking for Arabic & No Italics */
+.font-body, .font-headline, h1, h2, h3, h4, h5, h6, p, span, button, a {
   letter-spacing: normal !important;
+  font-style: normal !important;
 }
 
 @keyframes text-shimmer {
@@ -49,33 +50,13 @@
   100% { background-position: 0% 0%; }
 }
 
-@keyframes pulse-ring {
-  0% { transform: scale(0.33); }
-  80%, 100% { opacity: 0; }
-}
-
-@keyframes pulse-dot {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1); }
-  100% { transform: scale(0.8); }
-}
-
 .animate-text-shimmer {
   animation: text-shimmer 4s linear infinite;
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
-
-.animate-pulse-dot {
-  animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
 }
 
 [dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
 [dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
 
-/* Hide scrollbars for ultra-clean UI */
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;

@@ -4,7 +4,6 @@
 import React from "react";
 import { Logo } from "@/components/layout/Logo";
 import { Globe, Mail, Instagram, Twitter } from "lucide-react";
-import Link from "next/link";
 
 export function LandingFooter() {
   return (
@@ -14,7 +13,7 @@ export function LandingFooter() {
              
              <div className="col-span-2 space-y-8">
                 <Logo size="md" className="opacity-80" />
-                <p className="text-sm text-gray-400 font-bold leading-loose max-w-xs">
+                <p className="text-[13px] text-gray-400 font-bold leading-loose max-w-xs">
                   المنصة العالمية الرائدة في إدارة وتنمية الأصول الرقمية بذكاء وأمان مطلق. نحن نبني مستقبل المال معك.
                 </p>
                 <div className="flex gap-4 justify-end">
@@ -27,7 +26,7 @@ export function LandingFooter() {
              </div>
 
              <div className="space-y-6">
-                <h4 className="text-[11px] font-black text-[#002d4d] uppercase tracking-[0.2em]">المنصة</h4>
+                <h4 className="text-[11px] font-black text-[#002d4d] uppercase">المنصة</h4>
                 <ul className="space-y-4 text-[13px] font-bold text-gray-400">
                    <li className="hover:text-blue-600 cursor-pointer transition-all">الأسواق الحية</li>
                    <li className="hover:text-blue-600 cursor-pointer transition-all">مختبر العقود</li>
@@ -36,7 +35,7 @@ export function LandingFooter() {
              </div>
 
              <div className="space-y-6">
-                <h4 className="text-[11px] font-black text-[#002d4d] uppercase tracking-[0.2em]">المساعدة</h4>
+                <h4 className="text-[11px] font-black text-[#002d4d] uppercase">المساعدة</h4>
                 <ul className="space-y-4 text-[13px] font-bold text-gray-400">
                    <li className="hover:text-blue-600 cursor-pointer transition-all">الأكاديمية</li>
                    <li className="hover:text-blue-600 cursor-pointer transition-all">مركز الدعم</li>
@@ -45,7 +44,7 @@ export function LandingFooter() {
              </div>
 
              <div className="space-y-6">
-                <h4 className="text-[11px] font-black text-[#002d4d] uppercase tracking-[0.2em]">قانوني</h4>
+                <h4 className="text-[11px] font-black text-[#002d4d] uppercase">قانوني</h4>
                 <ul className="space-y-4 text-[13px] font-bold text-gray-400">
                    <li className="hover:text-blue-600 cursor-pointer transition-all">شروط الخدمة</li>
                    <li className="hover:text-blue-600 cursor-pointer transition-all">الخصوصية</li>
@@ -54,7 +53,7 @@ export function LandingFooter() {
              </div>
 
              <div className="space-y-6">
-                <h4 className="text-[11px] font-black text-[#002d4d] uppercase tracking-[0.2em]">الشركة</h4>
+                <h4 className="text-[11px] font-black text-[#002d4d] uppercase">الشركة</h4>
                 <ul className="space-y-4 text-[13px] font-bold text-gray-400">
                    <li className="hover:text-blue-600 cursor-pointer transition-all">عن ناميكس</li>
                    <li className="hover:text-blue-600 cursor-pointer transition-all">تواصل معنا</li>
@@ -65,7 +64,7 @@ export function LandingFooter() {
           </div>
 
           <div className="pt-12 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
-             <p className="text-[9px] font-black tracking-[0.8em] uppercase text-[#002d4d]">NAMIX UNIVERSAL NETWORK</p>
+             <p className="text-[10px] font-black uppercase text-[#002d4d]">NAMIX UNIVERSAL NETWORK</p>
              <div className="flex items-center gap-2">
                 <Globe size={12} />
                 <p className="text-[10px] font-bold text-gray-400">© 2024 كافة الحقوق محفوظة لمنصة ناميكس الموثقة.</p>

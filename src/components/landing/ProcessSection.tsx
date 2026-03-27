@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -27,7 +28,7 @@ export function ProcessSection() {
                className="space-y-10 text-right"
                dir="rtl"
              >
-                <Badge className="bg-orange-50 text-[#f9a885] border-none px-6 py-2 rounded-full font-black text-[10px] tracking-widest uppercase">The Roadmap</Badge>
+                <Badge className="bg-orange-50 text-[#f9a885] border-none px-6 py-2 rounded-full font-black text-[10px] uppercase">The Roadmap</Badge>
                 <h2 className="text-5xl md:text-7xl font-black text-[#002d4d] tracking-tight">رحلة الانطلاق <br/> <span className="text-gray-300">في ثلاث خطوات.</span></h2>
                 
                 <div className="space-y-12 pt-6">
@@ -39,9 +40,9 @@ export function ProcessSection() {
                         <div className="space-y-2">
                            <div className="flex items-baseline gap-3">
                               <h4 className="text-2xl font-black text-[#002d4d]">{step.title}</h4>
-                              <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{step.en}</span>
+                              <span className="text-[10px] font-black text-gray-300 uppercase">{step.en}</span>
                            </div>
-                           <p className="text-base text-gray-400 font-bold leading-relaxed max-w-sm">{step.desc}</p>
+                           <p className="text-[13px] text-gray-400 font-bold leading-relaxed max-w-sm">{step.desc}</p>
                         </div>
                      </div>
                    ))}
@@ -65,9 +66,9 @@ export function ProcessSection() {
                          <TrendingUp size={40} className="text-[#002d4d]" />
                       </div>
                       <h3 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">ابدأ اليوم وانضم <br/> لشبكة النخبة العالمية.</h3>
-                      <p className="text-lg text-white/40 font-medium leading-[2]">لا تترك مستقبلك المالي للصدفة؛ اعتمد على الأنظمة الذكية التي تضعك في المقدمة دوماً.</p>
+                      <p className="text-[13px] text-white/40 font-medium leading-[2]">لا تترك مستقبلك المالي للصدفة؛ اعتمد على الأنظمة الذكية التي تضعك في المقدمة دوماً.</p>
                       <Link href="/login" className="block pt-4">
-                         <Button className="h-16 px-10 rounded-full bg-white text-[#002d4d] hover:bg-[#f9a885] font-black text-sm transition-all active:scale-95 group">
+                         <Button className="h-16 px-10 rounded-full bg-white text-[#002d4d] hover:bg-[#f9a885] font-black text-[13px] transition-all active:scale-95 group">
                             إنشاء الحساب الآن
                             <ChevronLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                          </Button>

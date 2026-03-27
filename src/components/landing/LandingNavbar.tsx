@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
@@ -35,30 +34,27 @@ export function LandingNavbar() {
         isScrolled ? "bg-white/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white/20" : "bg-transparent"
       )}>
         
-        {/* Logo Identity */}
         <Logo size="sm" className="scale-90 md:scale-100" />
 
-        {/* Desktop Navigation Links */}
         <div className="hidden lg:flex items-center gap-10">
           {["الخدمات", "عن ناميكس", "المساعدة"].map((link, i) => (
             <Link 
               key={i} 
               href="#" 
-              className="text-[11px] font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors uppercase tracking-widest"
+              className="text-[13px] font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors uppercase"
             >
               {link}
             </Link>
           ))}
         </div>
 
-        {/* Action Button */}
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 opacity-40">
              <Globe size={14} />
-             <span className="text-[9px] font-black uppercase tracking-widest">Global Access</span>
+             <span className="text-[10px] font-black uppercase">Global Access</span>
           </div>
           <Link href={isLoggedIn ? "/home" : "/login"}>
-            <Button className="h-10 md:h-12 px-6 md:px-8 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[11px] shadow-xl active:scale-95 transition-all group border-none relative overflow-hidden">
+            <Button className="h-10 md:h-12 px-6 md:px-8 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[13px] shadow-xl active:scale-95 transition-all group border-none relative overflow-hidden">
               <span className="relative z-10 flex items-center gap-2">
                 {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
                 <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />

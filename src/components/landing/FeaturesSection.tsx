@@ -4,14 +4,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Lock, 
-  Zap, 
-  TrendingUp,
-  Cpu,
-  Globe,
-  Fingerprint
-} from "lucide-react";
+import { Lock, Zap, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const features = [
@@ -53,9 +46,9 @@ export function FeaturesSection() {
             className="text-center space-y-6 max-w-3xl mx-auto"
             dir="rtl"
           >
-             <Badge className="bg-[#002d4d] text-white border-none px-6 py-2 rounded-full font-black text-[10px] tracking-[0.4em] uppercase shadow-lg shadow-blue-900/20">The Intelligent Edge</Badge>
+             <Badge className="bg-[#002d4d] text-white border-none px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-lg shadow-blue-900/20">The Intelligent Edge</Badge>
              <h2 className="text-5xl md:text-7xl font-black text-[#002d4d] tracking-tighter">ابتكار يُعيد تعريف <br/> <span className="text-gray-300">الاستثمار الرقمي.</span></h2>
-             <p className="text-lg md:text-xl text-gray-400 font-medium leading-[2]">نحن لا نبني منصة فحسب، بل نصمم بيئة نمو عالمية تضع القوة بين يديك بكل سلاسة وفخامة.</p>
+             <p className="text-[13px] text-gray-400 font-medium leading-[2]">نحن لا نبني منصة فحسب، بل نصمم بيئة نمو عالمية تضع القوة بين يديك بكل سلاسة وفخامة.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
@@ -79,10 +72,10 @@ export function FeaturesSection() {
                   
                   <div className="space-y-4 text-right relative z-10" dir="rtl">
                      <div className="flex flex-col">
-                        <h3 className="text-2xl font-black text-[#002d4d] tracking-tight">{feat.title}</h3>
-                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-1.5">{feat.en}</span>
+                        <h3 className="text-xl font-black text-[#002d4d] tracking-tight">{feat.title}</h3>
+                        <span className="text-[10px] font-black text-gray-300 uppercase mt-1.5">{feat.en}</span>
                      </div>
-                     <p className="text-base text-gray-400 font-bold leading-[2]">{feat.desc}</p>
+                     <p className="text-[13px] text-gray-400 font-bold leading-[2]">{feat.desc}</p>
                   </div>
                </motion.div>
              ))}
