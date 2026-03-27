@@ -2,10 +2,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
-// استيراد مباشر لضمان سرعة الاستجابة وإلغاء التعليق
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { MarketTicker } from "@/components/landing/MarketTicker";
@@ -26,8 +25,6 @@ const PageLoader = () => (
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
 
   useEffect(() => {
     setMounted(true);
@@ -38,21 +35,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative">
       
-      {/* عناصر الخلفية الديناميكية المدمجة */}
+      {/* عناصر الخلفية الثابتة للأداء العالي */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <motion.div 
-          style={{ y: backgroundY }}
-          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-blue-50/40 rounded-full blur-[120px]" 
-        />
-        <motion.div 
-          style={{ y: backgroundY }}
-          className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/5 rounded-full blur-[120px]" 
-        />
+        <div className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-blue-50/30 rounded-full blur-[80px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/5 rounded-full blur-[80px]" />
       </div>
 
       <LandingNavbar />
 
-      <main className="relative z-10">
+      <main className="relative z-10 will-change-transform">
         <HeroSection />
         <MarketTicker />
         <FeaturesSection />

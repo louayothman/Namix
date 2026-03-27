@@ -15,31 +15,31 @@ export function FinalCTA() {
 
        <div className="container mx-auto relative z-10 text-center space-y-12">
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.8 }}
             className="space-y-6"
             dir="rtl"
           >
              <div className="flex items-center justify-center gap-3 text-[#f9a885] font-black text-[10px] uppercase">
-                <Sparkles size={14} className="animate-pulse" />
+                <Sparkles size={14} />
                 Your Success Starts Here
              </div>
-             <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-tight">
+             <h2 className="text-white font-black tracking-tighter leading-tight">
                 هل أنت مستعد <br/> <span className="text-[#f9a885]">لقيادة نموك؟</span>
              </h2>
-             <p className="text-[13px] text-white/40 font-medium max-w-2xl mx-auto leading-relaxed">
+             <p className="text-white/40 font-medium max-w-2xl mx-auto leading-relaxed">
                 انضم لآلاف المستثمرين الذين اختاروا ناميكس كشريك استراتيجي في رحلتهم نحو السيادة المالية والابتكار الرقمي.
              </p>
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="flex flex-col items-center gap-8"
+            transition={{ duration: 0.8 }}
+            className="flex flex-col items-center gap-8 will-change-transform"
           >
              <Link href="/login" className="w-full sm:w-auto">
                 <Button className="w-full sm:w-auto h-20 md:h-24 px-16 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-2xl shadow-2xl active:scale-95 transition-all group border-none">
