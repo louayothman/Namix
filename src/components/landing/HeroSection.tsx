@@ -1,102 +1,84 @@
-
 "use client";
 
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, ArrowRight, MousePointerClick, TrendingUp, Activity, Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight, Zap, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-20 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20 overflow-hidden">
       
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none z-0">
-         <h1 className="text-[200px] md:text-[400px] font-black tracking-tighter">NAMIX</h1>
+      {/* The Monolith Visual - Weird & Elegant */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square z-0 opacity-10">
+         <motion.div 
+           animate={{ rotate: 360 }}
+           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+           className="w-full h-full rounded-full border-[0.5px] border-white/20 relative"
+         >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-4 bg-[#f9a885] rounded-full blur-md" />
+         </motion.div>
       </div>
 
-      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center relative z-10">
+      <div className="container mx-auto text-center space-y-12 relative z-10">
         
-        <motion.div 
-          initial={{ opacity: 0, x: 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="space-y-10 text-center lg:text-right"
+        <motion.div
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="space-y-8"
           dir="rtl"
         >
-          <div className="inline-flex items-center gap-3 px-5 py-2 bg-blue-50/50 rounded-full border border-blue-100 backdrop-blur-md">
-             <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-             <span className="text-[#002d4d] font-black uppercase">Smart Growth Hub</span>
+          <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl">
+             <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
+             <span className="text-white/60 font-black text-[10px] uppercase tracking-[0.3em]">Pure Intelligence Node</span>
           </div>
-          
-          <h1 className="text-[#002d4d] font-black tracking-tighter">
-            ارسم مستقبلك <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#002d4d] via-blue-600 to-[#f9a885] animate-text-shimmer">بذكاء عالمي.</span>
+
+          <h1 className="text-white leading-none tracking-tighter">
+            ارسم ثروتك <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-white via-[#f9a885] to-white animate-text-shimmer">بذكاء عالمي.</span>
           </h1>
-          
-          <p className="text-gray-400 font-bold max-w-lg mx-auto lg:ml-auto lg:mr-0 leading-[2]">
-            ناميكس هي بوابتك للنظام المالي المتطور؛ حيث تلتقي التكنولوجيا المتقدمة بسهولة الاستخدام المطلقة لتمنحك رحلة نمو مستدامة.
+
+          <p className="text-white/40 font-medium max-w-2xl mx-auto leading-relaxed md:text-xl">
+            ناميكس هي تجربة نمو استثنائية؛ حيث تلتقي التكنولوجيا المتقدمة بالأناقة المطلقة لتمنحك السيادة المالية الكاملة.
           </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 pt-4">
-             <Link href="/login" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black shadow-xl active:scale-95 transition-all group border-none">
-                  ابدأ رحلتي الذكية
-                  <ArrowRight size={18} className="mr-3 rotate-180 transition-transform group-hover:-translate-x-2" />
-                </Button>
-             </Link>
-             <div className="flex items-center gap-4 px-8 h-16 rounded-full border border-gray-100 bg-white/50 backdrop-blur-md">
-                <ShieldCheck size={20} className="text-emerald-500" />
-                <div className="flex flex-col items-start leading-none text-right">
-                   <span className="font-black text-[#002d4d] uppercase">Certified Security</span>
-                   <span className="font-bold text-gray-400 mt-1 uppercase">بيئة استثمارية موثقة</span>
-                </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1, delay: 0.4 }}
+          className="flex flex-col items-center gap-8"
+        >
+          <Link href="/login">
+            <Button className="h-20 md:h-24 px-16 rounded-[32px] bg-white text-[#002d4d] hover:bg-[#f9a885] font-black text-2xl shadow-2xl active:scale-95 transition-all group border-none overflow-hidden relative">
+               <span className="relative z-10">ابدأ الرحلة الآن</span>
+               <Zap size={24} className="mr-4 fill-current relative z-10 transition-transform group-hover:scale-125" />
+               <div className="absolute inset-0 bg-[#f9a885]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+            </Button>
+          </Link>
+
+          <div className="flex items-center gap-10 opacity-20">
+             <div className="flex items-center gap-2">
+                <ShieldCheck size={16} />
+                <span className="text-[10px] font-black uppercase tracking-widest">End-to-End Secure</span>
+             </div>
+             <div className="h-4 w-[0.5px] bg-white" />
+             <div className="flex items-center gap-2">
+                <Sparkles size={16} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Global Access</span>
              </div>
           </div>
         </motion.div>
-
-        <div className="relative flex justify-center items-center h-[500px] md:h-[700px] mt-12 lg:mt-0">
-          <div className="absolute h-[500px] w-[500px] bg-gradient-to-tr from-blue-500/5 via-transparent to-[#f9a885]/10 rounded-full blur-[60px]" />
-
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative w-[280px] h-[580px] md:w-[320px] md:h-[640px] bg-white rounded-[64px] border-[10px] border-[#002d4d]/5 shadow-[0_40px_80px_-20px_rgba(0,45,77,0.1)] overflow-hidden will-change-transform"
-          >
-            <div className="p-8 md:p-12 space-y-12 h-full flex flex-col">
-               <div className="flex justify-between items-center opacity-30">
-                  <div className="h-1.5 w-14 bg-[#002d4d] rounded-full" />
-                  <div className="h-5 w-5 rounded-full border-2 border-[#002d4d]" />
-               </div>
-               
-               <div className="space-y-4 text-center pt-6" dir="rtl">
-                  <p className="font-black text-gray-300 uppercase">Growth Node</p>
-                  <h3 className="text-[32px] md:text-[40px] font-black text-[#002d4d] tabular-nums tracking-tighter">$24,150.00</h3>
-                  <div className="inline-flex items-center gap-2 bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100 shadow-sm">
-                     <TrendingUp size={14} className="text-emerald-500" />
-                     <span className="font-black text-emerald-600">+18.42%</span>
-                  </div>
-               </div>
-
-               <div className="flex-1 flex flex-col justify-center gap-6">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 rounded-[28px] bg-gray-50 border border-gray-100 shadow-inner p-4 flex items-center justify-between opacity-60">
-                       <div className="h-8 w-8 rounded-xl bg-white" />
-                       <div className="h-2 w-20 bg-gray-200 rounded-full" />
-                    </div>
-                  ))}
-               </div>
-
-               <div className="pt-4 flex justify-center">
-                  <MousePointerClick size={24} className="text-gray-100 animate-bounce" />
-               </div>
-            </div>
-          </motion.div>
-        </div>
       </div>
+
+      {/* Floating Soul Particles */}
+      <div className="absolute bottom-20 flex flex-col items-center gap-4 opacity-10 animate-bounce">
+         <div className="h-12 w-[0.5px] bg-gradient-to-b from-white to-transparent" />
+         <span className="text-[8px] font-black uppercase tracking-[0.5em] [writing-mode:vertical-lr] rotate-180">SCROLL TO DISCOVER</span>
+      </div>
+
     </section>
   );
 }

@@ -1,28 +1,19 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
-
-import { LandingNavbar } from "@/components/landing/LandingNavbar";
+import { motion, AnimatePresence } from "framer-motion";
+import { LandingHeader } from "@/components/landing/LandingHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { MarketTicker } from "@/components/landing/MarketTicker";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { ProcessSection } from "@/components/landing/ProcessSection";
-import { StatsSection } from "@/components/landing/StatsSection";
-import { FinalCTA } from "@/components/landing/FinalCTA";
+import { FeatureBento } from "@/components/landing/FeatureBento";
+import { StatsPulse } from "@/components/landing/StatsPulse";
+import { ActionCore } from "@/components/landing/ActionCore";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import { MarketTicker } from "@/components/landing/MarketTicker";
 
-const PageLoader = () => (
-  <div className="h-screen w-full flex items-center justify-center bg-white">
-    <div className="flex flex-col items-center gap-4">
-      <Loader2 className="h-10 w-10 animate-spin text-[#002d4d]" />
-      <p className="text-[10px] font-black text-gray-300 uppercase tracking-normal">NAMIX SYSTEM READY</p>
-    </div>
-  </div>
-);
-
+/**
+ * @fileOverview بوابة ناميكس العالمية v10.0 - إصدار "الغسق الرقمي"
+ * تصميم غريب، فريد، وفخم جداً يعتمد على التباين العالي والنقاء المعماري.
+ */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
 
@@ -30,29 +21,36 @@ export default function LandingPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return <PageLoader />;
+  if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#001a2d] text-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden relative">
       
-      {/* عناصر الخلفية الثابتة للأداء العالي */}
+      {/* Dynamic Mesh Background - High Performance */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-blue-50/30 rounded-full blur-[80px]" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/5 rounded-full blur-[80px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-blue-900/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#f9a885]/5 rounded-full blur-[100px]" />
       </div>
 
-      <LandingNavbar />
+      {/* Entry Reveal Animation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+        className="relative z-10 will-change-transform"
+      >
+        <LandingHeader />
+        
+        <main>
+          <HeroSection />
+          <MarketTicker />
+          <FeatureBento />
+          <StatsPulse />
+          <ActionCore />
+        </main>
 
-      <main className="relative z-10 will-change-transform">
-        <HeroSection />
-        <MarketTicker />
-        <FeaturesSection />
-        <ProcessSection />
-        <StatsSection />
-        <FinalCTA />
-      </main>
-
-      <LandingFooter />
+        <LandingFooter />
+      </motion.div>
 
     </div>
   );
