@@ -3,12 +3,15 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Cpu, Zap, Activity } from "lucide-react";
+
+/**
+ * @fileOverview القسم الثاني - تكنولوجيا الأمان الفائق v5.5
+ */
 
 export function HeroSection2() {
   return (
-    <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-6 py-20 bg-gray-50/30 overflow-hidden">
+    <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
       <div className="container mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           
@@ -38,30 +41,30 @@ export function HeroSection2() {
             className="space-y-8 text-center lg:text-right order-1 lg:order-2"
             dir="rtl"
           >
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-emerald-50 rounded-full border border-emerald-100">
-               <ShieldCheck size={14} className="text-emerald-600" />
-               <span className="text-[#002d4d] font-black text-[10px] uppercase tracking-widest">تكنولوجيا الأمان الفائق <span className="opacity-30 mx-1">•</span> Pure Security</span>
+            <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
+               <ShieldCheck size={14} className="text-emerald-400" />
+               <span className="text-white font-black text-[10px] uppercase tracking-widest">تكنولوجيا الأمان الفائق <span className="opacity-30 mx-1">•</span> Pure Security</span>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-black text-[#002d4d] leading-tight tracking-tight">
+            <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight">
               أدوات متطورة <br />
-              <span className="text-blue-600">للتحليل اللحظي.</span>
+              <span className="text-[#f9a885]">للتحليل اللحظي.</span>
             </h2>
             
-            <p className="text-sm md:text-lg text-gray-400 font-medium max-w-lg mx-auto lg:mr-0 leading-relaxed">
+            <p className="text-sm md:text-lg text-white/60 font-medium max-w-lg mx-auto lg:mr-0 leading-relaxed">
               نظامنا الذكي يقوم بمعالجة ملايين البيانات كل ثانية ليمنحك الرؤية الأوضح لتحركات السوق بأسلوب تقني لا يضاهى.
             </p>
 
             <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto lg:mr-0">
-               <div className="p-6 bg-white rounded-[32px] border border-gray-100 shadow-sm space-y-2">
-                  <Activity className="h-5 w-5 text-blue-500" />
-                  <p className="text-[10px] font-black text-gray-400 uppercase">Analysis</p>
-                  <p className="text-sm font-black text-[#002d4d]">دقة فائقة</p>
+               <div className="p-6 bg-white/5 rounded-[32px] border border-white/10 backdrop-blur-md shadow-sm space-y-2">
+                  <Activity className="h-5 w-5 text-blue-400" />
+                  <p className="text-[10px] font-black text-white/40 uppercase">Analysis</p>
+                  <p className="text-sm font-black text-white">دقة فائقة</p>
                </div>
-               <div className="p-6 bg-white rounded-[32px] border border-gray-100 shadow-sm space-y-2">
+               <div className="p-6 bg-white/5 rounded-[32px] border border-white/10 backdrop-blur-md shadow-sm space-y-2">
                   <Zap className="h-5 w-5 text-[#f9a885]" />
-                  <p className="text-[10px] font-black text-gray-400 uppercase">Speed</p>
-                  <p className="text-sm font-black text-[#002d4d]">تنفيذ وميضي</p>
+                  <p className="text-[10px] font-black text-white/40 uppercase">Speed</p>
+                  <p className="text-sm font-black text-white">تنفيذ وميضي</p>
                </div>
             </div>
           </motion.div>

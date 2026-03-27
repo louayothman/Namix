@@ -16,8 +16,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview القسم الأول - مدخل النمو الذكي v5.0
- * تم تطهير النصوص من مصطلحات سيادة وبروتوكول مع الحفاظ على الفخامة البيضاء.
+ * @fileOverview القسم الأول - مدخل النمو الذكي v5.5
+ * تم تعديل التباين ليتناسب مع الخلفية الملونة #7D8E9E.
  */
 
 const FloatingNode = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
@@ -39,7 +39,7 @@ const FloatingNode = ({ children, delay = 0, className = "" }: { children: React
 
 export function HeroSection1() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-40 md:pt-48 bg-white overflow-hidden">
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 pt-10 pb-20 overflow-hidden">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center relative z-10">
         
         {/* Right Block: Global Messaging */}
@@ -51,32 +51,32 @@ export function HeroSection1() {
           className="space-y-8 text-center lg:text-right"
           dir="rtl"
         >
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm">
-             <Sparkles size={14} className="text-blue-600 animate-pulse" />
-             <span className="text-[#002d4d] font-black text-[10px] uppercase tracking-widest">المستقبل الذكي للنمو <span className="opacity-30 mx-1">•</span> Smart Growth Hub</span>
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
+             <Sparkles size={14} className="text-[#f9a885] animate-pulse" />
+             <span className="text-white font-black text-[10px] uppercase tracking-widest">المستقبل الذكي للنمو <span className="opacity-30 mx-1">•</span> Smart Growth Hub</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#002d4d] leading-[1.1] tracking-tighter">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.1] tracking-tighter">
             استثمار بلا <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#002d4d] via-blue-600 to-[#f9a885] animate-text-shimmer">حدود عالمية.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-white via-white/80 to-[#f9a885] animate-text-shimmer">حدود عالمية.</span>
           </h1>
           
-          <p className="text-sm md:text-xl text-gray-400 font-medium max-w-lg mx-auto lg:ml-auto lg:mr-0 leading-loose tracking-normal">
+          <p className="text-sm md:text-xl text-white/60 font-medium max-w-lg mx-auto lg:ml-auto lg:mr-0 leading-loose tracking-normal">
             اكتشف تجربة مالية عالمية تدمج بين الذكاء الاصطناعي وسهولة الاستخدام، مصممة لرحلة نمو مستدامة وموثوقة.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-6">
              <Link href="/login" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto h-16 md:h-20 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group border-none">
+                <Button className="w-full sm:w-auto h-16 md:h-20 px-12 rounded-full bg-white text-[#002d4d] hover:bg-[#f9a885] font-black text-lg shadow-2xl active:scale-95 transition-all group border-none">
                   ابدأ رحلتي الذكية
                   <ArrowRight size={20} className="mr-3 rotate-180 transition-transform group-hover:-translate-x-2" />
                 </Button>
              </Link>
-             <div className="flex items-center gap-4 px-8 h-16 md:h-20 rounded-full border border-gray-100 bg-gray-50/50 backdrop-blur-md shadow-sm">
-                <ShieldCheck size={20} className="text-emerald-500" />
+             <div className="flex items-center gap-4 px-8 h-16 md:h-20 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-sm">
+                <ShieldCheck size={20} className="text-emerald-400" />
                 <div className="flex flex-col items-start leading-none">
-                   <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">Safe & Secure</span>
-                   <span className="text-[8px] font-bold text-gray-400 mt-1 uppercase">بيئة تشغيل موثقة</span>
+                   <span className="text-[10px] font-black text-white uppercase tracking-widest">Safe & Secure</span>
+                   <span className="text-[8px] font-bold text-white/40 mt-1 uppercase">بيئة تشغيل موثقة</span>
                 </div>
              </div>
           </div>
@@ -87,7 +87,7 @@ export function HeroSection1() {
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute h-[500px] w-[500px] bg-gradient-to-tr from-blue-100/20 via-transparent to-[#f9a885]/10 rounded-full blur-[80px] opacity-60"
+            className="absolute h-[500px] w-[500px] bg-gradient-to-tr from-blue-500/10 via-transparent to-[#f9a885]/10 rounded-full blur-[80px] opacity-60"
           />
 
           <motion.div
@@ -95,7 +95,7 @@ export function HeroSection1() {
             whileInView={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-[260px] h-[540px] md:w-[320px] md:h-[640px] bg-white rounded-[60px] border-[8px] border-[#002d4d]/5 shadow-[0_60px_120px_-20px_rgba(0,45,77,0.1)] overflow-hidden"
+            className="relative w-[260px] h-[540px] md:w-[320px] md:h-[640px] bg-white rounded-[60px] border-[8px] border-white/5 shadow-[0_60px_120px_-20px_rgba(0,0,0,0.3)] overflow-hidden"
           >
             <div className="p-8 md:p-10 space-y-10">
                <div className="flex justify-between items-center opacity-20">
@@ -137,28 +137,28 @@ export function HeroSection1() {
           </motion.div>
 
           <FloatingNode delay={0.2} className="top-[15%] -right-24">
-             <div className="bg-white/80 backdrop-blur-xl border border-gray-100 p-5 rounded-[32px] w-56 space-y-4 shadow-2xl" dir="rtl">
+             <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-[32px] w-56 space-y-4 shadow-2xl" dir="rtl">
                 <div className="flex items-center gap-4">
-                   <div className="h-10 w-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner"><Activity size={18} /></div>
+                   <div className="h-10 w-10 rounded-2xl bg-white/10 text-white flex items-center justify-center shadow-inner"><Activity size={18} /></div>
                    <div className="text-right">
-                      <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Real-time Node</p>
-                      <p className="text-xs font-black text-[#002d4d]">Syncing Markets...</p>
+                      <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Real-time Node</p>
+                      <p className="text-xs font-black text-white">Syncing Markets...</p>
                    </div>
                 </div>
-                <div className="h-1 w-full bg-gray-50 rounded-full overflow-hidden">
-                   <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ duration: 2, repeat: Infinity }} className="h-full w-1/2 bg-blue-500 rounded-full" />
+                <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                   <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ duration: 2, repeat: Infinity }} className="h-full w-1/2 bg-[#f9a885] rounded-full" />
                 </div>
              </div>
           </FloatingNode>
 
           <FloatingNode delay={0.6} className="bottom-[20%] -left-36">
-             <div className="bg-[#002d4d] p-6 rounded-[36px] w-48 space-y-3 shadow-2xl border border-white/5" dir="rtl">
+             <div className="bg-white p-6 rounded-[36px] w-48 space-y-3 shadow-2xl border border-white/5" dir="rtl">
                 <div className="flex justify-between items-center">
                    <span className="bg-emerald-50 text-[#002d4d] border-none text-[8px] font-black px-2 py-0.5 rounded-lg">OPTIMIZED</span>
                 </div>
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-white/40 uppercase">Intelligence</p>
-                   <p className="text-base font-black text-[#f9a885]">Deep Analysis Active</p>
+                   <p className="text-[10px] font-black text-gray-400 uppercase">Intelligence</p>
+                   <p className="text-base font-black text-[#002d4d]">Deep Analysis Active</p>
                 </div>
              </div>
           </FloatingNode>
