@@ -4,103 +4,53 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 40% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 40% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 10%;
-    --primary: 220 70% 20%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 96%;
-    --secondary-foreground: 220 40% 20%;
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 20% 45%;
-    --accent: 18 92% 75%;
-    --accent-foreground: 220 40% 10%;
+    --background: 222 47% 7%;
+    --foreground: 0 0% 100%;
+    --card: 222 47% 7%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 191 100% 50%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 222 47% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 191 100% 50%;
+    --accent-foreground: 222 47% 7%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 85%;
-    --input: 220 15% 85%;
-    --ring: 220 70% 20%;
+    --border: 222 47% 15%;
+    --input: 222 47% 15%;
+    --ring: 191 100% 50%;
     --radius: 0.75rem;
   }
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#0a0e17] text-white;
     font-family: 'Tajawal', sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     font-style: normal !important;
-    transform: translateZ(0);
   }
 
-  /* ميثاق الـ 13px الصارم للموبايل لكافة النصوص عدا العناوين الكبرى */
-  @media (max-width: 768px) {
-    p, span, button, a, div, input, textarea, label, li, code, h4, h5, h6 {
-      font-size: 13px !important;
-      letter-spacing: 0 !important;
-      font-style: normal !important;
-    }
-  }
-
-  /* الخطوط القياسية لباقي الشاشات */
-  @media (min-width: 769px) {
-    p, span, button, a, div, input, textarea, label, li {
-      font-size: 15px;
-      letter-spacing: 0;
-    }
-  }
-
-  /* هندسة العناوين الكبرى - متجاوبة وحرة */
-  h1 {
-    font-size: clamp(40px, 10vw, 110px) !important;
-    line-height: 1 !important;
-    @apply font-black tracking-tight;
-    font-style: normal !important;
-    letter-spacing: 0 !important;
-  }
-
-  h2 {
-    font-size: clamp(32px, 7vw, 80px) !important;
-    line-height: 1.1 !important;
-    @apply font-black tracking-tight;
-    font-style: normal !important;
-    letter-spacing: 0 !important;
-  }
-
-  h3 {
-    font-size: clamp(24px, 5vw, 48px) !important;
-    @apply font-black;
-    font-style: normal !important;
-    letter-spacing: 0 !important;
-  }
-
-  * {
+  h1, h2, h3, h4, h5, h6, p, span, a, button {
     font-style: normal !important;
     letter-spacing: 0 !important;
   }
 }
 
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
-.will-change-transform {
-  will-change: transform;
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
 }
