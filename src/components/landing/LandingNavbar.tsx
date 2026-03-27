@@ -41,7 +41,7 @@ export function LandingNavbar() {
             <Link 
               key={i} 
               href="#" 
-              className="text-[13px] font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors"
+              className="font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors"
             >
               {link}
             </Link>
@@ -51,10 +51,10 @@ export function LandingNavbar() {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 opacity-40">
              <Globe size={14} />
-             <span className="text-[10px] font-black uppercase">Global Access</span>
+             <span className="font-black uppercase">Global Access</span>
           </div>
           <Link href={isLoggedIn ? "/home" : "/login"}>
-            <Button className="h-10 md:h-12 px-6 md:px-8 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[13px] shadow-xl active:scale-95 transition-all group border-none relative overflow-hidden">
+            <Button className="h-10 md:h-12 px-6 md:px-8 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black shadow-xl active:scale-95 transition-all group border-none relative overflow-hidden">
               <span className="relative z-10 flex items-center gap-2">
                 {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
                 <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />

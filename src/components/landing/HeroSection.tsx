@@ -27,7 +27,7 @@ export function HeroSection() {
         >
           <div className="inline-flex items-center gap-3 px-5 py-2 bg-blue-50/50 rounded-full border border-blue-100 backdrop-blur-md">
              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-             <span className="text-[#002d4d] font-black text-[10px] uppercase">Smart Growth Hub</span>
+             <span className="text-[#002d4d] font-black uppercase">Smart Growth Hub</span>
           </div>
           
           <h1 className="text-[#002d4d] font-black tracking-tighter">
@@ -41,7 +41,7 @@ export function HeroSection() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 pt-4">
              <Link href="/login" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all group border-none">
+                <Button className="w-full sm:w-auto h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black shadow-xl active:scale-95 transition-all group border-none">
                   ابدأ رحلتي الذكية
                   <ArrowRight size={18} className="mr-3 rotate-180 transition-transform group-hover:-translate-x-2" />
                 </Button>
@@ -49,8 +49,8 @@ export function HeroSection() {
              <div className="flex items-center gap-4 px-8 h-16 rounded-full border border-gray-100 bg-white/50 backdrop-blur-md">
                 <ShieldCheck size={20} className="text-emerald-500" />
                 <div className="flex flex-col items-start leading-none text-right">
-                   <span className="text-[11px] font-black text-[#002d4d] uppercase">Certified Security</span>
-                   <span className="text-[9px] font-bold text-gray-400 mt-1 uppercase">بيئة استثمارية موثقة</span>
+                   <span className="font-black text-[#002d4d] uppercase">Certified Security</span>
+                   <span className="font-bold text-gray-400 mt-1 uppercase">بيئة استثمارية موثقة</span>
                 </div>
              </div>
           </div>
@@ -73,11 +73,11 @@ export function HeroSection() {
                </div>
                
                <div className="space-y-4 text-center pt-6" dir="rtl">
-                  <p className="text-[9px] font-black text-gray-300 uppercase">Growth Node</p>
+                  <p className="font-black text-gray-300 uppercase">Growth Node</p>
                   <h3 className="text-[32px] md:text-[40px] font-black text-[#002d4d] tabular-nums tracking-tighter">$24,150.00</h3>
                   <div className="inline-flex items-center gap-2 bg-emerald-50 px-5 py-2 rounded-full border border-emerald-100 shadow-sm">
                      <TrendingUp size={14} className="text-emerald-500" />
-                     <span className="text-[11px] font-black text-emerald-600">+18.42%</span>
+                     <span className="font-black text-emerald-600">+18.42%</span>
                   </div>
                </div>
 

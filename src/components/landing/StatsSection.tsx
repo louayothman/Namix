@@ -34,7 +34,7 @@ export function StatsSection() {
                   </div>
                   <div className="space-y-2">
                      <p className="text-4xl md:text-5xl font-black text-[#002d4d] tabular-nums tracking-tighter">{stat.val}</p>
-                     <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em]">{stat.label}</p>
+                     <p className="font-black text-gray-400 uppercase tracking-[0.3em]">{stat.label}</p>
                   </div>
                </motion.div>
              ))}
