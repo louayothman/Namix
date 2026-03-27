@@ -8,8 +8,8 @@ import Link from "next/link";
 import { LandingBarIntro } from "./LandingBarIntro";
 
 /**
- * @fileOverview شريط الملاحة العالمي v8.0 - Integrated Light Edition
- * تم تحديث اللون ليكون أبيض/شفاف ليدعم الاسم الكحلي الجديد ويدمج مع الصفحة.
+ * @fileOverview شريط الملاحة العالمي v8.0 - Integrated Grey-Blue Edition
+ * تم تحديث اللون للخلفية المعتمدة #7D8E9E مع أزرار برتقالية وتنسيق مدمج.
  */
 
 export function LandingNavbar() {
@@ -27,7 +27,7 @@ export function LandingNavbar() {
   ];
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-[1000] w-full bg-white h-20 md:h-28 flex items-center justify-between select-none border-none shadow-none overflow-hidden">
+    <nav className="absolute top-0 left-0 right-0 z-[1000] w-full bg-[#7D8E9E] h-20 md:h-28 flex items-center justify-between select-none border-none shadow-none overflow-hidden">
       
       {/* 1. Identity Node (Right Edge) */}
       <div className="h-full flex items-center justify-start">
@@ -42,10 +42,10 @@ export function LandingNavbar() {
             href={link.href}
             className="flex flex-col items-center group transition-all"
           >
-            <span className="text-[14px] font-black text-[#002d4d] group-hover:text-[#f9a885] transition-all tracking-normal whitespace-nowrap">
+            <span className="text-[14px] font-black text-[#002d4d] group-hover:text-white transition-all tracking-normal whitespace-nowrap">
               {link.name}
             </span>
-            <span className="text-[8px] font-bold text-gray-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
               {link.en}
             </span>
           </Link>
@@ -54,10 +54,10 @@ export function LandingNavbar() {
 
       {/* 3. Action Node (Left Edge) */}
       <div className="pl-6 md:pl-12 flex items-center gap-4">
-        {/* Mobile direct links */}
-        <div className="flex md:hidden items-center gap-3 ml-2" dir="rtl">
+        {/* Mobile direct links - Optimized spacing */}
+        <div className="flex md:hidden items-center gap-4 ml-2" dir="rtl">
            {navLinks.slice(0, 2).map((link) => (
-             <Link key={link.name} href={link.href} className="text-[10px] font-black text-[#002d4d]/80">{link.name}</Link>
+             <Link key={link.name} href={link.href} className="text-[11px] font-black text-[#002d4d]">{link.name}</Link>
            ))}
         </div>
 

@@ -12,13 +12,13 @@ export function LandingBarIntro() {
   return (
     <div className="relative h-full flex items-center px-6 md:px-12 select-none pointer-events-none overflow-hidden">
       
-      {/* 1. السديم الشبكي المقتطع (Background Nebula) */}
+      {/* 1. السديم الشبكي المقتطع (Background Nebula) - ضخم وشبه شفاف */}
       <div className="absolute top-0 right-0 -translate-y-4 translate-x-4 opacity-[0.08] blur-xl pointer-events-none">
-        <div className="grid grid-cols-2 gap-3 scale-150">
-          <div className="h-16 w-16 rounded-full bg-[#002d4d]" />
+        <div className="grid grid-cols-2 gap-3 scale-[2.5] md:scale-[3.5]">
+          <div className="h-16 w-16 rounded-full bg-white" />
           <div className="h-16 w-16 rounded-full bg-[#f9a885]" />
           <div className="h-16 w-16 rounded-full bg-[#f9a885]" />
-          <div className="h-16 w-16 rounded-full bg-[#002d4d]" />
+          <div className="h-16 w-16 rounded-full bg-white" />
         </div>
       </div>
 
