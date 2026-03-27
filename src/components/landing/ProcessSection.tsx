@@ -1,10 +1,11 @@
-
 "use client";
 
 import React from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Wallet, TrendingUp, ChevronLeft } from "lucide-react";
+import { UserPlus, Wallet, TrendingUp, ChevronLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const steps = [
   { title: "إنشاء الهوية", en: "Identity Forge", desc: "سجل حسابك في ثوانٍ واحصل على بيئة تداول مخصصة لك بالكامل.", icon: UserPlus },
@@ -80,5 +81,3 @@ export function ProcessSection() {
     </section>
   );
 }
-
-import { Sparkles } from "lucide-react";
