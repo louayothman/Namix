@@ -10,35 +10,32 @@ import {
   Globe, 
   ChevronLeft, 
   Zap, 
-  TrendingUp, 
   Activity, 
-  Cpu, 
-  Radar, 
   Target,
   BarChart3,
-  Waves
+  Loader2
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview مفاعل الترحيب v24.0 - إصدار الثلاثية النانوية
- * يتميز بهيكلية 3D للهواتف، محاكاة المفاعلات، حلفية سائلة، وإنفوجرافيك استراتيجي.
+ * @fileOverview مفاعل الترحيب v25.0 - إصدار الهوية المدمجة
+ * يحتوي على الشعار والزر التكيفي في الأعلى مباشرة دون شريط ثابت.
  */
 
 // --- محاكاة المفاعلات الداخلية للهواتف ---
-
 const ContractReactor = () => (
   <div className="w-full h-full bg-white flex flex-col items-center justify-center p-4 gap-3">
-    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-inner">
+    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-inner border border-emerald-100">
       <Zap size={24} className="fill-current" />
     </motion.div>
     <div className="space-y-1 text-center w-full">
       <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
         <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="h-full w-1/2 bg-emerald-500" />
       </div>
-      <p className="text-[8px] font-black text-[#002d4d] tabular-nums">Yield: +42.5%</p>
+      <p className="text-[8px] font-black text-[#002d4d] tabular-nums tracking-normal">Yield: +42.5%</p>
     </div>
   </div>
 );
@@ -51,7 +48,7 @@ const TradingReactor = () => (
         <motion.div key={i} animate={{ height: [`${h}%`, `${h+10}%`, `${h}%`] }} transition={{ duration: 2 + i*0.2, repeat: Infinity }} className="w-2 bg-blue-100 rounded-t-sm" />
       ))}
     </div>
-    <p className="text-[8px] font-black text-[#002d4d] tabular-nums">Latency: 0.02ms</p>
+    <p className="text-[8px] font-black text-[#002d4d] tabular-nums tracking-normal">Latency: 0.02ms</p>
   </div>
 );
 
@@ -60,11 +57,9 @@ const ArenaReactor = () => (
     <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="relative h-14 w-14 rounded-full border-2 border-dashed border-[#f9a885] flex items-center justify-center">
        <Target size={20} className="text-[#f9a885]" />
     </motion.div>
-    <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest">Live Arena</p>
+    <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">Live Arena</p>
   </div>
 );
-
-// --- مكون الهاتف ثلاثي الأبعاد ---
 
 const Smartphone3D = ({ tilt, children, label, isActive }: { tilt: number, children: React.ReactNode, label: string, isActive?: boolean }) => (
   <motion.div 
@@ -75,21 +70,53 @@ const Smartphone3D = ({ tilt, children, label, isActive }: { tilt: number, child
     className="flex flex-col items-center gap-4"
   >
     <div className={cn(
-      "relative w-32 h-64 md:w-40 md:h-80 bg-[#002d4d] rounded-[32px] p-2 shadow-2xl border-[1.5px] border-white/10 transition-transform duration-700",
-      isActive ? "scale-110 -translate-y-4" : "scale-100"
+      "relative w-28 h-56 md:w-40 md:h-80 bg-[#002d4d] rounded-[32px] p-2 shadow-2xl border-[1.5px] border-white/10 transition-transform duration-700",
+      isActive ? "scale-110 -translate-y-4" : "scale-100 opacity-60"
     )}>
-      {/* Phone Screen */}
       <div className="w-full h-full bg-white rounded-[24px] overflow-hidden relative shadow-inner">
          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#002d4d] rounded-b-xl z-20" />
          {children}
       </div>
-      {/* Reflection */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none rounded-[32px]" />
     </div>
     <div className="text-center">
        <p className={cn("text-[9px] font-black uppercase tracking-widest transition-colors", isActive ? "text-[#f9a885]" : "text-gray-300")}>{label}</p>
     </div>
   </motion.div>
+);
+
+const AdaptiveActionBtn = ({ isLoggedIn }: { isLoggedIn: boolean }) => (
+  <Link href={isLoggedIn ? "/home" : "/login"}>
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      className="relative h-12 md:h-14 px-6 md:px-10 rounded-[20px] md:rounded-[24px] bg-[#002d4d] text-white overflow-hidden shadow-xl active:scale-95 transition-all group"
+    >
+      {/* Living Gradient Background */}
+      <motion.div 
+        animate={{ 
+          background: ["linear-gradient(135deg, #002d4d 0%, #003d66 100%)", "linear-gradient(135deg, #001d33 0%, #002d4d 100%)"] 
+        }}
+        transition={{ duration: 4, repeat: Infinity, repeatType: "mirror" }}
+        className="absolute inset-0"
+      />
+      
+      {/* Silk Shimmer Effect */}
+      <motion.div 
+        animate={{ x: ["-100%", "200%"] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#f9a885]/10 to-transparent skew-x-[-25deg]"
+      />
+
+      <div className="relative z-10 flex flex-col items-center justify-center leading-none">
+        <span className="text-[12px] md:text-[13px] font-black tracking-normal">
+          {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
+        </span>
+        <span className="text-[7px] md:text-[8px] font-bold text-[#f9a885] uppercase tracking-[0.1em] mt-1 opacity-80 group-hover:opacity-100 transition-opacity">
+          {isLoggedIn ? "Continue" : "Join Now"}
+        </span>
+      </div>
+    </motion.button>
+  </Link>
 );
 
 export function WelcomeHero() {
@@ -109,14 +136,28 @@ export function WelcomeHero() {
   const description = landingData?.welcomeDescription || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة.";
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center pt-32 pb-20 bg-white overflow-hidden font-body" dir="rtl">
+    <section className="relative min-h-screen w-full flex flex-col items-center pt-6 pb-20 bg-white overflow-hidden font-body" dir="rtl">
       
+      {/* 0. DIRECT IDENTITY BAR - TOP (NO NAVBAR) */}
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between z-50 mb-16">
+         <Logo size="sm" className="scale-110" />
+         
+         {/* Desktop Links (Hidden on Mobile as requested) */}
+         <div className="hidden lg:flex items-center gap-10">
+            {["مختبر العقود", "الأسواق المباشرة", "ساحة المغامرة"].map((link, i) => (
+              <button key={i} className="text-[11px] font-black text-[#002d4d]/40 hover:text-[#002d4d] transition-colors uppercase tracking-widest">{link}</button>
+            ))}
+         </div>
+
+         <AdaptiveActionBtn isLoggedIn={isLoggedIn} />
+      </div>
+
       {/* 1. TEXTUAL HEADLINE - TOP CENTER */}
       <div className="container mx-auto px-6 text-center space-y-10 relative z-30 mb-20">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-3 px-5 py-2 bg-gray-50 rounded-full border border-gray-100 shadow-sm"
+          className="inline-flex items-center gap-3 px-5 py-2 bg-gray-50 rounded-full border border-gray-100 shadow-inner"
         >
           <Sparkles size={14} className="text-[#f9a885] animate-pulse" />
           <span className="text-[#002d4d] font-black text-[11px] uppercase tracking-normal">
@@ -134,54 +175,41 @@ export function WelcomeHero() {
             {title.split(' ').slice(0, -1).join(' ')} <br />
             <span className="text-gray-200">{title.split(' ').slice(-1)}</span>
           </h1>
-          <p className="text-gray-400 text-base md:text-lg font-medium leading-loose max-w-2xl mx-auto">
+          <p className="text-gray-400 text-sm md:text-lg font-medium leading-loose max-w-2xl mx-auto px-4">
             {description}
           </p>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex justify-center pt-4">
-           <Link href={isLoggedIn ? "/home" : "/login"}>
-              <button className="h-16 px-16 rounded-[28px] bg-[#002d4d] text-white font-black text-sm shadow-2xl active:scale-95 transition-all group relative overflow-hidden">
-                 <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-                 <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "انضم الآن لنخبة المستثمرين"}</span>
-              </button>
-           </Link>
         </motion.div>
       </div>
 
       {/* 2. THE VISUAL CORE - 3D PHONES & LIQUID BACKDROP */}
       <div className="relative w-full max-w-6xl mx-auto mt-10">
-        
-        {/* Liquid Physical Backdrop */}
         <div className="absolute inset-0 z-0 flex items-center justify-center">
            <motion.div 
              animate={{ 
-               scale: [1, 1.2, 0.9, 1.1, 1],
+               scale: [1, 1.1, 0.95, 1.05, 1],
                rotate: [0, 90, 180, 270, 360],
                borderRadius: ["40% 60% 70% 30%", "60% 40% 30% 70%", "30% 70% 70% 30%", "40% 60% 70% 30%"]
              }}
-             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-             className="w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/10 via-transparent to-[#f9a885]/10 blur-[80px]"
+             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+             className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-gradient-to-tr from-blue-500/5 via-transparent to-[#f9a885]/10 blur-[60px]"
            />
         </div>
 
-        {/* 3D Phone Matrix and Infographics */}
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20 px-6">
-           
            {/* Phones Trinity */}
            <div className="flex items-center gap-4 md:gap-8 order-2 md:order-1">
-              <Smartphone3D tilt={25} label="Yield Forge">
+              <Smartphone3D tilt={20} label="Yield Forge">
                  <ContractReactor />
               </Smartphone3D>
               <Smartphone3D tilt={0} label="Nexus Node" isActive>
                  <TradingReactor />
               </Smartphone3D>
-              <Smartphone3D tilt={-25} label="Adventure Arena">
+              <Smartphone3D tilt={-20} label="Adventure Arena">
                  <ArenaReactor />
               </Smartphone3D>
            </div>
 
-           {/* Infographic Drawing Cluster - Vertical Alignment to the Right */}
+           {/* Infographic Drawing Cluster */}
            <div className="flex flex-col gap-8 order-1 md:order-2 text-right">
               {[
                 { icon: ShieldCheck, title: "سيادة الأصول", desc: "تأمين كامل للمراكز المالية", color: "text-emerald-500", bg: "bg-emerald-50" },
@@ -197,29 +225,26 @@ export function WelcomeHero() {
                   className="flex items-center gap-5 group"
                 >
                    <div className="space-y-0.5">
-                      <h5 className="font-black text-[#002d4d] text-sm group-hover:text-blue-600 transition-colors">{item.title}</h5>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{item.desc}</p>
+                      <h5 className="font-black text-[#002d4d] text-xs md:text-sm group-hover:text-blue-600 transition-colors">{item.title}</h5>
+                      <p className="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{item.desc}</p>
                    </div>
-                   <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500", item.bg)}>
-                      <item.icon className={cn("h-7 w-7", item.color)} />
+                   <div className={cn("h-12 w-12 md:h-14 md:w-14 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 border border-transparent group-hover:border-white/50", item.bg)}>
+                      <item.icon className={cn("h-6 w-6 md:h-7 md:w-7", item.color)} />
                    </div>
                 </motion.div>
               ))}
            </div>
-
         </div>
       </div>
 
-      {/* 3. SUBTLE SOVEREIGN FOOTER STRIP */}
       <div className="mt-20 flex flex-col items-center gap-4 opacity-20 select-none">
          <div className="flex items-center gap-8">
             <div className="h-[0.5px] w-12 bg-gradient-to-r from-transparent to-[#002d4d]" />
             <p className="text-[8px] font-black uppercase tracking-[1em] text-[#002d4d] mr-[-1em]">NAMIX PROTOCOL</p>
             <div className="h-[0.5px] w-12 bg-gradient-to-l from-transparent to-[#002d4d]" />
          </div>
-         <p className="text-[6px] font-bold text-gray-400 uppercase tracking-widest">Sovereign Execution Environment v24.0</p>
+         <p className="text-[6px] font-bold text-gray-400 uppercase tracking-widest">Sovereign Execution Environment v25.0</p>
       </div>
-
     </section>
   );
 }
