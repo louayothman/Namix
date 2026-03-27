@@ -8,8 +8,8 @@ import Link from "next/link";
 import { LandingBarIntro } from "./LandingBarIntro";
 
 /**
- * @fileOverview شريط الملاحة العالمي v7.0 - Integrated Color Edition
- * الشريط العلوي مدمج بالكامل، غير ثابت، وبألوان الهوية الجديدة (الرمادي المزرق والبرتقالي).
+ * @fileOverview شريط الملاحة العالمي v8.0 - Integrated Light Edition
+ * تم تحديث اللون ليكون أبيض/شفاف ليدعم الاسم الكحلي الجديد ويدمج مع الصفحة.
  */
 
 export function LandingNavbar() {
@@ -27,9 +27,9 @@ export function LandingNavbar() {
   ];
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-[1000] w-full bg-[#7D8E9E] h-20 md:h-28 flex items-center justify-between select-none border-none shadow-none overflow-hidden">
+    <nav className="absolute top-0 left-0 right-0 z-[1000] w-full bg-white h-20 md:h-28 flex items-center justify-between select-none border-none shadow-none overflow-hidden">
       
-      {/* 1. Identity Node (Right Edge) - مخصصة لتسمح بقطع اللوجو */}
+      {/* 1. Identity Node (Right Edge) */}
       <div className="h-full flex items-center justify-start">
         <LandingBarIntro />
       </div>
@@ -42,10 +42,10 @@ export function LandingNavbar() {
             href={link.href}
             className="flex flex-col items-center group transition-all"
           >
-            <span className="text-[14px] font-black text-white group-hover:text-[#f9a885] transition-all tracking-normal whitespace-nowrap">
+            <span className="text-[14px] font-black text-[#002d4d] group-hover:text-[#f9a885] transition-all tracking-normal whitespace-nowrap">
               {link.name}
             </span>
-            <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8px] font-bold text-gray-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
               {link.en}
             </span>
           </Link>
@@ -54,19 +54,19 @@ export function LandingNavbar() {
 
       {/* 3. Action Node (Left Edge) */}
       <div className="pl-6 md:pl-12 flex items-center gap-4">
-        {/* روابط الموبايل المباشرة */}
+        {/* Mobile direct links */}
         <div className="flex md:hidden items-center gap-3 ml-2" dir="rtl">
            {navLinks.slice(0, 2).map((link) => (
-             <Link key={link.name} href={link.href} className="text-[10px] font-black text-white/80">{link.name}</Link>
+             <Link key={link.name} href={link.href} className="text-[10px] font-black text-[#002d4d]/80">{link.name}</Link>
            ))}
         </div>
 
         <Link href={isLoggedIn ? "/home" : "/login"}>
-          <Button className="h-11 md:h-14 px-6 md:px-10 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[11px] md:text-[13px] shadow-xl active:scale-95 transition-all group overflow-hidden relative border-none">
+          <Button className="h-11 md:h-14 px-6 md:px-10 rounded-full bg-[#f9a885] hover:bg-[#002d4d] hover:text-white text-[#002d4d] font-black text-[11px] md:text-[13px] shadow-xl active:scale-95 transition-all group overflow-hidden relative border-none">
             <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
             <div className="relative z-10 flex items-center gap-2">
               <span className="tracking-normal">{isLoggedIn ? "متابعة" : "انضم الآن"}</span>
-              <Sparkles size={14} className="text-[#002d4d] animate-pulse hidden md:block" />
+              <Sparkles size={14} className="text-current animate-pulse hidden md:block" />
             </div>
           </Button>
         </Link>
