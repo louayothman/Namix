@@ -34,15 +34,23 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-size: 13px;
+    font-size: 13px; /* معيار ناميكس الموحد */
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Typography Normalization - Anti-Tracking for Arabic & No Italics */
+/* ميثاق النقاء الطبوغرافي: حجم خط موحد، لا ميلان، لا تباعد */
 .font-body, .font-headline, h1, h2, h3, h4, h5, h6, p, span, button, a {
+  font-size: 13px !important;
   letter-spacing: normal !important;
   font-style: normal !important;
+  text-transform: none !important;
+}
+
+/* العناوين الكبرى فقط تحتفظ بحجمها ولكن مع تطهير الميلان والتباعد */
+h1, h2 {
+  font-size: clamp(32px, 8vw, 90px) !important;
+  letter-spacing: -0.02em !important;
 }
 
 @keyframes text-shimmer {

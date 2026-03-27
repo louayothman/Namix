@@ -1,25 +1,25 @@
 
 "use client";
 
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
-// Lazy loading for high-end performance
-const LandingNavbar = lazy(() => import("@/components/landing/LandingNavbar").then(m => ({ default: m.LandingNavbar })));
-const HeroSection = lazy(() => import("@/components/landing/HeroSection").then(m => ({ default: m.HeroSection })));
-const MarketTicker = lazy(() => import("@/components/landing/MarketTicker").then(m => ({ default: m.MarketTicker })));
-const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
-const ProcessSection = lazy(() => import("@/components/landing/ProcessSection").then(m => ({ default: m.ProcessSection })));
-const StatsSection = lazy(() => import("@/components/landing/StatsSection").then(m => ({ default: m.StatsSection })));
-const FinalCTA = lazy(() => import("@/components/landing/FinalCTA").then(m => ({ default: m.FinalCTA })));
-const LandingFooter = lazy(() => import("@/components/landing/LandingFooter").then(m => ({ default: m.LandingFooter })));
+// استيراد مباشر لضمان سرعة الاستجابة وإلغاء التعليق
+import { LandingNavbar } from "@/components/landing/LandingNavbar";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { MarketTicker } from "@/components/landing/MarketTicker";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { ProcessSection } from "@/components/landing/ProcessSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { FinalCTA } from "@/components/landing/FinalCTA";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 
 const PageLoader = () => (
   <div className="h-screen w-full flex items-center justify-center bg-white">
     <div className="flex flex-col items-center gap-4">
       <Loader2 className="h-10 w-10 animate-spin text-[#002d4d]" />
-      <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Synchronizing Excellence...</p>
+      <p className="text-[10px] font-black text-gray-300 uppercase tracking-normal">NAMIX SYSTEM READY</p>
     </div>
   </div>
 );
@@ -38,7 +38,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-[#002d4d] font-body selection:bg-[#f9a885]/20 overflow-x-hidden relative">
       
-      {/* Dynamic Background Elements */}
+      {/* عناصر الخلفية الديناميكية المدمجة */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <motion.div 
           style={{ y: backgroundY }}
@@ -50,24 +50,18 @@ export default function LandingPage() {
         />
       </div>
 
-      <Suspense fallback={null}>
-        <LandingNavbar />
-      </Suspense>
+      <LandingNavbar />
 
       <main className="relative z-10">
-        <Suspense fallback={<PageLoader />}>
-          <HeroSection />
-          <MarketTicker />
-          <FeaturesSection />
-          <ProcessSection />
-          <StatsSection />
-          <FinalCTA />
-        </Suspense>
+        <HeroSection />
+        <MarketTicker />
+        <FeaturesSection />
+        <ProcessSection />
+        <StatsSection />
+        <FinalCTA />
       </main>
 
-      <Suspense fallback={null}>
-        <LandingFooter />
-      </Suspense>
+      <LandingFooter />
 
     </div>
   );

@@ -41,7 +41,7 @@ export function LandingNavbar() {
             <Link 
               key={i} 
               href="#" 
-              className="text-[13px] font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors uppercase"
+              className="text-[13px] font-black text-[#002d4d]/60 hover:text-[#002d4d] transition-colors"
             >
               {link}
             </Link>
