@@ -11,7 +11,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 
 /**
  * @fileOverview بوابة ناميكس العالمية v17.0 - إصدار النقاء الرباعي
- * تم تحديث الهيكلية لتشمل 4 أقسام هيرو تبدأ بالترحيب والتعريف الشامل.
+ * الصفحة الرئيسية تعتمد على 4 أقسام هيرو مستقلة تحاكي الوظائف الأساسية للمنصة.
  */
 export default function LandingPage() {
   return (
