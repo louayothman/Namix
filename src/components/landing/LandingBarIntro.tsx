@@ -5,48 +5,107 @@ import React from "react";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview مُفاعل الهوية الماسي v3.5 - Integrated Nebula Edition
- * يتميز بنص NAMIX أبيض نقي يسبح فوق شعار شبكي سديمي مقتطع ويدور بديناميكية عالية.
+ * @fileOverview مُفاعل الهوية v4.0 - إصدار النقاء الرقمي
+ * إعادة بناء كاملة تعتمد على مفهوم التوسع والتركيز البؤري لضمان مظهر نخبوي وعصري.
  */
 
 export function LandingBarIntro() {
+  // توقيتات الحركة المنسقة
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15,
+        delayChildren: 0.3 
+      }
+    }
+  };
+
+  const dotVariants = {
+    hidden: { scale: 0, opacity: 0, rotate: -45 },
+    visible: { 
+      scale: 1, 
+      opacity: 1, 
+      rotate: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 260, 
+        damping: 20 
+      }
+    }
+  };
+
+  const textVariants = {
+    hidden: { 
+      opacity: 0, 
+      filter: "blur(12px)",
+      letterSpacing: "0.4em",
+      x: -10 
+    },
+    visible: { 
+      opacity: 1, 
+      filter: "blur(0px)",
+      letterSpacing: "normal",
+      x: 0,
+      transition: { 
+        duration: 1.2, 
+        ease: [0.16, 1, 0.3, 1] 
+      }
+    }
+  };
+
   return (
-    <div className="relative flex items-center h-full overflow-visible" dir="ltr">
-      
-      {/* 1. اسم المنصة: أبيض نقي، موضع علوي، مزاح لليسار لضمان الرؤية الكاملة */}
-      <div className="relative z-20 ml-6 md:ml-12 pointer-events-none">
+    <motion.div 
+      className="flex items-center gap-3 md:gap-5 px-6 md:px-12 h-full select-none pointer-events-none"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      dir="ltr"
+    >
+      {/* 1. أيقونة الشبكة الذكية - مُصغرة وأنيقة */}
+      <div className="relative flex items-center justify-center">
+        {/* التوهج الخلفي النابض */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.1, 0.2, 0.1] 
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-[-10px] bg-white rounded-full blur-xl"
+        />
+
+        <motion.div 
+          className="grid grid-cols-2 gap-1.5 md:gap-2 relative z-10"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        >
+          {/* توزيع النقاط بتناظر لوني فخم */}
+          <motion.div variants={dotVariants} className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 rounded-full bg-white shadow-sm" />
+          <motion.div variants={dotVariants} className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 rounded-full bg-[#f9a885] shadow-sm" />
+          <motion.div variants={dotVariants} className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 rounded-full bg-[#f9a885] shadow-sm" />
+          <motion.div variants={dotVariants} className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 rounded-full bg-white shadow-sm" />
+        </motion.div>
+      </div>
+
+      {/* 2. نص الهوية - دخول انسيابي بتركيز بؤري */}
+      <motion.div variants={textVariants} className="relative">
         <h1 
-          className="text-white font-black text-2xl md:text-4xl tracking-tighter leading-none"
+          className="text-white font-black text-xl md:text-3xl italic tracking-tighter leading-none"
           style={{ fontFamily: 'Tajawal, sans-serif' }}
         >
           NAMIX
         </h1>
-      </div>
-
-      {/* 2. الشبكة السديمية المقتطعة: ضخمة، خلف النص، بوضعية زاوية مقتطعة */}
-      <div className="absolute top-1/2 -right-10 md:-right-16 -translate-y-1/2 w-28 h-28 md:w-40 md:h-40 flex items-center justify-center z-10">
+        
+        {/* خط ضوئي سفلي رقيق جداً يظهر مع النص */}
         <motion.div 
-          className="grid grid-cols-2 gap-3 md:gap-5 p-2 relative opacity-95"
-          animate={{ 
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          {/* توزيع الألوان المتناظر: أبيض وبرتقالي ثنائي بتوهج داخلي */}
-          <div className="h-10 w-10 md:h-14 md:w-14 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.15)]" />
-          <div className="h-10 w-10 md:h-14 md:w-14 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.25)]" />
-          <div className="h-10 w-10 md:h-14 md:w-14 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.25)]" />
-          <div className="h-10 w-10 md:h-14 md:w-14 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.15)]" />
-          
-          {/* التوهج السديمي الخفي (Subtle Nebula Glow) */}
-          <div className="absolute inset-[-60px] bg-gradient-to-tr from-white/5 to-transparent blur-3xl rounded-full pointer-events-none" />
-        </motion.div>
-      </div>
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: "100%", opacity: 0.3 }}
+          transition={{ delay: 1, duration: 1.5 }}
+          className="absolute -bottom-1 left-0 h-[0.5px] bg-gradient-to-r from-transparent via-white to-transparent"
+        />
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
