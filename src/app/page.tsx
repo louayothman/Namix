@@ -3,14 +3,15 @@
 
 import React from "react";
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
+import { WelcomeHero } from "@/components/landing/WelcomeHero";
 import { ContractHero } from "@/components/landing/ContractHero";
 import { TradingHero } from "@/components/landing/TradingHero";
 import { ArenaHero } from "@/components/landing/ArenaHero";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 /**
- * @fileOverview بوابة ناميكس العالمية v16.0 - إصدار النقاء الرقمي
- * تم توحيد الصفحة بخلفية بيضاء صلبة وثلاثة محاور استراتيجية للنمو.
+ * @fileOverview بوابة ناميكس العالمية v17.0 - إصدار النقاء الرباعي
+ * تم تحديث الهيكلية لتشمل 4 أقسام هيرو تبدأ بالترحيب والتعريف الشامل.
  */
 export default function LandingPage() {
   return (
@@ -18,10 +19,12 @@ export default function LandingPage() {
       <LandingNavbar />
       
       <main className="relative">
+        <WelcomeHero />
+        <div className="h-px w-full bg-gray-50" />
         <ContractHero />
-        <div className="h-px w-full bg-gray-100" />
+        <div className="h-px w-full bg-gray-50" />
         <TradingHero />
-        <div className="h-px w-full bg-gray-100" />
+        <div className="h-px w-full bg-gray-50" />
         <ArenaHero />
       </main>
 
