@@ -34,7 +34,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-size: 13px;
+    font-size: 13px; /* Standardized to 13px as requested */
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
