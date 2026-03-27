@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Sparkles, ShieldCheck, Globe, ChevronLeft } from "lucide-react";
 
 /**
- * @fileOverview هيرو الترحيب v20.0 - إصدار النقاء والتوازن البصري
+ * @fileOverview هيرو الترحيب v21.0 - إصدار النقاء والروح الحيوية
  */
 export function WelcomeHero() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -63,26 +63,47 @@ export function WelcomeHero() {
         >
           <Link href={isLoggedIn ? "/home" : "/login"}>
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 30px 60px -12px rgba(0, 45, 77, 0.4)"
+              }}
               whileTap={{ scale: 0.95 }}
-              className="relative h-20 px-16 rounded-[32px] bg-[#002d4d] text-white flex flex-col items-center justify-center shadow-2xl shadow-blue-900/20 group overflow-hidden"
+              className="relative h-24 px-16 rounded-[36px] bg-[#002d4d] text-white flex flex-col items-center justify-center shadow-2xl overflow-hidden group"
             >
+              {/* Vitality: Living Pulse Gradient */}
               <motion.div 
-                animate={{ opacity: [0.1, 0.2, 0.1] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute inset-0 bg-[#f9a885]/5 blur-2xl"
+                animate={{ 
+                  opacity: [0.5, 0.8, 0.5],
+                  background: [
+                    "radial-gradient(circle at 0% 0%, #002d4d 0%, #003d6d 100%)",
+                    "radial-gradient(circle at 100% 100%, #003d6d 0%, #002d4d 100%)",
+                    "radial-gradient(circle at 0% 0%, #002d4d 0%, #003d6d 100%)"
+                  ]
+                }}
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 z-0"
+              />
+
+              {/* Soul: High-Velocity Shimmer */}
+              <motion.div 
+                initial={{ x: "-150%" }}
+                animate={{ x: "250%" }}
+                transition={{ duration: 4, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#f9a885]/15 to-transparent skew-x-[-25deg] z-10"
               />
               
-              <div className="relative z-10 flex items-center gap-5">
-                <div className="flex flex-col items-center">
-                  <span className="text-xl font-black">
+              <div className="relative z-20 flex items-center gap-6">
+                <div className="flex flex-col items-center leading-none">
+                  <span className="text-2xl font-black group-hover:text-[#f9a885] transition-colors duration-300">
                     {isLoggedIn ? "متابعة الاستخدام" : "ابدأ رحلتك الآن"}
                   </span>
-                  <span className="text-[9px] font-bold text-[#f9a885] uppercase tracking-[0.3em] mt-1 opacity-80">
+                  <span className="text-[10px] font-bold text-[#f9a885]/60 uppercase tracking-[0.4em] mt-2 group-hover:text-white transition-colors duration-300">
                     {isLoggedIn ? "Continue Journey" : "Start Now"}
                   </span>
                 </div>
-                <ChevronLeft size={24} className="group-hover:-translate-x-2 transition-transform duration-500" />
+                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10 group-hover:bg-[#f9a885] group-hover:text-[#002d4d] transition-all duration-500">
+                  <ChevronLeft size={24} className="transition-transform duration-500 group-hover:-translate-x-1" />
+                </div>
               </div>
             </motion.button>
           </Link>

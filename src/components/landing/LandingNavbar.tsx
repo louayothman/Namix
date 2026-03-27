@@ -7,7 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview شريط الملاحة الذكي v20.0 - التوازن البصري المستقل
+ * @fileOverview شريط الملاحة الذكي v21.0 - إصدار الروح الحيوية
  */
 export function LandingNavbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,26 +48,40 @@ export function LandingNavbar() {
           ))}
         </nav>
 
-        {/* Left Side: Adaptive Smart Button */}
+        {/* Left Side: Adaptive Smart Button with Vitality */}
         <div className="flex items-center">
           <Link href={isLoggedIn ? "/home" : "/login"}>
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 20px 40px -12px rgba(0, 45, 77, 0.3)"
+              }}
               whileTap={{ scale: 0.95 }}
-              className="relative h-12 px-8 rounded-2xl bg-[#002d4d] text-white flex flex-col items-center justify-center overflow-hidden group shadow-2xl shadow-blue-900/20"
+              className="relative h-12 px-10 rounded-[20px] bg-[#002d4d] text-white flex flex-col items-center justify-center overflow-hidden group shadow-xl transition-all duration-500 border-none outline-none"
             >
-              {/* Shimmer Effect */}
+              {/* Vitality: Animated Background Pulse */}
               <motion.div 
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
+                animate={{ 
+                  opacity: [0.4, 0.7, 0.4],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-br from-blue-900 via-[#002d4d] to-indigo-900 z-0"
+              />
+
+              {/* Soul: Shimmering Light Rail */}
+              <motion.div 
+                initial={{ x: "-100%" }}
+                animate={{ x: "200%" }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#f9a885]/10 to-transparent skew-x-[-30deg] z-10"
               />
               
-              <div className="relative z-10 flex flex-col items-center leading-none">
-                <span className="text-[13px] font-black">
+              <div className="relative z-20 flex flex-col items-center leading-none pointer-events-none">
+                <span className="text-[13px] font-black group-hover:text-[#f9a885] transition-colors duration-300">
                   {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
                 </span>
-                <span className="text-[8px] font-bold text-[#f9a885] uppercase tracking-widest mt-1 opacity-80">
+                <span className="text-[7px] font-bold text-[#f9a885]/60 uppercase tracking-[0.2em] mt-1 group-hover:text-white transition-colors duration-300">
                   {isLoggedIn ? "Continue" : "Join Now"}
                 </span>
               </div>
