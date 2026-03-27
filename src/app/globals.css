@@ -37,16 +37,9 @@
     font-style: normal !important;
   }
 
-  /* ميثاق الـ 13px الشامل للموبايل */
-  @media (max-width: 768px) {
-    body, p, span, a, button, input, label {
-      font-size: 13px !important;
-    }
-  }
-
-  h1, h2, h3, h4, h5, h6, p, span, a, button {
+  h1, h2, h3, h4, h5, h6, p, span, a, button, input, label {
     font-style: normal !important;
-    letter-spacing: 0 !important; /* تصفير مسافات الحروف العربية */
+    letter-spacing: 0 !important;
   }
 }
 
