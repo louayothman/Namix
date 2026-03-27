@@ -1,20 +1,26 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Sparkles, ShieldCheck, Globe, ChevronLeft } from "lucide-react";
+import { Sparkles, ShieldCheck, Globe, ChevronLeft, Zap } from "lucide-react";
 
 /**
- * @fileOverview هيرو الترحيب والتعريف - إصدار النقاء الرقمي v1.0
- * القسم الأول والأساسي للتعريف بهوية المنصة ورؤيتها.
+ * @fileOverview هيرو الترحيب والتعريف v19.0 - التكيف الذكي
  */
 export function WelcomeHero() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("namix_user");
+    setIsLoggedIn(!!user);
+  }, []);
+
   return (
-    <section id="welcome" className="relative min-h-screen w-full flex items-center justify-center pt-20 px-6 md:px-24 bg-white overflow-hidden">
-      {/* عناصر خلفية هادئة جداً */}
+    <section id="welcome" className="relative min-h-screen w-full flex items-center justify-center pt-20 px-6 md:px-24 bg-white overflow-hidden font-body" dir="rtl">
+      {/* عناصر خلفية هادئة */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-50/50 rounded-full blur-3xl" />
@@ -56,14 +62,37 @@ export function WelcomeHero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-col items-center gap-10 pt-4"
         >
-          <Link href="/login" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto h-16 px-16 rounded-2xl bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-lg shadow-xl active:scale-95 transition-all group">
-              ابدأ رحلتك الآن
-              <ChevronLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-            </Button>
+          <Link href={isLoggedIn ? "/home" : "/login"}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative h-20 px-16 rounded-[28px] bg-[#002d4d] text-white flex flex-col items-center justify-center shadow-2xl shadow-blue-900/40 group overflow-hidden"
+            >
+              {/* Dynamic Glow Background */}
+              <motion.div 
+                animate={{ 
+                  opacity: [0.1, 0.3, 0.1],
+                  scale: [1, 1.2, 1] 
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute inset-0 bg-[#f9a885]/10 blur-2xl"
+              />
+              
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-xl font-black tracking-normal">
+                    {isLoggedIn ? "متابعة الاستخدام" : "ابدأ رحلتك الآن"}
+                  </span>
+                  <span className="text-[9px] font-bold text-[#f9a885] uppercase tracking-[0.3em] mt-1">
+                    {isLoggedIn ? "Continue Journey" : "Start Now"}
+                  </span>
+                </div>
+                <ChevronLeft size={24} className="mr-2 group-hover:-translate-x-2 transition-transform duration-500" />
+              </div>
+            </motion.button>
           </Link>
 
-          <div className="flex items-center gap-8 text-gray-300 font-black text-[10px] uppercase tracking-[0.3em] opacity-60">
+          <div className="flex items-center gap-8 text-gray-300 font-black text-[10px] uppercase tracking-widest opacity-60">
             <div className="flex items-center gap-2">
               <ShieldCheck size={14} className="text-emerald-500" />
               <span>نظام موثق</span>

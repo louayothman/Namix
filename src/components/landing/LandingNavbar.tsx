@@ -1,19 +1,26 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 
 /**
- * @fileOverview شريط الملاحة المدمج v18.0
- * تم تحويله ليكون غير ثابت (Absolute) وبدون حدود، مع تبسيط العرض للهواتف.
+ * @fileOverview شريط الملاحة المدمج v19.0 - التكيف الذكي
  */
 export function LandingNavbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("namix_user");
+    setIsLoggedIn(!!user);
+  }, []);
+
   return (
-    <header className="absolute top-0 left-0 right-0 z-[100] px-6 py-6 md:px-12 bg-transparent">
+    <header className="absolute top-0 left-0 right-0 z-[100] px-6 py-8 md:px-12 bg-transparent font-body" dir="rtl">
       <div className="container mx-auto flex items-center justify-between">
         
         {/* Right Side: Logo */}
@@ -36,19 +43,37 @@ export function LandingNavbar() {
             <Link 
               key={link.name} 
               href={link.href} 
-              className="text-[13px] font-black text-gray-400 hover:text-[#002d4d] transition-colors uppercase tracking-widest"
+              className="text-[13px] font-black text-gray-400 hover:text-[#002d4d] transition-colors uppercase"
             >
               {link.name}
             </Link>
           ))}
         </nav>
 
-        {/* Left Side: Call to Action */}
-        <div className="flex items-center gap-4">
-          <Link href="/login">
-            <Button className="h-10 px-6 rounded-xl bg-[#002d4d] text-white font-black text-[13px] shadow-lg active:scale-95 border-none transition-all hover:bg-[#001d33]">
-              ابدأ الآن
-            </Button>
+        {/* Left Side: Adaptive Smart Button */}
+        <div className="flex items-center">
+          <Link href={isLoggedIn ? "/home" : "/login"}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative h-11 px-8 rounded-xl bg-[#002d4d] text-white flex flex-col items-center justify-center overflow-hidden group shadow-2xl shadow-blue-900/20"
+            >
+              {/* Shimmer Effect */}
+              <motion.div 
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
+              />
+              
+              <div className="relative z-10 flex flex-col items-center leading-none">
+                <span className="text-[13px] font-black tracking-normal">
+                  {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
+                </span>
+                <span className="text-[7px] font-bold text-[#f9a885] uppercase tracking-widest mt-1">
+                  {isLoggedIn ? "Continue" : "Join Now"}
+                </span>
+              </div>
+            </motion.button>
           </Link>
         </div>
       </div>
