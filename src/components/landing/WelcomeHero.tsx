@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Sparkles, ShieldCheck, Globe, ChevronLeft } from "lucide-react";
 
 /**
- * @fileOverview هيرو الترحيب v21.0 - إصدار النقاء والروح الحيوية
+ * @fileOverview هيرو الترحيب v22.0 - إصدار الحواف الناعمة والروح الحيوية
  */
 export function WelcomeHero() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -33,7 +33,7 @@ export function WelcomeHero() {
           className="inline-flex items-center gap-3 px-5 py-2 bg-gray-50 rounded-full border border-gray-100"
         >
           <Sparkles size={14} className="text-[#f9a885]" />
-          <span className="text-[#002d4d] font-black text-[11px] uppercase tracking-wide">مرحباً بك في مستقبل الاستثمار الذكي</span>
+          <span className="text-[#002d4d] font-black text-[11px] uppercase">مرحباً بك في مستقبل الاستثمار الذكي</span>
         </motion.div>
 
         <motion.h1
@@ -68,7 +68,7 @@ export function WelcomeHero() {
                 boxShadow: "0 30px 60px -12px rgba(0, 45, 77, 0.4)"
               }}
               whileTap={{ scale: 0.95 }}
-              className="relative h-24 px-16 rounded-[36px] bg-[#002d4d] text-white flex flex-col items-center justify-center shadow-2xl overflow-hidden group"
+              className="relative h-24 px-16 rounded-[44px] bg-[#002d4d] text-white flex flex-col items-center justify-center shadow-2xl overflow-hidden group"
             >
               {/* Vitality: Living Pulse Gradient */}
               <motion.div 
@@ -97,7 +97,7 @@ export function WelcomeHero() {
                   <span className="text-2xl font-black group-hover:text-[#f9a885] transition-colors duration-300">
                     {isLoggedIn ? "متابعة الاستخدام" : "ابدأ رحلتك الآن"}
                   </span>
-                  <span className="text-[10px] font-bold text-[#f9a885]/60 uppercase tracking-[0.4em] mt-2 group-hover:text-white transition-colors duration-300">
+                  <span className="text-[10px] font-bold text-[#f9a885]/60 uppercase mt-2 group-hover:text-white transition-colors duration-300">
                     {isLoggedIn ? "Continue Journey" : "Start Now"}
                   </span>
                 </div>
@@ -108,7 +108,7 @@ export function WelcomeHero() {
             </motion.button>
           </Link>
 
-          <div className="flex items-center gap-10 text-gray-300 font-black text-[10px] uppercase tracking-widest opacity-50">
+          <div className="flex items-center gap-10 text-gray-300 font-black text-[10px] uppercase opacity-50">
             <div className="flex items-center gap-2">
               <ShieldCheck size={14} className="text-emerald-500" />
               <span>نظام موثق</span>

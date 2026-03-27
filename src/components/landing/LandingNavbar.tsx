@@ -7,7 +7,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview شريط الملاحة الذكي v21.0 - إصدار الروح الحيوية
+ * @fileOverview شريط الملاحة الذكي v22.0 - إصدار الحواف الناعمة والروح الحيوية
  */
 export function LandingNavbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,14 +41,14 @@ export function LandingNavbar() {
             <Link 
               key={link.name} 
               href={link.href} 
-              className="text-[14px] font-black text-gray-400 hover:text-[#002d4d] transition-colors"
+              className="text-[13px] font-black text-gray-400 hover:text-[#002d4d] transition-colors"
             >
               {link.name}
             </Link>
           ))}
         </nav>
 
-        {/* Left Side: Adaptive Smart Button with Vitality */}
+        {/* Left Side: Adaptive Smart Button with Soft Corners & Vitality */}
         <div className="flex items-center">
           <Link href={isLoggedIn ? "/home" : "/login"}>
             <motion.button
@@ -57,7 +57,7 @@ export function LandingNavbar() {
                 boxShadow: "0 20px 40px -12px rgba(0, 45, 77, 0.3)"
               }}
               whileTap={{ scale: 0.95 }}
-              className="relative h-12 px-10 rounded-[20px] bg-[#002d4d] text-white flex flex-col items-center justify-center overflow-hidden group shadow-xl transition-all duration-500 border-none outline-none"
+              className="relative h-12 px-10 rounded-[24px] bg-[#002d4d] text-white flex flex-col items-center justify-center overflow-hidden group shadow-xl transition-all duration-500 border-none outline-none"
             >
               {/* Vitality: Animated Background Pulse */}
               <motion.div 
@@ -81,7 +81,7 @@ export function LandingNavbar() {
                 <span className="text-[13px] font-black group-hover:text-[#f9a885] transition-colors duration-300">
                   {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
                 </span>
-                <span className="text-[7px] font-bold text-[#f9a885]/60 uppercase tracking-[0.2em] mt-1 group-hover:text-white transition-colors duration-300">
+                <span className="text-[7px] font-bold text-[#f9a885]/60 uppercase mt-1 group-hover:text-white transition-colors duration-300">
                   {isLoggedIn ? "Continue" : "Join Now"}
                 </span>
               </div>
