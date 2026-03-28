@@ -1,26 +1,28 @@
 
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
   Sparkles, 
-  ShieldCheck, 
   ChevronLeft, 
   Zap, 
   Activity, 
   ArrowUpRight,
   TrendingUp,
   Loader2,
-  Coins
+  ShieldCheck
 } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
+// استيراد ملف الرسوم الضخم بشكل آمن
 import welcomeLottie from '@/lib/welcome-lottie.json';
 
+// تحميل محرك الرسوم فقط في جهة العميل لمنع أخطاء السيرفر
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 /**
@@ -47,7 +49,7 @@ function AnimatedDigit({ digit }: { digit: string }) {
 }
 
 /**
- * @fileOverview PortfolioSimulation - محاكاة المحفظة العائمة (Sine Wave Motion)
+ * @fileOverview PortfolioSimulation - محاكاة المحفظة العائمة بحركة الأمواج
  */
 function PortfolioSimulation() {
   const [balance, setBalance] = useState(12450.75);
@@ -67,14 +69,8 @@ function PortfolioSimulation() {
 
   return (
     <motion.div 
-      animate={{ 
-        y: [0, -25, 0],
-      }}
-      transition={{ 
-        duration: 6, 
-        repeat: Infinity, 
-        ease: "easeInOut" 
-      }}
+      animate={{ y: [0, -20, 0] }}
+      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       className="w-full max-w-[340px] p-8 bg-slate-900/90 backdrop-blur-3xl rounded-[48px] border border-white/10 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.5)] relative group z-20"
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none rounded-[48px]" />
@@ -131,29 +127,37 @@ function PortfolioSimulation() {
 }
 
 export function WelcomeHero() {
+  const [mounted, setMounted] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const [showFlash, setShowFlash] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const lottieRef = useRef<any>(null);
 
   useEffect(() => {
+    setMounted(true);
     const user = localStorage.getItem("namix_user");
     setIsLoggedIn(!!user);
 
-    const introTimer = setTimeout(() => {
-      setShowFlash(true);
-      setTimeout(() => {
-        setShowIntro(false);
-        setTimeout(() => setShowFlash(false), 800);
-      }, 300);
+    // توقيت انتهاء الانترو وبدء الومضة
+    const timer = setTimeout(() => {
+      setShowIntro(false);
     }, 3000);
 
-    return () => clearTimeout(introTimer);
+    return () => clearTimeout(timer);
   }, []);
+
+  // التحكم في سرعة الرسوم الضخمة لضمان الفخامة
+  useEffect(() => {
+    if (lottieRef.current) {
+      lottieRef.current.setSpeed(0.5);
+    }
+  }, [mounted]);
+
+  if (!mounted) return null;
 
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center overflow-hidden bg-[#020617] selection:bg-blue-500/30">
       
-      {/* 1. Genesis Flash Intro */}
+      {/* 1. Genesis Flash Intro - بروتوكول الإقلاع */}
       <AnimatePresence>
         {showIntro && (
           <motion.div 
@@ -189,18 +193,7 @@ export function WelcomeHero() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showFlash && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1001] bg-white pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* 2. Main Content */}
+      {/* 2. Main Content - الواجهة التشغيلية */}
       <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between z-50 pt-8 relative">
          <Logo size="sm" className="brightness-200" />
          <Link href={isLoggedIn ? "/home" : "/login"}>
@@ -249,13 +242,14 @@ export function WelcomeHero() {
           transition={{ duration: 1.2 }}
           className="flex flex-col items-center justify-center gap-4 relative"
         >
-          {/* Floating Portfolio */}
+          {/* محاكاة المحفظة العائمة */}
           <PortfolioSimulation />
           
-          {/* Interactive Lottie - Positioned Under Wallet */}
+          {/* محرك الرسوم التفاعلية - مؤمن بصمام أمان */}
           <div className="w-full max-w-[420px] opacity-60 mix-blend-screen z-10 -mt-10">
             {welcomeLottie?.layers && (
               <Lottie 
+                lottieRef={lottieRef}
                 animationData={welcomeLottie} 
                 loop={true} 
                 className="w-full h-full"
@@ -265,7 +259,7 @@ export function WelcomeHero() {
         </motion.div>
       </div>
 
-      {/* Decorative Atmosphere */}
+      {/* هالات خلفية سينمائية */}
       <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[180px] pointer-events-none" />
     </section>
