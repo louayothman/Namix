@@ -24,7 +24,7 @@ import welcomeLottie from '@/lib/welcome-lottie.json';
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 /**
- * @fileOverview AnimatedDigit - محرك الخانات الرقمية المنزلقة
+ * @fileOverview AnimatedDigit - محرك الخانات الرقمية المنزلقة الذري
  */
 function AnimatedDigit({ digit }: { digit: string }) {
   if (isNaN(parseInt(digit))) return <span className="px-0.5">{digit}</span>;
@@ -47,7 +47,7 @@ function AnimatedDigit({ digit }: { digit: string }) {
 }
 
 /**
- * @fileOverview PortfolioSimulation - محاكاة المحفظة العائمة
+ * @fileOverview PortfolioSimulation - محاكاة المحفظة العائمة (Sine Wave Motion)
  */
 function PortfolioSimulation() {
   const [balance, setBalance] = useState(12450.75);
@@ -68,16 +68,14 @@ function PortfolioSimulation() {
   return (
     <motion.div 
       animate={{ 
-        y: [0, -20, 0],
-        rotateX: [0, 3, 0],
-        rotateY: [0, -3, 0]
+        y: [0, -25, 0],
       }}
       transition={{ 
-        duration: 8, 
+        duration: 6, 
         repeat: Infinity, 
         ease: "easeInOut" 
       }}
-      className="w-full max-w-[340px] p-8 bg-slate-900/90 backdrop-blur-3xl rounded-[48px] border border-white/10 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.5)] relative group"
+      className="w-full max-w-[340px] p-8 bg-slate-900/90 backdrop-blur-3xl rounded-[48px] border border-white/10 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.5)] relative group z-20"
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none rounded-[48px]" />
       
@@ -116,14 +114,14 @@ function PortfolioSimulation() {
 
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
-            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">Liquidity Flow</span>
+            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">Vital Pulse</span>
             <Activity size={8} className="text-blue-500 animate-pulse" />
           </div>
           <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
             <motion.div 
               animate={{ x: ["-100%", "100%"] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="h-full w-1/3 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
+              className="h-full w-1/2 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
             />
           </div>
         </div>
@@ -147,7 +145,7 @@ export function WelcomeHero() {
         setShowIntro(false);
         setTimeout(() => setShowFlash(false), 800);
       }, 300);
-    }, 3500);
+    }, 3000);
 
     return () => clearTimeout(introTimer);
   }, []);
@@ -155,6 +153,7 @@ export function WelcomeHero() {
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center overflow-hidden bg-[#020617] selection:bg-blue-500/30">
       
+      {/* 1. Genesis Flash Intro */}
       <AnimatePresence>
         {showIntro && (
           <motion.div 
@@ -201,6 +200,7 @@ export function WelcomeHero() {
         )}
       </AnimatePresence>
 
+      {/* 2. Main Content */}
       <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between z-50 pt-8 relative">
          <Logo size="sm" className="brightness-200" />
          <Link href={isLoggedIn ? "/home" : "/login"}>
@@ -233,9 +233,9 @@ export function WelcomeHero() {
             </p>
           </div>
 
-          <div className="pt-8 flex flex-col sm:flex-row items-center gap-8 justify-start">
-            <Link href="/login" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto h-20 px-16 rounded-[28px] bg-white text-black hover:bg-[#2669E3] hover:text-white font-black text-xl shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all group relative overflow-hidden">
+          <div className="pt-8">
+            <Link href="/login">
+              <Button className="h-20 px-16 rounded-[28px] bg-white text-black hover:bg-[#2669E3] hover:text-white font-black text-xl shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all group relative overflow-hidden">
                 <span className="relative z-10">ابدأ الاستثمار الآن</span>
                 <ArrowUpRight className="mr-3 h-6 w-6 relative z-10 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Button>
@@ -249,9 +249,11 @@ export function WelcomeHero() {
           transition={{ duration: 1.2 }}
           className="flex flex-col items-center justify-center gap-4 relative"
         >
+          {/* Floating Portfolio */}
           <PortfolioSimulation />
           
-          <div className="w-full max-w-[420px] opacity-60 mix-blend-screen">
+          {/* Interactive Lottie - Positioned Under Wallet */}
+          <div className="w-full max-w-[420px] opacity-60 mix-blend-screen z-10 -mt-10">
             {welcomeLottie?.layers && (
               <Lottie 
                 animationData={welcomeLottie} 
@@ -263,6 +265,7 @@ export function WelcomeHero() {
         </motion.div>
       </div>
 
+      {/* Decorative Atmosphere */}
       <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[180px] pointer-events-none" />
     </section>
