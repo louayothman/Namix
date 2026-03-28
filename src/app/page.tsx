@@ -4,7 +4,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc } from "firebase/ Jensen";
+import { doc as firestoreDoc } from "firebase/firestore";
 import { SovereignIntro } from "@/components/landing/SovereignIntro";
 import { SovereignHero } from "@/components/landing/SovereignHero";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,12 +19,12 @@ export default function LandingPage() {
   const isMobile = useIsMobile();
   const db = useFirestore();
   
-  const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
+  const landingRef = useMemoFirebase(() => firestoreDoc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData, isLoading } = useDoc(landingRef);
 
   const { scrollY } = useScroll();
 
-  // مصفوفة التحويل القطري
+  // مصفوفة التحويل القطري - من 50% (المركز) إلى الزاوية العلوية
   const logoY = useTransform(scrollY, [0, 250], ["50%", isMobile ? "40px" : "60px"]);
   const logoX = useTransform(scrollY, [0, 250], ["50%", isMobile ? "20px" : "60px"]);
   
@@ -35,7 +36,7 @@ export default function LandingPage() {
   const logoTranslateY = useTransform(scrollY, [0, 250], ["-50%", "0%"]);
 
   // شفافية الثقب الرقمي (يختفي عند التمرير)
-  const portalOpacity = useTransform(scrollY, [0, 100], [1, 0]);
+  const portalOpacity = useTransform(scrollY, [0, 150], [1, 0]);
 
   const introOpacity = useTransform(scrollY, [0, 150], [1, 0]);
   const heroOpacity = useTransform(scrollY, [150, 400], [0, 1]);
