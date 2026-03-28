@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -6,33 +7,35 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { SovereignIntro } from "@/components/landing/SovereignIntro";
 import { SovereignHero } from "@/components/landing/SovereignHero";
-import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v50.0
- * صفحة الهبوط المبنية من الصفر مع انترو سينمائي وتحول بنيوي عند التمرير.
+ * @fileOverview بوابة ناميكس السيادية v51.0
+ * تحسين محرك التحويل والتموضع المركزي مع دعم كامل للتجاوب مع الهواتف.
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
   const db = useFirestore();
   
-  // جلب إعدادات صفحة الهبوط من المشرف
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData, isLoading } = useDoc(landingRef);
 
   const { scrollY } = useScroll();
 
-  // محرك تحويل الشعار والاسم (التمركز والحجم)
-  // يتحول من المنتصف (top: 50%) إلى الأعلى (top: 40px)
-  const logoY = useTransform(scrollY, [0, 300], ["50%", "40px"]);
-  const logoX = useTransform(scrollY, [0, 300], ["50%", "10%"]);
-  const logoScale = useTransform(scrollY, [0, 300], [1, 0.55]);
-  const logoTranslateX = useTransform(scrollY, [0, 300], ["-50%", "0%"]);
-  const logoTranslateY = useTransform(scrollY, [0, 300], ["-50%", "0%"]);
+  // محرك تحويل الهوية (التمركز والحجم)
+  // الانتقال من المنتصف المطلق إلى الزاوية العلوية
+  const logoY = useTransform(scrollY, [0, 200], ["50%", isMobile ? "30px" : "40px"]);
+  const logoX = useTransform(scrollY, [0, 200], ["50%", isMobile ? "5%" : "8%"]);
+  
+  // تصغير الحجم عند التمرير: على الموبايل يبدأ أصغر ويصل لحجم الهيدر
+  const logoScale = useTransform(scrollY, [0, 200], [isMobile ? 0.8 : 1, isMobile ? 0.45 : 0.55]);
+  
+  const logoTranslateX = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
+  const logoTranslateY = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
 
-  // شفافية العناصر الأخرى
-  const introOpacity = useTransform(scrollY, [0, 200], [1, 0]);
-  const heroOpacity = useTransform(scrollY, [200, 500], [0, 1]);
+  const introOpacity = useTransform(scrollY, [0, 150], [1, 0]);
+  const heroOpacity = useTransform(scrollY, [150, 400], [0, 1]);
 
   useEffect(() => {
     setMounted(true);
@@ -45,7 +48,7 @@ export default function LandingPage() {
       {/* 1. Nebula Layer - السديم الكحلي العلوي */}
       <div className="fixed inset-0 nebula-bg z-0" />
 
-      {/* 2. Sovereign Identity Controller - متحكم الهوية السيادية (الاسم والشعار) */}
+      {/* 2. Sovereign Identity Controller - متحكم الهوية السيادية */}
       <motion.div
         style={{
           position: "fixed",
@@ -55,7 +58,7 @@ export default function LandingPage() {
           translateX: logoTranslateX,
           translateY: logoTranslateY,
         }}
-        className="z-[100] pointer-events-none"
+        className="z-[100] pointer-events-none origin-left"
       >
         <SovereignIntro />
       </motion.div>
@@ -65,20 +68,20 @@ export default function LandingPage() {
         style={{ opacity: introOpacity }}
         className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3"
       >
-        <div className="w-[22px] h-[38px] rounded-full border-2 border-white/20 flex justify-center p-1.5 shadow-inner">
+        <div className="w-[20px] h-[34px] rounded-full border-2 border-white/10 flex justify-center p-1 shadow-inner">
            <motion.div 
-             animate={{ y: [0, 12, 0] }}
+             animate={{ y: [0, 10, 0] }}
              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-             className="w-1.5 h-1.5 bg-[#f9a885] rounded-full shadow-[0_0_8px_#f9a885]" 
+             className="w-1 h-1 bg-[#f9a885] rounded-full shadow-[0_0_8px_#f9a885]" 
            />
         </div>
-        <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em] mr-[-0.4em]">Scroll</span>
+        <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] mr-[-0.4em]">Scroll</span>
       </motion.div>
 
       {/* 4. Hero Content Section - هيرو سيكشن السيادة */}
       <motion.div 
         style={{ opacity: heroOpacity }}
-        className="relative z-10 pt-[150px] min-h-screen"
+        className="relative z-10 pt-[180px] min-h-screen"
       >
         <SovereignHero 
           title={landingData?.welcomeTitle || "ناميكس: السيادة الرقمية للثروة"}
@@ -88,7 +91,7 @@ export default function LandingPage() {
       </motion.div>
 
       {/* Footer System Signature */}
-      <div className="fixed bottom-6 right-8 opacity-10 z-[100] pointer-events-none hidden md:block">
+      <div className="fixed bottom-6 right-8 opacity-5 z-[100] pointer-events-none hidden md:block">
          <p className="text-[8px] font-black uppercase tracking-[1em] text-white">Namix Universal Network</p>
       </div>
     </div>
