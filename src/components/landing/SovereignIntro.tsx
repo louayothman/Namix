@@ -11,14 +11,13 @@ interface SovereignIntroProps {
 }
 
 /**
- * @fileOverview مكون الهوية المركزية مع الثقب الرقمي v53.0
- * يعرض الهوية منبثقة من ثقب إلكتروني ثلاثي الأبعاد بمدارات رقمية.
+ * @fileOverview مكون الهوية المركزية v54.0 - Magnetic Floating Pedestal
+ * تم وضع الثقب الرقمي كقاعدة (Pedestal) أسفل الهوية، مع حركة طفو جيبية.
  */
 export function SovereignIntro({ portalOpacity }: SovereignIntroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
-    // جلب الثقب الرقمي المحدث
     fetch("https://lottie.host/3eb26c41-4a8c-494e-a355-183811e4d30d/xEq3PCvvEu.json")
       .then(res => res.json())
       .then(data => setAnimationData(data))
@@ -26,26 +25,20 @@ export function SovereignIntro({ portalOpacity }: SovereignIntroProps) {
   }, []);
 
   return (
-    <div className="relative flex items-center justify-center select-none" dir="ltr">
+    <div className="relative flex flex-col items-center justify-center select-none gap-4 md:gap-8" dir="ltr">
       
-      {/* 1. The Digital Portal (Lottie) - الثقب الرقمي المحيط بالهوية */}
+      {/* 1. The Floating Identity - تسبح بحركة جيبية مستقلة */}
       <motion.div 
-        style={{ opacity: portalOpacity || 1 }}
-        className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none"
+        animate={{ 
+          y: [0, -15, 0],
+        }}
+        transition={{ 
+          duration: 4, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+        className="relative z-10 flex items-center gap-4 md:gap-6"
       >
-        <div className="w-[450px] h-[450px] md:w-[900px] md:h-[900px] scale-[1.2] md:scale-[1.5] opacity-50">
-          {animationData && (
-            <Lottie 
-              animationData={animationData} 
-              loop={true} 
-            />
-          )}
-        </div>
-      </motion.div>
-
-      {/* 2. Sovereign Identity Group - الهوية تظهر وكأنها تخرج من الثقب */}
-      <div className="relative z-10 flex items-center gap-4 md:gap-6">
-        
         {/* The Logo (White & Orange) */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
@@ -68,11 +61,31 @@ export function SovereignIntro({ portalOpacity }: SovereignIntroProps) {
           transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
           className="flex items-center"
         >
-          <h1 className="text-3xl md:text-6xl font-black text-white tracking-tight leading-none" style={{ fontFamily: 'var(--font-body)' }}>
+          <h1 className="text-3xl md:text-6xl font-black text-white tracking-tight leading-none">
             NAMIX
           </h1>
         </motion.div>
-      </div>
+      </motion.div>
+
+      {/* 2. The Digital Portal Base (Lottie) - تم وضعه كقاعدة تحت الهوية */}
+      <motion.div 
+        style={{ opacity: portalOpacity || 1 }}
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        className="relative z-0 pointer-events-none mt-[-20px] md:mt-[-40px]"
+      >
+        <div className="w-[300px] h-[150px] md:w-[600px] md:h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="scale-[1.8] md:scale-[2.5] opacity-60">
+            {animationData && (
+              <Lottie 
+                animationData={animationData} 
+                loop={true} 
+              />
+            )}
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { SovereignIntro } from "@/components/landing/SovereignIntro";
@@ -10,8 +10,8 @@ import { SovereignHero } from "@/components/landing/SovereignHero";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v53.0
- * محرك تحويل قطري: يبدأ من المركز المطلق (50%) وينزلق للزاوية العلوية اليسرى عند التمرير.
+ * @fileOverview بوابة ناميكس السيادية v54.0 - Magnetic Orbit Edition
+ * محرك فيزيائي: انتقال قوسي (Curved Path) من المركز للزاوية مع ارتداد مرن (Elastic Snap).
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -23,23 +23,28 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
 
-  // مصفوفة التحويل القطري: تبدأ من 50% (المنتصف) وتتحرك للزاوية
-  const logoY = useTransform(scrollY, [0, 300], ["50%", isMobile ? "40px" : "60px"]);
-  const logoX = useTransform(scrollY, [0, 300], ["50%", isMobile ? "20px" : "60px"]);
-  
-  // التحكم في الإزاحة المركزية: تبدأ من -50% لتوسيط العنصر، وتنتهي عند 0% للتموضع العادي في الزاوية
-  const logoTranslateX = useTransform(scrollY, [0, 300], ["-50%", "0%"]);
-  const logoTranslateY = useTransform(scrollY, [0, 300], ["-50%", "0%"]);
+  // مصفوفة التحويل القوسي: نستخدم زنبرك (Spring) لإضافة فيزياء حقيقية وارتداد
+  const smoothScrollY = useSpring(scrollY, { stiffness: 100, damping: 20 });
 
-  // تصغير الحجم عند التمرير
-  const logoScale = useTransform(scrollY, [0, 300], [isMobile ? 0.7 : 1, isMobile ? 0.35 : 0.45]);
+  // تحويل Y: يبدأ من 50% وينتهي عند الزاوية
+  const logoY = useTransform(smoothScrollY, [0, 300], ["50%", isMobile ? "40px" : "60px"]);
   
-  // شفافية الثقب الرقمي ومؤشر التمرير (يختفيان عند التمرير)
-  const portalOpacity = useTransform(scrollY, [0, 150], [1, 0]);
-  const introOpacity = useTransform(scrollY, [0, 100], [1, 0]);
+  // تحويل X: يبدأ من 50% وينتهي عند الزاوية
+  // لخلق مسار قوسي، نقوم بتغيير توقيت X عن Y قليلاً
+  const logoX = useTransform(smoothScrollY, [0, 350], ["50%", isMobile ? "20px" : "60px"]);
   
-  // ظهور محتوى الهيرو (يبدأ الظهور بعد تلاشي المقدمة)
-  const heroOpacity = useTransform(scrollY, [150, 400], [0, 1]);
+  const logoTranslateX = useTransform(smoothScrollY, [0, 300], ["-50%", "0%"]);
+  const logoTranslateY = useTransform(smoothScrollY, [0, 300], ["-50%", "0%"]);
+
+  // تصغير الحجم بفيزياء مرنة
+  const logoScale = useTransform(smoothScrollY, [0, 300], [isMobile ? 0.7 : 1, isMobile ? 0.35 : 0.45]);
+  
+  // شفافية الثقب الرقمي (يختفي عند التمرير)
+  const portalOpacity = useTransform(smoothScrollY, [0, 200], [1, 0]);
+  const introOpacity = useTransform(smoothScrollY, [0, 100], [1, 0]);
+  
+  // ظهور محتوى الهيرو
+  const heroOpacity = useTransform(smoothScrollY, [150, 400], [0, 1]);
 
   useEffect(() => {
     setMounted(true);
@@ -52,7 +57,7 @@ export default function LandingPage() {
       {/* 1. Global Nebula Layer */}
       <div className="fixed inset-0 nebula-bg z-0 pointer-events-none" />
 
-      {/* 2. Sovereign Identity & Portal Engine */}
+      {/* 2. Magnetic Orbit Identity & Portal Cluster */}
       <motion.div
         style={{
           position: "fixed",
@@ -82,7 +87,7 @@ export default function LandingPage() {
         <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] mr-[-0.4em]">Scroll</span>
       </motion.div>
 
-      {/* 4. Main Hero Section (Revealed on Scroll) */}
+      {/* 4. Main Hero Section */}
       <motion.div 
         style={{ opacity: heroOpacity }}
         className="relative z-10 pt-[40vh] min-h-screen"
