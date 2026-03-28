@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import { motion } from "framer-motion";
 import { ShieldCheck, Zap, Globe, Cpu } from "lucide-react";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
  */
 export function TechInfrastucture() {
   const features = [
-    { title: "تشفير سيادي كامل", desc: "نظام حماية AES-256 bits لضمان أمان المحافظ والبيانات الشخصية.", icon: ShieldCheck },
+    { title: "تشفير سيادي كامل", desc: " نظام حماية AES-256 bits لضمان أمان المحافظ والبيانات الشخصية.", icon: ShieldCheck },
     { title: "تنفيذ فائق السرعة", desc: "ربط مباشر مع مراكز السيولة لضمان عدم حدوث انزلاق سعري.", icon: Zap },
     { title: "اتصال عابر للحدود", desc: "شبكة ناميكس تعمل عالمياً لتغطية كافة الأسواق الرقمية.", icon: Globe },
     { title: "معالجة ذكية", desc: "استخدام خوارزميات الذكاء الاصطناعي لتحليل نبض السوق.", icon: Cpu },

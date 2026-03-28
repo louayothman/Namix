@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
@@ -7,30 +6,27 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
   Sparkles, 
-  ChevronLeft, 
   Zap, 
   Activity, 
   ArrowUpRight,
   TrendingUp,
-  Loader2,
   ShieldCheck,
   Wallet,
   Coins,
   Briefcase,
-  Target
+  Target,
+  ChevronLeft
 } from 'lucide-react';
-import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-// تحميل محرك الرسوم في جهة العميل فقط
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 /**
- * AnimatedDigit - محرك الخانات الرقمية المنزلقة
+ * AnimatedDigit - Atomic Sliding Digits Engine
  */
 function AnimatedDigit({ digit }: { digit: string }) {
-  if (digit === "." || digit === "$") return <span className="px-0.5">{digit}</span>;
+  if (digit === "." || digit === "$" || digit === ",") return <span className="px-0.5">{digit}</span>;
   const num = parseInt(digit);
   if (isNaN(num)) return <span className="px-0.5">{digit}</span>;
   return (
@@ -51,9 +47,9 @@ function AnimatedDigit({ digit }: { digit: string }) {
 }
 
 /**
- * PortfolioSimulation - محاكاة المحفظة العائمة (Exploded UI)
+ * ExplodedPortfolio - محاكاة المحفظة المنبثقة v45.0
  */
-function PortfolioSimulation() {
+function ExplodedPortfolio() {
   const [balance, setBalance] = useState(12450.75);
   const [mounted, setMounted] = useState(false);
   
@@ -61,7 +57,7 @@ function PortfolioSimulation() {
     setMounted(true);
     const interval = setInterval(() => {
       setBalance(prev => prev + (Math.random() * 0.05));
-    }, 2500);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -69,112 +65,118 @@ function PortfolioSimulation() {
 
   return (
     <motion.div 
-      animate={{ y: [0, -15, 0] }}
+      animate={{ y: [0, -20, 0] }}
       transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      className="relative w-full max-w-[360px] aspect-[4/3] flex items-center justify-center perspective-[1200px]"
+      className="tilt-scene relative"
     >
-      {/* 3D Base Layer (Screen) */}
-      <div className="absolute inset-0 bg-[#002d4d]/80 backdrop-blur-2xl rounded-[48px] border border-white/5 shadow-2xl tilt-card pointer-events-none" />
-
-      {/* Layer 1: Atomic Balance (Middle height) */}
-      <motion.div 
-        style={{ translateZ: '40px' }}
-        className="relative z-10 w-[85%] p-6 bg-white/5 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-2xl space-y-6"
-      >
-        <div className="flex justify-between items-center">
-          <Badge className="bg-blue-600/20 text-blue-400 border-none font-black text-[7px] tracking-[0.3em] px-2.5 py-1 uppercase">Sovereign Node</Badge>
-          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+      <div className="tilt-card flex flex-col justify-between">
+        
+        {/* Layer 1: Identity & Security (Base level) */}
+        <div style={{ transform: 'translateZ(20px)' }} className="flex justify-between items-start">
+           <div className="space-y-1">
+              <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Network Identity</p>
+              <div className="flex items-center gap-2">
+                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="font-black text-xs text-white">SOVEREIGN NODE</span>
+              </div>
+           </div>
+           <div className="h-10 w-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl">
+              <ShieldCheck className="h-5 w-5 text-blue-400" />
+           </div>
         </div>
 
-        <div className="space-y-1">
-          <p className="text-[8px] font-black text-white/30 uppercase tracking-widest pr-1">Current Liquidity</p>
-          <div className="flex items-center text-3xl font-black text-white tabular-nums tracking-tighter" dir="ltr">
-            <span className="text-[#f9a885] mr-1">$</span>
-            {balance.toFixed(2).split("").map((char, i) => (
-              <AnimatedDigit key={i} digit={char} />
-            ))}
-          </div>
+        {/* Layer 2: Main Balance (Exploded - Mid height) */}
+        <motion.div 
+          style={{ transform: 'translateZ(80px)' }}
+          className="p-8 bg-white/5 backdrop-blur-3xl rounded-[36px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-4"
+        >
+           <p className="text-[9px] font-black text-[#f9a885] uppercase tracking-[0.2em] text-center">Liquidity Pool</p>
+           <div className="flex items-center justify-center text-4xl font-black text-white tabular-nums tracking-tighter" dir="ltr">
+              <span className="text-white/20 mr-2">$</span>
+              {balance.toFixed(2).split("").map((char, i) => (
+                <AnimatedDigit key={i} digit={char} />
+              ))}
+           </div>
+           <div className="flex justify-center">
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-none font-black text-[7px] tracking-widest px-3 py-1 rounded-full uppercase">
+                 Verified Assets
+              </Badge>
+           </div>
+        </motion.div>
+
+        {/* Layer 3: Dynamic Stats (High height) */}
+        <div className="grid grid-cols-2 gap-4" style={{ transform: 'translateZ(120px)' }}>
+           <div className="p-5 bg-slate-900/90 rounded-[28px] border border-white/5 shadow-2xl space-y-1">
+              <div className="flex items-center gap-2">
+                 <TrendingUp size={12} className="text-emerald-400" />
+                 <span className="text-[7px] font-black text-white/30 uppercase">Yield</span>
+              </div>
+              <p className="text-sm font-black text-emerald-400">+$420.50</p>
+           </div>
+           <div className="p-5 bg-slate-900/90 rounded-[28px] border border-white/5 shadow-2xl space-y-1">
+              <div className="flex items-center gap-2">
+                 <Briefcase size={12} className="text-blue-400" />
+                 <span className="text-[7px] font-black text-white/30 uppercase">Active</span>
+              </div>
+              <p className="text-sm font-black text-white">$2,500</p>
+           </div>
         </div>
 
-        {/* Vital Pulse Line (Moving energy) */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">Network Pulse</span>
-            <Activity size={8} className="text-blue-500 animate-pulse" />
-          </div>
-          <div className="h-[1.5px] w-full bg-white/5 rounded-full overflow-hidden">
-            <motion.div 
-              animate={{ x: ["-100%", "100%"] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#f9a885] to-transparent"
-            />
-          </div>
+        {/* Layer 4: Vital Pulse (Deepest detail) */}
+        <div style={{ transform: 'translateZ(150px)' }} className="space-y-2 px-2">
+           <div className="flex justify-between items-center">
+              <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em]">Network Pulse</span>
+              <Activity size={10} className="text-blue-500 animate-pulse" />
+           </div>
+           <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+              <motion.div 
+                animate={{ 
+                  width: ["20%", "80%", "40%", "90%", "20%"] 
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                className="h-full bg-gradient-to-r from-transparent via-[#f9a885] to-transparent"
+              />
+           </div>
         </div>
-      </motion.div>
 
-      {/* Layer 2: Floating Stats (Higher height) */}
-      <motion.div 
-        style={{ translateZ: '80px', top: '15%', left: '-10%' }}
-        className="absolute z-20 p-4 bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl flex items-center gap-3"
-      >
-        <div className="h-8 w-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-          <TrendingUp size={14} className="text-emerald-400" />
-        </div>
-        <div className="text-right">
-          <p className="text-[7px] font-black text-white/40 uppercase">Daily Yield</p>
-          <p className="text-xs font-black text-emerald-400">+$420.50</p>
-        </div>
-      </motion.div>
-
-      {/* Layer 3: Security Shield (Highest height) */}
-      <motion.div 
-        style={{ translateZ: '120px', bottom: '10%', right: '-5%' }}
-        className="absolute z-30 p-3 bg-blue-600/20 backdrop-blur-md border border-white/20 rounded-full shadow-2xl flex items-center gap-2"
-      >
-        <ShieldCheck size={12} className="text-blue-400" />
-        <span className="text-[8px] font-black text-white uppercase tracking-widest">Secured by iX</span>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
 
 export function WelcomeHero() {
-  const [mounted, setMounted] = useState(false);
-  const [animationData, setAnimationData] = useState<any>(null);
+  const [lottieData, setLottieData] = useState<any>(null);
   const lottieRef = useRef<any>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // جلب بيانات الرسوم من رابط خارجي آمن
-    // ملاحظة: الرابط أدناه هو مثال لرسم تقني عالٍ؛ يمكنك استبداله برابط الـ JSON الخاص بك.
-    const lottieUrl = "https://assets10.lottiefiles.com/packages/lf20_kz9pjcjt.json"; 
-    
-    fetch(lottieUrl)
+    fetch("https://lottie.host/8b87b5e3-f1b1-43a6-8c1d-ce4be67429a3/o34l43Q3Tu.json")
       .then(res => res.json())
-      .then(data => setAnimationData(data))
-      .catch(err => console.error("Lottie Load Error:", err));
+      .then(data => setLottieData(data))
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
     if (lottieRef.current) {
-      lottieRef.current.setSpeed(0.5); // تبطئة الحركة بنسبة 50%
+      lottieRef.current.setSpeed(0.5);
     }
-  }, [animationData]);
+  }, [lottieData]);
 
   if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen w-full flex items-center bg-[#020617] overflow-hidden selection:bg-blue-500/30">
+    <section className="relative min-h-screen w-full flex items-center bg-[#020617] overflow-hidden selection:bg-blue-500/30 py-20">
       
       {/* Background Atmosphere */}
-      <div className="absolute inset-0 pointer-events-none z-0">
+      <div className="absolute inset-0 z-0">
         <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[180px]" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#f9a885]/5 rounded-full blur-[180px]" />
       </div>
 
-      <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10 py-20">
+      <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
         
-        {/* Left Side: Strategic Content + Backdrop Lottie */}
+        {/* Content Side - Integrated with Lottie Backdrop */}
         <motion.div 
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -182,14 +184,14 @@ export function WelcomeHero() {
           className="text-right space-y-12 relative"
           dir="rtl"
         >
-          {/* Lottie Backdrop behind text */}
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] pointer-events-none opacity-20 z-0">
-            {animationData && (
+          {/* Cinematic Lottie Backdrop (Slower 50%) */}
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] pointer-events-none opacity-[0.15] z-0 mix-blend-screen">
+            {lottieData && (
               <Lottie 
                 lottieRef={lottieRef}
-                animationData={animationData} 
+                animationData={lottieData} 
                 loop={true} 
-                className="w-full h-full grayscale"
+                className="w-full h-full grayscale brightness-150"
               />
             )}
           </div>
@@ -221,14 +223,14 @@ export function WelcomeHero() {
           </div>
         </motion.div>
 
-        {/* Right Side: Floating Exploded UI */}
+        {/* Portfolio Simulation Side - Free Floating 3D */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.9, x: -50 }}
+          animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ duration: 1.2 }}
           className="flex items-center justify-center relative"
         >
-          <PortfolioSimulation />
+          <ExplodedPortfolio />
         </motion.div>
       </div>
     </section>
