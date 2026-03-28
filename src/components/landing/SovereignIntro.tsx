@@ -6,19 +6,19 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مكون الهوية المركزية المحدث v51.0
- * يدير حركة الدخول السائلة والتموضع المتوازن (الشعار يسار الاسم).
+ * @fileOverview مكون الهوية المركزية v51.5
+ * حركات دخول سائلة وهادئة مع تموضع متوازن (الشعار يسار الاسم).
  */
 export function SovereignIntro() {
   const name = "NAMIX";
 
   return (
     <div className="flex items-center gap-4 md:gap-8 select-none" dir="ltr">
-      {/* 1. The Sovereign Logo - الشعار (أبيض وبرتقالي) - يتموضع على اليسار */}
+      {/* 1. The Sovereign Logo - الشعار (أبيض وبرتقالي) */}
       <motion.div 
-        initial={{ scale: 0.8, opacity: 0, filter: "blur(10px)" }}
-        animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-        transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
         className="relative flex items-center justify-center shrink-0"
       >
         <div className="grid grid-cols-2 gap-1.5 md:gap-3">
@@ -30,17 +30,17 @@ export function SovereignIntro() {
         
         {/* Soft Aura Glow */}
         <motion.div 
-          animate={{ opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute inset-0 bg-white/10 rounded-full blur-2xl -z-10"
+          animate={{ opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-white/5 rounded-full blur-3xl -z-10"
         />
       </motion.div>
 
-      {/* 2. The Sovereign Name - الاسم (ظهور سائل) */}
+      {/* 2. The Sovereign Name - الاسم (ظهور سائل وهادئ) */}
       <motion.div 
-        initial={{ opacity: 0, x: 10, filter: "blur(5px)" }}
+        initial={{ opacity: 0, x: 10, filter: "blur(8px)" }}
         animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-        transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
+        transition={{ delay: 0.4, duration: 1.5, ease: "easeOut" }}
         className="flex items-center"
       >
         <h1 className="text-3xl md:text-7xl font-black text-white tracking-tighter leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { SovereignIntro } from "@/components/landing/SovereignIntro";
@@ -10,8 +10,8 @@ import { SovereignHero } from "@/components/landing/SovereignHero";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v51.0
- * تحسين محرك التحويل والتموضع المركزي مع دعم كامل للتجاوب مع الهواتف.
+ * @fileOverview بوابة ناميكس السيادية v51.5
+ * تحسين محرك التحويل: المركز المطلق -> الزاوية العلوية اليسرى.
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -23,14 +23,14 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
 
-  // محرك تحويل الهوية (التمركز والحجم)
-  // الانتقال من المنتصف المطلق إلى الزاوية العلوية
+  // محرك تحويل الهوية: من المنتصف (50%) إلى الزاوية (أرقام ثابتة)
   const logoY = useTransform(scrollY, [0, 200], ["50%", isMobile ? "30px" : "40px"]);
-  const logoX = useTransform(scrollY, [0, 200], ["50%", isMobile ? "5%" : "8%"]);
+  const logoX = useTransform(scrollY, [0, 200], ["50%", isMobile ? "20px" : "40px"]);
   
-  // تصغير الحجم عند التمرير: على الموبايل يبدأ أصغر ويصل لحجم الهيدر
-  const logoScale = useTransform(scrollY, [0, 200], [isMobile ? 0.8 : 1, isMobile ? 0.45 : 0.55]);
+  // تصغير الحجم عند التمرير
+  const logoScale = useTransform(scrollY, [0, 200], [isMobile ? 0.7 : 1, isMobile ? 0.4 : 0.5]);
   
+  // معالجة الإزاحة: -50% في المركز إلى 0% في الزاوية
   const logoTranslateX = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
   const logoTranslateY = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
 
@@ -58,7 +58,7 @@ export default function LandingPage() {
           translateX: logoTranslateX,
           translateY: logoTranslateY,
         }}
-        className="z-[100] pointer-events-none origin-left"
+        className="z-[100] pointer-events-none origin-center"
       >
         <SovereignIntro />
       </motion.div>
