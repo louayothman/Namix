@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
     --primary: 222 47% 15%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
@@ -29,7 +29,7 @@
 
 @layer base {
   body {
-    @apply bg-[#020617] text-white;
+    @apply bg-black text-white;
     font-family: 'Tajawal', sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -42,67 +42,20 @@
   }
 }
 
-/* 3D Cinematic Portfolio Helpers */
-.tilt-scene {
-  perspective: 1200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.tilt-card {
-  width: 340px;
-  height: 480px;
-  border-radius: 48px;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-blur: 24px;
-  color: white;
-  padding: 32px;
-  position: relative;
-  overflow: visible;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-
-  /* 🔥 Cinematic 3D Positioning */
-  transform: rotateY(20deg) rotateX(-12deg);
-  transform-style: preserve-3d;
-
-  /* 💎 Professional Shadow (Floating Feel) */
-  box-shadow:
-    0 40px 80px rgba(0, 0, 0, 0.6),
-    0 15px 30px rgba(0, 0, 0, 0.4);
-
-  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s ease;
-}
-
-.tilt-card:hover {
-  transform: rotateY(10deg) rotateX(-5deg) scale(1.02);
-  box-shadow:
-    0 60px 100px rgba(0, 0, 0, 0.7),
-    0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-.tilt-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    125deg,
-    rgba(255, 255, 255, 0.08),
-    transparent 50%
-  );
+.nebula-bg {
+  background: radial-gradient(circle at 50% 30%, rgba(0, 45, 77, 0.45) 0%, transparent 70%);
   pointer-events: none;
-  border-radius: inherit;
 }
 
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 0.5; }
-  100% { transform: scale(1.5); opacity: 0; }
+@keyframes scroll-pulse {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(10px); opacity: 1; }
 }
 
-.animate-pulse-ring {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-scroll-pulse {
+  animation: scroll-pulse 2s ease-in-out infinite;
 }
