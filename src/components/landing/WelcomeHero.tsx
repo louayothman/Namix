@@ -1,250 +1,266 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import dynamic from 'next/dynamic';
 import { 
   Sparkles, 
   ShieldCheck, 
-  Globe, 
   ChevronLeft, 
   Zap, 
   Activity, 
-  Target,
-  BarChart3,
+  ArrowUpRight,
+  TrendingUp,
+  Wallet,
   Loader2
 } from "lucide-react";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { cn } from "@/lib/utils";
 import { Logo } from "@/components/layout/Logo";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import welcomeLottie from "@/lib/welcome-lottie.json";
+
+// Dynamic Lottie import
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 /**
- * @fileOverview مفاعل الترحيب v25.0 - إصدار الهوية المدمجة
- * يحتوي على الشعار والزر التكيفي في الأعلى مباشرة دون شريط ثابت.
+ * @fileOverview مُفاعل الترحيب v42.0 - Floating UI & Genesis Flash
+ * واجهة سينمائية حرة تبدأ بانترو مخصص، تليها محاكاة محفظة عائمة ورسوم تفاعلية.
  */
 
-// --- محاكاة المفاعلات الداخلية للهواتف ---
-const ContractReactor = () => (
-  <div className="w-full h-full bg-white flex flex-col items-center justify-center p-4 gap-3">
-    <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-inner border border-emerald-100">
-      <Zap size={24} className="fill-current" />
-    </motion.div>
-    <div className="space-y-1 text-center w-full">
-      <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
-        <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="h-full w-1/2 bg-emerald-500" />
-      </div>
-      <p className="text-[8px] font-black text-[#002d4d] tabular-nums tracking-normal">Yield: +42.5%</p>
+function AnimatedDigit({ digit }: { digit: string }) {
+  if (isNaN(parseInt(digit))) return <span className="px-0.5">{digit}</span>;
+  const num = parseInt(digit);
+  return (
+    <div className="relative h-8 overflow-hidden inline-block leading-none w-[18px]">
+      <motion.div
+        animate={{ y: -num * 32 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="flex flex-col"
+      >
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          <div key={n} className="h-8 flex items-center justify-center font-black text-white">
+            {n}
+          </div>
+        ))}
+      </motion.div>
     </div>
-  </div>
-);
+  );
+}
 
-const TradingReactor = () => (
-  <div className="w-full h-full bg-white flex flex-col items-center justify-center p-4 gap-3">
-    <Activity size={24} className="text-blue-500 animate-pulse" />
-    <div className="flex items-end gap-1 h-12">
-      {[40, 70, 50, 90, 60].map((h, i) => (
-        <motion.div key={i} animate={{ height: [`${h}%`, `${h+10}%`, `${h}%`] }} transition={{ duration: 2 + i*0.2, repeat: Infinity }} className="w-2 bg-blue-100 rounded-t-sm" />
-      ))}
-    </div>
-    <p className="text-[8px] font-black text-[#002d4d] tabular-nums tracking-normal">Latency: 0.02ms</p>
-  </div>
-);
+function PortfolioSimulation() {
+  const [balance, setBalance] = useState(12450.75);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBalance(prev => prev + (Math.random() * 0.05));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
-const ArenaReactor = () => (
-  <div className="w-full h-full bg-white flex flex-col items-center justify-center p-4 gap-3">
-    <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="relative h-14 w-14 rounded-full border-2 border-dashed border-[#f9a885] flex items-center justify-center">
-       <Target size={20} className="text-[#f9a885]" />
-    </motion.div>
-    <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">Live Arena</p>
-  </div>
-);
+  const balanceStr = balance.toFixed(2);
 
-const Smartphone3D = ({ tilt, children, label, isActive }: { tilt: number, children: React.ReactNode, label: string, isActive?: boolean }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 50, rotateY: tilt }}
-    animate={{ opacity: 1, y: 0, rotateY: tilt }}
-    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-    style={{ perspective: "1000px" }}
-    className="flex flex-col items-center gap-4"
-  >
-    <div className={cn(
-      "relative w-28 h-56 md:w-40 md:h-80 bg-[#002d4d] rounded-[32px] p-2 shadow-2xl border-[1.5px] border-white/10 transition-transform duration-700",
-      isActive ? "scale-110 -translate-y-4" : "scale-100 opacity-60"
-    )}>
-      <div className="w-full h-full bg-white rounded-[24px] overflow-hidden relative shadow-inner">
-         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-[#002d4d] rounded-b-xl z-20" />
-         {children}
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none rounded-[32px]" />
-    </div>
-    <div className="text-center">
-       <p className={cn("text-[9px] font-black uppercase tracking-widest transition-colors", isActive ? "text-[#f9a885]" : "text-gray-300")}>{label}</p>
-    </div>
-  </motion.div>
-);
-
-const AdaptiveActionBtn = ({ isLoggedIn }: { isLoggedIn: boolean }) => (
-  <Link href={isLoggedIn ? "/home" : "/login"}>
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      className="relative h-12 md:h-14 px-6 md:px-10 rounded-[20px] md:rounded-[24px] bg-[#002d4d] text-white overflow-hidden shadow-xl active:scale-95 transition-all group"
+  return (
+    <motion.div 
+      animate={{ 
+        y: [0, -15, 0],
+        rotateX: [0, 2, 0],
+        rotateY: [0, -2, 0]
+      }}
+      transition={{ 
+        duration: 6, 
+        repeat: Infinity, 
+        ease: "easeInOut" 
+      }}
+      className="w-full max-w-[320px] p-8 bg-slate-900/90 backdrop-blur-3xl rounded-[40px] border border-white/10 shadow-2xl relative group"
     >
-      {/* Living Gradient Background */}
-      <motion.div 
-        animate={{ 
-          background: ["linear-gradient(135deg, #002d4d 0%, #003d66 100%)", "linear-gradient(135deg, #001d33 0%, #002d4d 100%)"] 
-        }}
-        transition={{ duration: 4, repeat: Infinity, repeatType: "mirror" }}
-        className="absolute inset-0"
-      />
+      {/* Glossy Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
       
-      {/* Silk Shimmer Effect */}
-      <motion.div 
-        animate={{ x: ["-100%", "200%"] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#f9a885]/10 to-transparent skew-x-[-25deg]"
-      />
+      <div className="relative z-10 space-y-8">
+        <div className="flex justify-between items-center">
+          <Badge className="bg-blue-600/20 text-blue-400 border-none font-black text-[7px] tracking-widest px-3 py-1">LIVE HUB</Badge>
+          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+        </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center leading-none">
-        <span className="text-[12px] md:text-[13px] font-black tracking-normal">
-          {isLoggedIn ? "متابعة الاستخدام" : "انضم الآن"}
-        </span>
-        <span className="text-[7px] md:text-[8px] font-bold text-[#f9a885] uppercase tracking-[0.1em] mt-1 opacity-80 group-hover:opacity-100 transition-opacity">
-          {isLoggedIn ? "Continue" : "Join Now"}
-        </span>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black text-white/40 uppercase tracking-widest pr-1">Current Liquidity</p>
+          <div className="flex items-center text-3xl font-black text-white tabular-nums tracking-tighter" dir="ltr">
+            <span className="text-blue-500 mr-1">$</span>
+            {balanceStr.split("").map((char, i) => (
+              <AnimatedDigit key={i} digit={char} />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp size={10} className="text-[#f9a885]" />
+              <span className="text-[7px] font-black text-white/30 uppercase">Yield</span>
+            </div>
+            <p className="text-xs font-black text-[#f9a885]">+$420.50</p>
+          </div>
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Zap size={10} className="text-blue-400" />
+              <span className="text-[7px] font-black text-white/30 uppercase">Active</span>
+            </div>
+            <p className="text-xs font-black text-white">$2,100</p>
+          </div>
+        </div>
+
+        {/* Absorption/Vital Line */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">Vital Cycle</span>
+            <Activity size={8} className="text-blue-500 animate-pulse" />
+          </div>
+          <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+            <motion.div 
+              animate={{ width: ["30%", "80%", "45%", "90%", "30%"] }}
+              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              className="h-full bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(38,105,227,0.5)]"
+            />
+          </div>
+        </div>
       </div>
-    </motion.button>
-  </Link>
-);
+    </motion.div>
+  );
+}
 
 export function WelcomeHero() {
+  const [showIntro, setShowIntro] = useState(true);
+  const [showFlash, setShowFlash] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const db = useFirestore();
-  
-  const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
-  const { data: landingData, isLoading } = useDoc(landingRef);
 
   useEffect(() => {
     const user = localStorage.getItem("namix_user");
     setIsLoggedIn(!!user);
+
+    // Sequence for Genesis Intro
+    const introTimer = setTimeout(() => {
+      setShowFlash(true);
+      setTimeout(() => {
+        setShowIntro(false);
+        setTimeout(() => setShowFlash(false), 800);
+      }, 300);
+    }, 3500);
+
+    return () => clearTimeout(introTimer);
   }, []);
 
-  const title = landingData?.welcomeTitle || "ناميكس: حيث تلتقي التقنية بالثروة.";
-  const subtitle = landingData?.welcomeSubtitle || "مرحباً بك في مستقبل الاستثمار الذكي";
-  const description = landingData?.welcomeDescription || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة.";
-
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center pt-6 pb-20 bg-white overflow-hidden font-body" dir="rtl">
+    <section className="relative min-h-screen w-full flex flex-col items-center overflow-hidden bg-[#020617] selection:bg-blue-500/30">
       
-      {/* 0. DIRECT IDENTITY BAR - TOP (NO NAVBAR) */}
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between z-50 mb-16">
-         <Logo size="sm" className="scale-110" />
-         
-         {/* Desktop Links (Hidden on Mobile as requested) */}
-         <div className="hidden lg:flex items-center gap-10">
-            {["مختبر العقود", "الأسواق المباشرة", "ساحة المغامرة"].map((link, i) => (
-              <button key={i} className="text-[11px] font-black text-[#002d4d]/40 hover:text-[#002d4d] transition-colors uppercase tracking-widest">{link}</button>
-            ))}
-         </div>
+      {/* Genesis Intro Layer */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-[#020617] flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ 
+                scale: [0.8, 1.1, 1], 
+                opacity: [0, 1, 1],
+                filter: ["blur(10px)", "blur(0px)", "blur(0px)"]
+              }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="relative"
+            >
+              <Logo size="lg" className="brightness-200" />
+              <motion.div 
+                animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 bg-blue-500/20 rounded-full blur-2xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-         <AdaptiveActionBtn isLoggedIn={isLoggedIn} />
+      {/* Transition Flash */}
+      <AnimatePresence>
+        {showFlash && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1001] bg-white pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Navbar */}
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between z-50 pt-8 relative">
+         <Logo size="sm" className="brightness-200" />
+         <Link href={isLoggedIn ? "/home" : "/login"}>
+            <Button className="h-12 px-10 rounded-2xl bg-[#2669E3] hover:bg-blue-700 text-white font-black text-xs shadow-2xl active:scale-95 transition-all border border-white/10">
+              {isLoggedIn ? "لوحة القيادة" : "انضم للنخبة"}
+            </Button>
+         </Link>
       </div>
 
-      {/* 1. TEXTUAL HEADLINE - TOP CENTER */}
-      <div className="container mx-auto px-6 text-center space-y-10 relative z-30 mb-20">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-3 px-5 py-2 bg-gray-50 rounded-full border border-gray-100 shadow-inner"
+      <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10 flex-1 py-20">
+        {/* Content Side */}
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={!showIntro ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 1 }}
+          className="text-right space-y-12"
+          dir="rtl"
         >
-          <Sparkles size={14} className="text-[#f9a885] animate-pulse" />
-          <span className="text-[#002d4d] font-black text-[11px] uppercase tracking-normal">
-            {isLoading ? "Synchronizing..." : subtitle}
-          </span>
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-blue-500/5 rounded-full border border-blue-500/10 backdrop-blur-md">
+            <Sparkles size={14} className="text-blue-400 animate-pulse" />
+            <span className="text-blue-400 font-black text-[10px] uppercase tracking-[0.3em]">بروتوكول النمو السيادي</span>
+          </div>
+
+          <div className="space-y-8">
+            <h1 className="text-6xl md:text-8xl font-black leading-[1.05] tracking-tighter text-white">
+              سيادة <span className="text-[#2669E3] drop-shadow-[0_0_30px_rgba(38,105,227,0.3)]">المال</span> <br />
+              بذكاء <span className="text-slate-700">التقنية.</span>
+            </h1>
+            <p className="text-slate-400 text-sm md:text-xl font-medium leading-loose max-w-xl pr-2 border-r-4 border-blue-600/30">
+              ناميكس هي المنصة الأكثر تطوراً لإدارة الثروة الرقمية. نجمع بين عقود الاستثمار المستدامة ومحركات التداول الوميضية لتوفير بيئة نمو نخبويّة لأصولك.
+            </p>
+          </div>
+
+          <div className="pt-8 flex flex-col sm:flex-row items-center gap-8 justify-start">
+            <Link href="/login" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto h-20 px-16 rounded-[28px] bg-white text-black hover:bg-[#2669E3] hover:text-white font-black text-xl shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all group relative overflow-hidden">
+                <span className="relative z-10">ابدأ التداول الآن</span>
+                <ArrowUpRight className="mr-3 h-6 w-6 relative z-10 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Button>
+            </Link>
+          </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="space-y-6 max-w-4xl mx-auto"
+        {/* Floating Simulation Side */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={!showIntro ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 1.2 }}
+          className="flex flex-col items-center justify-center gap-12 relative"
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#002d4d] leading-[1.1] tracking-tight">
-            {title.split(' ').slice(0, -1).join(' ')} <br />
-            <span className="text-gray-200">{title.split(' ').slice(-1)}</span>
-          </h1>
-          <p className="text-gray-400 text-sm md:text-lg font-medium leading-loose max-w-2xl mx-auto px-4">
-            {description}
-          </p>
+          <PortfolioSimulation />
+          
+          <div className="w-full max-w-[400px] opacity-60">
+            <Lottie 
+              animationData={welcomeLottie} 
+              loop={true} 
+              initialSegment={[0, 100]}
+              style={{ width: '100%' }}
+            />
+          </div>
         </motion.div>
       </div>
 
-      {/* 2. THE VISUAL CORE - 3D PHONES & LIQUID BACKDROP */}
-      <div className="relative w-full max-w-6xl mx-auto mt-10">
-        <div className="absolute inset-0 z-0 flex items-center justify-center">
-           <motion.div 
-             animate={{ 
-               scale: [1, 1.1, 0.95, 1.05, 1],
-               rotate: [0, 90, 180, 270, 360],
-               borderRadius: ["40% 60% 70% 30%", "60% 40% 30% 70%", "30% 70% 70% 30%", "40% 60% 70% 30%"]
-             }}
-             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-             className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-gradient-to-tr from-blue-500/5 via-transparent to-[#f9a885]/10 blur-[60px]"
-           />
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20 px-6">
-           {/* Phones Trinity */}
-           <div className="flex items-center gap-4 md:gap-8 order-2 md:order-1">
-              <Smartphone3D tilt={20} label="Yield Forge">
-                 <ContractReactor />
-              </Smartphone3D>
-              <Smartphone3D tilt={0} label="Nexus Node" isActive>
-                 <TradingReactor />
-              </Smartphone3D>
-              <Smartphone3D tilt={-20} label="Adventure Arena">
-                 <ArenaReactor />
-              </Smartphone3D>
-           </div>
-
-           {/* Infographic Drawing Cluster */}
-           <div className="flex flex-col gap-8 order-1 md:order-2 text-right">
-              {[
-                { icon: ShieldCheck, title: "سيادة الأصول", desc: "تأمين كامل للمراكز المالية", color: "text-emerald-500", bg: "bg-emerald-50" },
-                { icon: BarChart3, title: "ذكاء النبض", desc: "تحليل لحظي لتدفق السيولة", color: "text-blue-500", bg: "bg-blue-50" },
-                { icon: Globe, title: "اتصال عالمي", desc: "ربط مباشر مع بورصات النخبة", color: "text-orange-500", bg: "bg-orange-50" }
-              ].map((item, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.8 + i * 0.2 }}
-                  className="flex items-center gap-5 group"
-                >
-                   <div className="space-y-0.5">
-                      <h5 className="font-black text-[#002d4d] text-xs md:text-sm group-hover:text-blue-600 transition-colors">{item.title}</h5>
-                      <p className="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{item.desc}</p>
-                   </div>
-                   <div className={cn("h-12 w-12 md:h-14 md:w-14 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 border border-transparent group-hover:border-white/50", item.bg)}>
-                      <item.icon className={cn("h-6 w-6 md:h-7 md:w-7", item.color)} />
-                   </div>
-                </motion.div>
-              ))}
-           </div>
-        </div>
-      </div>
-
-      <div className="mt-20 flex flex-col items-center gap-4 opacity-20 select-none">
-         <div className="flex items-center gap-8">
-            <div className="h-[0.5px] w-12 bg-gradient-to-r from-transparent to-[#002d4d]" />
-            <p className="text-[8px] font-black uppercase tracking-[1em] text-[#002d4d] mr-[-1em]">NAMIX PROTOCOL</p>
-            <div className="h-[0.5px] w-12 bg-gradient-to-l from-transparent to-[#002d4d]" />
-         </div>
-         <p className="text-[6px] font-bold text-gray-400 uppercase tracking-widest">Sovereign Execution Environment v25.0</p>
-      </div>
+      {/* Kinetic Decor Elements */}
+      <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[180px] pointer-events-none" />
     </section>
   );
 }
