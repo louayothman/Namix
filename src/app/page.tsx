@@ -10,8 +10,8 @@ import { SovereignHero } from "@/components/landing/SovereignHero";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v51.5
- * تحسين محرك التحويل: المركز المطلق -> الزاوية العلوية اليسرى.
+ * @fileOverview بوابة ناميكس السيادية v52.0
+ * محرك تحويل قطري: من المركز المطلق إلى الزاوية العلوية اليسرى مع تلاشي الثقب الرقمي.
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -23,16 +23,19 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
 
-  // محرك تحويل الهوية: من المنتصف (50%) إلى الزاوية (أرقام ثابتة)
-  const logoY = useTransform(scrollY, [0, 200], ["50%", isMobile ? "30px" : "40px"]);
-  const logoX = useTransform(scrollY, [0, 200], ["50%", isMobile ? "20px" : "40px"]);
+  // مصفوفة التحويل القطري
+  const logoY = useTransform(scrollY, [0, 250], ["50%", isMobile ? "40px" : "60px"]);
+  const logoX = useTransform(scrollY, [0, 250], ["50%", isMobile ? "20px" : "60px"]);
   
-  // تصغير الحجم عند التمرير
-  const logoScale = useTransform(scrollY, [0, 200], [isMobile ? 0.7 : 1, isMobile ? 0.4 : 0.5]);
+  // تصغير الحجم
+  const logoScale = useTransform(scrollY, [0, 250], [isMobile ? 0.6 : 1, isMobile ? 0.35 : 0.45]);
   
-  // معالجة الإزاحة: -50% في المركز إلى 0% في الزاوية
-  const logoTranslateX = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
-  const logoTranslateY = useTransform(scrollY, [0, 200], ["-50%", "0%"]);
+  // التحكم في الإزاحة (تحويل من المركز إلى الزاوية)
+  const logoTranslateX = useTransform(scrollY, [0, 250], ["-50%", "0%"]);
+  const logoTranslateY = useTransform(scrollY, [0, 250], ["-50%", "0%"]);
+
+  // شفافية الثقب الرقمي (يختفي عند التمرير)
+  const portalOpacity = useTransform(scrollY, [0, 100], [1, 0]);
 
   const introOpacity = useTransform(scrollY, [0, 150], [1, 0]);
   const heroOpacity = useTransform(scrollY, [150, 400], [0, 1]);
@@ -44,11 +47,11 @@ export default function LandingPage() {
   if (!mounted) return <div className="min-h-screen bg-black" />;
 
   return (
-    <div className="relative min-h-[200vh] bg-black overflow-x-hidden font-body">
-      {/* 1. Nebula Layer - السديم الكحلي العلوي */}
+    <div className="relative min-h-[250vh] bg-black overflow-x-hidden font-body">
+      {/* 1. Global Nebula Layer */}
       <div className="fixed inset-0 nebula-bg z-0" />
 
-      {/* 2. Sovereign Identity Controller - متحكم الهوية السيادية */}
+      {/* 2. Sovereign Identity Engine - محرك الهوية القابل للتعديل */}
       <motion.div
         style={{
           position: "fixed",
@@ -60,10 +63,10 @@ export default function LandingPage() {
         }}
         className="z-[100] pointer-events-none origin-center"
       >
-        <SovereignIntro />
+        <SovereignIntro portalOpacity={portalOpacity} />
       </motion.div>
 
-      {/* 3. Scroll Indicator - مؤشر التمرير */}
+      {/* 3. Scroll Indicator */}
       <motion.div 
         style={{ opacity: introOpacity }}
         className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3"
@@ -78,10 +81,10 @@ export default function LandingPage() {
         <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] mr-[-0.4em]">Scroll</span>
       </motion.div>
 
-      {/* 4. Hero Content Section - هيرو سيكشن السيادة */}
+      {/* 4. Main Hero Section */}
       <motion.div 
         style={{ opacity: heroOpacity }}
-        className="relative z-10 pt-[180px] min-h-screen"
+        className="relative z-10 pt-[250px] min-h-screen"
       >
         <SovereignHero 
           title={landingData?.welcomeTitle || "ناميكس: السيادة الرقمية للثروة"}
@@ -90,7 +93,7 @@ export default function LandingPage() {
         />
       </motion.div>
 
-      {/* Footer System Signature */}
+      {/* System Brand Fixed Signature */}
       <div className="fixed bottom-6 right-8 opacity-5 z-[100] pointer-events-none hidden md:block">
          <p className="text-[8px] font-black uppercase tracking-[1em] text-white">Namix Universal Network</p>
       </div>
