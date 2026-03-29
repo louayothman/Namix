@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
@@ -15,6 +15,7 @@ import { Sparkles, Zap, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function LandingPage() {
   const db = useFirestore();
+  const [particles, setParticles] = useState<{ top: string; left: string; duration: number; delay: number }[]>([]);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -23,6 +24,17 @@ export default function LandingPage() {
   const { data: allSymbols } = useCollection(symbolsQuery);
 
   useMarketSync(allSymbols || []);
+
+  useEffect(() => {
+    // Generate particles client-side only to avoid hydration mismatch
+    const generated = [...Array(8)].map((_, i) => ({
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      duration: 6 + i,
+      delay: i * 0.7
+    }));
+    setParticles(generated);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
@@ -74,8 +86,8 @@ export default function LandingPage() {
                   className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#f9a885] rounded-full blur-[120px]" 
                 />
                 
-                {/* Floating Micro-particles */}
-                {[...Array(8)].map((_, i) => (
+                {/* Floating Micro-particles - Rendered only when particles state is ready */}
+                {particles.map((p, i) => (
                   <motion.div
                     key={i}
                     animate={{ 
@@ -84,14 +96,14 @@ export default function LandingPage() {
                       opacity: [0.1, 0.4, 0.1]
                     }}
                     transition={{ 
-                      duration: 6 + i, 
+                      duration: p.duration, 
                       repeat: Infinity,
-                      delay: i * 0.7
+                      delay: p.delay
                     }}
                     className="absolute h-1 w-1 bg-white rounded-full"
                     style={{ 
-                      top: `${Math.random() * 100}%`, 
-                      left: `${Math.random() * 100}%` 
+                      top: p.top, 
+                      left: p.left 
                     }}
                   />
                 ))}

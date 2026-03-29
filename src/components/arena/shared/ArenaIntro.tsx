@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,18 @@ interface ArenaIntroProps {
  * التعديلات: تصغير اسم اللعبة، إضافة حلقات الصدمة، وإضافة التوقيع السيادي في الأسفل.
  */
 export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
+  const [stardust, setStardust] = useState<{ x: number; y: number; scale: number; duration: number }[]>([]);
+
   useEffect(() => {
+    // Generate stardust client-side only to avoid hydration mismatch
+    const generated = [...Array(40)].map(() => ({
+      x: Math.random() * 1000 - 500,
+      y: Math.random() * 1000 - 500,
+      scale: Math.random() * 0.5,
+      duration: 3 + Math.random() * 3
+    }));
+    setStardust(generated);
+
     const timer = setTimeout(onComplete, 5500);
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -38,14 +49,14 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
     >
       {/* 1. Digital Stardust - سديم البيانات المجهري */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
-        {[...Array(40)].map((_, i) => (
+        {stardust.map((star, i) => (
           <motion.div
             key={i}
             initial={{ 
               opacity: 0, 
-              x: Math.random() * 1000 - 500, 
-              y: Math.random() * 1000 - 500,
-              scale: Math.random() * 0.5
+              x: star.x, 
+              y: star.y,
+              scale: star.scale
             }}
             animate={{ 
               opacity: [0, 0.4, 0],
@@ -53,7 +64,7 @@ export function ArenaIntro({ icon: Icon, title, onComplete }: ArenaIntroProps) {
               y: "-=30",
             }}
             transition={{ 
-              duration: 3 + Math.random() * 3, 
+              duration: star.duration, 
               repeat: Infinity,
               ease: "linear"
             }}

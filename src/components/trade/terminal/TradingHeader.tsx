@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Activity, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,8 +11,14 @@ interface TradingHeaderProps {
 }
 
 export function TradingHeader({ asset }: TradingHeaderProps) {
-  const change = asset.priceChangePercent || (Math.random() * 4).toFixed(2);
-  const isUp = Number(change) >= 0;
+  const [change, setChange] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Generate or fetch change value client-side only
+    setChange(asset.priceChangePercent || (Math.random() * 4).toFixed(2));
+  }, [asset.priceChangePercent]);
+
+  const isUp = change ? Number(change) >= 0 : true;
 
   return (
     <div className="px-2 space-y-4 text-right animate-in fade-in slide-in-from-top-2 duration-700" dir="rtl">
@@ -29,14 +36,14 @@ export function TradingHeader({ asset }: TradingHeaderProps) {
          <div className="flex items-center gap-3">
             <Badge className={cn(
               "h-8 px-4 rounded-full border-none font-black text-[10px] flex items-center gap-2 shadow-lg",
-              isUp ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+              isUp ? "bg-emerald-500 text-white" : "bg-red-50 text-white"
             )}>
               {isUp ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
-              {isUp ? '+' : ''}{change}%
+              {isUp ? '+' : ''}{change || '0.00'}%
             </Badge>
             <div className="flex items-center gap-1.5 text-[8px] font-bold text-gray-300 uppercase tracking-widest">
                <ShieldCheck size={10} className="text-blue-400" />
-               <span>Sovereign Node</span>
+               <span>Professional Node</span>
             </div>
          </div>
       </div>
