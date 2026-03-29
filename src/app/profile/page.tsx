@@ -83,7 +83,7 @@ function ProfileContent() {
           <FinancialSection />
           <SupportSection />
         </div>
-        <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); router.push("/login"); }} />
+        <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
 
         <SettingsHubDialog open={settingsOpen} onOpenChange={setSettingsOpen} onOpenEdit={() => setEditProfileOpen(true)} onOpenPassword={() => setChangePasswordOpen(true)} onOpenPin={() => setPinSetupOpen(true)} />
         <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
