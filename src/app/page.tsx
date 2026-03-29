@@ -2,128 +2,78 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Navbar } from "@/components/landing/Navbar";
+import { Hero } from "@/components/landing/Hero";
+import { MarketPulse } from "@/components/landing/MarketPulse";
+import { Features } from "@/components/landing/Features";
+import { Footer } from "@/components/landing/Footer";
+import { useMarketStore } from "@/store/use-market-store";
+import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { SovereignHero } from "@/components/landing/SovereignHero";
-import { SovereignIntro } from "@/components/landing/SovereignIntro";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { doc, collection, query, where } from "firebase/firestore";
+import { useCollection } from "@/firebase";
+import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * @fileOverview بوابة ناميكس السيادية v100.0 - Quantum Horizon Edition
- * تم إلغاء نظام الرسو الميكانيكي واستبداله بانتقال "التكثيف السائل" لضمان دقة التموضع.
- * الهوية تبدأ في المركز وتنزلق للزاوية العلوية لتتحول لهيدر زجاجي عائم.
- */
 export default function LandingPage() {
-  const [mounted, setMounted] = useState(false);
   const db = useFirestore();
   
+  // جلب الإعدادات من قاعدة البيانات
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
-  const { data: landingData, isLoading } = useDoc(landingRef);
+  const { data: landingData } = useDoc(landingRef);
 
-  const { scrollY } = useScroll();
-  
-  // 1. Nebula Expansion - السديم يتوسع ليوفر خلفية للهيرو
-  const nebulaScale = useTransform(scrollY, [0, 500], [1, 2.5]);
-  const nebulaOpacity = useTransform(scrollY, [0, 400], [0.2, 0.95]);
-  
-  // 2. Header Visibility - الهيدر الزجاجي يظهر بتلاشي نقي
-  const headerOpacity = useTransform(scrollY, [100, 250], [0, 1]);
-  const headerBlur = useTransform(scrollY, [100, 250], [0, 12]);
+  const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
+  const { data: allSymbols } = useCollection(symbolsQuery);
 
-  // 3. Logo Orchestration - تحويل الهوية من المركز للزاوية
-  // يبدأ في منتصف الشاشة وينتهي في الزاوية العلوية اليمنى (Header Position)
-  const logoX = useTransform(scrollY, [0, 300], ["0%", "38vw"]);
-  const logoY = useTransform(scrollY, [0, 300], ["0vh", "-44vh"]);
-  const logoScale = useTransform(scrollY, [0, 300], [1, 0.45]);
-  
-  // 4. Content Logic
-  const introOpacity = useTransform(scrollY, [0, 80], [1, 0]);
-  const heroOpacity = useTransform(scrollY, [200, 400], [0, 1]);
-  const indicatorOpacity = useTransform(scrollY, [0, 50], [1, 0]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return <div className="min-h-screen bg-white" />;
+  // مزامنة الأسعار الحية لشريط الأنباء
+  useMarketSync(allSymbols || []);
 
   return (
-    <div className="relative min-h-[300vh] bg-white overflow-x-hidden font-body selection:bg-[#f9a885]/30">
-      
-      {/* Dynamic Nebula Layer - الخلفية الكونية المتغيرة */}
-      <motion.div 
-        style={{ scale: nebulaScale, opacity: nebulaOpacity }}
-        className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[160%] h-[70%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.7)_0%,transparent_75%)] z-0 pointer-events-none blur-[140px]" 
-      />
-
-      {/* Floating Glass Header - هيدر عائم زجاجي بدون حواف */}
-      <motion.header
-        style={{ 
-          opacity: headerOpacity,
-          backdropFilter: `blur(12px)`,
-          WebkitBackdropFilter: `blur(12px)`
-        }}
-        className="fixed top-0 left-0 w-full h-20 bg-white/50 z-[100] border-b border-white/10 pointer-events-none"
-      >
-        <div className="container mx-auto h-full flex items-center justify-between px-8">
-           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <div className="flex items-center gap-6 opacity-40">
-              <div className="h-px w-12 bg-blue-900/20" />
-              <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d]">Namix Sovereign Hub</span>
-           </div>
-        </div>
-      </motion.header>
-
-      {/* Identity Orchestrator - محرك الهوية المركزية المتحركة */}
-      <div className="fixed inset-0 z-[110] pointer-events-none flex items-center justify-center">
-        <motion.div 
-          style={{ 
-            x: logoX,
-            y: logoY, 
-            scale: logoScale
-          }}
-          className="pointer-events-auto"
-        >
-          <SovereignIntro 
-            introText={landingData?.introText} 
-            introOpacity={introOpacity} 
-            scrollY={scrollY}
-          />
-        </motion.div>
+    <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
+      {/* طبقة السديم الخلفية الرقيقة */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.03)_0%,transparent_70%)] blur-[120px]" />
       </div>
 
-      {/* Main Hero Section */}
-      <motion.main 
-        style={{ opacity: heroOpacity }}
-        className="relative z-10 pt-[100vh]"
-      >
-        <SovereignHero 
-          title={landingData?.welcomeTitle || "ناميكس: السيادة الرقمية للثروة"}
-          description={landingData?.welcomeDescription || "نظام استثماري متطور يجمع بين الذكاء الاصطناعي وحماية الأصول المطلقة."}
-          isLoading={isLoading}
+      <Navbar />
+
+      <main className="relative z-10">
+        <Hero 
+          title={landingData?.welcomeTitle} 
+          subtitle={landingData?.welcomeSubtitle} 
+          description={landingData?.welcomeDescription} 
         />
-      </motion.main>
+        
+        <MarketPulse symbols={allSymbols || []} />
+        
+        <Features />
+        
+        {/* قسم الدعوة للعمل (CTA) */}
+        <section className="container mx-auto px-6 py-32">
+          <div className="bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative z-10 space-y-8"
+            >
+              <h2 className="text-3xl md:text-6xl font-black text-white leading-tight">ابدأ رحلتك السيادية اليوم</h2>
+              <p className="text-blue-100/60 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-loose">
+                انضم لنخبة المستثمرين في ناميكس واستفد من أحدث تقنيات التداول والذكاء الاصطناعي.
+              </p>
+              <div className="pt-4">
+                <a href="/login">
+                  <button className="h-16 px-12 rounded-full bg-[#f9a885] text-[#002d4d] font-black text-lg shadow-xl hover:bg-white transition-all active:scale-95">
+                    فتح حساب استثماري
+                  </button>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </main>
 
-      {/* Scroll Indicator */}
-      <motion.div 
-        style={{ opacity: indicatorOpacity }}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2"
-      >
-        <div className="w-6 h-10 border-2 border-[#002d4d]/10 rounded-full flex justify-center p-1">
-          <motion.div 
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-1 h-1 bg-[#002d4d]/40 rounded-full"
-          />
-        </div>
-        <span className="text-[7px] font-black text-[#002d4d]/20 uppercase tracking-[0.4em]">Scroll to Enter</span>
-      </motion.div>
-
-      {/* Brand Footer Signature */}
-      <div className="fixed bottom-6 right-8 opacity-5 z-[100] pointer-events-none hidden md:block">
-         <p className="text-[8px] font-black uppercase tracking-[1em] text-[#002d4d]">Namix Universal Network</p>
-      </div>
+      <Footer />
     </div>
   );
 }
