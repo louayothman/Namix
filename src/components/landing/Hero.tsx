@@ -18,7 +18,6 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
   const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
-    // التحديث الجديد لرابط المحرك البصري
     fetch("https://lottie.host/f696eec5-3031-46db-904e-2f94a2bf999a/KlzuAzWVLt.json")
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
@@ -30,15 +29,36 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* الجانب الأيمن: المحتوى النصي */}
-          <div className="w-1/2 text-right space-y-4 md:space-y-10">
+          {/* الجانب الأيمن: المحتوى النصي مع السديم المورفي */}
+          <div className="w-1/2 text-right space-y-4 md:space-y-10 relative">
+            
+            {/* السديم البرتقالي السائل - خلفية النص */}
+            <motion.div
+              animate={{ 
+                borderRadius: [
+                  "40% 60% 70% 30% / 40% 40% 60% 60%",
+                  "60% 40% 30% 70% / 60% 30% 70% 40%",
+                  "30% 70% 70% 30% / 50% 60% 40% 50%",
+                  "40% 60% 70% 30% / 40% 40% 60% 60%"
+                ],
+                rotate: [0, 90, 180, 270, 360],
+                scale: [1, 1.2, 0.9, 1]
+              }}
+              transition={{ 
+                duration: 15, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+              className="absolute -top-20 -right-20 w-[140%] h-[140%] bg-[#f9a885]/10 blur-[120px] pointer-events-none z-0"
+            />
+
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-3 md:space-y-6"
+              className="space-y-3 md:space-y-6 relative z-10"
             >
-              <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm">
+              <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm w-fit mr-0 ml-auto">
                 <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-blue-500" />
                 <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest">
                   {subtitle || "احترافية إدارة الأصول الرقمية"}
@@ -58,7 +78,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col md:flex-row items-start md:items-center justify-start gap-3 md:gap-6 pt-2"
+              className="flex flex-col md:flex-row items-start md:items-center justify-start gap-3 md:gap-6 pt-2 relative z-10"
             >
               <Link href={ctaLink}>
                 <button className="h-9 md:h-16 px-4 md:px-12 rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-[8px] md:text-sm shadow-xl active:scale-95 transition-all group flex items-center gap-2">
