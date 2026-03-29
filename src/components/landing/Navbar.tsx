@@ -32,12 +32,11 @@ export function Navbar({ onAboutClick }: { onAboutClick: () => void }) {
           <div className="hidden md:flex items-center gap-8">
             <button 
               onClick={onAboutClick}
-              className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors outline-none"
+              className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-normal transition-colors outline-none"
             >
               عن ناميكس
             </button>
-            <Link href="/invest" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors">الخدمات</Link>
-            <Link href="/faq" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors">المساعدة</Link>
+            <Link href="/faq" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-normal transition-colors">المساعدة</Link>
           </div>
         </div>
 
