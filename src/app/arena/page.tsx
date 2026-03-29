@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ساحة المغامرة v5.0 - Gaming Hub
- * تحديث الأيقونات: الجوهرة للمناجم والنرد للنكسوس.
+ * @fileOverview ساحة المغامرة v5.1 - Gaming Hub
+ * تحديث مسار العودة ليوجه المستخدم للرئيسية الخاصة به /home.
  */
 
 const arenaGames = [
@@ -65,7 +65,7 @@ export default function ArenaPage() {
             <p className="text-muted-foreground font-bold text-[10px]">فرص تفاعلية لتعظيم العوائد بذكاء وجرأة استراتيجية سيادية.</p>
           </div>
           
-          <Link href="/">
+          <Link href="/home">
             <Button variant="ghost" className="rounded-2xl bg-white shadow-sm h-12 px-6 border border-gray-100 active:scale-95 transition-all hover:shadow-md font-black text-[10px] text-[#002d4d]">
               <ChevronRight className="ml-2 h-4 w-4" /> العودة للرئيسية
             </Button>
@@ -82,7 +82,7 @@ export default function ArenaPage() {
            </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {arenaGames.map((game, i) => (
             <motion.div
               key={game.id}
@@ -137,7 +137,7 @@ export default function ArenaPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4 py-12 opacity-20 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v5.0</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v5.1</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
            </div>
