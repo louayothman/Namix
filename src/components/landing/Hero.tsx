@@ -32,24 +32,24 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
           {/* الجانب الأيمن: المحتوى النصي مع السديم المورفي */}
           <div className="w-1/2 text-right space-y-4 md:space-y-10 relative">
             
-            {/* السديم البرتقالي السائل - خلفية النص بضبابية مخففة */}
+            {/* السديم البرتقالي السائل - تم زيادة الوضوح وتقليل الضبابية ليظهر كتموجات سائلة */}
             <motion.div
               animate={{ 
                 borderRadius: [
-                  "40% 60% 70% 30% / 40% 40% 60% 60%",
-                  "60% 40% 30% 70% / 60% 30% 70% 40%",
-                  "30% 70% 70% 30% / 50% 60% 40% 50%",
-                  "40% 60% 70% 30% / 40% 40% 60% 60%"
+                  "30% 70% 70% 30% / 30% 30% 70% 70%",
+                  "50% 50% 20% 80% / 25% 80% 20% 75%",
+                  "67% 33% 47% 53% / 37% 20% 80% 63%",
+                  "30% 70% 70% 30% / 30% 30% 70% 70%"
                 ],
-                rotate: [0, 90, 180, 270, 360],
-                scale: [1, 1.2, 0.9, 1]
+                rotate: [0, 120, 240, 360],
+                scale: [1, 1.1, 0.95, 1]
               }}
               transition={{ 
-                duration: 15, 
+                duration: 12, 
                 repeat: Infinity, 
-                ease: "easeInOut" 
+                ease: "linear" 
               }}
-              className="absolute -top-20 -right-20 w-[140%] h-[140%] bg-[#f9a885]/10 blur-[60px] pointer-events-none z-0"
+              className="absolute -top-32 -right-20 w-[150%] h-[150%] bg-[#f9a885]/20 blur-[30px] pointer-events-none z-0"
             />
 
             <motion.div
@@ -100,7 +100,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
             </motion.div>
           </div>
 
-          {/* الجانب الأيسر: المحرك البصري */}
+          {/* الجانب الأيسر: المحتوى المصغر للموبايل */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
