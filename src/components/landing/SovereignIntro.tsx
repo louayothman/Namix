@@ -8,13 +8,14 @@ import { cn } from "@/lib/utils";
 interface SovereignIntroProps {
   introText?: string;
   introOpacity: any;
+  logoRotate: any;
 }
 
 /**
- * @fileOverview مكون الانترو السينمائي v65.0 - Kinetic Logo Edition
- * يظهر الشعار فقط بظهور سائل، مع نص ترحيبي متدرج يتم التحكم به من الإعدادات.
+ * @fileOverview مكون الانترو السينمائي v66.0 - Independent Axial Rotation
+ * يدور الشعار حول مركزه فقط، بينما يختفي النص بـ Fade دون دوران.
  */
-export function SovereignIntro({ introText, introOpacity }: SovereignIntroProps) {
+export function SovereignIntro({ introText, introOpacity, logoRotate }: SovereignIntroProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,9 +25,9 @@ export function SovereignIntro({ introText, introOpacity }: SovereignIntroProps)
   if (!mounted) return null;
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none gap-10" dir="ltr">
+    <div className="relative flex flex-col items-center justify-center select-none gap-12" dir="ltr">
       
-      {/* 1. The Namix Logo - ظهور سينمائي سائل */}
+      {/* 1. The Namix Logo - Axial Rotation Container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{ 
@@ -36,44 +37,50 @@ export function SovereignIntro({ introText, introOpacity }: SovereignIntroProps)
         }}
         transition={{ 
           duration: 1.5,
-          ease: [0.16, 1, 0.3, 1] // Luxury Easing
+          ease: [0.16, 1, 0.3, 1]
         }}
         className="relative z-10"
       >
-        {/* Logo Dots Grid */}
-        <div className="grid grid-cols-2 gap-3 md:gap-4">
-          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
-          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
-          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
-          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
-        </div>
-
-        {/* Dynamic Glow Aura */}
+        {/* المكون الذي يدور حول نفسه فقط */}
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute inset-[-40px] bg-[#f9a885]/10 blur-3xl rounded-full"
-        />
+          style={{ rotate: logoRotate }}
+          className="relative"
+        >
+          {/* Logo Dots Grid */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.15)]" />
+            <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.3)]" />
+            <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.3)]" />
+            <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.15)]" />
+          </div>
+
+          {/* Dynamic Glow Aura */}
+          <motion.div 
+            animate={{ scale: [1, 1.1, 1], opacity: [0.05, 0.15, 0.05] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-[-30px] bg-[#f9a885]/5 blur-3xl rounded-full pointer-events-none"
+          />
+        </motion.div>
       </motion.div>
 
-      {/* 2. Intro Text - نص متدرج كحلي يختفي عند التمرير */}
+      {/* 2. Intro Text - Static Fade Container */}
       <motion.div
         style={{ opacity: introOpacity }}
-        initial={{ opacity: 0, filter: "blur(10px)" }}
+        initial={{ opacity: 0, filter: "blur(15px)" }}
         animate={{ opacity: 1, filter: "blur(0px)" }}
-        transition={{ delay: 0.8, duration: 1.2 }}
+        transition={{ delay: 0.8, duration: 1.5 }}
         className="text-center px-8"
       >
-        <h3 className="text-lg md:text-2xl font-black bg-gradient-to-b from-[#002d4d] via-[#004d77] to-[#002d4d] bg-clip-text text-transparent tracking-tight leading-relaxed max-w-lg" dir="rtl">
+        <h3 className="text-xl md:text-3xl font-black bg-gradient-to-b from-[#002d4d] via-[#004d77] to-[#002d4d] bg-clip-text text-transparent tracking-tight leading-relaxed max-w-xl drop-shadow-sm" dir="rtl">
           {introText || "ناميكس: بوابتك السيادية نحو الاقتصاد الرقمي المتطور."}
         </h3>
         
-        {/* Decorative Divider */}
+        {/* Decorative Fluid Line */}
         <motion.div 
           initial={{ width: 0 }}
-          animate={{ width: "60px" }}
-          transition={{ delay: 1.5, duration: 1 }}
-          className="h-[1px] bg-gradient-to-r from-transparent via-[#f9a885]/40 to-transparent mx-auto mt-6"
+          animate={{ width: "80px" }}
+          transition={{ delay: 1.8, duration: 1.2 }}
+          className="h-[0.5px] bg-gradient-to-r from-transparent via-[#f9a885]/30 to-transparent mx-auto mt-8"
         />
       </motion.div>
 

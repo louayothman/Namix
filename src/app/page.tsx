@@ -9,8 +9,8 @@ import { SovereignIntro } from "@/components/landing/SovereignIntro";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v65.0 - محرك الدوران التزامني
- * تم دمج دوران الشعار مع اتجاه التمرير (يمين أسفل، يسار أعلى) وتوسيع السديم.
+ * @fileOverview بوابة ناميكس السيادية v66.0 - Axial Rotation Engine
+ * تم فصل دوران الشعار عن النص؛ يدور الشعار حول مركزه بينما يختفي النص بـ Fade.
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -21,20 +21,20 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
   
-  // 1. Nebula Expansion - توسيع السديم مع التمرير
-  const nebulaScale = useTransform(scrollY, [0, 500], [1, 1.8]);
-  const nebulaOpacity = useTransform(scrollY, [0, 300], [0.4, 0.9]);
+  // 1. Nebula Expansion - توسيع السديم الكحلي
+  const nebulaScale = useTransform(scrollY, [0, 500], [1, 2]);
+  const nebulaOpacity = useTransform(scrollY, [0, 300], [0.3, 0.8]);
   
-  // 2. Logo Transformation - تحويل موضع الشعار وحجمه
+  // 2. Logo Translation - تحويل موضع الشعار للأعلى
   const logoY = useTransform(scrollY, [0, 200], ["0vh", "-44vh"]);
   const logoScale = useTransform(scrollY, [0, 200], [1, 0.5]);
   
-  // 3. Kinetic Rotation - الدوران حول المركز (يمين عند النزول، يسار عند الصعود)
-  const logoRotate = useTransform(scrollY, [0, 500], [0, 360]);
+  // 3. Axial Rotation - الدوران حول المركز فقط
+  const logoRotate = useTransform(scrollY, [0, 1000], [0, 720]);
 
-  // 4. Content Visibility
-  const introOpacity = useTransform(scrollY, [0, 100], [1, 0]);
-  const heroOpacity = useTransform(scrollY, [50, 200], [0, 1]);
+  // 4. Content Visibility - تلاشي النص والظهور المتدرج للهيرو
+  const introOpacity = useTransform(scrollY, [0, 80], [1, 0]);
+  const heroOpacity = useTransform(scrollY, [100, 250], [0, 1]);
   const indicatorOpacity = useTransform(scrollY, [0, 50], [1, 0]);
 
   useEffect(() => {
@@ -46,28 +46,30 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-[300vh] bg-white overflow-x-hidden font-body selection:bg-[#f9a885]/30">
       
-      {/* Dynamic Nebula Layer - سديم كحلي متوسع */}
+      {/* Dynamic Nebula Layer */}
       <motion.div 
         style={{ scale: nebulaScale, opacity: nebulaOpacity }}
-        className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.8)_0%,transparent_70%)] z-0 pointer-events-none blur-[100px]" 
+        className="fixed top-[-15%] left-1/2 -translate-x-1/2 w-[150%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.6)_0%,transparent_70%)] z-0 pointer-events-none blur-[120px]" 
       />
 
-      {/* Intro & Logo Orchestrator - محرك الدوران الموحد */}
+      {/* Intro & Logo Orchestrator */}
       <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
         <motion.div 
           style={{ 
             y: logoY, 
-            scale: logoScale,
-            rotate: logoRotate
+            scale: logoScale
           }}
           className="pointer-events-auto"
         >
-          {/* الشعار فقط هو الذي يدور ويتحرك، والنص يختفي عبر introOpacity */}
-          <SovereignIntro introText={landingData?.introText} introOpacity={introOpacity} />
+          <SovereignIntro 
+            introText={landingData?.introText} 
+            introOpacity={introOpacity} 
+            logoRotate={logoRotate}
+          />
         </motion.div>
       </div>
 
-      {/* Main Hero Section - تظهر عند التمرير */}
+      {/* Main Hero Section */}
       <motion.main 
         style={{ opacity: heroOpacity }}
         className="relative z-10 pt-[100vh]"
@@ -84,14 +86,14 @@ export default function LandingPage() {
         style={{ opacity: indicatorOpacity }}
         className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2"
       >
-        <div className="w-6 h-10 border-2 border-[#002d4d]/20 rounded-full flex justify-center p-1">
+        <div className="w-6 h-10 border-2 border-[#002d4d]/10 rounded-full flex justify-center p-1">
           <motion.div 
             animate={{ y: [0, 12, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-1.5 h-1.5 bg-[#002d4d] rounded-full"
+            className="w-1 h-1 bg-[#002d4d]/40 rounded-full"
           />
         </div>
-        <span className="text-[8px] font-black text-[#002d4d]/30 uppercase tracking-[0.3em]">Scroll Down</span>
+        <span className="text-[7px] font-black text-[#002d4d]/20 uppercase tracking-[0.4em]">Discover More</span>
       </motion.div>
 
       {/* Brand Footer Signature */}
