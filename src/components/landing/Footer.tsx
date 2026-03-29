@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/Logo";
 import { 
   Globe, 
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface FooterProps {
   onAboutClick: () => void;
@@ -32,8 +33,8 @@ interface FooterProps {
 }
 
 /**
- * @fileOverview تذييل الصفحة المطور v7.2 - Terms and Conditions Integration
- * تم ربط كافة السياسات القانونية بالنوافذ السينمائية الموحدة.
+ * @fileOverview تذييل الصفحة المطور v7.5 - Smart Navigation Edition
+ * تم تحديث أزرار الوصول السريع لتدعم التوجيه المشروط بحالة تسجيل الدخول.
  */
 export function Footer({ 
   onAboutClick, 
@@ -45,6 +46,22 @@ export function Footer({
   onTermsClick,
   onSupportClick
 }: FooterProps) {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("namix_user");
+    setIsLoggedIn(!!user);
+  }, []);
+
+  const handleProtectedNavigation = (path: string) => {
+    if (isLoggedIn) {
+      router.push(path);
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body" dir="rtl">
       <div className="container mx-auto px-6">
@@ -101,7 +118,7 @@ export function Footer({
             <div className="flex items-center gap-3">
                {[
                  { icon: Facebook, href: "#" },
-                 { icon: Send, href: "#" }, // Telegram
+                 { icon: Send, href: "#" }, 
                  { icon: Twitter, href: "#" },
                  { icon: Instagram, href: "#" }
                ].map((social, i) => (
@@ -131,22 +148,31 @@ export function Footer({
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/login" className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group">
+                <button 
+                  onClick={() => handleProtectedNavigation("/home")} 
+                  className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group outline-none"
+                >
                    <UserPlus size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                    انضم الآن
-                </Link>
+                </button>
               </li>
               <li>
-                <Link href="/home" className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group">
+                <button 
+                  onClick={() => handleProtectedNavigation("/home")} 
+                  className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group outline-none"
+                >
                    <Wallet size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                    شحن الرصيد
-                </Link>
+                </button>
               </li>
               <li>
-                <Link href="/home" className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group">
+                <button 
+                  onClick={() => handleProtectedNavigation("/home")} 
+                  className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group outline-none"
+                >
                    <LayoutDashboard size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                    لوحة القيادة
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
