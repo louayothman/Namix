@@ -16,8 +16,10 @@ interface HeroProps {
 
 export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     fetch("https://lottie.host/f696eec5-3031-46db-904e-2f94a2bf999a/KlzuAzWVLt.json")
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
@@ -26,50 +28,68 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
 
   return (
     <section className="relative pt-24 pb-12 md:pt-48 md:pb-32 overflow-hidden">
+      
+      {/* 1. Technical Grid Overlay - شبكة الهندسة التقنية */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]" 
+           style={{ backgroundImage: 'radial-gradient(#002d4d 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }} 
+      />
+
+      {/* 2. Dual Energy Core - محرك السدم المزدوج */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        {/* Deep Blue Atmosphere (Left) */}
+        <motion.div
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.05, 0.1, 0.05],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
+        />
+
+        {/* Morphing Coral Core (Behind Text) */}
+        <motion.div
+          animate={{ 
+            borderRadius: [
+              "30% 70% 70% 30% / 30% 30% 70% 70%",
+              "50% 50% 20% 80% / 25% 80% 20% 75%",
+              "67% 33% 47% 53% / 37% 20% 80% 63%",
+              "30% 70% 70% 30% / 30% 30% 70% 70%"
+            ],
+            rotate: [0, 90, 180, 270, 360],
+            scale: [1, 1.15, 0.9, 1]
+          }}
+          transition={{ 
+            duration: 15, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+          className="absolute -top-20 -right-20 w-[120%] h-[120%] bg-[#f9a885]/15 blur-[60px]"
+        />
+      </div>
+
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* الجانب الأيمن: المحتوى النصي مع السديم المورفي */}
+          {/* الجانب الأيمن: المحتوى النصي */}
           <div className="w-1/2 text-right space-y-4 md:space-y-10 relative">
-            
-            {/* السديم البرتقالي السائل - تم زيادة الوضوح وتقليل الضبابية ليظهر كتموجات سائلة */}
             <motion.div
-              animate={{ 
-                borderRadius: [
-                  "30% 70% 70% 30% / 30% 30% 70% 70%",
-                  "50% 50% 20% 80% / 25% 80% 20% 75%",
-                  "67% 33% 47% 53% / 37% 20% 80% 63%",
-                  "30% 70% 70% 30% / 30% 30% 70% 70%"
-                ],
-                rotate: [0, 120, 240, 360],
-                scale: [1, 1.1, 0.95, 1]
-              }}
-              transition={{ 
-                duration: 12, 
-                repeat: Infinity, 
-                ease: "linear" 
-              }}
-              className="absolute -top-32 -right-20 w-[150%] h-[150%] bg-[#f9a885]/20 blur-[30px] pointer-events-none z-0"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-3 md:space-y-6 relative z-10"
             >
-              <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm w-fit mr-0 ml-auto">
-                <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-white/40 backdrop-blur-md rounded-full border border-blue-100/50 shadow-sm w-fit mr-0 ml-auto group">
+                <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest group-hover:text-[#002d4d] transition-colors">
                   {subtitle || "احترافية إدارة الأصول الرقمية"}
                 </span>
-                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-blue-500" />
+                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-[#f9a885] animate-pulse" />
               </div>
               
-              <h1 className="text-lg md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
+              <h1 className="text-xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
                 {title || "ناميكس: حيث تلتقي التقنية بنمو الأصول."}
               </h1>
               
-              <p className="text-gray-500 text-[8px] md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose">
+              <p className="text-gray-500 text-[8px] md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
                 {description || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة."}
               </p>
             </motion.div>
@@ -77,38 +97,42 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
               className="flex flex-col md:flex-row items-start md:items-center justify-start gap-3 md:gap-6 pt-2 relative z-10"
             >
               <Link href={ctaLink}>
-                <button className="h-9 md:h-16 px-4 md:px-12 rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-[8px] md:text-sm shadow-xl active:scale-95 transition-all group flex items-center gap-2">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="h-9 md:h-16 px-4 md:px-12 rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-[8px] md:text-sm shadow-2xl shadow-blue-900/20 transition-all flex items-center gap-2"
+                >
                   ابدأ الآن
-                  <ChevronLeft className="h-3 w-3 md:h-5 md:w-5 transition-transform group-hover:-translate-x-1" />
-                </button>
+                  <ChevronLeft className="h-3 w-3 md:h-5 md:w-5" />
+                </motion.button>
               </Link>
               
-              <div className="flex items-center gap-4 md:gap-8 opacity-60 md:opacity-100">
+              <div className="flex items-center gap-4 md:gap-8 opacity-40">
                  <div className="flex items-center gap-1 md:gap-2">
                     <ShieldCheck className="h-2.5 w-2.5 md:h-4 md:w-4 text-emerald-600" />
-                    <span className="text-[6px] md:text-[10px] font-black text-[#002d4d]/40 uppercase tracking-widest">محمي</span>
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">محمي</span>
                  </div>
                  <div className="flex items-center gap-1 md:gap-2">
                     <Zap className="h-2.5 w-2.5 md:h-4 md:w-4 text-[#f9a885]" />
-                    <span className="text-[6px] md:text-[10px] font-black text-[#002d4d]/40 uppercase tracking-widest">فوري</span>
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">فوري</span>
                  </div>
               </div>
             </motion.div>
           </div>
 
-          {/* الجانب الأيسر: المحتوى المصغر للموبايل */}
+          {/* الجانب الأيسر: الرسم التفاعلي */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.4 }}
+            initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 1.2, delay: 0.5 }}
             className="w-1/2 flex justify-center md:justify-end"
           >
             <div className="relative w-full max-w-[180px] md:max-w-[500px] aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 bg-blue-500/5 rounded-full blur-[40px] md:blur-[100px] animate-pulse" />
+              <div className="absolute inset-0 bg-[#f9a885]/5 rounded-full blur-[40px] md:blur-[100px] animate-pulse" />
               
               {animationData ? (
                 <Lottie 
@@ -124,7 +148,36 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[500px] pointer-events-none opacity-[0.03]">
+      {/* 3. Floating Digital Dust - جزيئات البيانات العائمة */}
+      {isMounted && (
+        <div className="absolute inset-0 pointer-events-none z-0">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ 
+                x: Math.random() * 1000, 
+                y: Math.random() * 500, 
+                opacity: 0 
+              }}
+              animate={{ 
+                y: [0, -40, 0],
+                x: [0, 20, 0],
+                opacity: [0, 0.2, 0] 
+              }}
+              transition={{ 
+                duration: 5 + i, 
+                repeat: Infinity,
+                delay: i * 0.5 
+              }}
+              className="absolute h-1 w-1 bg-[#f9a885] rounded-full"
+              style={{ top: `${20 + i * 15}%`, left: `${10 + i * 12}%` }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 4. Background Decorative Structure */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[500px] pointer-events-none opacity-[0.02]">
          <div className="grid grid-cols-3 gap-10 h-full max-w-6xl mx-auto">
             <div className="border-x border-gray-300" />
             <div className="border-x border-gray-300" />
