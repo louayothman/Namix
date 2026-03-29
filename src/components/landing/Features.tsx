@@ -61,7 +61,9 @@ export function Features() {
             viewport={{ once: true }}
             className="space-y-2"
           >
-            <h2 className="text-2xl md:text-5xl font-black text-[#002d4d]">لماذا يختار النخبة ناميكس؟</h2>
+            <h2 className="text-2xl md:text-5xl font-black text-[#002d4d]">
+              لماذا يختار النخبة <span className="text-[#f9a885]">ناميكس</span>؟
+            </h2>
             <p className="text-gray-400 font-bold text-[8px] md:text-sm uppercase tracking-[0.3em]">Professional Performance Protocol</p>
           </motion.div>
         </div>

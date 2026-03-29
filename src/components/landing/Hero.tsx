@@ -15,8 +15,8 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو v5.0 - Ultra-Compact Mobile Edition
- * تم إجبار التنسيق الأفقي (Side-by-Side) على الموبايل وتصغير العناصر لتناسب العرض.
+ * @fileOverview مُفاعل الهيرو v5.1 - Ultra-Compact Mobile Edition
+ * تم تحديث النصوص والألوان لتعزيز الفخامة الاستراتيجية.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
@@ -63,11 +63,15 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
               className="space-y-2 md:space-y-6 relative z-10"
             >
               <h1 className="text-base md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
-                {title || "ناميكس: حيث تلتقي التقنية بنمو الأصول."}
+                {title ? title : (
+                  <>
+                    ناميكس: استثمارك <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">السيادي</span>
+                  </>
+                )}
               </h1>
               
               <p className="text-gray-500 text-[9px] md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
-                {description || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة."}
+                {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة خصيصاً لتعظيم عوائد النخبة وتحقيق استقلاليتك المالية الكاملة في عالم الاقتصاد الرقمي الجديد."}
               </p>
             </motion.div>
 
