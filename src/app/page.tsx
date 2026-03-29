@@ -10,8 +10,8 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v67.0 - Sovereign Header Docking Edition
- * تم إضافة الهيدر العلوي بمركز دائري لاستقبال الشعار الدوار أثناء التمرير.
+ * @fileOverview بوابة ناميكس السيادية v68.0 - Seamless Floating Header Edition
+ * تم تحديث الهيدر ليظهر بـ Fade ومنصة رسو دائرية عائمة بدون حواف (نصفها على الهيدر ونصفها في الصفحة).
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -22,20 +22,20 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
   
-  // 1. Nebula Expansion - توسيع السديم الكحلي
+  // 1. Nebula Expansion - توسيع السديم الكحلي ليعطي عمق خلف الهيدر
   const nebulaScale = useTransform(scrollY, [0, 500], [1, 2.5]);
   const nebulaOpacity = useTransform(scrollY, [0, 300], [0.3, 0.9]);
   
-  // 2. Logo Translation - تحويل موضع الشعار للأعلى ليستقر في منصة الهيدر
-  const logoY = useTransform(scrollY, [0, 300], ["0vh", "-45.5vh"]);
+  // 2. Logo Translation - تحويل موضع الشعار ليستقر في التجويف العائم
+  // تم ضبط الإزاحة لتتطابق مع موقع الهيدر (80px من الأعلى)
+  const logoY = useTransform(scrollY, [0, 300], ["0vh", "-42vh"]);
   const logoScale = useTransform(scrollY, [0, 300], [1, 0.45]);
   
   // 3. Axial Rotation - الدوران حول المركز فقط مع اتجاه التمرير
   const logoRotate = useTransform(scrollY, [0, 1000], [0, 720]);
 
-  // 4. Header Visibility - ظهور الهيدر العلوي
+  // 4. Header Visibility - ظهور الهيدر بـ Fade نقي (بدون حركة Y)
   const headerOpacity = useTransform(scrollY, [150, 300], [0, 1]);
-  const headerY = useTransform(scrollY, [150, 300], [-100, 0]);
 
   // 5. Content Visibility - تلاشي النص والظهور المتدرج للهيرو
   const introOpacity = useTransform(scrollY, [0, 100], [1, 0]);
@@ -51,15 +51,16 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-[300vh] bg-white overflow-x-hidden font-body selection:bg-[#f9a885]/30">
       
-      {/* Sovereign Header - الهيدر المطور بمنصة رسو دائرية */}
+      {/* Sovereign Header - هيدر عائم بدون حواف بظهور Fade */}
       <motion.header
-        style={{ opacity: headerOpacity, y: headerY }}
+        style={{ opacity: headerOpacity }}
         className="fixed top-0 left-0 w-full z-[100] pointer-events-none"
       >
-        <div className="relative w-full h-20 bg-white shadow-2xl rounded-b-[48px] border-b border-gray-50 flex items-center justify-center pointer-events-auto">
-           {/* Circular Dock - منصة الرسو الدائرية */}
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full shadow-inner border border-gray-50 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-gray-50/50 border border-dashed border-gray-100 animate-spin-slow opacity-20" />
+        <div className="relative w-full h-20 bg-white rounded-b-[48px] flex items-center justify-center pointer-events-auto">
+           {/* Floating Circular Dock - منصة رسو عائمة (نصفها على الهيدر ونصفها بالخارج) */}
+           <div className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(0,0,0,0.02)]">
+              {/* Subtle Internal Pulse Glow */}
+              <div className="w-20 h-20 rounded-full bg-gray-50/20 animate-pulse" />
            </div>
         </div>
       </motion.header>
@@ -118,16 +119,6 @@ export default function LandingPage() {
       <div className="fixed bottom-6 right-8 opacity-5 z-[100] pointer-events-none hidden md:block">
          <p className="text-[8px] font-black uppercase tracking-[1em] text-[#002d4d]">Namix Universal Network</p>
       </div>
-
-      <style jsx global>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 12s linear infinite;
-        }
-      `}</style>
     </div>
   );
 }
