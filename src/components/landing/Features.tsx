@@ -61,12 +61,12 @@ export function Features() {
             viewport={{ once: true }}
             className="space-y-4"
           >
-            <h2 className="text-2xl md:text-5xl font-black text-[#002d4d]">لماذا يختار النخبة ناميكس؟</h2>
-            <p className="text-gray-400 font-bold text-[10px] md:text-sm uppercase tracking-[0.3em]">Professional Performance Protocol</p>
+            <h2 className="text-3xl md:text-5xl font-black text-[#002d4d]">لماذا يختار النخبة ناميكس؟</h2>
+            <p className="text-gray-400 font-bold text-xs md:text-sm uppercase tracking-[0.3em]">Professional Performance Protocol</p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {featureList.map((f, i) => (
             <motion.div
               key={i}
@@ -75,7 +75,7 @@ export function Features() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.8 }}
               whileHover={{ y: -5 }}
-              className="relative p-6 md:p-10 rounded-[32px] md:rounded-[56px] bg-gray-50/30 border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,45,77,0.1)] transition-all duration-700 group overflow-hidden"
+              className="relative p-8 md:p-10 rounded-[40px] md:rounded-[56px] bg-gray-50/30 border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,45,77,0.1)] transition-all duration-700 group overflow-hidden"
             >
               {/* Interactive Background Icon */}
               <motion.div
@@ -96,21 +96,15 @@ export function Features() {
                 <f.icon size={120} className="md:size-[180px]" strokeWidth={1.5} />
               </motion.div>
 
-              {/* Decorative Accent */}
-              <div className={cn(
-                "absolute top-6 right-6 md:top-10 md:right-10 w-1 h-1 rounded-full animate-pulse shadow-[0_0_10px_currentColor]",
-                f.color
-              )} />
-
               <div className="relative z-10 space-y-4 md:space-y-6 text-right">
-                <h3 className="text-sm md:text-2xl font-black text-[#002d4d] tracking-tight group-hover:text-blue-600 transition-colors duration-500 leading-tight">
+                <h3 className="text-xl md:text-2xl font-black text-[#002d4d] tracking-tight group-hover:text-blue-600 transition-colors duration-500 leading-tight">
                   {f.title}
                 </h3>
-                <p className="text-gray-500 font-medium leading-relaxed md:leading-[2.2] text-[10px] md:text-base opacity-80 group-hover:opacity-100 transition-opacity line-clamp-3 md:line-clamp-none">
+                <p className="text-gray-500 font-medium leading-relaxed md:leading-[2.2] text-sm md:text-base opacity-80 group-hover:opacity-100 transition-opacity">
                   {f.desc}
                 </p>
                 
-                <div className="pt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-y-4 group-hover:translate-y-0 hidden md:block">
+                <div className="pt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
                    <div className={cn("h-[1px] w-12 rounded-full bg-gradient-to-l from-transparent", f.color.replace('text-', 'to-'))} />
                 </div>
               </div>
