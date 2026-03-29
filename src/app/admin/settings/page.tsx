@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu, Layout } from "lucide-react";
+import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu } from "lucide-react";
 
 // Modular Components
 import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
@@ -26,9 +26,8 @@ import { VaultBonusSection } from "@/components/admin/settings/VaultBonusSection
 import { PartnershipSection } from "@/components/admin/settings/PartnershipSection";
 import { ContentSection } from "@/components/admin/settings/ContentSection";
 import { LegalSection } from "@/components/admin/settings/LegalSection";
-import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -36,15 +35,6 @@ export default function AdminSettingsPage() {
   const db = useFirestore();
 
   // --- Real-time Data Refs ---
-  const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
-  const { data: remoteLanding } = useDoc(landingRef);
-  const [landingData, setLandingData] = useState<any>({
-    welcomeTitle: "ناميكس: حيث تلتقي التقنية بالثروة.",
-    welcomeSubtitle: "مرحباً بك في مستقبل الاستثمار الذكي",
-    welcomeDescription: "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة.",
-    introText: "ناميكس: بوابتك السيادية نحو الاقتصاد الرقمي المتطور."
-  });
-
   const binanceRef = useMemoFirebase(() => doc(db, "system_settings", "binance"), [db]);
   const { data: remoteBinance } = useDoc(binanceRef);
   const [binanceData, setBinanceData] = useState<any>({ apiKey: "", apiSecret: "" });
@@ -90,7 +80,6 @@ export default function AdminSettingsPage() {
   const [academyData, setAcademyData] = useState<any>({});
 
   useEffect(() => {
-    if (remoteLanding) setLandingData(remoteLanding);
     if (remoteBinance) setBinanceData(remoteBinance);
     if (remoteOnboarding) setOnboardingOnboardingData(remoteOnboarding);
     if (remoteInsurance) setInsuranceData(remoteInsurance);
@@ -102,7 +91,7 @@ export default function AdminSettingsPage() {
     if (remotePartnership) setPartnershipData(remotePartnership);
     if (remoteLegal) setLegalData(remoteLegal);
     if (remoteAcademy) setAcademyData(remoteAcademy);
-  }, [remoteLanding, remoteBinance, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal, remoteAcademy]);
+  }, [remoteBinance, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal, remoteAcademy]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -127,15 +116,6 @@ export default function AdminSettingsPage() {
 
         {activeSection === 'menu' && (
           <SettingsMenu onSelect={(id) => setActiveSection(id as any)} />
-        )}
-
-        {activeSection === 'landing_page' && (
-          <LandingPageSection 
-            data={landingData}
-            onChange={setLandingData}
-            onSave={() => handleSaveDoc(landingRef, landingData, "صفحة الهبوط")}
-            saving={saving}
-          />
         )}
 
         {activeSection === 'binance' && (
