@@ -23,13 +23,14 @@ import Link from "next/link";
 interface FooterProps {
   onAboutClick: () => void;
   onContractLabClick: () => void;
+  onSpotTradingClick: () => void;
 }
 
 /**
  * @fileOverview تذييل الصفحة السيادي النهائي v6.0 - Structural Redesign
  * يطبق الهيكل المكون من 4 أقسام مع دعم التنسيق ثنائي الأعمدة على الموبايل وتطهير النصوص.
  */
-export function Footer({ onAboutClick, onContractLabClick }: FooterProps) {
+export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick }: FooterProps) {
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body" dir="rtl">
       <div className="container mx-auto px-6">
@@ -48,7 +49,7 @@ export function Footer({ onAboutClick, onContractLabClick }: FooterProps) {
                 <button onClick={onContractLabClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">مختبر العقود</button>
               </li>
               <li>
-                <Link href="/trade" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">التداول الفوري</Link>
+                <button onClick={onSpotTradingClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">التداول الفوري</button>
               </li>
               <li>
                 <Link href="/arena" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">الترفيه</Link>
@@ -64,7 +65,7 @@ export function Footer({ onAboutClick, onContractLabClick }: FooterProps) {
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right text-right">عن Namix</button>
+                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">عن Namix</button>
               </li>
               <li>
                 <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">مركز المساعدة</Link>
