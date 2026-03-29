@@ -7,13 +7,14 @@ import { cn } from "@/lib/utils";
 
 interface SovereignIntroProps {
   introText?: string;
+  introOpacity: any;
 }
 
 /**
  * @fileOverview مكون الانترو السينمائي v65.0 - Kinetic Logo Edition
  * يظهر الشعار فقط بظهور سائل، مع نص ترحيبي متدرج يتم التحكم به من الإعدادات.
  */
-export function SovereignIntro({ introText }: SovereignIntroProps) {
+export function SovereignIntro({ introText, introOpacity }: SovereignIntroProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -55,8 +56,9 @@ export function SovereignIntro({ introText }: SovereignIntroProps) {
         />
       </motion.div>
 
-      {/* 2. Intro Text - نص متدرج كحلي */}
+      {/* 2. Intro Text - نص متدرج كحلي يختفي عند التمرير */}
       <motion.div
+        style={{ opacity: introOpacity }}
         initial={{ opacity: 0, filter: "blur(10px)" }}
         animate={{ opacity: 1, filter: "blur(0px)" }}
         transition={{ delay: 0.8, duration: 1.2 }}

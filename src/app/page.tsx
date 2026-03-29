@@ -29,7 +29,7 @@ export default function LandingPage() {
   const logoY = useTransform(scrollY, [0, 200], ["0vh", "-44vh"]);
   const logoScale = useTransform(scrollY, [0, 200], [1, 0.5]);
   
-  // 3. Kinetic Rotation - الدوران (يمين عند النزول، يسار عند الصعود تلقائياً)
+  // 3. Kinetic Rotation - الدوران حول المركز (يمين عند النزول، يسار عند الصعود)
   const logoRotate = useTransform(scrollY, [0, 500], [0, 360]);
 
   // 4. Content Visibility
@@ -62,8 +62,8 @@ export default function LandingPage() {
           }}
           className="pointer-events-auto"
         >
-          {/* الشعار فقط هو الذي يدور ويتحرك */}
-          <SovereignIntro introText={landingData?.introText} />
+          {/* الشعار فقط هو الذي يدور ويتحرك، والنص يختفي عبر introOpacity */}
+          <SovereignIntro introText={landingData?.introText} introOpacity={introOpacity} />
         </motion.div>
       </div>
 
