@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -139,7 +138,6 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                      <Sparkles size={10} />
                      Future Intelligence
                   </div>
-                  <p className="text-blue-100/30 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Namix Engine v1.0</p>
                </div>
             </div>
 

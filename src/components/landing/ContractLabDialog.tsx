@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -143,7 +142,6 @@ export function ContractLabDialog({ open, onOpenChange }: ContractLabDialogProps
                      <Zap size={10} />
                      Smart Yield Engine
                   </div>
-                  <p className="text-blue-100/30 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Namix Protocol v2.0</p>
                </div>
             </div>
 
