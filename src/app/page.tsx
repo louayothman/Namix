@@ -50,6 +50,8 @@ export default function LandingPage() {
     setParticles(generated);
   }, []);
 
+  const dashboardLink = isLoggedIn ? (userRole === 'admin' ? "/admin" : "/home") : "/login";
+
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -63,6 +65,7 @@ export default function LandingPage() {
           title={landingData?.welcomeTitle} 
           subtitle={landingData?.welcomeSubtitle} 
           description={landingData?.welcomeDescription} 
+          ctaLink={dashboardLink}
         />
         
         <MarketPulse symbols={allSymbols || []} />
@@ -144,7 +147,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-6">
-                  <a href={isLoggedIn ? (userRole === 'admin' ? "/admin" : "/home") : "/login"} className="w-full md:w-auto">
+                  <a href={dashboardLink} className="w-full md:w-auto">
                     <motion.button 
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

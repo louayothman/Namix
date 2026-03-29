@@ -11,9 +11,10 @@ interface HeroProps {
   title?: string;
   subtitle?: string;
   description?: string;
+  ctaLink?: string;
 }
 
-export function Hero({ title, subtitle, description }: HeroProps) {
+export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
@@ -27,10 +28,9 @@ export function Hero({ title, subtitle, description }: HeroProps) {
   return (
     <section className="relative pt-24 pb-12 md:pt-48 md:pb-32 overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        {/* تم تغيير flex-col إلى flex-row دائم مع ضبط المسافات */}
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* الجانب الأيمن: المحتوى النصي - w-1/2 دائم */}
+          {/* الجانب الأيمن: المحتوى النصي */}
           <div className="w-1/2 text-right space-y-4 md:space-y-10">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -60,7 +60,7 @@ export function Hero({ title, subtitle, description }: HeroProps) {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="flex flex-col md:flex-row items-start md:items-center justify-start gap-3 md:gap-6 pt-2"
             >
-              <Link href="/login">
+              <Link href={ctaLink}>
                 <button className="h-9 md:h-16 px-4 md:px-12 rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-[8px] md:text-sm shadow-xl active:scale-95 transition-all group flex items-center gap-2">
                   ابدأ الآن
                   <ChevronLeft className="h-3 w-3 md:h-5 md:w-5 transition-transform group-hover:-translate-x-1" />
@@ -80,7 +80,7 @@ export function Hero({ title, subtitle, description }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* الجانب الأيسر: المحرك البصري - w-1/2 دائم */}
+          {/* الجانب الأيسر: المحرك البصري */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
