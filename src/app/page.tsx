@@ -10,8 +10,9 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview بوابة ناميكس السيادية v68.0 - Seamless Floating Header Edition
- * تم تحديث الهيدر ليظهر بـ Fade ومنصة رسو دائرية عائمة بدون حواف (نصفها على الهيدر ونصفها في الصفحة).
+ * @fileOverview بوابة ناميكس السيادية v100.0 - Quantum Horizon Edition
+ * تم إلغاء نظام الرسو الميكانيكي واستبداله بانتقال "التكثيف السائل" لضمان دقة التموضع.
+ * الهوية تبدأ في المركز وتنزلق للزاوية العلوية لتتحول لهيدر زجاجي عائم.
  */
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -22,23 +23,22 @@ export default function LandingPage() {
 
   const { scrollY } = useScroll();
   
-  // 1. Nebula Expansion - توسيع السديم الكحلي ليعطي عمق خلف الهيدر
+  // 1. Nebula Expansion - السديم يتوسع ليوفر خلفية للهيرو
   const nebulaScale = useTransform(scrollY, [0, 500], [1, 2.5]);
-  const nebulaOpacity = useTransform(scrollY, [0, 300], [0.3, 0.9]);
+  const nebulaOpacity = useTransform(scrollY, [0, 400], [0.2, 0.95]);
   
-  // 2. Logo Translation - تحويل موضع الشعار ليستقر في التجويف العائم
-  // تم ضبط الإزاحة لتتطابق مع موقع الهيدر (80px من الأعلى)
-  const logoY = useTransform(scrollY, [0, 300], ["0vh", "-42vh"]);
+  // 2. Header Visibility - الهيدر الزجاجي يظهر بتلاشي نقي
+  const headerOpacity = useTransform(scrollY, [100, 250], [0, 1]);
+  const headerBlur = useTransform(scrollY, [100, 250], [0, 12]);
+
+  // 3. Logo Orchestration - تحويل الهوية من المركز للزاوية
+  // يبدأ في منتصف الشاشة وينتهي في الزاوية العلوية اليمنى (Header Position)
+  const logoX = useTransform(scrollY, [0, 300], ["0%", "38vw"]);
+  const logoY = useTransform(scrollY, [0, 300], ["0vh", "-44vh"]);
   const logoScale = useTransform(scrollY, [0, 300], [1, 0.45]);
   
-  // 3. Axial Rotation - الدوران حول المركز فقط مع اتجاه التمرير
-  const logoRotate = useTransform(scrollY, [0, 1000], [0, 720]);
-
-  // 4. Header Visibility - ظهور الهيدر بـ Fade نقي (بدون حركة Y)
-  const headerOpacity = useTransform(scrollY, [150, 300], [0, 1]);
-
-  // 5. Content Visibility - تلاشي النص والظهور المتدرج للهيرو
-  const introOpacity = useTransform(scrollY, [0, 100], [1, 0]);
+  // 4. Content Logic
+  const introOpacity = useTransform(scrollY, [0, 80], [1, 0]);
   const heroOpacity = useTransform(scrollY, [200, 400], [0, 1]);
   const indicatorOpacity = useTransform(scrollY, [0, 50], [1, 0]);
 
@@ -51,30 +51,35 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-[300vh] bg-white overflow-x-hidden font-body selection:bg-[#f9a885]/30">
       
-      {/* Sovereign Header - هيدر عائم بدون حواف بظهور Fade */}
+      {/* Dynamic Nebula Layer - الخلفية الكونية المتغيرة */}
+      <motion.div 
+        style={{ scale: nebulaScale, opacity: nebulaOpacity }}
+        className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[160%] h-[70%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.7)_0%,transparent_75%)] z-0 pointer-events-none blur-[140px]" 
+      />
+
+      {/* Floating Glass Header - هيدر عائم زجاجي بدون حواف */}
       <motion.header
-        style={{ opacity: headerOpacity }}
-        className="fixed top-0 left-0 w-full z-[100] pointer-events-none"
+        style={{ 
+          opacity: headerOpacity,
+          backdropFilter: `blur(12px)`,
+          WebkitBackdropFilter: `blur(12px)`
+        }}
+        className="fixed top-0 left-0 w-full h-20 bg-white/50 z-[100] border-b border-white/10 pointer-events-none"
       >
-        <div className="relative w-full h-20 bg-white rounded-b-[48px] flex items-center justify-center pointer-events-auto">
-           {/* Floating Circular Dock - منصة رسو عائمة (نصفها على الهيدر ونصفها بالخارج) */}
-           <div className="absolute top-full left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(0,0,0,0.02)]">
-              {/* Subtle Internal Pulse Glow */}
-              <div className="w-20 h-20 rounded-full bg-gray-50/20 animate-pulse" />
+        <div className="container mx-auto h-full flex items-center justify-between px-8">
+           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+           <div className="flex items-center gap-6 opacity-40">
+              <div className="h-px w-12 bg-blue-900/20" />
+              <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d]">Namix Sovereign Hub</span>
            </div>
         </div>
       </motion.header>
 
-      {/* Dynamic Nebula Layer */}
-      <motion.div 
-        style={{ scale: nebulaScale, opacity: nebulaOpacity }}
-        className="fixed top-[-15%] left-1/2 -translate-x-1/2 w-[150%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.6)_0%,transparent_70%)] z-0 pointer-events-none blur-[120px]" 
-      />
-
-      {/* Intro & Logo Orchestrator */}
+      {/* Identity Orchestrator - محرك الهوية المركزية المتحركة */}
       <div className="fixed inset-0 z-[110] pointer-events-none flex items-center justify-center">
         <motion.div 
           style={{ 
+            x: logoX,
             y: logoY, 
             scale: logoScale
           }}
@@ -83,7 +88,7 @@ export default function LandingPage() {
           <SovereignIntro 
             introText={landingData?.introText} 
             introOpacity={introOpacity} 
-            logoRotate={logoRotate}
+            scrollY={scrollY}
           />
         </motion.div>
       </div>
@@ -112,7 +117,7 @@ export default function LandingPage() {
             className="w-1 h-1 bg-[#002d4d]/40 rounded-full"
           />
         </div>
-        <span className="text-[7px] font-black text-[#002d4d]/20 uppercase tracking-[0.4em]">Discover More</span>
+        <span className="text-[7px] font-black text-[#002d4d]/20 uppercase tracking-[0.4em]">Scroll to Enter</span>
       </motion.div>
 
       {/* Brand Footer Signature */}
