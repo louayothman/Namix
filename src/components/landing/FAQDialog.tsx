@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -18,12 +18,15 @@ import {
   Sparkles, 
   ShieldCheck, 
   ChevronLeft,
+  ChevronRight,
   HelpCircle,
   MessageSquare,
-  Zap
+  Zap,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import Lottie from "lottie-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -100,9 +103,14 @@ export function FAQDialog({ open, onOpenChange, onContactClick }: FAQDialogProps
   const legalDocRef = useMemoFirebase(() => doc(db, "system_settings", "legal"), [db]);
   const { data: legal, isLoading } = useDoc(legalDocRef);
   const [animationData, setAnimationData] = useState<any>(null);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 4;
 
   useEffect(() => {
     if (open) {
+      setCurrentPage(0); // Reset to first page on open
       fetch("https://lottie.host/a3b075de-a80a-45aa-9541-69dec9a4b509/1zLc1g5GYE.json")
         .then(res => res.json())
         .then(data => setAnimationData(data))
@@ -110,7 +118,13 @@ export function FAQDialog({ open, onOpenChange, onContactClick }: FAQDialogProps
     }
   }, [open]);
 
-  const faqs = legal?.faq || [];
+  const faqs = useMemo(() => legal?.faq || [], [legal]);
+  const totalPages = Math.ceil(faqs.length / itemsPerPage);
+  
+  const currentFaqs = useMemo(() => {
+    const start = currentPage * itemsPerPage;
+    return faqs.slice(start, start + itemsPerPage);
+  }, [faqs, currentPage]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -157,30 +171,76 @@ export function FAQDialog({ open, onOpenChange, onContactClick }: FAQDialogProps
                   </div>
                </div>
 
-               <div className="flex-1 overflow-y-auto pr-1 scrollbar-none space-y-8">
+               <div className="flex-1 overflow-hidden flex flex-col space-y-6">
                   {isLoading ? (
-                    <div className="py-20 flex flex-col items-center gap-4 text-center">
+                    <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
                        <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
                        <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">جاري جرد بروتوكولات المعرفة...</p>
                     </div>
                   ) : faqs.length > 0 ? (
-                    <Accordion type="single" collapsible className="w-full">
-                      {faqs.map((faq: any, i: number) => (
-                        <AccordionItem key={i} value={`item-${i}`} className="border-gray-50 last:border-0 mb-2">
-                          <AccordionTrigger className="text-right font-black text-[#002d4d] text-[10px] md:text-xs hover:no-underline py-4 transition-all hover:px-2 group">
-                            <div className="flex items-center gap-3">
-                               <div className="h-6 w-6 rounded-lg bg-gray-50 flex items-center justify-center text-blue-500 shadow-inner group-hover:bg-blue-50 transition-all">
-                                  <Zap size={12} className="fill-current" />
-                               </div>
-                               {faq.q}
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="text-gray-500 font-medium leading-relaxed text-[9px] md:text-sm text-right pb-6 pr-10 border-r border-[#f9a885]/20 mr-3 whitespace-pre-wrap animate-in fade-in duration-500">
-                            {faq.a}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+                    <>
+                      <div className="flex-1 overflow-y-auto pr-1 scrollbar-none space-y-4">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={currentPage}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Accordion type="single" collapsible className="w-full">
+                              {currentFaqs.map((faq: any, i: number) => (
+                                <AccordionItem key={i} value={`item-${i}`} className="border-gray-50 last:border-0 mb-2">
+                                  <AccordionTrigger className="text-right font-black text-[#002d4d] text-[10px] md:text-xs hover:no-underline py-4 transition-all hover:px-2 group">
+                                    <div className="flex items-center gap-3">
+                                       <div className="h-6 w-6 rounded-lg bg-gray-50 flex items-center justify-center text-blue-500 shadow-inner group-hover:bg-blue-50 transition-all">
+                                          <Zap size={12} className="fill-current" />
+                                       </div>
+                                       {faq.q}
+                                    </div>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="text-gray-500 font-medium leading-relaxed text-[9px] md:text-sm text-right pb-6 pr-10 border-r border-[#f9a885]/20 mr-3 whitespace-pre-wrap">
+                                    {faq.a}
+                                  </AccordionContent>
+                                </AccordionItem>
+                              ))}
+                            </Accordion>
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-2 pt-4 border-t border-gray-50 bg-white shrink-0">
+                           <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                disabled={currentPage === 0}
+                                className="h-8 w-8 rounded-xl bg-gray-50 text-[#002d4d] disabled:opacity-30 active:scale-90"
+                              >
+                                 <ArrowRight size={14} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                                disabled={currentPage === totalPages - 1}
+                                className="h-8 w-8 rounded-xl bg-gray-50 text-[#002d4d] disabled:opacity-30 active:scale-90"
+                              >
+                                 <ArrowLeft size={14} />
+                              </Button>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black text-[#002d4d] tabular-nums">
+                                صفحة {currentPage + 1} من {totalPages}
+                              </span>
+                              <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                           </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-20 opacity-20">
                        <ShieldCheck className="h-12 w-12 mx-auto mb-4" />
