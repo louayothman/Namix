@@ -13,8 +13,8 @@ interface MarketPulseProps {
 }
 
 /**
- * @fileOverview مُفاعل نبض الأسواق v3.0 - Zen Sync Edition
- * تصميم فاخر يعتمد على الهدوء البصري وتحديث البيانات كل 20 ثانية.
+ * @fileOverview مُفاعل نبض الأسواق v3.1 - Zen Sync Mobile Optimized
+ * تم تحسين الأحجام للهواتف لضمان التناسق والفخامة الهادئة.
  */
 export function MarketPulse({ symbols }: MarketPulseProps) {
   const storePrices = useMarketStore(state => state.prices);
@@ -48,48 +48,48 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
   if (displaySymbols.length === 0) return null;
 
   return (
-    <section className="w-full bg-white border-y border-gray-50 py-6 relative overflow-hidden group select-none">
+    <section className="w-full bg-white border-y border-gray-50 py-4 md:py-6 relative overflow-hidden group select-none">
       {/* مؤشر الحالة النانوي - هادئ جداً */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2 z-20 hidden lg:flex items-center gap-2.5 bg-gray-50/50 backdrop-blur-sm px-4 py-1.5 rounded-full border border-gray-100/50">
+      <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 hidden lg:flex items-center gap-2.5 bg-gray-50/50 backdrop-blur-sm px-4 py-1.5 rounded-full border border-gray-100/50">
          <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
          <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.3em]">Zen Sync Active</span>
       </div>
 
       {/* حواف تدرجية ناعمة لعمق بصري انسيابي */}
-      <div className="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 left-0 w-24 md:w-40 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 right-0 w-24 md:w-40 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
 
       <div className="flex whitespace-nowrap animate-marquee-slow">
         {Array.from({ length: 3 }).map((_, idx) => (
-          <div key={idx} className="flex items-center gap-16 px-8">
+          <div key={idx} className="flex items-center gap-10 md:gap-16 px-4 md:px-8">
             {displaySymbols.map((s) => {
               const price = displayPrices[s.id] || s.currentPrice;
               const change = displayChanges[s.id] || 0;
               const isUp = change >= 0;
 
               return (
-                <div key={`${idx}-${s.id}`} className="flex items-center gap-5 transition-opacity duration-1000 group/item">
+                <div key={`${idx}-${s.id}`} className="flex items-center gap-3 md:gap-5 transition-opacity duration-1000 group/item">
                   <div className="relative shrink-0">
-                    <div className="h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center group-hover/item:bg-white group-hover/item:shadow-sm transition-all duration-500">
-                      <CryptoIcon name={s.icon} size={18} color="#002d4d" />
+                    <div className="h-7 w-7 md:h-9 md:w-9 rounded-lg md:rounded-xl bg-gray-50 flex items-center justify-center group-hover/item:bg-white group-hover/item:shadow-sm transition-all duration-500">
+                      <CryptoIcon name={s.icon} size={14} className="md:size-[18px]" color="#002d4d" />
                     </div>
                     <div className={cn(
-                      "absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border border-white shadow-sm",
+                      "absolute -top-0.5 -right-0.5 h-1 w-1 md:h-1.5 md:w-1.5 rounded-full border border-white shadow-sm",
                       isUp ? "bg-emerald-400" : "bg-red-400"
                     )} />
                   </div>
                   
                   <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-tight">{s.code.split('/')[0]}</span>
-                      <ShieldCheck size={8} className="text-blue-200" />
+                    <div className="flex items-center gap-1 md:gap-1.5">
+                      <span className="text-[8px] md:text-[10px] font-black text-[#002d4d] uppercase tracking-tight">{s.code.split('/')[0]}</span>
+                      <ShieldCheck size={6} className="text-blue-200 md:size-[8px]" />
                     </div>
                     <AnimatePresence mode="wait">
                       <motion.span 
                         key={price}
                         initial={{ opacity: 0.5 }}
                         animate={{ opacity: 1 }}
-                        className="text-[12px] font-black text-[#002d4d] tabular-nums tracking-tighter"
+                        className="text-[10px] md:text-[12px] font-black text-[#002d4d] tabular-nums tracking-tighter"
                       >
                         ${price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </motion.span>
@@ -97,10 +97,10 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
                   </div>
 
                   <div className={cn(
-                    "flex items-center gap-1 font-black text-[9px] tabular-nums transition-colors duration-1000",
+                    "flex items-center gap-0.5 md:gap-1 font-black text-[7px] md:text-[9px] tabular-nums transition-colors duration-1000",
                     isUp ? "text-emerald-500/80" : "text-red-500/80"
                   )}>
-                    {isUp ? <TrendingUp size={10} strokeWidth={3} /> : <TrendingDown size={10} strokeWidth={3} />}
+                    {isUp ? <TrendingUp size={8} className="md:size-[10px]" strokeWidth={3} /> : <TrendingDown size={8} className="md:size-[10px]" strokeWidth={3} />}
                     <span>{Math.abs(change).toFixed(2)}%</span>
                   </div>
                 </div>
