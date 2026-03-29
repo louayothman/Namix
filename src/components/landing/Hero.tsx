@@ -34,7 +34,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
            style={{ backgroundImage: 'radial-gradient(#002d4d 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }} 
       />
 
-      {/* 2. Dual Energy Core - محرك السدم المزدوج */}
+      {/* 2. Dual Energy Core - محرك السدم المزدوج المطور */}
       <div className="absolute inset-0 pointer-events-none z-0">
         {/* Deep Blue Atmosphere (Left) */}
         <motion.div
@@ -46,7 +46,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
           className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
         />
 
-        {/* Morphing Coral Core (Behind Text) */}
+        {/* Morphing Blue-Gray Core (Behind Text) - لون رمادي أزرقي بضبابية أقل */}
         <motion.div
           animate={{ 
             borderRadius: [
@@ -56,14 +56,14 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
               "30% 70% 70% 30% / 30% 30% 70% 70%"
             ],
             rotate: [0, 90, 180, 270, 360],
-            scale: [1, 1.15, 0.9, 1]
+            scale: [1, 1.1, 0.95, 1]
           }}
           transition={{ 
-            duration: 15, 
+            duration: 12, 
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
-          className="absolute -top-20 -right-20 w-[120%] h-[120%] bg-[#f9a885]/15 blur-[60px]"
+          className="absolute -top-10 -right-10 w-[100%] h-[100%] bg-slate-400/10 blur-[40px]"
         />
       </div>
 
@@ -82,7 +82,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
                 <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest group-hover:text-[#002d4d] transition-colors">
                   {subtitle || "احترافية إدارة الأصول الرقمية"}
                 </span>
-                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-[#f9a885] animate-pulse" />
+                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-slate-400 animate-pulse" />
               </div>
               
               <h1 className="text-xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
@@ -117,7 +117,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
                     <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">محمي</span>
                  </div>
                  <div className="flex items-center gap-1 md:gap-2">
-                    <Zap className="h-2.5 w-2.5 md:h-4 md:w-4 text-[#f9a885]" />
+                    <Zap className="h-2.5 w-2.5 md:h-4 md:w-4 text-slate-400" />
                     <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">فوري</span>
                  </div>
               </div>
@@ -132,7 +132,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
             className="w-1/2 flex justify-center md:justify-end"
           >
             <div className="relative w-full max-w-[180px] md:max-w-[500px] aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 bg-[#f9a885]/5 rounded-full blur-[40px] md:blur-[100px] animate-pulse" />
+              <div className="absolute inset-0 bg-slate-400/5 rounded-full blur-[40px] md:blur-[100px] animate-pulse" />
               
               {animationData ? (
                 <Lottie 
@@ -169,7 +169,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
                 repeat: Infinity,
                 delay: i * 0.5 
               }}
-              className="absolute h-1 w-1 bg-[#f9a885] rounded-full"
+              className="absolute h-1 w-1 bg-slate-300 rounded-full"
               style={{ top: `${20 + i * 15}%`, left: `${10 + i * 12}%` }}
             />
           ))}
