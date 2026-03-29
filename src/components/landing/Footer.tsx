@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -26,12 +25,13 @@ interface FooterProps {
   onSpotTradingClick: () => void;
   onArenaClick: () => void;
   onFAQClick: () => void;
+  onPrivacyClick: () => void;
   onSupportClick: () => void;
 }
 
 /**
- * @fileOverview تذييل الصفحة المطور v7.0 - Final Structure
- * تم إزالة مركز المساعدة وربط الأسئلة الشائعة بالنافذة المنبثقة السينمائية المحدثة.
+ * @fileOverview تذييل الصفحة المطور v7.1 - Final Structure
+ * تم ربط كافة السياسات والخدمات بالنوافذ السينمائية التفاعلية.
  */
 export function Footer({ 
   onAboutClick, 
@@ -39,6 +39,7 @@ export function Footer({
   onSpotTradingClick, 
   onArenaClick,
   onFAQClick,
+  onPrivacyClick,
   onSupportClick
 }: FooterProps) {
   return (
@@ -80,7 +81,7 @@ export function Footer({
                 <button onClick={onFAQClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">الأسئلة الشائعة (FAQ)</button>
               </li>
               <li>
-                <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">سياسة الخصوصية</Link>
+                <button onClick={onPrivacyClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">سياسة الخصوصية</button>
               </li>
               <li>
                 <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">الشروط والأحكام</Link>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -12,6 +11,7 @@ import { ContractLabDialog } from "@/components/landing/ContractLabDialog";
 import { SpotTradingDialog } from "@/components/landing/SpotTradingDialog";
 import { AdventureArenaDialog } from "@/components/landing/AdventureArenaDialog";
 import { FAQDialog } from "@/components/landing/FAQDialog";
+import { PrivacyDialog } from "@/components/landing/PrivacyDialog";
 import { SupportSheet } from "@/components/support/SupportSheet";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
@@ -31,6 +31,7 @@ export default function LandingPage() {
   const [isSpotTradingOpen, setIsSpotTradingOpen] = useState(false);
   const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isFAQOpen, setIsFAQOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
@@ -198,6 +199,7 @@ export default function LandingPage() {
         onSpotTradingClick={() => setIsSpotTradingOpen(true)}
         onArenaClick={() => setIsArenaOpen(true)}
         onFAQClick={() => setIsFAQOpen(true)}
+        onPrivacyClick={() => setIsPrivacyOpen(true)}
         onSupportClick={() => setIsSupportOpen(true)}
       />
       
@@ -206,6 +208,7 @@ export default function LandingPage() {
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
       <AdventureArenaDialog open={isArenaOpen} onOpenChange={setIsArenaOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
+      <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
       <SupportSheet open={isSupportOpen} onOpenChange={setIsSupportOpen} />
     </div>
   );
