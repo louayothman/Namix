@@ -7,7 +7,6 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogDescription,
   DialogPortal,
   DialogOverlay
 } from "@/components/ui/dialog";
@@ -123,7 +122,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
         >
           <div className="flex flex-row min-h-[450px] md:min-h-[550px]">
             
-            <div className="w-1/2 bg-[#002d4d] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
+            <div className="w-1/2 bg-[#001a2d] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
                <NebulaBackground />
                
                <div className="relative z-10 w-full max-w-[240px] md:max-w-[320px] aspect-square flex items-center justify-center">
@@ -145,12 +144,13 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
             </div>
 
             <div className="w-1/2 p-5 md:p-16 space-y-6 md:space-y-12 bg-white relative flex flex-col justify-center">
-               <div className="space-y-2 md:space-y-4 text-right">
-                  <div className="flex items-center gap-2 md:gap-4 justify-start">
-                     <div className="h-8 w-8 md:h-12 md:w-12 rounded-xl md:rounded-[18px] bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner shrink-0">
-                        <Info size={18} />
+               <div className="space-y-2 md:space-y-4 text-right group/header">
+                  <div className="relative inline-flex items-center justify-start">
+                     {/* Watermark Icon */}
+                     <div className="absolute -right-6 -top-6 md:-right-10 md:-top-10 opacity-5 group-hover/header:opacity-15 group-hover/header:rotate-12 transition-all duration-700 pointer-events-none text-blue-600">
+                        <Info size={80} className="md:size-[120px]" />
                      </div>
-                     <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none">من نحن</DialogTitle>
+                     <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none relative z-10">من نحن</DialogTitle>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2 justify-start opacity-40">
                      <div className="h-1 w-1 rounded-full bg-[#f9a885] animate-pulse" />
@@ -172,23 +172,20 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                        <div className="h-0.5 w-8 md:w-12 bg-[#f9a885] rounded-full" />
                     </div>
                     
-                    <div className="max-h-[150px] md:max-h-[250px] overflow-y-auto pr-1 scrollbar-none">
-                      <p className="text-gray-500 font-bold leading-[1.8] md:leading-[2.2] text-[10px] md:text-base text-right whitespace-pre-wrap">
+                    <div className="max-h-[150px] md:max-h-[200px] overflow-y-auto pr-1 scrollbar-none">
+                      <p className="text-gray-500 font-bold leading-[1.8] md:leading-[2.2] text-[10px] md:text-sm text-right whitespace-pre-wrap">
                          {legal?.aboutUs || "ناميكس (Namix) هي رائدتكم في الاستثمار الرقمي المتطور. نحن نوفر بيئة آمنة للمستثمرين لتنمية رؤوس أموالهم بذكاء عبر بروتوكولات حماية متقدمة."}
                       </p>
                     </div>
 
-                    <div className="grid gap-2 md:gap-4">
+                    <div className="grid grid-cols-3 gap-2 md:gap-4">
                        {[
-                         { icon: ShieldCheck, title: "النزاهة المطلقة", color: "text-emerald-500" },
-                         { icon: Zap, title: "النمو الوميضي", color: "text-orange-500" },
-                         { icon: Globe, title: "الريادة العالمية", color: "text-blue-500" }
+                         { title: "النزاهة المطلقة", color: "text-emerald-600", bg: "bg-emerald-50" },
+                         { title: "النمو الوميضي", color: "text-orange-600", bg: "bg-orange-50" },
+                         { title: "الريادة العالمية", color: "text-blue-600", bg: "bg-blue-50" }
                        ].map((item, i) => (
-                         <div key={i} className="flex items-center gap-3 md:gap-4 group cursor-default">
-                            <div className="h-6 w-6 md:h-10 md:w-10 rounded-lg md:rounded-xl bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-sm">
-                               <item.icon size={14} className={cn("md:size-5", item.color)} />
-                            </div>
-                            <span className="text-[8px] md:text-[11px] font-black text-[#002d4d] opacity-60 group-hover:opacity-100 transition-opacity">{item.title}</span>
+                         <div key={i} className={cn("flex flex-col items-center justify-center p-2 md:p-4 rounded-xl md:rounded-[24px] transition-all hover:shadow-lg hover:-translate-y-1 cursor-default border border-transparent hover:border-white", item.bg)}>
+                            <span className={cn("text-[6px] md:text-[10px] font-black text-center leading-tight", item.color)}>{item.title}</span>
                          </div>
                        ))}
                     </div>

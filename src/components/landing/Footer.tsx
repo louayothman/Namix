@@ -5,7 +5,7 @@ import React from "react";
 import { Logo } from "@/components/layout/Logo";
 import { Globe, ShieldCheck, Mail } from "lucide-react";
 
-export function Footer() {
+export function Footer({ onAboutClick }: { onAboutClick: () => void }) {
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-24 pb-12">
       <div className="container mx-auto px-6">
@@ -30,7 +30,7 @@ export function Footer() {
           <div className="space-y-6">
             <h4 className="font-black text-[#002d4d] text-sm uppercase tracking-widest">الروابط السريعة</h4>
             <ul className="space-y-4">
-              <li><a href="/about" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">عن المنصة</a></li>
+              <li><button onClick={onAboutClick} className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">عن المنصة</button></li>
               <li><a href="/invest" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">الخدمات الاستثمارية</a></li>
               <li><a href="/faq" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">المساعدة</a></li>
             </ul>

@@ -7,6 +7,7 @@ import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
+import { AboutDialog } from "@/components/landing/AboutDialog";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -18,6 +19,7 @@ export default function LandingPage() {
   const [particles, setParticles] = useState<{ top: string; left: string; duration: number; delay: number }[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -58,7 +60,7 @@ export default function LandingPage() {
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.03)_0%,transparent_70%)] blur-[120px]" />
       </div>
 
-      <Navbar />
+      <Navbar onAboutClick={() => setIsAboutOpen(true)} />
 
       <main className="relative z-10">
         <Hero 
@@ -181,7 +183,8 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer onAboutClick={() => setIsAboutOpen(true)} />
+      <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
     </div>
   );
 }
