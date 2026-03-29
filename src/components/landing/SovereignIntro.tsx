@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface SovereignIntroProps {
@@ -10,8 +10,8 @@ interface SovereignIntroProps {
 }
 
 /**
- * @fileOverview مكون الانترو الفيزيائي v60.0
- * تسلسل: رسم دوائر متتالية -> ظهور الشعار -> دوران فيزيائي متسارع -> مسح الدوائر.
+ * @fileOverview مكون الانترو الفيزيائي v60.1
+ * تم إصلاح خطأ الاستيراد لضمان تنفيذ تسلسل: رسم دوائر متتالية -> ظهور الشعار -> دوران فيزيائي متسارع -> مسح الدوائر.
  */
 export function SovereignIntro({ onComplete }: SovereignIntroProps) {
   const [showLogo, setShowLogo] = useState(false);
