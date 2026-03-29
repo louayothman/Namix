@@ -20,7 +20,7 @@ import {
   getDocs,
   limit
 } from "firebase/firestore";
-import { Headset, Send, Loader2, Sparkles, UserCircle, CheckCheck, Clock, UserCheck, ShieldAlert } from "lucide-react";
+import { Headset, Send, Loader2, Sparkles, UserCircle, CheckCheck, Clock, UserCheck, ShieldAlert, Mail, ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
   
   // State for session/guest identification
   const [user, setUser] = useState<any>(null);
-  const [guestData, setGuestData] = useState({ name: "", phone: "" });
+  const [guestData, setGuestData] = useState({ name: "", email: "" });
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [isIdentified, setIsIdentified] = useState(false);
   
@@ -63,7 +63,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
 
     const findTicket = async () => {
       setLoading(true);
-      const targetUserId = user?.id || `guest_${Date.now()}`;
+      const targetUserId = user?.id || `guest_${guestData.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
       
       const q = query(
         collection(db, "support_tickets"), 
@@ -78,12 +78,12 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
       } else {
         const newTicketRef = doc(collection(db, "support_tickets"));
         const name = user?.displayName || guestData.name || "زائر";
-        const phone = user?.phoneNumber || guestData.phone || "N/A";
+        const email = user?.email || guestData.email || "N/A";
         
         await setDoc(newTicketRef, {
           userId: targetUserId,
           userName: name,
-          userPhone: phone,
+          userEmail: email,
           status: "open",
           isGuest: isGuestMode,
           lastMessage: "بدأ المحادثة",
@@ -120,7 +120,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
 
   const handleIdentify = (e: React.FormEvent) => {
     e.preventDefault();
-    if (guestData.name.trim() && guestData.phone.trim()) {
+    if (guestData.name.trim() && guestData.email.trim().includes('@')) {
       setIsIdentified(true);
     }
   };
@@ -171,7 +171,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
              </div>
           </div>
           <SheetDescription className="text-gray-400 font-bold text-[9px] uppercase tracking-[0.1em] pr-4">
-            {isGuestMode ? "يرجى التعريف عن نفسك لبدء جلسة دعم آمنة." : "نحن هنا لمساعدتك في أي استفسار حول منصة ناميكس."}
+            {isGuestMode && !isIdentified ? "يرجى التعريف عن نفسك لبدء جلسة دعم آمنة." : "نحن هنا لمساعدتك في أي استفسار حول منصة ناميكس."}
           </SheetDescription>
         </SheetHeader>
 
@@ -197,17 +197,21 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
                      />
                   </div>
                   <div className="space-y-1.5">
-                     <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">رقم الهاتف</Label>
-                     <Input 
-                       placeholder="مثال: 00966..." 
-                       value={guestData.phone} 
-                       onChange={e => setGuestData({...guestData, phone: e.target.value})}
-                       className="h-12 rounded-2xl bg-white border-none font-black text-xs shadow-sm px-6 text-left"
-                       dir="ltr"
-                     />
+                     <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">البريد الإلكتروني</Label>
+                     <div className="relative">
+                        <Input 
+                          placeholder="name@example.com" 
+                          value={guestData.email} 
+                          onChange={e => setGuestData({...guestData, email: e.target.value})}
+                          className="h-12 rounded-2xl bg-white border-none font-black text-xs shadow-sm px-10 text-left"
+                          dir="ltr"
+                        />
+                        <Mail className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-300" />
+                     </div>
                   </div>
-                  <Button type="submit" disabled={!guestData.name || !guestData.phone} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">
-                     تفعيل جلسة الدعم
+                  <Button type="submit" disabled={!guestData.name || !guestData.email.includes('@')} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all group">
+                     المتابعة للدعم الفني
+                     <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                   </Button>
                </form>
                <div className="flex items-center gap-2 opacity-20">

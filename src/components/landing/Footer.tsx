@@ -4,22 +4,31 @@
 import React, { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/Logo";
 import { 
-  Globe, 
-  ShieldCheck, 
-  Mail, 
-  ChevronLeft, 
   Facebook, 
   Instagram, 
   Twitter, 
   Send, 
+  Linkedin, 
+  Youtube, 
+  Github, 
+  Mail, 
+  Phone, 
+  MessageSquare,
+  Globe,
   Zap,
   LayoutDashboard,
   Wallet,
-  UserPlus
+  UserPlus,
+  ShieldCheck,
+  Headset
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+
+const ICON_MAP: Record<string, any> = {
+  Facebook, Send, Twitter, Instagram, Linkedin, Youtube, Github, Mail, Phone, MessageSquare, Globe
+};
 
 interface FooterProps {
   onAboutClick: () => void;
@@ -32,10 +41,6 @@ interface FooterProps {
   onSupportClick: () => void;
 }
 
-/**
- * @fileOverview تذييل الصفحة المطور v7.5 - Smart Navigation Edition
- * تم تحديث أزرار الوصول السريع لتدعم التوجيه المشروط بحالة تسجيل الدخول.
- */
 export function Footer({ 
   onAboutClick, 
   onContractLabClick, 
@@ -48,6 +53,9 @@ export function Footer({
 }: FooterProps) {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const db = useFirestore();
+  const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
+  const { data: landingData } = useDoc(landingRef);
 
   useEffect(() => {
     const user = localStorage.getItem("namix_user");
@@ -109,34 +117,43 @@ export function Footer({
             </ul>
           </div>
 
-          {/* Section 3: تواصل معنا */}
+          {/* Section 3: تابعنا على (Dynamic) */}
           <div className="space-y-6">
             <h4 className="font-black text-[#002d4d] text-[11px] md:text-sm uppercase tracking-normal flex items-center gap-2">
-               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-               تواصل معنا
+               <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+               تابعنا على
             </h4>
-            <div className="flex items-center gap-3">
-               {[
-                 { icon: Facebook, href: "#" },
-                 { icon: Send, href: "#" }, 
-                 { icon: Twitter, href: "#" },
-                 { icon: Instagram, href: "#" }
-               ].map((social, i) => (
-                 <a key={i} href={social.href} className="h-8 w-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] transition-all shadow-sm active:scale-90">
-                    <social.icon size={14} />
-                 </a>
-               ))}
+            <div className="flex flex-wrap items-center gap-3">
+               {(landingData?.socialLinks || []).map((social: any) => {
+                 const Icon = ICON_MAP[social.icon] || Globe;
+                 return (
+                   <a key={social.id} href={social.url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] transition-all shadow-sm active:scale-90" title={social.label}>
+                      <Icon size={16} />
+                   </a>
+                 );
+               })}
+               {(!landingData?.socialLinks || landingData.socialLinks.length === 0) && <p className="text-[8px] text-gray-300 font-bold">جاري تحديث القنوات...</p>}
             </div>
-            <div className="pt-2">
-               <button onClick={onSupportClick} className="w-full p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 group cursor-pointer hover:shadow-md transition-all outline-none">
-                  <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center transition-transform group-hover:scale-110">
-                     <Mail size={14} />
-                  </div>
-                  <div className="text-right overflow-hidden">
-                     <p className="text-[7px] font-black text-gray-400 uppercase tracking-normal">الدعم الفني</p>
-                     <p className="text-[9px] font-black text-[#002d4d] truncate">تحدث معنا الآن</p>
-                  </div>
-               </button>
+            
+            {/* Contact Section Sub */}
+            <div className="pt-4 space-y-4">
+               <h4 className="font-black text-[#002d4d] text-[11px] md:text-sm uppercase tracking-normal flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  تواصل معنا
+               </h4>
+               <div className="flex flex-wrap items-center gap-3">
+                  <button onClick={onSupportClick} className="h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all" title="الدعم المباشر">
+                     <Headset size={16} />
+                  </button>
+                  {(landingData?.contactLinks || []).map((contact: any) => {
+                    const Icon = ICON_MAP[contact.icon] || Mail;
+                    return (
+                      <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-emerald-500 hover:text-white transition-all shadow-sm active:scale-90" title={contact.label}>
+                         <Icon size={16} />
+                      </a>
+                    );
+                  })}
+               </div>
             </div>
           </div>
 
