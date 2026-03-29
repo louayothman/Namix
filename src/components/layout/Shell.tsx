@@ -29,7 +29,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
 
-const NavItem = memo(({ item, active, isAdmin }: { item: any, active: boolean, isAdmin: boolean }) => (
+const NavItem = memo(({ item, active }: { item: any, active: boolean }) => (
   <Link 
     href={item.href}
     className={cn(
@@ -95,14 +95,6 @@ export function Shell({
     { name: "الإعدادات", href: "/admin/settings", icon: Settings },
   ], []);
 
-  const userNav = useMemo(() => [
-    { name: "الرئيسية", href: "/home", icon: Home },
-    { name: "الأسواق", href: "/trade", icon: Activity },
-    { name: "المختبر", href: "/invest", icon: Zap },
-    { name: "الساحة", href: "/arena", icon: Target },
-    { name: "الملف الشخصي", href: "/profile", icon: UserCircle }
-  ], []);
-
   if (!mounted) return <div className="min-h-screen bg-white" />;
 
   return (
@@ -111,7 +103,7 @@ export function Shell({
         <div className="w-full bg-orange-500 text-white px-6 py-2 flex items-center justify-between sticky top-0 z-[200] shadow-md border-b border-white/10">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 animate-pulse" />
-            <span className="font-black text-[10px] tracking-tight">إدارة الهوية: {managedUserName || managedUserId}</span>
+            <span className="font-black text-[10px] tracking-tight">إدارة الهوية الاحترافية: {managedUserName || managedUserId}</span>
           </div>
           <Link href="/admin/users">
             <button className="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full font-black text-[9px] flex items-center gap-1 transition-all shadow-inner">
@@ -132,7 +124,7 @@ export function Shell({
             <nav className="flex-1 w-full overflow-x-auto scrollbar-none py-1">
               <div className="flex items-center gap-1.5 min-w-max px-2">
                  {adminNav.map((item) => (
-                   <NavItem key={item.href} item={item} active={pathname === item.href} isAdmin={isAdmin} />
+                   <NavItem key={item.href} item={item} active={pathname === item.href} />
                  ))}
                  <button 
                    onClick={() => { localStorage.removeItem("namix_user"); router.push("/login"); }}

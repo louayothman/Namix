@@ -13,7 +13,7 @@ export function Footer() {
           <div className="md:col-span-2 space-y-8">
             <Logo size="md" />
             <p className="text-gray-400 font-bold leading-loose max-w-sm">
-              ناميكس هي الرائدة العالمية في إدارة الأصول الرقمية. نحن نجمع بين التقنيات المتطورة والنزاهة المالية لتمكين المستثمرين من تحقيق سيادتهم المالية.
+              ناميكس هي الرائدة العالمية في إدارة الأصول الرقمية. نحن نجمع بين التقنيات المتطورة والنزاهة المالية لتمكين المستثمرين من تحقيق ريادتهم المالية.
             </p>
             <div className="flex items-center gap-6">
                <div className="flex items-center gap-2">
@@ -31,8 +31,8 @@ export function Footer() {
             <h4 className="font-black text-[#002d4d] text-sm uppercase tracking-widest">الروابط السريعة</h4>
             <ul className="space-y-4">
               <li><a href="/about" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">عن المنصة</a></li>
-              <li><a href="/academy" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">أكاديمية ناميكس</a></li>
-              <li><a href="/faq" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">الأسئلة الشائعة</a></li>
+              <li><a href="/invest" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">الخدمات الاستثمارية</a></li>
+              <li><a href="/faq" className="text-gray-400 hover:text-[#002d4d] font-bold transition-colors">المساعدة</a></li>
             </ul>
           </div>
 

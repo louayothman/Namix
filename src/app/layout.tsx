@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: 'ناميكس - Namix',
-  description: 'منصة ناميكس لإدارة الاستثمار الرقمي',
+  description: 'منصة ناميكس المتقدمة لإدارة الاستثمار الرقمي',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

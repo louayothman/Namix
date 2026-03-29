@@ -25,11 +25,11 @@ export function Hero({ title, subtitle, description }: HeroProps) {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm">
               <Sparkles className="h-3 w-3 text-blue-500" />
-              <span className="text-[9px] font-black text-blue-600 uppercase tracking-[0.3em]">{subtitle || "Sovereign Wealth Infrastructure"}</span>
+              <span className="text-[9px] font-black text-blue-600 uppercase tracking-[0.3em]">{subtitle || "احترافية إدارة الأصول الرقمية"}</span>
             </div>
             
             <h1 className="text-5xl md:text-8xl font-black text-[#002d4d] tracking-tighter leading-[1.1]">
-              {title || "ناميكس: حيث تلتقي التقنية بالثروة."}
+              {title || "ناميكس: حيث تلتقي التقنية بنمو الأصول."}
             </h1>
             
             <p className="text-gray-500 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-loose">
@@ -45,7 +45,7 @@ export function Hero({ title, subtitle, description }: HeroProps) {
           >
             <Link href="/login">
               <button className="h-16 px-12 rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-sm shadow-2xl active:scale-95 transition-all group flex items-center gap-3">
-                ابدأ التداول السيادي
+                ابدأ التداول الاحترافي
                 <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
               </button>
             </Link>
@@ -64,7 +64,6 @@ export function Hero({ title, subtitle, description }: HeroProps) {
         </div>
       </div>
 
-      {/* لمسة فنية خلفية */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[500px] pointer-events-none opacity-[0.03]">
          <div className="grid grid-cols-3 gap-10 h-full max-w-6xl mx-auto">
             <div className="border-x border-gray-300" />

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -7,8 +8,8 @@ import { cn } from "@/lib/utils";
 
 const featureList = [
   {
-    title: "أمان سيادي مطلق",
-    desc: "نستخدم بروتوكولات تشفير عسكرية لحماية أصولك وبياناتك المالية على مدار الساعة.",
+    title: "أمان تقني متطور",
+    desc: "نستخدم بروتوكولات تشفير فائقة الدقة لحماية أصولك وبياناتك المالية على مدار الساعة.",
     icon: ShieldCheck,
     color: "text-blue-600",
     bg: "bg-blue-50"
@@ -29,7 +30,7 @@ const featureList = [
   },
   {
     title: "تنوع استثماري",
-    desc: "عقود استثمارية مرنة تناسب كافة المحافظ، من البدايات الذكية إلى استثمارات الحيتان.",
+    desc: "عقود استثمارية مرنة تناسب كافة المحافظ، من البدايات الذكية إلى استثمارات كبار المستثمرين.",
     icon: Target,
     color: "text-emerald-600",
     bg: "bg-emerald-50"
@@ -56,7 +57,7 @@ export function Features() {
       <div className="container mx-auto px-6">
         <div className="text-center space-y-4 mb-24">
           <h2 className="text-3xl md:text-5xl font-black text-[#002d4d]">لماذا يختار النخبة ناميكس؟</h2>
-          <p className="text-gray-400 font-bold text-sm uppercase tracking-widest">Sovereign Performance Protocol</p>
+          <p className="text-gray-400 font-bold text-sm uppercase tracking-widest">Professional Performance Protocol</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
