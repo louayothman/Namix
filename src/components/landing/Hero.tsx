@@ -14,6 +14,10 @@ interface HeroProps {
   ctaLink?: string;
 }
 
+/**
+ * @fileOverview مُفاعل الهيرو v3.6 - Professional Edge Edition
+ * تم تلوين النصوص بالبرتقالي وتطهير المصطلحات بالكامل لتعزيز الطابع المؤسسي.
+ */
 export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -34,7 +38,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
            style={{ backgroundImage: 'radial-gradient(#002d4d 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }} 
       />
 
-      {/* 2. Dual Energy Core - محرك السدم المزدوج المطور */}
+      {/* 2. Dual Energy Core - محرك الأفق الموشوري المطور */}
       <div className="absolute inset-0 pointer-events-none z-0">
         {/* Deep Blue Atmosphere (Left) */}
         <motion.div
@@ -46,7 +50,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
           className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
         />
 
-        {/* Morphing Blue-Gray Core (Behind Text) - لون رمادي أزرقي بضبابية أقل */}
+        {/* Morphing Blue-Gray Core (Behind Text) - الرمادي الأزرقي الفخم */}
         <motion.div
           animate={{ 
             borderRadius: [
@@ -114,11 +118,11 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
               <div className="flex items-center gap-4 md:gap-8 opacity-40">
                  <div className="flex items-center gap-1 md:gap-2">
                     <ShieldCheck className="h-2.5 w-2.5 md:h-4 md:w-4 text-emerald-600" />
-                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">محمي</span>
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest text-[#f9a885]">محمي</span>
                  </div>
                  <div className="flex items-center gap-1 md:gap-2">
                     <Zap className="h-2.5 w-2.5 md:h-4 md:w-4 text-slate-400" />
-                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">فوري</span>
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest text-[#f9a885]">فوري</span>
                  </div>
               </div>
             </motion.div>
