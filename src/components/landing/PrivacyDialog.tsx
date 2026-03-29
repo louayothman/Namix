@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -39,7 +40,7 @@ const NebulaBackground = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#001a2d]">
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#10b981]">
       <motion.div 
         animate={{ 
           scale: [1, 1.1, 1],
@@ -47,7 +48,7 @@ const NebulaBackground = () => {
           rotate: [0, 360]
         }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-30%] right-[-20%] w-[120%] h-[120%] bg-blue-600/10 rounded-full blur-[100px]" 
+        className="absolute top-[-30%] right-[-20%] w-[120%] h-[120%] bg-white/10 rounded-full blur-[100px]" 
       />
       <motion.div 
         animate={{ 
@@ -56,7 +57,7 @@ const NebulaBackground = () => {
           rotate: [360, 0]
         }}
         transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[-30%] left-[-20%] w-[120%] h-[120%] bg-[#f9a885]/10 rounded-full blur-[100px]" 
+        className="absolute bottom-[-30%] left-[-20%] w-[120%] h-[120%] bg-emerald-900/10 rounded-full blur-[100px]" 
       />
 
       {particles.map((p, i) => (
@@ -118,37 +119,37 @@ export function PrivacyDialog({ open, onOpenChange }: PrivacyDialogProps) {
         >
           <div className="flex flex-row min-h-[450px] md:min-h-[550px]">
             
-            <div className="w-1/2 bg-[#001a2d] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
+            <div className="w-1/2 bg-[#10b981] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
                <NebulaBackground />
                
                <div className="relative z-10 w-full max-w-[240px] md:max-w-[320px] aspect-square flex items-center justify-center">
-                  <div className="absolute inset-0 bg-white/5 rounded-full blur-[40px] md:blur-[80px] animate-pulse" />
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-[40px] md:blur-[80px] animate-pulse" />
                   {animationData ? (
                     <Lottie animationData={animationData} loop={true} className="w-full h-full scale-110" />
                   ) : (
-                    <Loader2 className="h-8 w-8 animate-spin text-[#f9a885] opacity-20" />
+                    <Loader2 className="h-8 w-8 animate-spin text-white opacity-20" />
                   )}
                </div>
 
                <div className="mt-6 text-center space-y-1 relative z-10">
-                  <div className="flex items-center justify-center gap-2 text-[#f9a885] font-black text-[7px] md:text-[9px] uppercase tracking-[0.3em]">
+                  <div className="flex items-center justify-center gap-2 text-white font-black text-[7px] md:text-[9px] uppercase tracking-[0.3em]">
                      <Lock size={10} />
                      Data Protection
                   </div>
-                  <p className="text-blue-100/30 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Sovereign Encryption Node</p>
+                  <p className="text-white/40 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Sovereign Encryption Node</p>
                </div>
             </div>
 
             <div className="w-1/2 p-5 md:p-16 space-y-6 md:space-y-12 bg-white relative flex flex-col justify-center">
                <div className="space-y-2 md:space-y-4 text-right group/header">
                   <div className="relative inline-flex items-center justify-start">
-                     <div className="absolute -right-6 -top-6 md:-right-10 md:-top-10 opacity-5 group-hover/header:opacity-15 group-hover/header:rotate-12 transition-all duration-700 pointer-events-none text-blue-600">
+                     <div className="absolute -right-6 -top-6 md:-right-10 md:-top-10 opacity-5 group-hover/header:opacity-15 group-hover/header:rotate-12 transition-all duration-700 pointer-events-none text-emerald-600">
                         <Fingerprint size={80} className="md:size-[120px]" />
                      </div>
                      <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none relative z-10">سياسة الخصوصية</DialogTitle>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2 justify-start opacity-40">
-                     <div className="h-1 w-1 rounded-full bg-[#f9a885] animate-pulse" />
+                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                      <p className="text-[6px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest">Global Privacy Protocol</p>
                   </div>
                </div>
@@ -161,7 +162,7 @@ export function PrivacyDialog({ open, onOpenChange }: PrivacyDialogProps) {
                ) : (
                  <div className="space-y-5 md:space-y-10 animate-in fade-in slide-in-from-left-4 duration-1000">
                     <div className="space-y-1.5 md:space-y-2">
-                       <h4 className="text-[11px] md:text-xl font-black text-blue-600 leading-tight">
+                       <h4 className="text-[11px] md:text-xl font-black text-emerald-600 leading-tight">
                           التزامنا المطلق بحماية بياناتك
                        </h4>
                        <div className="h-0.5 w-8 md:w-12 bg-[#f9a885] rounded-full" />

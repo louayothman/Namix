@@ -40,7 +40,7 @@ const NebulaBackground = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#001a2d]">
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#1a2236]">
       <motion.div 
         animate={{ 
           scale: [1, 1.1, 1],
@@ -107,9 +107,9 @@ export function AdventureArenaDialog({ open, onOpenChange }: AdventureArenaDialo
   }, [open]);
 
   const handleAction = () => {
-    const session = localStorage.getItem("namix_user");
+    const userSession = typeof window !== "undefined" ? localStorage.getItem("namix_user") : null;
     onOpenChange(false);
-    if (session) {
+    if (userSession) {
       router.push("/arena");
     } else {
       router.push("/login");
@@ -126,7 +126,7 @@ export function AdventureArenaDialog({ open, onOpenChange }: AdventureArenaDialo
         >
           <div className="flex flex-row min-h-[450px] md:min-h-[550px]">
             
-            <div className="w-1/2 bg-[#001a2d] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
+            <div className="w-1/2 bg-[#1a2236] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
                <NebulaBackground />
                
                <div className="relative z-10 w-full max-w-[240px] md:max-w-[320px] aspect-square flex items-center justify-center">

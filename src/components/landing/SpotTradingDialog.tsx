@@ -99,7 +99,7 @@ export function SpotTradingDialog({ open, onOpenChange }: SpotTradingDialogProps
 
   useEffect(() => {
     if (open) {
-      fetch("https://lottie.host/53301fde-4aff-4f89-bf15-31ee9a8f7fd4/FK2xhg0HnI.json")
+      fetch("https://lottie.host/c5f40eda-7a7f-4eba-b56f-c354a5fa759b/hPiyfY78fJ.json")
         .then(res => res.json())
         .then(data => setAnimationData(data))
         .catch(err => console.error("Lottie Load Error:", err));
@@ -107,9 +107,9 @@ export function SpotTradingDialog({ open, onOpenChange }: SpotTradingDialogProps
   }, [open]);
 
   const handleAction = () => {
-    const session = localStorage.getItem("namix_user");
+    const userSession = typeof window !== "undefined" ? localStorage.getItem("namix_user") : null;
     onOpenChange(false);
-    if (session) {
+    if (userSession) {
       router.push("/trade");
     } else {
       router.push("/login");
@@ -156,7 +156,7 @@ export function SpotTradingDialog({ open, onOpenChange }: SpotTradingDialogProps
                      <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none relative z-10">التداول الفوري</DialogTitle>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2 justify-start opacity-40">
-                     <div className="h-1 w-1 rounded-full bg-[#f9a885] animate-pulse" />
+                     <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
                      <p className="text-[6px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest tracking-normal">Direct Market Access Node</p>
                   </div>
                </div>
