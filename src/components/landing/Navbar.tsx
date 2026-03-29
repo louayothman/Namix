@@ -6,10 +6,12 @@ import { Logo } from "@/components/layout/Logo";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { AboutDialog } from "./AboutDialog";
 
 export function Navbar() {
   const { scrollY } = useScroll();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("namix_user");
@@ -30,7 +32,12 @@ export function Navbar() {
             <Logo size="sm" />
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/about" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors">عن ناميكس</Link>
+            <button 
+              onClick={() => setIsAboutOpen(true)}
+              className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors outline-none"
+            >
+              عن ناميكس
+            </button>
             <Link href="/invest" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors">الخدمات</Link>
             <Link href="/faq" className="text-[10px] font-black text-[#002d4d]/60 hover:text-[#002d4d] uppercase tracking-widest transition-colors">المساعدة</Link>
           </div>
@@ -44,6 +51,8 @@ export function Navbar() {
           </Link>
         </div>
       </div>
+
+      <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
     </motion.nav>
   );
 }
