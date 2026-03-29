@@ -10,6 +10,7 @@ import { Footer } from "@/components/landing/Footer";
 import { AboutDialog } from "@/components/landing/AboutDialog";
 import { ContractLabDialog } from "@/components/landing/ContractLabDialog";
 import { SpotTradingDialog } from "@/components/landing/SpotTradingDialog";
+import { AdventureArenaDialog } from "@/components/landing/AdventureArenaDialog";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -21,9 +22,12 @@ export default function LandingPage() {
   const [particles, setParticles] = useState<{ top: string; left: string; duration: number; delay: number }[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
+  
+  // Dialog States
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isContractLabOpen, setIsContractLabOpen] = useState(false);
   const [isSpotTradingOpen, setIsSpotTradingOpen] = useState(false);
+  const [isArenaOpen, setIsArenaOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -40,7 +44,7 @@ export default function LandingPage() {
       try {
         const parsed = JSON.parse(session);
         setIsLoggedIn(true);
-        setUserRole(parsed.role);
+        userRole === 'admin' ? setUserRole('admin') : setUserRole('user');
       } catch (e) {
         setIsLoggedIn(false);
       }
@@ -191,10 +195,12 @@ export default function LandingPage() {
         onAboutClick={() => setIsAboutOpen(true)} 
         onContractLabClick={() => setIsContractLabOpen(true)} 
         onSpotTradingClick={() => setIsSpotTradingOpen(true)}
+        onArenaClick={() => setIsArenaOpen(true)}
       />
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
+      <AdventureArenaDialog open={isArenaOpen} onOpenChange={setIsArenaOpen} />
     </div>
   );
 }
