@@ -4,7 +4,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins } from "lucide-react";
+import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
@@ -64,27 +64,73 @@ function ProfileContent() {
     if (action === "verify") setEditProfileOpen(true);
   }, [searchParams]);
 
-  if (!user) return <div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d]" /></div>;
+  if (!user) return (
+    <div className="h-screen flex items-center justify-center bg-white">
+      <Loader2 className="animate-spin text-[#002d4d]" />
+    </div>
+  );
 
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
-      <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
+        {/* Navigation Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <button onClick={() => router.back()} className="h-12 w-12 rounded-[20px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all"><ChevronRight className="h-6 w-6" /></button>
-             <div className="space-y-0.5"><h1 className="text-2xl font-black text-[#002d4d]">ملفي الشخصي</h1><p className="text-[8px] font-black text-blue-50 uppercase tracking-widest">Sovereign Management</p></div>
+             <button 
+               onClick={() => router.back()} 
+               className="h-12 w-12 rounded-[20px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
+             >
+               <ChevronRight className="h-6 w-6" />
+             </button>
+             <div className="space-y-0.5">
+               <h1 className="text-2xl font-black text-[#002d4d]">ملفي الشخصي</h1>
+               <div className="flex items-center gap-2 text-blue-500 font-black text-[8px] uppercase tracking-widest">
+                  <Sparkles size={10} className="text-[#f9a885]" />
+                  Sovereign Account Control
+               </div>
+             </div>
           </div>
-          <button onClick={() => setSettingsOpen(true)} className="h-12 w-12 rounded-[20px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all"><Settings className="h-5 w-5" /></button>
+          <button 
+            onClick={() => setSettingsOpen(true)} 
+            className="h-12 w-12 rounded-[20px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
         </div>
 
-        <ProfileHero user={dbUser || user} referralCount={referralCount} totalInvestments={dbUser?.activeInvestmentsTotal || 0} />
-        <div className="space-y-8">
-          <GrowthSection dbUser={dbUser} onOpenVouchers={() => setGiftVoucherOpen(true)} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
-          <FinancialSection />
-          <SupportSection />
-        </div>
-        <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
+        {/* Dynamic Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+           
+           {/* Sidebar: Hero & Logout (Sticky on Desktop) */}
+           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
+              <ProfileHero 
+                user={dbUser || user} 
+                referralCount={referralCount} 
+                totalInvestments={dbUser?.activeInvestmentsTotal || 0} 
+              />
+              <div className="hidden lg:block">
+                <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
+              </div>
+           </div>
 
+           {/* Main Content: Growth, Finance, Support */}
+           <div className="lg:col-span-8 space-y-10">
+              <GrowthSection 
+                dbUser={dbUser} 
+                onOpenVouchers={() => setGiftVoucherOpen(true)} 
+                onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} 
+              />
+              <FinancialSection />
+              <SupportSection />
+              
+              {/* Logout Button only for mobile at the bottom */}
+              <div className="lg:hidden">
+                <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
+              </div>
+           </div>
+        </div>
+
+        {/* Modals & Dialogs */}
         <SettingsHubDialog open={settingsOpen} onOpenChange={setSettingsOpen} onOpenEdit={() => setEditProfileOpen(true)} onOpenPassword={() => setChangePasswordOpen(true)} onOpenPin={() => setPinSetupOpen(true)} />
         <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
         <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
