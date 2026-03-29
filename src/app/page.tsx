@@ -8,6 +8,7 @@ import { MarketPulse } from "@/components/landing/MarketPulse";
 import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
 import { AboutDialog } from "@/components/landing/AboutDialog";
+import { ContractLabDialog } from "@/components/landing/ContractLabDialog";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -20,6 +21,7 @@ export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isContractLabOpen, setIsContractLabOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -183,8 +185,9 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <Footer onAboutClick={() => setIsAboutOpen(true)} />
+      <Footer onAboutClick={() => setIsAboutOpen(true)} onContractLabClick={() => setIsContractLabOpen(true)} />
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
+      <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
     </div>
   );
 }
