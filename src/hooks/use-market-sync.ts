@@ -6,8 +6,8 @@ import { useMarketStore } from '@/store/use-market-store';
 import { getLiveInternalPrice } from '@/lib/internal-market';
 
 /**
- * @fileOverview بروتوكول المزامنة السوقية الموحد v7.1 - Resilient Sync Edition
- * تم تحسين معالجة الأخطاء وإضافة تحقق من حالة المكون (Mount Check) لمنع تداخل الاتصالات.
+ * @fileOverview بروتوكول المزامنة السوقية الموحد v7.5 - Targeted Stream Edition
+ * تم تحديث المحرك ليعتمد على القنوات المخصصة (Individual Streams) لضمان أعلى دقة وسرعة.
  */
 
 export function useMarketSync(symbols: any[]) {
@@ -16,19 +16,27 @@ export function useMarketSync(symbols: any[]) {
   const internalTimerRef = useRef<any>(null);
   const isMounted = useRef(true);
 
+  // استقرار قائمة الرموز لمنع تكرار فتح الاتصال
+  const symbolsKey = JSON.stringify(symbols?.map(s => s.id + s.updatedAt));
+
   useEffect(() => {
     isMounted.current = true;
     if (!symbols || symbols.length === 0) return;
 
-    // 1. بناء فهرس سريع للرموز (BinanceSymbol -> AppSymbolId)
+    // 1. بناء فهرس المعايرة (Normalized Mapping)
     const binanceMap = new Map<string, string>();
+    const activeStreams: string[] = [];
+
     symbols.forEach(s => {
       if (s.priceSource === 'binance' && s.binanceSymbol) {
-        binanceMap.set(s.binanceSymbol, s.id);
+        // تنظيف الرمز من أي فواصل وتوحيد الحالة للحروف الكبيرة
+        const cleanSymbol = s.binanceSymbol.replace('/', '').toUpperCase();
+        binanceMap.set(cleanSymbol, s.id);
+        activeStreams.push(`${cleanSymbol.toLowerCase()}@ticker`);
       }
     });
 
-    if (binanceMap.size > 0) {
+    if (activeStreams.length > 0) {
       const connectBinance = () => {
         if (!isMounted.current) return;
 
@@ -36,43 +44,39 @@ export function useMarketSync(symbols: any[]) {
           wsRef.current.close();
         }
         
-        // استخدام تدفق !ticker@arr لجلب الأسعار ونسب التغيير وكافة الإحصائيات
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/!ticker@arr');
+        // فتح قناة سيولة مخصصة للأصول المحددة فقط لضمان السرعة والامتثال
+        const streamsParam = activeStreams.join('/');
+        const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streamsParam}`);
         
         ws.onmessage = (event) => {
           if (!isMounted.current) return;
           try {
-            const data = JSON.parse(event.data);
-            if (Array.isArray(data)) {
-              data.forEach((ticker: any) => {
-                const symbolId = binanceMap.get(ticker.s);
-                if (symbolId) {
-                  updatePrice(
-                    symbolId, 
-                    parseFloat(ticker.c),
-                    parseFloat(ticker.P),
-                    {
-                      high: parseFloat(ticker.h),
-                      low: parseFloat(ticker.l),
-                      volume: parseFloat(ticker.v)
-                    }
-                  );
-                }
-              });
+            const payload = JSON.parse(event.data);
+            const ticker = payload.data;
+            
+            if (ticker && ticker.s) {
+              const symbolId = binanceMap.get(ticker.s.toUpperCase());
+              if (symbolId) {
+                updatePrice(
+                  symbolId, 
+                  parseFloat(ticker.c), // السعر اللحظي الحالي
+                  parseFloat(ticker.P), // نسبة التغيير خلال 24 ساعة
+                  {
+                    high: parseFloat(ticker.h),
+                    low: parseFloat(ticker.l),
+                    volume: parseFloat(ticker.v)
+                  }
+                );
+              }
             }
           } catch (e) {
-            // صامت لتجنب تشتيت المستخدم
+            // معالجة صامتة لضمان استقرار الواجهة
           }
-        };
-
-        ws.onerror = () => {
-          // تم حذف console.error لمنع ظهور شاشة الخطأ في NextJS
-          // الاعتماد على onclose لإعادة الاتصال
         };
 
         ws.onclose = () => {
           if (isMounted.current) {
-            // إعادة الاتصال التلقائي بعد 3 ثوانٍ
+            // إعادة الربط التلقائي بعد 3 ثوانٍ في حال الانقطاع
             setTimeout(() => {
               if (isMounted.current) connectBinance();
             }, 3000);
@@ -85,7 +89,7 @@ export function useMarketSync(symbols: any[]) {
       connectBinance();
     }
 
-    // 2. محرك الأسعار الداخلية (Internal Asset Pulse)
+    // 2. محرك النبض للأصول الداخلية (Internal Asset Core)
     const internalSymbols = symbols.filter(s => s.priceSource !== 'binance');
     if (internalSymbols.length > 0) {
       if (internalTimerRef.current) clearInterval(internalTimerRef.current);
@@ -94,13 +98,14 @@ export function useMarketSync(symbols: any[]) {
         if (!isMounted.current) return;
         internalSymbols.forEach(s => {
           const price = getLiveInternalPrice(s.id, s);
+          // الأصول الداخلية تتبع نبض نمو مستقر بنسبة 0.42% افتراضياً
           updatePrice(s.id, price, 0.42, {
-            high: price * 1.05,
-            low: price * 0.95,
-            volume: 1250000
+            high: price * 1.02,
+            low: price * 0.98,
+            volume: 1500000
           });
         });
-      }, 100); 
+      }, 500); // تحديث هادئ كل نصف ثانية
     }
 
     return () => {
@@ -108,5 +113,5 @@ export function useMarketSync(symbols: any[]) {
       if (wsRef.current) wsRef.current.close();
       if (internalTimerRef.current) clearInterval(internalTimerRef.current);
     };
-  }, [symbols, updatePrice]);
+  }, [symbolsKey, updatePrice]);
 }
