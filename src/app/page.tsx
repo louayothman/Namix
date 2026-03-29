@@ -16,6 +16,8 @@ import { Sparkles, Zap, ArrowRight, ShieldCheck } from "lucide-react";
 export default function LandingPage() {
   const db = useFirestore();
   const [particles, setParticles] = useState<{ top: string; left: string; duration: number; delay: number }[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -26,6 +28,18 @@ export default function LandingPage() {
   useMarketSync(allSymbols || []);
 
   useEffect(() => {
+    // Check login status
+    const session = localStorage.getItem("namix_user");
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        setIsLoggedIn(true);
+        setUserRole(parsed.role);
+      } catch (e) {
+        setIsLoggedIn(false);
+      }
+    }
+
     // Generate particles client-side only to avoid hydration mismatch
     const generated = [...Array(8)].map((_, i) => ({
       top: `${Math.random() * 100}%`,
@@ -86,7 +100,7 @@ export default function LandingPage() {
                   className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#f9a885] rounded-full blur-[120px]" 
                 />
                 
-                {/* Floating Micro-particles - Rendered only when particles state is ready */}
+                {/* Floating Micro-particles */}
                 {particles.map((p, i) => (
                   <motion.div
                     key={i}
@@ -130,14 +144,14 @@ export default function LandingPage() {
                 </div>
 
                 <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-6">
-                  <a href="/login" className="w-full md:w-auto">
+                  <a href={isLoggedIn ? (userRole === 'admin' ? "/admin" : "/home") : "/login"} className="w-full md:w-auto">
                     <motion.button 
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="h-20 px-12 w-full md:w-auto rounded-full bg-[#f9a885] text-[#002d4d] font-black text-xl shadow-[0_20px_50px_rgba(249,168,133,0.3)] hover:bg-white transition-all flex items-center justify-center gap-4 group/btn overflow-hidden relative"
                     >
                       <div className="absolute inset-0 bg-white/30 skew-x-12 translate-x-full group-hover/btn:translate-x-[-300%] transition-transform duration-1000" />
-                      <span>فتح حساب استثماري</span>
+                      <span>{isLoggedIn ? "لوحة القيادة" : "فتح حساب استثماري"}</span>
                       <ArrowRight className="h-6 w-6 rotate-180 transition-transform group-hover/btn:-translate-x-2" />
                     </motion.button>
                   </a>
