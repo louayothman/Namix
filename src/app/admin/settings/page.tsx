@@ -41,7 +41,8 @@ export default function AdminSettingsPage() {
   const [landingData, setLandingData] = useState<any>({
     welcomeTitle: "ناميكس: حيث تلتقي التقنية بالثروة.",
     welcomeSubtitle: "مرحباً بك في مستقبل الاستثمار الذكي",
-    welcomeDescription: "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة."
+    welcomeDescription: "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة.",
+    introText: "ناميكس: بوابتك السيادية نحو الاقتصاد الرقمي المتطور."
   });
 
   const binanceRef = useMemoFirebase(() => doc(db, "system_settings", "binance"), [db]);

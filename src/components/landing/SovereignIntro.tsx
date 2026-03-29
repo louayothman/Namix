@@ -6,114 +6,74 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface SovereignIntroProps {
-  onComplete?: () => void;
+  introText?: string;
 }
 
 /**
- * @fileOverview مكون الانترو الفيزيائي v60.1
- * تم إصلاح خطأ الاستيراد لضمان تنفيذ تسلسل: رسم دوائر متتالية -> ظهور الشعار -> دوران فيزيائي متسارع -> مسح الدوائر.
+ * @fileOverview مكون الانترو السينمائي v65.0 - Kinetic Logo Edition
+ * يظهر الشعار فقط بظهور سائل، مع نص ترحيبي متدرج يتم التحكم به من الإعدادات.
  */
-export function SovereignIntro({ onComplete }: SovereignIntroProps) {
-  const [showLogo, setShowLogo] = useState(false);
-  const [isExpiring, setIsExpiring] = useState(false);
+export function SovereignIntro({ introText }: SovereignIntroProps) {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // توقيتات التسلسل
-    const timerLogo = setTimeout(() => setShowLogo(true), 1200);
-    const timerExpire = setTimeout(() => setIsExpiring(true), 2800);
-    const timerFinish = setTimeout(() => onComplete?.(), 4000);
+    setMounted(true);
+  }, []);
 
-    return () => {
-      clearTimeout(timerLogo);
-      clearTimeout(timerExpire);
-      clearTimeout(timerFinish);
-    };
-  }, [onComplete]);
+  if (!mounted) return null;
 
   return (
-    <div className="relative flex items-center justify-center select-none" dir="ltr">
+    <div className="relative flex flex-col items-center justify-center select-none gap-10" dir="ltr">
       
-      {/* 1. Concentric Circles - رسم الإطارات الدائرية */}
-      <svg width="240" height="240" viewBox="0 0 100 100" className="absolute z-0 overflow-visible">
-        {/* الدائرة الأولى */}
-        <motion.circle
-          cx="50"
-          cy="50"
-          r="45"
-          stroke="#002d4d"
-          strokeWidth="1.5"
-          fill="transparent"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ 
-            pathLength: isExpiring ? 0 : 1, 
-            opacity: 1,
-            rotate: 0
-          }}
-          transition={{ 
-            pathLength: { duration: 1.2, ease: "easeInOut" },
-            opacity: { duration: 0.5 }
-          }}
-        />
-        {/* الدائرة الثانية */}
-        <motion.circle
-          cx="50"
-          cy="50"
-          r="38"
-          stroke="#002d4d"
-          strokeWidth="1"
-          fill="transparent"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ 
-            pathLength: isExpiring ? 0 : 1, 
-            opacity: 0.4
-          }}
-          transition={{ 
-            pathLength: { delay: 0.2, duration: 1.2, ease: "easeInOut" },
-            opacity: { delay: 0.2, duration: 0.5 }
-          }}
-        />
-      </svg>
+      {/* 1. The Namix Logo - ظهور سينمائي سائل */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1,
+          y: 0
+        }}
+        transition={{ 
+          duration: 1.5,
+          ease: [0.16, 1, 0.3, 1] // Luxury Easing
+        }}
+        className="relative z-10"
+      >
+        {/* Logo Dots Grid */}
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
+          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
+          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
+          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
+          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
+        </div>
 
-      {/* 2. The Namix Logo - ظهور ودوران الشعار */}
-      <AnimatePresence>
-        {showLogo && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1,
-              rotate: [0, 60, 720, 720] // Ease-in -> Accel -> Hold
-            }}
-            transition={{ 
-              opacity: { duration: 0.5 },
-              scale: { duration: 0.5, ease: "easeOut" },
-              rotate: { 
-                duration: 3, 
-                times: [0, 0.2, 0.8, 1],
-                ease: [0.45, 0.05, 0.55, 0.95] // Custom physics cubic-bezier
-              }
-            }}
-            className="relative z-10"
-          >
-            {/* Logo Dots Grid */}
-            <div className="grid grid-cols-2 gap-2 md:gap-3">
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-[#f9a885] shadow-[0_0_25px_rgba(249,168,133,0.4)]" />
-              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-[#002d4d] shadow-[0_0_20px_rgba(0,45,77,0.2)]" />
-            </div>
+        {/* Dynamic Glow Aura */}
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute inset-[-40px] bg-[#f9a885]/10 blur-3xl rounded-full"
+        />
+      </motion.div>
 
-            {/* Central Glow Pulse */}
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-[#f9a885]/20 blur-2xl rounded-full scale-150"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 2. Intro Text - نص متدرج كحلي */}
+      <motion.div
+        initial={{ opacity: 0, filter: "blur(10px)" }}
+        animate={{ opacity: 1, filter: "blur(0px)" }}
+        transition={{ delay: 0.8, duration: 1.2 }}
+        className="text-center px-8"
+      >
+        <h3 className="text-lg md:text-2xl font-black bg-gradient-to-b from-[#002d4d] via-[#004d77] to-[#002d4d] bg-clip-text text-transparent tracking-tight leading-relaxed max-w-lg" dir="rtl">
+          {introText || "ناميكس: بوابتك السيادية نحو الاقتصاد الرقمي المتطور."}
+        </h3>
+        
+        {/* Decorative Divider */}
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: "60px" }}
+          transition={{ delay: 1.5, duration: 1 }}
+          className="h-[1px] bg-gradient-to-r from-transparent via-[#f9a885]/40 to-transparent mx-auto mt-6"
+        />
+      </motion.div>
 
     </div>
   );

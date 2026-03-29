@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Layout, Sparkles, Loader2, Save } from "lucide-react";
+import { Layout, Sparkles, Loader2, Save, Type } from "lucide-react";
 
 interface LandingPageSectionProps {
   data: any;
@@ -31,6 +31,22 @@ export function LandingPageSection({ data, onChange, onSave, saving }: LandingPa
         <CardContent className="p-10 space-y-10">
           
           <div className="space-y-8">
+            {/* Intro Text Configuration */}
+            <div className="space-y-3">
+              <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4 flex items-center gap-2 justify-end">
+                نص الانترو الترحيبي
+                <Type className="h-3.5 w-3.5 text-blue-500" />
+              </Label>
+              <Input 
+                value={data.introText || ""} 
+                onChange={e => onChange({...data, introText: e.target.value})}
+                className="h-14 rounded-2xl bg-blue-50/30 border-blue-100 font-black px-8 shadow-inner text-right text-blue-900"
+                placeholder="أدخل النص الذي يظهر تحت الشعار في الانترو..."
+              />
+            </div>
+
+            <div className="h-px bg-gray-50 mx-4" />
+
             <div className="space-y-3">
               <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">العنوان الترحيبي (Subtitle)</Label>
               <Input 
@@ -67,7 +83,7 @@ export function LandingPageSection({ data, onChange, onSave, saving }: LandingPa
                 <Sparkles className="h-6 w-6 text-blue-600" />
              </div>
              <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-               التعديلات التي تجريها هنا ستظهر فوراً لكافة الزوار في القسم الأول من صفحة الهبوط. تأكد من استخدام لغة تسويقية قوية تعكس سيادة المنصة.
+               التعديلات التي تجريها هنا ستظهر فوراً لكافة الزوار. تأكد من استخدام لغة تسويقية قوية تعكس سيادة المنصة. نص الانترو يظهر في الثواني الأولى فقط.
              </p>
           </div>
 
