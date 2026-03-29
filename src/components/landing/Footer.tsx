@@ -11,8 +11,8 @@ interface FooterProps {
 }
 
 /**
- * @fileOverview تذييل الصفحة السيادي v5.0 - Responsive Dual Column
- * تم تحديث التخطيط ليظهر بعامودين على الموبايل وتطهير النصوص العربية من التباعد.
+ * @fileOverview تذييل الصفحة السيادي v5.1 - Minimalist Branding Edition
+ * تم إزالة الوصف النصي مع الحفاظ على الهوية وشارات الاعتماد وتنسيق العامودين للموبايل.
  */
 export function Footer({ onAboutClick }: FooterProps) {
   return (
@@ -20,12 +20,9 @@ export function Footer({ onAboutClick }: FooterProps) {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 mb-16 md:mb-20">
           
-          {/* Branding & Mission - Full width on mobile, 2 cols on desktop */}
+          {/* Branding & Status - Full width on mobile, 2 cols on desktop */}
           <div className="col-span-2 md:col-span-2 space-y-6 md:space-y-8">
             <Logo size="md" />
-            <p className="text-gray-400 font-bold leading-relaxed md:leading-loose max-w-sm text-[11px] md:text-sm tracking-normal">
-              ناميكس هي الرائدة العالمية في إدارة الأصول الرقمية. نحن نجمع بين التقنيات المتطورة والنزاهة المالية لتمكين المستثمرين من تحقيق ريادتهم المالية.
-            </p>
             <div className="flex items-center gap-4 md:gap-6">
                <div className="flex items-center gap-2">
                   <ShieldCheck className="h-3.5 w-3.5 md:h-4 md:w-4 text-emerald-500" />
