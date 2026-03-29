@@ -15,10 +15,10 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو v3.6 - Professional Edge Edition
- * تم تلوين النصوص بالبرتقالي وتطهير المصطلحات بالكامل لتعزيز الطابع المؤسسي.
+ * @fileOverview مُفاعل الهيرو v3.7 - Minimalist Edge Edition
+ * تم إزالة الشارة العلوية لتبسيط الواجهة مع الحفاظ على التوازن اللوني الرمادي المورفي.
  */
-export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroProps) {
+export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -82,13 +82,6 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-3 md:space-y-6 relative z-10"
             >
-              <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-white/40 backdrop-blur-md rounded-full border border-blue-100/50 shadow-sm w-fit mr-0 ml-auto group">
-                <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest group-hover:text-[#002d4d] transition-colors">
-                  {subtitle || "احترافية إدارة الأصول الرقمية"}
-                </span>
-                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-slate-400 animate-pulse" />
-              </div>
-              
               <h1 className="text-xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
                 {title || "ناميكس: حيث تلتقي التقنية بنمو الأصول."}
               </h1>
