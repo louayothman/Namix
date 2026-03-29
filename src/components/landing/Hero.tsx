@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ShieldCheck, Zap, Sparkles } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import Lottie from "lottie-react";
 
@@ -15,8 +15,8 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو v4.0 - Mobile Optimized Edition
- * تم تكبير النصوص والأزرار على الموبايل لضمان وضوح فائق وتجربة مستخدم ناضجة.
+ * @fileOverview مُفاعل الهيرو v5.0 - Ultra-Compact Mobile Edition
+ * تم إجبار التنسيق الأفقي (Side-by-Side) على الموبايل وتصغير العناصر لتناسب العرض.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
@@ -31,7 +31,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   }, []);
 
   return (
-    <section className="relative pt-24 pb-12 md:pt-48 md:pb-32 overflow-hidden">
+    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden">
       
       {/* 1. Technical Grid Overlay */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]" 
@@ -48,44 +48,26 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
         />
-
-        <motion.div
-          animate={{ 
-            borderRadius: [
-              "30% 70% 70% 30% / 30% 30% 70% 70%",
-              "50% 50% 20% 80% / 25% 80% 20% 75%",
-              "67% 33% 47% 53% / 37% 20% 80% 63%",
-              "30% 70% 70% 30% / 30% 30% 70% 70%"
-            ],
-            rotate: [0, 90, 180, 270, 360],
-            scale: [1, 1.1, 0.95, 1]
-          }}
-          transition={{ 
-            duration: 12, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
-          }}
-          className="absolute -top-10 -right-10 w-[100%] h-[100%] bg-slate-400/10 blur-[40px]"
-        />
       </div>
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-20">
+        {/* Forced Flex Row even on smallest screens */}
+        <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* Content Block */}
-          <div className="w-full md:w-1/2 text-right space-y-6 md:space-y-10 relative">
+          {/* Content Block - w-1/2 on mobile */}
+          <div className="w-1/2 text-right space-y-3 md:space-y-10 relative">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-4 md:space-y-6 relative z-10"
+              className="space-y-2 md:space-y-6 relative z-10"
             >
-              <h1 className="text-3xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
+              <h1 className="text-base md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
                 {title || "ناميكس: حيث تلتقي التقنية بنمو الأصول."}
               </h1>
               
-              <p className="text-gray-500 text-sm md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
-                {description || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة، حيث تندمج القوة التقنية مع الأمان المطلق لتوليد فرص نمو لا محدودة."}
+              <p className="text-gray-500 text-[9px] md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
+                {description || "نحن نوفر البيئة الاستثمارية الأكثر تطوراً للنخبة."}
               </p>
             </motion.div>
 
@@ -93,41 +75,37 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex flex-col md:flex-row items-start md:items-center justify-start gap-4 md:gap-6 pt-2 relative z-10"
+              className="flex flex-col md:flex-row items-start md:items-center justify-start gap-2 md:gap-6 pt-1 relative z-10"
             >
               <Link href={ctaLink} className="w-full md:w-auto">
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="h-14 md:h-16 px-10 md:px-12 w-full md:w-auto rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-base md:text-lg shadow-2xl shadow-blue-900/20 transition-all flex items-center justify-center gap-3"
+                  className="h-10 md:h-16 px-4 md:px-12 w-full md:w-auto rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-[10px] md:text-lg shadow-xl transition-all flex items-center justify-center gap-2"
                 >
                   ابدأ الآن
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-3 w-3 md:h-5 md:w-5" />
                 </motion.button>
               </Link>
               
-              <div className="flex items-center gap-6 md:gap-8 opacity-40 px-2">
+              <div className="hidden sm:flex items-center gap-6 md:gap-8 opacity-40 px-2">
                  <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" />
                     <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest text-[#f9a885]">محمي</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-slate-400" />
-                    <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest text-[#f9a885]">فوري</span>
                  </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Lottie Animation Block */}
+          {/* Lottie Animation Block - w-1/2 on mobile */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, delay: 0.5 }}
-            className="w-full md:w-1/2 flex justify-center md:justify-end"
+            className="w-1/2 flex justify-center md:justify-end"
           >
-            <div className="relative w-full max-w-[280px] md:max-w-[500px] aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 bg-slate-400/5 rounded-full blur-[40px] md:blur-[100px] animate-pulse" />
+            <div className="relative w-full max-w-[160px] md:max-w-[500px] aspect-square flex items-center justify-center">
+              <div className="absolute inset-0 bg-slate-400/5 rounded-full blur-[20px] md:blur-[100px] animate-pulse" />
               
               {animationData ? (
                 <Lottie 
@@ -136,7 +114,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
                   className="w-full h-full relative z-10"
                 />
               ) : (
-                <div className="h-12 w-12 md:h-20 md:w-20 border-2 md:border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin" />
+                <div className="h-8 w-8 md:h-20 md:w-20 border-2 md:border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin" />
               )}
             </div>
           </motion.div>
@@ -146,26 +124,14 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
       {/* 3. Floating Digital Dust */}
       {isMounted && (
         <div className="absolute inset-0 pointer-events-none z-0">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <motion.div
               key={i}
-              initial={{ 
-                x: Math.random() * 1000, 
-                y: Math.random() * 500, 
-                opacity: 0 
-              }}
-              animate={{ 
-                y: [0, -40, 0],
-                x: [0, 20, 0],
-                opacity: [0, 0.2, 0] 
-              }}
-              transition={{ 
-                duration: 5 + i, 
-                repeat: Infinity,
-                delay: i * 0.5 
-              }}
-              className="absolute h-1 w-1 bg-slate-300 rounded-full"
-              style={{ top: `${20 + i * 15}%`, left: `${10 + i * 12}%` }}
+              initial={{ x: Math.random() * 800, y: Math.random() * 400, opacity: 0 }}
+              animate={{ y: [0, -20, 0], opacity: [0, 0.2, 0] }}
+              transition={{ duration: 5 + i, repeat: Infinity, delay: i * 0.5 }}
+              className="absolute h-0.5 w-0.5 bg-slate-300 rounded-full"
+              style={{ top: `${20 + i * 20}%`, left: `${10 + i * 20}%` }}
             />
           ))}
         </div>
