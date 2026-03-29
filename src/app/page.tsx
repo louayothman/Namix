@@ -31,6 +31,9 @@ export default function LandingPage() {
   const logoScale = useTransform(scrollY, [0, 100], [1, 0.6]);
   const contentOpacity = useTransform(scrollY, [50, 150], [0, 1]);
 
+  // محرك إخفاء مؤشر التمرير عند البدء - تم نقله هنا للامتثال لقواعد React Hooks
+  const indicatorOpacity = useTransform(scrollY, [0, 50], [1, 0]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -75,7 +78,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ opacity: useTransform(scrollY, [0, 50], [1, 0]) }}
+            style={{ opacity: indicatorOpacity }}
             className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2"
           >
             <div className="w-6 h-10 border-2 border-[#002d4d]/20 rounded-full flex justify-center p-1">
