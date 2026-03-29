@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -12,6 +13,7 @@ import { SpotTradingDialog } from "@/components/landing/SpotTradingDialog";
 import { AdventureArenaDialog } from "@/components/landing/AdventureArenaDialog";
 import { FAQDialog } from "@/components/landing/FAQDialog";
 import { PrivacyDialog } from "@/components/landing/PrivacyDialog";
+import { TermsDialog } from "@/components/landing/TermsDialog";
 import { SupportSheet } from "@/components/support/SupportSheet";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
@@ -32,6 +34,7 @@ export default function LandingPage() {
   const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isFAQOpen, setIsFAQOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
@@ -82,7 +85,7 @@ export default function LandingPage() {
           ctaLink={dashboardLink}
         />
         
-        <MarketPulse symbols={allSymbols || []} />
+        < MarketPulse symbols={allSymbols || []} />
         
         <Features />
         
@@ -200,6 +203,7 @@ export default function LandingPage() {
         onArenaClick={() => setIsArenaOpen(true)}
         onFAQClick={() => setIsFAQOpen(true)}
         onPrivacyClick={() => setIsPrivacyOpen(true)}
+        onTermsClick={() => setIsTermsOpen(true)}
         onSupportClick={() => setIsSupportOpen(true)}
       />
       
@@ -209,6 +213,7 @@ export default function LandingPage() {
       <AdventureArenaDialog open={isArenaOpen} onOpenChange={setIsArenaOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
+      <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
       <SupportSheet open={isSupportOpen} onOpenChange={setIsSupportOpen} />
     </div>
   );

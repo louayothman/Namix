@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -26,12 +27,13 @@ interface FooterProps {
   onArenaClick: () => void;
   onFAQClick: () => void;
   onPrivacyClick: () => void;
+  onTermsClick: () => void;
   onSupportClick: () => void;
 }
 
 /**
- * @fileOverview تذييل الصفحة المطور v7.1 - Final Structure
- * تم ربط كافة السياسات والخدمات بالنوافذ السينمائية التفاعلية.
+ * @fileOverview تذييل الصفحة المطور v7.2 - Terms and Conditions Integration
+ * تم ربط كافة السياسات القانونية بالنوافذ السينمائية الموحدة.
  */
 export function Footer({ 
   onAboutClick, 
@@ -40,6 +42,7 @@ export function Footer({
   onArenaClick,
   onFAQClick,
   onPrivacyClick,
+  onTermsClick,
   onSupportClick
 }: FooterProps) {
   return (
@@ -84,7 +87,7 @@ export function Footer({
                 <button onClick={onPrivacyClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">سياسة الخصوصية</button>
               </li>
               <li>
-                <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">الشروط والأحكام</Link>
+                <button onClick={onTermsClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">الشروط والأحكام</button>
               </li>
             </ul>
           </div>
