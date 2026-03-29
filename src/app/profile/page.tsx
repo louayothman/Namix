@@ -72,19 +72,19 @@ function ProfileContent() {
 
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
-      <div className="max-w-6xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
-        {/* Navigation Header */}
+      <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
+        {/* Navigation Header - Responsive Spacing & Sizing */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 md:gap-5">
              <button 
                onClick={() => router.back()} 
-               className="h-12 w-12 rounded-[20px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
+               className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
              >
-               <ChevronRight className="h-6 w-6" />
+               <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
              </button>
              <div className="space-y-0.5">
-               <h1 className="text-2xl font-black text-[#002d4d]">ملفي الشخصي</h1>
-               <div className="flex items-center gap-2 text-blue-500 font-black text-[8px] uppercase tracking-widest">
+               <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
+               <div className="flex items-center gap-2 text-blue-500 font-black text-[7px] md:text-[9px] uppercase tracking-widest">
                   <Sparkles size={10} className="text-[#f9a885]" />
                   Sovereign Account Control
                </div>
@@ -92,16 +92,16 @@ function ProfileContent() {
           </div>
           <button 
             onClick={() => setSettingsOpen(true)} 
-            className="h-12 w-12 rounded-[20px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]"
+            className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-5 w-5 md:h-6 md:w-6" />
           </button>
         </div>
 
-        {/* Dynamic Responsive Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        {/* Dynamic Responsive Layout Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
            
-           {/* Sidebar: Hero & Logout (Sticky on Desktop) */}
+           {/* Sidebar Section: Identity & Quick Exit */}
            <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
               <ProfileHero 
                 user={dbUser || user} 
@@ -113,8 +113,8 @@ function ProfileContent() {
               </div>
            </div>
 
-           {/* Main Content: Growth, Finance, Support */}
-           <div className="lg:col-span-8 space-y-10">
+           {/* Main Content Column: Operations & Support */}
+           <div className="lg:col-span-8 space-y-10 md:space-y-14">
               <GrowthSection 
                 dbUser={dbUser} 
                 onOpenVouchers={() => setGiftVoucherOpen(true)} 
@@ -123,20 +123,21 @@ function ProfileContent() {
               <FinancialSection />
               <SupportSection />
               
-              {/* Logout Button only for mobile at the bottom */}
-              <div className="lg:hidden">
+              {/* Mobile/Tablet Exit Strategy */}
+              <div className="lg:hidden pt-4">
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>
            </div>
         </div>
 
-        {/* Modals & Dialogs */}
+        {/* Global Dialogs Hub */}
         <SettingsHubDialog open={settingsOpen} onOpenChange={setSettingsOpen} onOpenEdit={() => setEditProfileOpen(true)} onOpenPassword={() => setChangePasswordOpen(true)} onOpenPin={() => setPinSetupOpen(true)} />
         <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
         <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
         <PinSetupDialog open={pinSetupOpen} onOpenChange={setPinSetupOpen} dbUser={dbUser} />
         <GiftVoucherDialog open={giftVoucherOpen} onOpenChange={setGiftVoucherOpen} user={user} dbUser={dbUser} onIssueSuccess={(code) => { setVoucherCode(code); setVoucherCreateSuccess(true); }} onRedeemSuccess={(amt) => { setRedeemAmount(amt); setVoucherRedeemSuccess(true); }} />
 
+        {/* Feedback Success Modals */}
         <SuccessDialog open={profileSuccess} onOpenChange={setProfileSuccess} title="تم تحديث الهوية" description="تم تأمين وحفظ بياناتك الشخصية المحدثة بنجاح." icon={ShieldCheck} type="profile" />
         <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
         <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل بروتوكول إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />
