@@ -32,7 +32,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
           {/* الجانب الأيمن: المحتوى النصي مع السديم المورفي */}
           <div className="w-1/2 text-right space-y-4 md:space-y-10 relative">
             
-            {/* السديم البرتقالي السائل - خلفية النص */}
+            {/* السديم البرتقالي السائل - خلفية النص بضبابية مخففة */}
             <motion.div
               animate={{ 
                 borderRadius: [
@@ -49,7 +49,7 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
                 repeat: Infinity, 
                 ease: "easeInOut" 
               }}
-              className="absolute -top-20 -right-20 w-[140%] h-[140%] bg-[#f9a885]/10 blur-[120px] pointer-events-none z-0"
+              className="absolute -top-20 -right-20 w-[140%] h-[140%] bg-[#f9a885]/10 blur-[60px] pointer-events-none z-0"
             />
 
             <motion.div
@@ -59,10 +59,10 @@ export function Hero({ title, subtitle, description, ctaLink = "/login" }: HeroP
               className="space-y-3 md:space-y-6 relative z-10"
             >
               <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-0.5 md:px-4 md:py-1.5 bg-blue-50 rounded-full border border-blue-100 shadow-sm w-fit mr-0 ml-auto">
-                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-blue-500" />
                 <span className="text-[6px] md:text-[9px] font-black text-blue-600 uppercase tracking-widest">
                   {subtitle || "احترافية إدارة الأصول الرقمية"}
                 </span>
+                <Sparkles className="h-2 w-2 md:h-3 md:w-3 text-blue-500" />
               </div>
               
               <h1 className="text-lg md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
