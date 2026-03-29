@@ -181,7 +181,7 @@ export function PrivacyDialog({ open, onOpenChange }: PrivacyDialogProps) {
                          { title: "امتثال دولي", color: "text-orange-600", bg: "bg-orange-50" }
                        ].map((item, i) => (
                          <div key={i} className={cn("flex flex-col items-center justify-center p-2 md:p-4 rounded-xl md:rounded-[24px] transition-all hover:shadow-lg hover:-translate-y-1 cursor-default border border-transparent hover:border-white", item.bg)}>
-                            <span className={cn("text-[6px] md:text-[10px] font-black text-center leading-tight", item.color)}>{item.title}</span>
+                            <span className={cn("text-[6px] md:text-[10px] font-black text-center leading-tight tracking-normal", item.color)}>{item.title}</span>
                          </div>
                        ))}
                     </div>

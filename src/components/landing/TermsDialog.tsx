@@ -155,7 +155,7 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
 
                {isLoading ? (
                  <div className="py-10 flex flex-col items-center gap-4 text-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
                     <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">جاري جلب بنود الاتفاقية...</p>
                  </div>
                ) : (
