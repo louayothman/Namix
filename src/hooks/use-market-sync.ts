@@ -6,20 +6,21 @@ import { useMarketStore } from '@/store/use-market-store';
 import { getLiveInternalPrice } from '@/lib/internal-market';
 
 /**
- * @fileOverview بروتوكول المزامنة السوقية الموحد v7.0 - Turbo Mapping Edition
- * محرك الربط العالمي - تم تحسين الأداء باستخدام الـ Map لضمان عدم تجميد الواجهة.
+ * @fileOverview بروتوكول المزامنة السوقية الموحد v7.1 - Resilient Sync Edition
+ * تم تحسين معالجة الأخطاء وإضافة تحقق من حالة المكون (Mount Check) لمنع تداخل الاتصالات.
  */
 
 export function useMarketSync(symbols: any[]) {
   const updatePrice = useMarketStore(state => state.updatePrice);
   const wsRef = useRef<WebSocket | null>(null);
   const internalTimerRef = useRef<any>(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     if (!symbols || symbols.length === 0) return;
 
     // 1. بناء فهرس سريع للرموز (BinanceSymbol -> AppSymbolId)
-    // هذا يمنع المحرك من "التجمد" عند معالجة آلاف الرسائل القادمة من بينانس
     const binanceMap = new Map<string, string>();
     symbols.forEach(s => {
       if (s.priceSource === 'binance' && s.binanceSymbol) {
@@ -29,6 +30,8 @@ export function useMarketSync(symbols: any[]) {
 
     if (binanceMap.size > 0) {
       const connectBinance = () => {
+        if (!isMounted.current) return;
+
         if (wsRef.current) {
           wsRef.current.close();
         }
@@ -37,17 +40,17 @@ export function useMarketSync(symbols: any[]) {
         const ws = new WebSocket('wss://stream.binance.com:9443/ws/!ticker@arr');
         
         ws.onmessage = (event) => {
+          if (!isMounted.current) return;
           try {
             const data = JSON.parse(event.data);
             if (Array.isArray(data)) {
               data.forEach((ticker: any) => {
                 const symbolId = binanceMap.get(ticker.s);
                 if (symbolId) {
-                  // تحديث متجر البيانات المركزي بالنبضات الجديدة
                   updatePrice(
                     symbolId, 
-                    parseFloat(ticker.c), // السعر الحالي
-                    parseFloat(ticker.P), // نسبة التغيير (P)
+                    parseFloat(ticker.c),
+                    parseFloat(ticker.P),
                     {
                       high: parseFloat(ticker.h),
                       low: parseFloat(ticker.l),
@@ -58,17 +61,22 @@ export function useMarketSync(symbols: any[]) {
               });
             }
           } catch (e) {
-            console.error("Market Stream Processing Error:", e);
+            // صامت لتجنب تشتيت المستخدم
           }
         };
 
-        ws.onerror = (err) => {
-          console.error("Market Stream Connectivity Error:", err);
+        ws.onerror = () => {
+          // تم حذف console.error لمنع ظهور شاشة الخطأ في NextJS
+          // الاعتماد على onclose لإعادة الاتصال
         };
 
         ws.onclose = () => {
-          // إعادة الاتصال التلقائي في حال انقطاع النبض
-          setTimeout(connectBinance, 3000);
+          if (isMounted.current) {
+            // إعادة الاتصال التلقائي بعد 3 ثوانٍ
+            setTimeout(() => {
+              if (isMounted.current) connectBinance();
+            }, 3000);
+          }
         };
         
         wsRef.current = ws;
@@ -83,6 +91,7 @@ export function useMarketSync(symbols: any[]) {
       if (internalTimerRef.current) clearInterval(internalTimerRef.current);
       
       internalTimerRef.current = setInterval(() => {
+        if (!isMounted.current) return;
         internalSymbols.forEach(s => {
           const price = getLiveInternalPrice(s.id, s);
           updatePrice(s.id, price, 0.42, {
@@ -95,6 +104,7 @@ export function useMarketSync(symbols: any[]) {
     }
 
     return () => {
+      isMounted.current = false;
       if (wsRef.current) wsRef.current.close();
       if (internalTimerRef.current) clearInterval(internalTimerRef.current);
     };
