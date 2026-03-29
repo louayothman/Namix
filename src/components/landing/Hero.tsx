@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -17,7 +16,8 @@ export function Hero({ title, subtitle, description }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
-    fetch("https://lottie.host/53301fde-4aff-4f89-bf15-31ee9a8f7fd4/FK2xhg0HnI.json")
+    // التحديث الجديد لرابط المحرك البصري
+    fetch("https://lottie.host/f696eec5-3031-46db-904e-2f94a2bf999a/KlzuAzWVLt.json")
       .then((res) => res.json())
       .then((data) => setAnimationData(data))
       .catch((err) => console.error("Lottie Load Error:", err));
@@ -28,7 +28,7 @@ export function Hero({ title, subtitle, description }: HeroProps) {
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
           
-          {/* الجانب الأيمن: المحتوى النصي */}
+          {/* الجانب الأيمن: المحتوى النصي الاحترافي */}
           <div className="w-full lg:w-1/2 text-right space-y-10 order-2 lg:order-1">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -78,7 +78,7 @@ export function Hero({ title, subtitle, description }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* الجانب الأيسر: الرسم التفاعلي */}
+          {/* الجانب الأيسر: المحرك البصري الجديد */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -86,7 +86,6 @@ export function Hero({ title, subtitle, description }: HeroProps) {
             className="w-full lg:w-1/2 flex justify-center lg:justify-end order-1 lg:order-2"
           >
             <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
-              {/* Background Glow for Lottie */}
               <div className="absolute inset-0 bg-blue-500/5 rounded-full blur-[100px] animate-pulse" />
               
               {animationData ? (
