@@ -29,13 +29,11 @@ import { cn } from "@/lib/utils";
 
 /**
  * Nebula Background for the visual part of the dialog
- * Creates a cinematic effect with swimming energy particles.
  */
 const NebulaBackground = () => {
   const [particles, setParticles] = useState<{ x: number; y: number; s: number; d: number }[]>([]);
 
   useEffect(() => {
-    // Generate particles client-side only
     const p = [...Array(30)].map(() => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -47,7 +45,6 @@ const NebulaBackground = () => {
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#001a2d]">
-      {/* Deep Nebula Gradients */}
       <motion.div 
         animate={{ 
           scale: [1, 1.1, 1],
@@ -67,7 +64,6 @@ const NebulaBackground = () => {
         className="absolute bottom-[-30%] left-[-20%] w-[120%] h-[120%] bg-[#f9a885]/10 rounded-full blur-[100px]" 
       />
 
-      {/* Swimming Energy Particles */}
       {particles.map((p, i) => (
         <motion.div
           key={i}
@@ -101,11 +97,6 @@ interface AboutDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/**
- * @fileOverview AboutDialog Component
- * Displays a cinematic about us dialog with nebula background and Lottie animation.
- * Re-engineered to maintain a side-by-side layout on all screens ("zoomed-out" feel).
- */
 export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
   const db = useFirestore();
   const legalDocRef = useMemoFirebase(() => doc(db, "system_settings", "legal"), [db]);
@@ -130,10 +121,8 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
           className="fixed left-[50%] top-[50%] z-[1001] translate-x-[-50%] translate-y-[-50%] rounded-[48px] border-none p-0 max-w-[900px] w-[95vw] overflow-hidden bg-white shadow-[0_50px_100px_-20px_rgba(0,45,77,0.3)] outline-none font-body" 
           dir="rtl"
         >
-          {/* Forced Side-by-Side Layout for "Zoomed Out" feel on Mobile */}
           <div className="flex flex-row min-h-[450px] md:min-h-[550px]">
             
-            {/* Visual Column - Nebula & Animation */}
             <div className="w-1/2 bg-[#002d4d] p-4 md:p-10 relative overflow-hidden flex flex-col items-center justify-center border-l border-white/5">
                <NebulaBackground />
                
@@ -151,11 +140,10 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                      <Sparkles size={10} />
                      Future Intelligence
                   </div>
-                  <p className="text-blue-100/30 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Namix Sovereign Engine v1.0</p>
+                  <p className="text-blue-100/30 text-[6px] md:text-[8px] font-bold uppercase tracking-widest">Namix Engine v1.0</p>
                </div>
             </div>
 
-            {/* Content Column - Textual Data */}
             <div className="w-1/2 p-5 md:p-16 space-y-6 md:space-y-12 bg-white relative flex flex-col justify-center">
                <div className="space-y-2 md:space-y-4 text-right">
                   <div className="flex items-center gap-2 md:gap-4 justify-start">
@@ -179,7 +167,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                  <div className="space-y-5 md:space-y-10 animate-in fade-in slide-in-from-left-4 duration-1000">
                     <div className="space-y-1.5 md:space-y-2">
                        <h4 className="text-[11px] md:text-xl font-black text-blue-600 leading-tight">
-                          {legal?.tagline || "حيث تحقق راحتك المالية السيادية"}
+                          {legal?.tagline || "حيث تحقق راحتك المالية الاحترافية"}
                        </h4>
                        <div className="h-0.5 w-8 md:w-12 bg-[#f9a885] rounded-full" />
                     </div>
@@ -194,7 +182,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                        {[
                          { icon: ShieldCheck, title: "النزاهة المطلقة", color: "text-emerald-500" },
                          { icon: Zap, title: "النمو الوميضي", color: "text-orange-500" },
-                         { icon: Globe, title: "السيادة العالمية", color: "text-blue-500" }
+                         { icon: Globe, title: "الريادة العالمية", color: "text-blue-500" }
                        ].map((item, i) => (
                          <div key={i} className="flex items-center gap-3 md:gap-4 group cursor-default">
                             <div className="h-6 w-6 md:h-10 md:w-10 rounded-lg md:rounded-xl bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 shadow-sm">

@@ -15,8 +15,8 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو v5.1 - Ultra-Compact Mobile Edition
- * تم تحديث النصوص والألوان لتعزيز الفخامة الاستراتيجية.
+ * @fileOverview مُفاعل الهيرو v13.0 - Balanced Professional Edition
+ * تم تصغير أحجام العناوين وتحديث النصوص لإزالة مصطلح السيادة وضمان التناسق مع Lottie.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
@@ -51,26 +51,26 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
       </div>
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        {/* Forced Flex Row even on smallest screens */}
+        {/* Forced Flex Row even on smallest screens for 50/50 layout */}
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* Content Block - w-1/2 on mobile */}
-          <div className="w-1/2 text-right space-y-3 md:space-y-10 relative">
+          {/* Content Block - 50% width */}
+          <div className="w-1/2 text-right space-y-3 md:space-y-8 relative">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-2 md:space-y-6 relative z-10"
+              className="space-y-2 md:space-y-5 relative z-10"
             >
-              <h1 className="text-base md:text-7xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.15]">
+              <h1 className="text-sm md:text-5xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.2]">
                 {title ? title : (
                   <>
-                    ناميكس: استثمارك <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">السيادي</span>
+                    ناميكس: استثمارك <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">الأمثل</span>
                   </>
                 )}
               </h1>
               
-              <p className="text-gray-500 text-[9px] md:text-xl font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
+              <p className="text-gray-500 text-[9px] md:text-lg font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
                 {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة خصيصاً لتعظيم عوائد النخبة وتحقيق استقلاليتك المالية الكاملة في عالم الاقتصاد الرقمي الجديد."}
               </p>
             </motion.div>
@@ -101,21 +101,21 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* Lottie Animation Block - w-1/2 on mobile */}
+          {/* Lottie Animation Block - 50% width */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, delay: 0.5 }}
             className="w-1/2 flex justify-center md:justify-end"
           >
-            <div className="relative w-full max-w-[160px] md:max-w-[500px] aspect-square flex items-center justify-center">
+            <div className="relative w-full max-w-[160px] md:max-w-[450px] aspect-square flex items-center justify-center">
               <div className="absolute inset-0 bg-slate-400/5 rounded-full blur-[20px] md:blur-[100px] animate-pulse" />
               
               {animationData ? (
                 <Lottie 
                   animationData={animationData} 
                   loop={true} 
-                  className="w-full h-full relative z-10"
+                  className="w-full h-full relative z-10 scale-110"
                 />
               ) : (
                 <div className="h-8 w-8 md:h-20 md:w-20 border-2 md:border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin" />

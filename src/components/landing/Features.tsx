@@ -61,14 +61,14 @@ export function Features() {
             viewport={{ once: true }}
             className="space-y-2"
           >
-            <h2 className="text-2xl md:text-5xl font-black text-[#002d4d]">
-              لماذا يختار النخبة <span className="text-[#f9a885]">ناميكس</span>؟
+            <h2 className="text-xl md:text-4xl font-black text-[#002d4d]">
+              لماذا يختار النخبة <span className="text-[#f9a885] drop-shadow-[0_0_10px_rgba(249,168,133,0.2)]">ناميكس</span>؟
             </h2>
             <p className="text-gray-400 font-bold text-[8px] md:text-sm uppercase tracking-[0.3em]">Professional Performance Protocol</p>
           </motion.div>
         </div>
 
-        {/* Changed grid-cols-1 to grid-cols-2 for mobile side-by-side */}
+        {/* 2 columns grid for mobile side-by-side as requested */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
           {featureList.map((f, i) => (
             <motion.div
@@ -80,7 +80,7 @@ export function Features() {
               whileHover={{ y: -5 }}
               className="relative p-4 md:p-10 rounded-[32px] md:rounded-[56px] bg-gray-50/30 border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,45,77,0.1)] transition-all duration-700 group overflow-hidden"
             >
-              {/* Interactive Background Icon - Scale down for mobile */}
+              {/* Interactive Background Icon */}
               <motion.div
                 animate={{ 
                   rotate: [0, 5, -5, 0],
