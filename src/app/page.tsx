@@ -11,6 +11,8 @@ import { AboutDialog } from "@/components/landing/AboutDialog";
 import { ContractLabDialog } from "@/components/landing/ContractLabDialog";
 import { SpotTradingDialog } from "@/components/landing/SpotTradingDialog";
 import { AdventureArenaDialog } from "@/components/landing/AdventureArenaDialog";
+import { FAQDialog } from "@/components/landing/FAQDialog";
+import { SupportSheet } from "@/components/support/SupportSheet";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -28,6 +30,8 @@ export default function LandingPage() {
   const [isContractLabOpen, setIsContractLabOpen] = useState(false);
   const [isSpotTradingOpen, setIsSpotTradingOpen] = useState(false);
   const [isArenaOpen, setIsArenaOpen] = useState(false);
+  const [isFAQOpen, setIsFAQOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
@@ -44,7 +48,7 @@ export default function LandingPage() {
       try {
         const parsed = JSON.parse(session);
         setIsLoggedIn(true);
-        userRole === 'admin' ? setUserRole('admin') : setUserRole('user');
+        setUserRole(parsed.role === 'admin' ? 'admin' : 'user');
       } catch (e) {
         setIsLoggedIn(false);
       }
@@ -73,7 +77,6 @@ export default function LandingPage() {
       <main className="relative z-10">
         <Hero 
           title={landingData?.welcomeTitle} 
-          subtitle={landingData?.welcomeSubtitle} 
           description={landingData?.welcomeDescription} 
           ctaLink={dashboardLink}
         />
@@ -92,7 +95,6 @@ export default function LandingPage() {
             {/* Main Interactive CTA Container */}
             <div className="bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl transition-all duration-700 hover:shadow-[0_50px_100px_-20px_rgba(0,45,77,0.5)]">
               
-              {/* Animated Background Elements - Nebula & Particles */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div 
                   animate={{ 
@@ -182,7 +184,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Decorative Background Icon */}
               <div className="absolute -bottom-16 -left-16 opacity-[0.04] pointer-events-none group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
                 <Zap size={350} strokeWidth={1} className="text-white" />
               </div>
@@ -196,11 +197,16 @@ export default function LandingPage() {
         onContractLabClick={() => setIsContractLabOpen(true)} 
         onSpotTradingClick={() => setIsSpotTradingOpen(true)}
         onArenaClick={() => setIsArenaOpen(true)}
+        onFAQClick={() => setIsFAQOpen(true)}
+        onSupportClick={() => setIsSupportOpen(true)}
       />
+      
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
       <AdventureArenaDialog open={isArenaOpen} onOpenChange={setIsArenaOpen} />
+      <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
+      <SupportSheet open={isSupportOpen} onOpenChange={setIsSupportOpen} />
     </div>
   );
 }

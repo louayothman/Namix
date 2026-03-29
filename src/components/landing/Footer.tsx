@@ -25,18 +25,26 @@ interface FooterProps {
   onContractLabClick: () => void;
   onSpotTradingClick: () => void;
   onArenaClick: () => void;
+  onFAQClick: () => void;
+  onSupportClick: () => void;
 }
 
 /**
- * @fileOverview تذييل الصفحة السيادي النهائي v6.0 - Structural Redesign
- * يطبق الهيكل المكون من 4 أقسام مع دعم التنسيق ثنائي الأعمدة على الموبايل وتطهير النصوص.
+ * @fileOverview تذييل الصفحة المطور v7.0 - Final Structure
+ * تم إزالة مركز المساعدة وربط الأسئلة الشائعة بالنافذة المنبثقة السينمائية المحدثة.
  */
-export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick, onArenaClick }: FooterProps) {
+export function Footer({ 
+  onAboutClick, 
+  onContractLabClick, 
+  onSpotTradingClick, 
+  onArenaClick,
+  onFAQClick,
+  onSupportClick
+}: FooterProps) {
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body" dir="rtl">
       <div className="container mx-auto px-6">
         
-        {/* Main 4-Column Grid (2 cols on mobile) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 mb-16">
           
           {/* Section 1: الخدمات */}
@@ -47,13 +55,13 @@ export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick, o
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={onContractLabClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">مختبر العقود</button>
+                <button onClick={onContractLabClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">مختبر العقود</button>
               </li>
               <li>
-                <button onClick={onSpotTradingClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">التداول الفوري</button>
+                <button onClick={onSpotTradingClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">التداول الفوري</button>
               </li>
               <li>
-                <button onClick={onArenaClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">الترفيه</button>
+                <button onClick={onArenaClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">الترفيه</button>
               </li>
             </ul>
           </div>
@@ -66,13 +74,10 @@ export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick, o
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right">عن Namix</button>
+                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">عن Namix</button>
               </li>
               <li>
-                <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">مركز المساعدة</Link>
-              </li>
-              <li>
-                <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">الأسئلة الشائعة (FAQ)</Link>
+                <button onClick={onFAQClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">الأسئلة الشائعة (FAQ)</button>
               </li>
               <li>
                 <Link href="/faq" className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal">سياسة الخصوصية</Link>
@@ -102,15 +107,15 @@ export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick, o
                ))}
             </div>
             <div className="pt-2">
-               <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 group cursor-pointer hover:shadow-md transition-all">
+               <button onClick={onSupportClick} className="w-full p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 group cursor-pointer hover:shadow-md transition-all outline-none">
                   <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center transition-transform group-hover:scale-110">
                      <Mail size={14} />
                   </div>
                   <div className="text-right overflow-hidden">
                      <p className="text-[7px] font-black text-gray-400 uppercase tracking-normal">الدعم الفني</p>
-                     <p className="text-[9px] font-black text-[#002d4d] truncate">info@namix.pro</p>
+                     <p className="text-[9px] font-black text-[#002d4d] truncate">تحدث معنا الآن</p>
                   </div>
-               </div>
+               </button>
             </div>
           </div>
 
@@ -144,7 +149,6 @@ export function Footer({ onAboutClick, onContractLabClick, onSpotTradingClick, o
 
         </div>
 
-        {/* Brand & Rights Rail */}
         <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <Logo size="sm" />

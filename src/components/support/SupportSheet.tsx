@@ -13,14 +13,13 @@ import {
   orderBy, 
   onSnapshot, 
   addDoc, 
-  serverTimestamp, 
   doc, 
   updateDoc, 
   setDoc,
   getDocs,
   limit
 } from "firebase/firestore";
-import { Headset, Send, Loader2, Sparkles, UserCircle, CheckCheck, Clock } from "lucide-react";
+import { Headset, Send, Loader2, Sparkles, UserCircle, CheckCheck, Clock, UserCheck, ShieldAlert } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
@@ -36,23 +35,38 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ticketId, setTicketId] = useState<string | null>(null);
+  
+  // State for session/guest identification
   const [user, setUser] = useState<any>(null);
+  const [guestData, setGuestData] = useState({ name: "", phone: "" });
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [isIdentified, setIsIdentified] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const db = useFirestore();
 
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
-    if (session) setUser(JSON.parse(session));
-  }, []);
+    if (session) {
+      setUser(JSON.parse(session));
+      setIsGuestMode(false);
+      setIsIdentified(true);
+    } else {
+      setIsGuestMode(true);
+      setIsIdentified(false);
+    }
+  }, [open]);
 
   useEffect(() => {
-    if (!user?.id || !open) return;
+    if (!isIdentified || !open) return;
 
     const findTicket = async () => {
+      setLoading(true);
+      const targetUserId = user?.id || `guest_${Date.now()}`;
+      
       const q = query(
         collection(db, "support_tickets"), 
-        where("userId", "==", user.id),
+        where("userId", "==", targetUserId),
         orderBy("updatedAt", "desc"),
         limit(1)
       );
@@ -62,11 +76,15 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
         setTicketId(snap.docs[0].id);
       } else {
         const newTicketRef = doc(collection(db, "support_tickets"));
+        const name = user?.displayName || guestData.name || "زائر";
+        const phone = user?.phoneNumber || guestData.phone || "N/A";
+        
         await setDoc(newTicketRef, {
-          userId: user.id || "",
-          userName: user.displayName || "مستثمر",
-          userPhone: user.phoneNumber || "N/A",
+          userId: targetUserId,
+          userName: name,
+          userPhone: phone,
           status: "open",
+          isGuest: isGuestMode,
           lastMessage: "بدأ المحادثة",
           lastSender: "user",
           createdAt: new Date().toISOString(),
@@ -77,7 +95,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
     };
 
     findTicket();
-  }, [user, db, open]);
+  }, [user, db, open, isIdentified, guestData, isGuestMode]);
 
   useEffect(() => {
     if (!ticketId) return;
@@ -99,6 +117,13 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
     return () => unsubscribe();
   }, [ticketId, db]);
 
+  const handleIdentify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (guestData.name.trim() && guestData.phone.trim()) {
+      setIsIdentified(true);
+    }
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || !ticketId || sending) return;
@@ -110,7 +135,7 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
     try {
       await addDoc(collection(db, "support_tickets", ticketId, "messages"), {
         text: msgText,
-        senderId: user.id,
+        senderId: user?.id || "guest",
         senderRole: "user",
         createdAt: new Date().toISOString()
       });
@@ -145,12 +170,51 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
              </div>
           </div>
           <SheetDescription className="text-gray-400 font-bold text-[9px] uppercase tracking-[0.1em] pr-4">
-            نحن هنا لمساعدتك في أي استفسار حول منصة ناميكس.
+            {isGuestMode ? "يرجى التعريف عن نفسك لبدء جلسة دعم آمنة." : "نحن هنا لمساعدتك في أي استفسار حول منصة ناميكس."}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 scrollbar-none bg-gray-50/30">
-          {loading ? (
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 scrollbar-none bg-gray-50/30 relative">
+          {!isIdentified && isGuestMode ? (
+            <div className="h-full flex flex-col items-center justify-center max-w-sm mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+               <div className="text-center space-y-2">
+                  <div className="h-20 w-20 bg-blue-50 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-blue-100">
+                     <UserCheck className="h-10 w-10 text-blue-600" />
+                  </div>
+                  <h4 className="text-xl font-black text-[#002d4d]">مرحباً بك في ناميكس</h4>
+                  <p className="text-[11px] font-bold text-gray-400 leading-relaxed px-4">أدخل بياناتك الأساسية لنتمكن من توثيق محادثتك في صندوق الوارد الإداري.</p>
+               </div>
+               
+               <form onSubmit={handleIdentify} className="w-full space-y-4">
+                  <div className="space-y-1.5">
+                     <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">الاسم الكامل</Label>
+                     <Input 
+                       placeholder="أدخل اسمك الكريم..." 
+                       value={guestData.name} 
+                       onChange={e => setGuestData({...guestData, name: e.target.value})}
+                       className="h-12 rounded-2xl bg-white border-none font-black text-xs shadow-sm px-6 text-right"
+                     />
+                  </div>
+                  <div className="space-y-1.5">
+                     <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">رقم الهاتف</Label>
+                     <Input 
+                       placeholder="مثال: 00966..." 
+                       value={guestData.phone} 
+                       onChange={e => setGuestData({...guestData, phone: e.target.value})}
+                       className="h-12 rounded-2xl bg-white border-none font-black text-xs shadow-sm px-6 text-left"
+                       dir="ltr"
+                     />
+                  </div>
+                  <Button type="submit" disabled={!guestData.name || !guestData.phone} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">
+                     تفعيل جلسة الدعم
+                  </Button>
+               </form>
+               <div className="flex items-center gap-2 opacity-20">
+                  <ShieldAlert size={10} />
+                  <p className="text-[7px] font-black uppercase tracking-widest">End-to-End Encryption Enabled</p>
+               </div>
+            </div>
+          ) : loading ? (
             <div className="h-full flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-[#002d4d]" />
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">تأمين الاتصال...</p>
@@ -163,33 +227,35 @@ export function SupportSheet({ open, onOpenChange }: SupportSheetProps) {
                <p className="text-xs font-bold text-gray-400">ابدأ المحادثة الآن، فريقنا متاح للرد عليك.</p>
             </div>
           ) : (
-            messages.map((msg, i) => {
-              const isMe = msg.senderRole === "user";
-              return (
-                <div key={msg.id} className={cn("flex flex-col", isMe ? "items-start" : "items-end")}>
-                  <div className={cn(
-                    "max-w-[85%] p-5 rounded-[28px] text-[13px] font-bold shadow-sm relative break-all",
-                    isMe 
-                      ? "bg-white text-[#002d4d] rounded-tr-lg border border-gray-100" 
-                      : "bg-[#002d4d] text-white rounded-tl-lg"
-                  )}>
-                    {msg.text}
+            <>
+              {messages.map((msg, i) => {
+                const isMe = msg.senderRole === "user";
+                return (
+                  <div key={msg.id} className={cn("flex flex-col", isMe ? "items-start" : "items-end")}>
                     <div className={cn(
-                      "flex items-center gap-1.5 mt-2 text-[8px] font-black uppercase tracking-tighter",
-                      isMe ? "text-gray-300" : "text-white/40"
+                      "max-w-[85%] p-5 rounded-[28px] text-[13px] font-bold shadow-sm relative break-all",
+                      isMe 
+                        ? "bg-white text-[#002d4d] rounded-tr-lg border border-gray-100" 
+                        : "bg-[#002d4d] text-white rounded-tl-lg"
                     )}>
-                      {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ar })}
-                      {!isMe && <CheckCheck className="h-2.5 w-2.5" />}
+                      {msg.text}
+                      <div className={cn(
+                        "flex items-center gap-1.5 mt-2 text-[8px] font-black uppercase tracking-tighter",
+                        isMe ? "text-gray-300" : "text-white/40"
+                      )}>
+                        {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ar })}
+                        {!isMe && <CheckCheck className="h-2.5 w-2.5" />}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+              <div ref={scrollRef} />
+            </>
           )}
-          <div ref={scrollRef} />
         </div>
 
-        <div className="p-8 bg-white border-t border-gray-50 shrink-0">
+        <div className={cn("p-8 bg-white border-t border-gray-50 shrink-0", !isIdentified && "pointer-events-none opacity-20")}>
           <form onSubmit={handleSend} className="relative flex items-center gap-3">
             <Input 
               value={inputText}
