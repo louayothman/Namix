@@ -1,10 +1,21 @@
-
 "use client";
 
 import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { TrendingUp, TrendingDown, Star, ChevronLeft, Activity, Info, Zap, BrainCircuit, ShieldCheck, ChevronRight } from "lucide-react";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Star, 
+  ChevronLeft, 
+  Activity, 
+  Info, 
+  Zap, 
+  BrainCircuit, 
+  ShieldCheck, 
+  ChevronRight,
+  Sparkles 
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -129,7 +140,7 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
              onClick={() => setGuideOpen(true)}
              className="w-full p-6 bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl transition-all group flex items-center justify-between relative overflow-hidden"
            >
-              <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:rotate-12 transition-transform duration-1000">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:rotate-12 transition-transform duration-1000">
                  <Zap size={80} className="text-[#002d4d]" />
               </div>
               
