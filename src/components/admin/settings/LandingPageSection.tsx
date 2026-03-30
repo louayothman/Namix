@@ -179,7 +179,7 @@ export function LandingPageSection({ data, onChange, onSave, saving }: LandingPa
 
         {/* Section: تواصل معنا */}
         <Card className="border-none shadow-sm rounded-[48px] bg-white overflow-hidden flex flex-col">
-          <CardHeader className="p-8 border-b border-gray-100 flex flex-row items-center justify-between">
+          <CardHeader className="p-8 border-b border-gray-50 flex flex-row items-center justify-between">
              <CardTitle className="text-lg font-black text-[#002d4d] flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-emerald-500" /> إدارة "تواصل معنا"
              </CardTitle>
