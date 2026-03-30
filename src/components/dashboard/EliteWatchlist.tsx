@@ -144,22 +144,22 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
 
   const guideNodes = [
     { 
-      title: "ما هو التداول الفوري؟", 
-      desc: "هو تبادل الأصول الرقمية بملكيتها الحقيقية بسعر السوق اللحظي. هدفك هو شراء العملة بسعر منخفض وبيعها بسعر أعلى لجني الأرباح من فارق السعر.",
+      title: "ما هو التداول الفوري السريع؟", 
+      desc: "هو تنفيذ صفقات تعتمد على توقع اتجاه السعر صعوداً أو هبوطاً بلحظة التنفيذ، لتحقيق أرباح سريعة من نبض السوق.",
       icon: BarChart3,
       color: "text-blue-500",
       bg: "bg-blue-50"
     },
     { 
       title: "استراتيجية الرصد الذكي", 
-      desc: "قبل التنفيذ، راقب اتجاه السعر (Trend) ونبض السوق. ابحث عن مناطق 'التشبع' حيث تكون الأسعار مهيأة للانعكاس لصالحك.",
+      desc: "قبل التنفيذ، راقب اتجاه السعر (Trend). ابحث عن القمم والقمم لبيع الأصول، والقيعان لاقتناص فرص الشراء بذكاء.",
       icon: Target,
       color: "text-emerald-500",
       bg: "bg-emerald-50"
     },
     { 
-      title: "التنفيذ عبر ناميكس", 
-      desc: "استخدم محرك NAMIX AI الذي يحلل المؤشرات الفنية ويعطيك إشارات دخول لحظية موثوقة. اختر المبلغ والمدة ثم اضغط شراء أو بيع بنقرة واحدة.",
+      title: "التنفيذ الآلي بدعم AI", 
+      desc: "استعن بمحرك NAMIX AI الذي يحلل الزخم ويعطيك إشارات دخول لحظية. اختر المبلغ والمدة ثم انطلق بنقرة واحدة.",
       icon: Zap,
       color: "text-orange-500",
       bg: "bg-orange-50"
@@ -231,9 +231,9 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
           <DialogOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
           <DialogContent className="fixed left-[50%] top-[50%] z-[1001] translate-x-[-50%] translate-y-[-50%] rounded-[48px] border-none p-0 max-w-[850px] w-[95vw] overflow-hidden bg-white shadow-2xl outline-none font-body text-right" dir="rtl">
             
-            <div className="flex flex-col md:flex-row min-h-[500px]">
-               {/* Left Column: Visual Nebula */}
-               <div className="md:w-5/12 bg-[#001a2d] relative overflow-hidden flex flex-col items-center justify-center p-8 border-l border-white/5">
+            <div className="flex flex-col md:flex-row min-h-fit md:min-h-[500px]">
+               {/* Left Column: Visual Nebula - Hidden or Shrunk on small mobile height */}
+               <div className="hidden md:flex md:w-5/12 bg-[#001a2d] relative overflow-hidden flex-col items-center justify-center p-8 border-l border-white/5">
                   <NebulaBackground />
                   <div className="relative z-10 w-full max-w-[220px] aspect-square flex items-center justify-center">
                      <div className="absolute inset-0 bg-white/5 rounded-full blur-[60px] animate-pulse" />
@@ -253,48 +253,48 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
                </div>
 
                {/* Right Column: Tactical Briefcase Nodes */}
-               <div className="md:w-7/12 p-8 md:p-12 flex flex-col justify-between bg-white relative">
-                  <div className="space-y-8">
-                     <div className="space-y-2 text-right">
+               <div className="w-full md:w-7/12 p-6 md:p-12 flex flex-col justify-between bg-white relative">
+                  <div className="space-y-6 md:space-y-8">
+                     <div className="space-y-1 text-right">
                         <div className="flex items-center gap-3">
                            <div className="h-1 w-6 bg-blue-600 rounded-full" />
                            <DialogTitle className="text-xl md:text-3xl font-black text-[#002d4d] tracking-normal">دليل التداول الاحترافي</DialogTitle>
                         </div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pr-9">Market Execution Briefing</p>
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest pr-9">Market Execution Briefing</p>
                      </div>
 
-                     <div className="space-y-5">
+                     <div className="space-y-4 md:space-y-5">
                         {guideNodes.map((node, i) => (
                           <motion.div 
                             key={i}
                             initial={{ opacity: 0, x: 30 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
-                            className="group relative flex items-start gap-5 p-5 rounded-[28px] border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all"
+                            className="group relative flex items-start gap-4 p-4 rounded-[24px] border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all"
                           >
                              <div className={cn(
-                               "h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-all duration-500",
+                               "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-all duration-500",
                                node.bg, node.color, "group-hover:bg-[#002d4d] group-hover:text-[#f9a885]"
                              )}>
-                                <node.icon size={20} />
+                                <node.icon size={18} />
                              </div>
-                             <div className="space-y-1">
-                                <h5 className="font-black text-sm text-[#002d4d] tracking-normal">{node.title}</h5>
-                                <p className="text-[11px] font-bold text-gray-500 leading-relaxed tracking-normal">{node.desc}</p>
+                             <div className="space-y-0.5">
+                                <h5 className="font-black text-xs md:text-sm text-[#002d4d] tracking-normal">{node.title}</h5>
+                                <p className="text-[10px] md:text-[11px] font-bold text-gray-500 leading-relaxed tracking-normal">{node.desc}</p>
                              </div>
                              {i < guideNodes.length - 1 && (
-                               <div className="absolute right-[43px] top-[60px] w-[1px] h-6 bg-gradient-to-b from-gray-100 to-transparent pointer-events-none" />
+                               <div className="absolute right-[39px] top-[55px] w-[1px] h-4 bg-gradient-to-b from-gray-100 to-transparent pointer-events-none hidden md:block" />
                              )}
                           </motion.div>
                         ))}
                      </div>
                   </div>
 
-                  <div className="pt-8 border-t border-gray-50 flex flex-col gap-4">
+                  <div className="pt-6 border-t border-gray-50 flex flex-col gap-3">
                      <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-3">
-                           <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                           <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-normal">Safe Execution Guaranteed</span>
+                           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                           <span className="text-[8px] md:text-[9px] font-black text-[#002d4d] uppercase tracking-normal">Safe Execution Guaranteed</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                            <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
@@ -302,13 +302,13 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
                         </div>
                      </div>
                      <Link href="/trade" onClick={() => setGuideOpen(false)} className="block">
-                        <Button className="w-full h-14 md:h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm md:text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4 group/btn overflow-hidden relative">
+                        <Button className="w-full h-14 md:h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs md:text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4 group/btn overflow-hidden relative">
                            <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover/btn:translate-x-[-200%] transition-transform duration-1000" />
                            <span>انطلق لغرفة التداول</span>
                            <MousePointerClick className="h-5 w-5 text-[#f9a885] transition-transform group-hover/btn:scale-125" />
                         </Button>
                      </Link>
-                     <button onClick={() => setGuideOpen(false)} className="text-[9px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors text-center">إغلاق المساعد</button>
+                     <button onClick={() => setGuideOpen(false)} className="text-[8px] md:text-[9px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors text-center tracking-normal">إغلاق المساعد</button>
                   </div>
                </div>
             </div>
