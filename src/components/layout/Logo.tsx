@@ -8,9 +8,10 @@ import { motion } from "framer-motion";
 interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  lightText?: boolean;
 }
 
-export function Logo({ className, size = 'md' }: LogoProps) {
+export function Logo({ className, size = 'md', lightText = false }: LogoProps) {
   const isSmall = size === 'sm';
   const isLarge = size === 'lg';
 
@@ -29,6 +30,7 @@ export function Logo({ className, size = 'md' }: LogoProps) {
           className="grid grid-cols-2" 
           style={{ gap: `${gap}px` }}
         >
+          {/* الألوان الأساسية للوغو: الكحلي والبرتقالي */}
           <div className="rounded-full shadow-[0_0_10px_rgba(0,45,77,0.3)]" style={{ width: dotSize, height: dotSize, backgroundColor: "#002d4d" }} />
           <div className="rounded-full shadow-[0_0_15px_rgba(249,168,133,0.5)]" style={{ width: dotSize, height: dotSize, backgroundColor: "#f9a885" }} />
           <div className="rounded-full shadow-[0_0_15px_rgba(249,168,133,0.5)]" style={{ width: dotSize, height: dotSize, backgroundColor: "#f9a885" }} />
@@ -39,8 +41,9 @@ export function Logo({ className, size = 'md' }: LogoProps) {
       </div>
       
       <h1 className={cn(
-        "font-black tracking-tight text-[#002d4d] leading-none select-none",
-        textSize
+        "font-black tracking-tight leading-none select-none",
+        textSize,
+        lightText ? "text-white" : "text-[#002d4d]"
       )} style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         NAMIX
       </h1>

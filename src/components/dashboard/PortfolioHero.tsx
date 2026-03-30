@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ShieldCheck } from "lucide-react";
+import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ShieldCheck, Zap } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -21,8 +21,8 @@ interface PortfolioHeroProps {
 }
 
 /**
- * @fileOverview نبض المحفظة السيادي v8.7 - Asset Protection Edition
- * إضافة مؤشر تغطية الأصول (Asset Coverage) بتصميم فاخر يظهر عند تفعيل بروتوكول الحماية.
+ * @fileOverview نبض المحفظة المورفي v9.0 - Liquid Intelligence Edition
+ * تحويل الخلفية إلى كائن مورفي سائل يتحرك بانسيابية مع نبضات ترددية محيطة.
  */
 export function PortfolioHero({ 
   user, 
@@ -34,25 +34,68 @@ export function PortfolioHero({
 }: PortfolioHeroProps) {
   return (
     <div className="relative w-full">
-      <Card className="border-none shadow-[0_48px_100px_-12px_rgba(0,45,77,0.4)] rounded-b-[64px] bg-[#002d4d] text-white overflow-hidden relative group transition-all duration-1000">
+      <Card className="border-none shadow-[0_48px_100px_-12px_rgba(0,45,77,0.3)] rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group transition-all duration-1000">
         
-        {/* Sovereign Atomic Backdrop - Reduced Size (50% Smaller) */}
+        {/* Sovereign Morphing Background Engine */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-           <div className="absolute -top-10 -right-10 md:-top-12 md:-right-12 grid grid-cols-2 gap-6 md:gap-8 opacity-[0.02] transform scale-[0.7] md:scale-[0.95] rotate-[12deg]">
-              <div className="h-32 w-32 md:h-48 md:w-48 rounded-full bg-white" />
-              <div className="h-32 w-32 md:h-48 md:w-48 rounded-full bg-[#f9a885]" />
-              <div className="h-32 w-32 md:h-48 md:w-48 rounded-full bg-[#f9a885]" />
-              <div className="h-32 w-32 md:h-48 md:w-48 rounded-full bg-white" />
+           
+           {/* المفاعل المورفي المركزي السائل */}
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
+              
+              {/* الترددات والنبضات المورفية المحيطة */}
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ 
+                    borderRadius: [
+                      "40% 60% 70% 30% / 40% 40% 60% 60%",
+                      "60% 40% 30% 70% / 60% 30% 70% 40%",
+                      "30% 70% 70% 30% / 50% 60% 40% 50%",
+                      "40% 60% 70% 30% / 40% 40% 60% 60%"
+                    ],
+                    scale: [1, 1.5, 1],
+                    opacity: [0.1, 0, 0.1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ 
+                    duration: 8 + (i * 2), 
+                    repeat: Infinity, 
+                    ease: "easeInOut",
+                    delay: i * 1.5
+                  }}
+                  className="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] border border-white/10 bg-white/5 backdrop-blur-3xl"
+                />
+              ))}
+
+              {/* الكائن المورفي الرئيسي */}
+              <motion.div
+                animate={{ 
+                  borderRadius: [
+                    "30% 70% 70% 30% / 30% 30% 70% 70%",
+                    "50% 50% 20% 80% / 25% 80% 20% 75%",
+                    "67% 33% 47% 53% / 37% 20% 80% 63%",
+                    "30% 70% 70% 30% / 30% 30% 70% 70%"
+                  ],
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 0.9, 1]
+                }}
+                transition={{ 
+                  duration: 15, 
+                  repeat: Infinity, 
+                  ease: "linear" 
+                }}
+                className="w-[250px] h-[250px] md:w-[400px] md:h-[400px] bg-gradient-to-tr from-white/10 via-blue-100/5 to-transparent blur-[20px] shadow-[inset_0_0_50px_rgba(255,255,255,0.1)]"
+              />
            </div>
 
-           {/* Dynamic Atmosphere Glow */}
+           {/* إضاءات الأطراف التكيفية */}
            <motion.div 
              animate={{ 
-               scale: [1, 1.1, 1],
-               opacity: [0.1, 0.15, 0.1],
+               scale: [1, 1.2, 1],
+               opacity: [0.1, 0.2, 0.1],
              }}
-             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-             className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-blue-500/20 rounded-full blur-[120px]" 
+             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+             className="absolute top-[-10%] right-[-5%] w-[60%] h-[60%] bg-blue-200/10 rounded-full blur-[100px]" 
            />
         </div>
 
@@ -61,17 +104,16 @@ export function PortfolioHero({
           {/* Top Identity Node */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-start gap-3">
-               <Logo size="sm" className="scale-110 brightness-200" />
+               <Logo size="sm" lightText className="scale-110" />
                
-               {/* Sovereign Asset Coverage Indicator */}
                {insuranceConfig?.isFundVisible && (
                  <motion.div 
                    initial={{ opacity: 0, x: 20 }}
                    animate={{ opacity: 1, x: 0 }}
-                   className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20 backdrop-blur-md shadow-inner group/protect"
+                   className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md shadow-inner group/protect"
                  >
-                    <ShieldCheck className="h-2.5 w-2.5 text-emerald-400 group-hover/protect:scale-110 transition-transform" />
-                    <span className="text-[7px] font-black text-emerald-400/80 uppercase tracking-widest leading-none">
+                    <ShieldCheck className="h-2.5 w-2.5 text-[#f9a885] group-hover/protect:scale-110 transition-transform" />
+                    <span className="text-[7px] font-black text-white/80 uppercase tracking-widest leading-none">
                       Covered: ${insuranceConfig.fundSize?.toLocaleString()}
                     </span>
                  </motion.div>
@@ -81,7 +123,7 @@ export function PortfolioHero({
             <div className="flex items-center gap-3">
               <div className="text-left space-y-0.5 mr-2">
                 <h1 className="text-sm font-black tracking-tight leading-none text-white">{user?.displayName || '...'}</h1>
-                <p className="text-[7px] text-blue-200/40 font-black uppercase tracking-[0.2em] mt-1 text-left">Verified Sovereign</p>
+                <p className="text-[7px] text-white/40 font-black uppercase tracking-[0.2em] mt-1 text-left">Verified Sovereign</p>
               </div>
               
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
@@ -90,7 +132,7 @@ export function PortfolioHero({
                   {unreadCount > 0 && (
                     <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 border-2 border-[#002d4d]"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 border-2 border-[#8899AA]"></span>
                     </span>
                   )}
                 </Link>
@@ -103,7 +145,7 @@ export function PortfolioHero({
             </div>
           </div>
 
-          {/* Master Balance Display - Purified */}
+          {/* Master Balance Display */}
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="flex items-center gap-2 mb-1">
                <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
@@ -114,16 +156,14 @@ export function PortfolioHero({
             <motion.h2 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-6xl md:text-8xl font-black leading-none drop-shadow-[0_25px_50px_rgba(0,0,0,0.4)] tabular-nums tracking-tighter flex items-baseline gap-3 text-white"
+              className="text-6xl md:text-8xl font-black leading-none drop-shadow-[0_25px_50px_rgba(0,0,0,0.2)] tabular-nums tracking-tighter flex items-baseline gap-3 text-white"
             >
               <span className="text-white/20 text-3xl md:text-4xl font-bold">$</span>
               {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </motion.h2>
 
-            {/* Balanced Financial Intelligence Stream - Perfect Centering */}
             <div className="grid grid-cols-2 gap-0 mt-8 pt-2 w-full relative">
-               {/* Vertical Separator - Centered */}
-               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-[0.5px] bg-white/5" />
+               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-[0.5px] bg-white/10" />
 
                <div className="flex flex-col items-center">
                   <div className="flex items-center gap-2 mb-1.5">
@@ -143,7 +183,7 @@ export function PortfolioHero({
                      </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <TrendingUp size={12} className="text-[#f9a885] opacity-20" />
+                    <TrendingUp size={12} className="text-[#f9a885] opacity-40" />
                     <p className="text-xl font-black text-[#f9a885] tabular-nums tracking-tighter">
                       +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
@@ -153,10 +193,10 @@ export function PortfolioHero({
           </div>
 
           {/* Strategic Actions */}
-          <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+          <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
             <button 
               onClick={onDeposit}
-              className="h-16 rounded-[28px] bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-orange-900/40 group relative overflow-hidden"
+              className="h-16 rounded-[28px] bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-orange-900/20 group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
               <ArrowDown className="h-4 w-4 relative z-10 transition-transform group-hover:translate-y-1" />
