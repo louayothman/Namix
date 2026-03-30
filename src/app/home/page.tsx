@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion, limit } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion, limit, addDoc } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
@@ -78,7 +78,6 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
-  // تعديل الاستعلام لجلب النشط والمكتمل حديثاً لضمان عمل بروتوكول التلاشي الـ 30 ثانية
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
     return query(

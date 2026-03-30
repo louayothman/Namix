@@ -3,7 +3,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { 
   Activity, 
   Clock,
@@ -113,7 +112,7 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
             
             const radius = 36;
             const circumference = 2 * Math.PI * radius;
-            const strokeDashoffset = circumference - (isCompleted ? 100 : percent / 100) * circumference;
+            const strokeDashoffset = circumference - (isCompleted ? 1 : percent / 100) * circumference;
 
             return (
               <motion.div
@@ -192,7 +191,7 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
                       <div className="flex justify-between items-start">
                          <div className="text-right">
                             <h4 className={cn("font-black text-xs leading-none tracking-tight truncate max-w-[120px]", isCompleted ? "text-emerald-700" : "text-[#002d4d]")}>
-                              {planTitle(inv.planTitle)}
+                              {inv.planTitle}
                             </h4>
                             <p className="text-[7px] font-bold text-gray-300 uppercase tracking-tighter mt-1">NODE: {inv.id.slice(-6).toUpperCase()}</p>
                          </div>
@@ -270,9 +269,4 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
       </div>
     </div>
   );
-}
-
-function planTitle(title: string) {
-  // تطهير النصوص من "السيادة"
-  return title.replace(/السيادة/g, 'الاحترافية').replace(/سيادي/g, 'نخبوي');
 }
