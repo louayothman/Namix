@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion, limit } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
@@ -78,13 +78,14 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
+  // تعديل الاستعلام لجلب النشط والمكتمل حديثاً لضمان عمل بروتوكول التلاشي الـ 30 ثانية
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
     return query(
       collection(db, "investments"),
       where("userId", "==", localUser.id),
-      where("status", "==", "active"),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
+      limit(10)
     );
   }, [db, localUser?.id]);
   const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
@@ -97,8 +98,9 @@ export default function HomePage() {
   }, [allSymbols, displayUser?.favoriteSymbols]);
 
   const liveStats = useMemo(() => {
-    if (!investments || investments.length === 0) return { accruedProfit: 0 };
-    return investments.reduce((acc, inv) => {
+    if (!investments) return { accruedProfit: 0 };
+    const activeOnes = investments.filter(i => i.status === 'active');
+    return activeOnes.reduce((acc, inv) => {
       try {
         const start = parseISO(inv.startTime);
         const end = parseISO(inv.endTime);
@@ -197,10 +199,47 @@ export default function HomePage() {
     }
   }, [router, db]);
 
+  const processMaturedInvestments = useCallback(async () => {
+    if (!investments || processingReward || !localUser?.id) return;
+    const activeOnly = investments.filter(i => i.status === 'active');
+    const currentTime = new Date();
+    const matured = activeOnly.filter(inv => !inv.isProcessed && currentTime >= new Date(inv.endTime));
+    if (matured.length === 0) return;
+    
+    try {
+      for (const inv of matured) {
+        const totalPayout = inv.amount + (inv.expectedProfit || 0);
+        await updateDoc(doc(db, "users", localUser.id), {
+          totalBalance: increment(totalPayout),
+          totalProfits: increment(inv.expectedProfit || 0),
+          activeInvestmentsTotal: increment(-inv.amount)
+        });
+        await updateDoc(doc(db, "investments", inv.id), {
+          status: "completed",
+          isProcessed: true,
+          completedAt: new Date().toISOString()
+        });
+        await addDoc(collection(db, "notifications"), {
+          userId: localUser.id,
+          title: "اكتمل الاستثمار! 💰",
+          message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`,
+          type: "success",
+          isRead: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [investments, localUser?.id, db, processingReward]);
+
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 500);
+    const timer = setInterval(() => {
+      setNow(new Date());
+      processMaturedInvestments();
+    }, 500);
     return () => clearInterval(timer);
-  }, []);
+  }, [processMaturedInvestments]);
 
   if (!localUser) return null;
 
