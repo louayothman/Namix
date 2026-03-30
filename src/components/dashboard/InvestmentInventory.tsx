@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   TrendingUp,
   Zap,
-  Box
+  RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,9 +20,9 @@ import Link from "next/link";
 import React, { useState, useEffect, useMemo } from "react";
 
 /**
- * @fileOverview مُفاعل الحجرات السائلة v15.0 - Liquid Chamber Edition
- * يحول الاستثمارات إلى خزانات طاقة زجاجية تمتلئ بالسيولة تدريجياً.
- * تم تطهير النصوص من "السيادة" وتثبيت انسيابية الخط العربي.
+ * @fileOverview مُفاعل مدار الطاقة الدوار v18.0 - Orbital Energy Edition
+ * يحول الاستثمارات إلى حلقات طاقة دائرية رشيقة ومثالية للهواتف.
+ * تم معالجة حجم الأرباح اللحظية وتطهير النصوص من "السيادة".
  */
 
 function AnimatedDigit({ digit }: { digit: string }) {
@@ -34,14 +34,14 @@ function AnimatedDigit({ digit }: { digit: string }) {
   if (isNaN(num)) return <span className="inline-block">{digit}</span>;
 
   return (
-    <div className="relative h-[22px] w-[11px] overflow-hidden inline-block leading-none">
+    <div className="relative h-[18px] w-[9px] overflow-hidden inline-block leading-none">
       <motion.div
-        animate={{ y: -num * 22 }}
+        animate={{ y: -num * 18 }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className="absolute top-0 left-0 flex flex-col items-center"
       >
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <div key={n} className="h-[22px] flex items-center justify-center font-black">
+          <div key={n} className="h-[18px] flex items-center justify-center font-black">
             {n}
           </div>
         ))}
@@ -76,143 +76,144 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-body" dir="rtl">
-      {/* Dynamic Reactor Header */}
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-6 duration-1000 font-body" dir="rtl">
+      {/* Header Module */}
       <div className="flex items-center justify-between px-4">
         <div className="space-y-0.5 text-right">
           <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2">
-            <Activity className="h-4 w-4 text-emerald-500 animate-pulse" />
-            مُفاعل النمو الحي
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            مُفاعل النمو النشط
           </h3>
-          <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.3em] tracking-normal">Operational Inflow Matrix</p>
+          <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest tracking-normal">Active Inflow Matrix</p>
         </div>
-        <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[8px] rounded-full px-4 py-1.5 shadow-lg uppercase tracking-widest">
-          {investments.length} Active Nodes
+        <Badge className="bg-gray-100 text-[#002d4d] border-none font-black text-[7px] rounded-full px-3 py-1 shadow-inner">
+          {investments.length} UNITS RUNNING
         </Badge>
       </div>
 
-      <div className="flex items-stretch gap-4">
-        
-        {/* The Liquid Chamber Grid */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayInvestments.map((inv, idx) => {
-            const { percent, accrued } = getProgressData(inv.startTime, inv.endTime, inv.expectedProfit);
-            const totalReturn = inv.amount + inv.expectedProfit;
-            const accruedStr = accrued.toFixed(3);
-            
-            return (
-              <motion.div
-                key={inv.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="h-full"
-              >
-                <Card className="border-none shadow-sm rounded-[44px] bg-white border border-gray-100/50 overflow-hidden relative group h-full flex flex-col transition-all duration-700 hover:shadow-2xl">
-                  
-                  {/* Digital Liquid Fill Effect - The "Liquid Chamber" */}
-                  <motion.div 
-                    initial={{ height: 0 }}
-                    animate={{ height: `${percent}%` }}
-                    transition={{ duration: 2, ease: "easeOut" }}
-                    className="absolute bottom-0 left-0 right-0 bg-emerald-500/[0.04] z-0 pointer-events-none"
-                  >
-                    {/* Glowing Surface Line */}
-                    <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent shadow-[0_0_15px_rgba(16,185,129,0.2)]" />
-                    
-                    {/* Internal Flow Shimmer */}
-                    <motion.div 
-                      animate={{ x: ['-100%', '100%'] }}
-                      transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-emerald-500/[0.02] to-transparent skew-x-[-20deg]"
-                    />
-                  </motion.div>
+      <div className="grid grid-cols-1 gap-4">
+        {displayInvestments.map((inv, idx) => {
+          const { percent, accrued } = getProgressData(inv.startTime, inv.endTime, inv.expectedProfit);
+          const totalReturn = inv.amount + inv.expectedProfit;
+          const accruedStr = accrued.toFixed(3);
+          
+          // Orbital Gauge Constants
+          const radius = 36;
+          const circumference = 2 * Math.PI * radius;
+          const strokeDashoffset = circumference - (percent / 100) * circumference;
 
-                  <CardContent className="p-7 relative z-10 flex-1 flex flex-col justify-between space-y-8">
+          return (
+            <motion.div
+              key={inv.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <Card className="border-none shadow-sm rounded-[36px] bg-white border border-gray-50 overflow-hidden relative group transition-all duration-500 hover:shadow-xl hover:border-blue-50">
+                <CardContent className="p-5 flex items-center gap-5 relative z-10">
+                  
+                  {/* The Orbital Energy Gauge */}
+                  <div className="relative h-20 w-20 shrink-0 flex items-center justify-center">
+                    <svg className="h-full w-full transform -rotate-90">
+                      {/* Background Rail */}
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r={radius}
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="transparent"
+                        className="text-gray-50"
+                      />
+                      {/* Active Progress Path */}
+                      <motion.circle
+                        cx="40"
+                        cy="40"
+                        r={radius}
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="transparent"
+                        strokeDasharray={circumference}
+                        animate={{ strokeDashoffset }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        strokeLinecap="round"
+                        className={cn(
+                          "transition-colors duration-1000",
+                          percent >= 100 ? "text-emerald-500" : "text-blue-600"
+                        )}
+                      />
+                    </svg>
                     
-                    {/* Top Identity & Status */}
-                    <div className="flex justify-between items-start">
-                       <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500 shrink-0">
-                             <Zap size={20} className={cn(percent >= 100 ? "text-emerald-500" : "text-[#002d4d]/40")} />
-                          </div>
-                          <div className="text-right">
-                             <h4 className="font-black text-[13px] text-[#002d4d] leading-none tracking-tight">{inv.planTitle}</h4>
-                             <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest mt-1.5">ID: {inv.id.slice(-6).toUpperCase()}</p>
-                          </div>
+                    {/* Center Icon Node */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                       <div className={cn(
+                         "h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner transition-all duration-500",
+                         percent >= 100 ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                       )}>
+                          <Zap size={20} className={cn(percent >= 100 && "fill-current animate-pulse")} />
                        </div>
-                       <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[7px] px-2 py-0.5 rounded-md">
+                    </div>
+
+                    {/* Progress Indicator Shimmer */}
+                    {percent < 100 && (
+                      <div className="absolute inset-0 rounded-full border border-blue-100 opacity-20 animate-ping" />
+                    )}
+                  </div>
+
+                  {/* Identity & Yield Stream */}
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="flex justify-between items-start">
+                       <div className="text-right">
+                          <h4 className="font-black text-xs text-[#002d4d] leading-none tracking-tight truncate max-w-[120px]">{inv.planTitle}</h4>
+                          <p className="text-[7px] font-bold text-gray-300 uppercase tracking-tighter mt-1">ID: {inv.id.slice(-6).toUpperCase()}</p>
+                       </div>
+                       <Badge className="bg-gray-50 text-gray-400 border-none font-black text-[6px] px-1.5 py-0.5 rounded-md">
                           %{inv.profitPercent} YIELD
                        </Badge>
                     </div>
 
-                    {/* Central Accumulation Node */}
-                    <div className="space-y-4 text-center">
-                       <div className="space-y-1">
-                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Accrued Yield</p>
-                          <div className="flex items-center justify-center text-3xl font-black text-emerald-600 tabular-nums tracking-tighter h-[32px]" dir="ltr">
-                            <span className="mr-1">+</span>
-                            <span className="mr-0.5 text-emerald-300/50">$</span>
+                    <div className="flex items-center gap-2">
+                       <div className="flex-1 h-10 bg-gray-50/80 rounded-2xl border border-gray-100 shadow-inner flex items-center justify-between px-4">
+                          <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">Live Stream</span>
+                          <div className="flex items-center text-[15px] font-black text-emerald-600 tabular-nums tracking-tighter h-[18px]" dir="ltr">
+                            <span className="mr-0.5">+</span>
+                            <span className="mr-0.5 text-[10px] opacity-40">$</span>
                             {accruedStr.split("").map((char, i) => (
                               <AnimatedDigit key={i} digit={char} />
                             ))}
                           </div>
                        </div>
-                       
-                       <div className="p-4 bg-gray-50/50 rounded-[28px] border border-gray-100/50 flex items-center justify-between shadow-inner">
-                          <div className="text-right space-y-0.5">
-                             <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Capital</p>
-                             <p className="text-xs font-black text-[#002d4d] tabular-nums">${inv.amount.toLocaleString()}</p>
-                          </div>
-                          <div className="h-6 w-[1px] bg-gray-200" />
-                          <div className="text-left space-y-0.5">
-                             <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Target</p>
-                             <p className="text-xs font-black text-[#002d4d] tabular-nums">${totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                          </div>
-                       </div>
                     </div>
+                  </div>
 
-                    {/* Footer: Progress & Date */}
-                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                          <Clock size={12} className="text-blue-400" />
-                          <p className="text-[9px] font-bold text-gray-400 tabular-nums">{new Date(inv.endTime).toLocaleDateString('ar-EG')}</p>
-                       </div>
-                       <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black text-emerald-600 tabular-nums">%{percent}</span>
-                          <div className="h-1.5 w-12 bg-gray-100 rounded-full overflow-hidden">
-                             <motion.div 
-                               initial={{ width: 0 }}
-                               animate={{ width: `${percent}%` }}
-                               className="h-full bg-emerald-500 rounded-full"
-                             />
-                          </div>
-                       </div>
-                    </div>
+                  {/* Vertical Data Matrix */}
+                  <div className="w-[80px] md:w-[100px] border-r border-gray-100 pr-4 space-y-3 shrink-0">
+                     <div className="space-y-0.5">
+                        <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Capital</p>
+                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums">${inv.amount.toLocaleString()}</p>
+                     </div>
+                     <div className="space-y-0.5">
+                        <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Settlement</p>
+                        <div className="flex items-center gap-1.5">
+                           <Clock size={8} className="text-blue-400" />
+                           <p className="text-[9px] font-bold text-[#002d4d] tabular-nums">{new Date(inv.endTime).toLocaleDateString('ar-EG', { day: 'numeric', month: 'numeric' })}</p>
+                        </div>
+                     </div>
+                  </div>
 
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Tactical Identity Rail - Side Strip */}
-        <div className="hidden md:flex flex-col items-center justify-center gap-4 shrink-0 px-2 opacity-[0.15] select-none">
-           <span className="text-[7px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">
-             NAMIX PROTOCOL
-           </span>
-           <div className="w-[0.5px] flex-1 bg-gradient-to-b from-[#002d4d] via-emerald-500/20 to-transparent rounded-full" />
-        </div>
-
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Global Action: Explore All Assets */}
-      <div className="flex justify-center pt-2">
+      {/* Footer Navigation */}
+      <div className="flex justify-center pt-1">
          <Link href="/my-investments">
-            <Button variant="ghost" className="h-12 px-10 rounded-full bg-white border border-gray-100 hover:bg-[#002d4d] hover:text-white text-gray-400 font-black text-[10px] shadow-sm transition-all active:scale-95 group">
-               سجل العقود الكامل 
-               <ChevronLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-1" />
+            <Button variant="ghost" className="h-10 px-8 rounded-full bg-white border border-gray-100 text-gray-400 font-black text-[9px] shadow-sm transition-all active:scale-95 group">
+               سجل المفاعل الكامل 
+               <ChevronLeft size={14} className="mr-2 transition-transform group-hover:-translate-x-1" />
             </Button>
          </Link>
       </div>
