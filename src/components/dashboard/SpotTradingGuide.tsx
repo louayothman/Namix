@@ -11,6 +11,7 @@ import {
   DialogOverlay
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { 
   Loader2, 
@@ -76,7 +77,7 @@ interface SpotTradingGuideProps {
 
 /**
  * @fileOverview مُفاعل الإرشاد الاحترافي v4.0 - Namix Pro Style
- * إعادة هيكلة شاملة لتتبع أسلوب الوحدات التكنولوجية الرشيقة.
+ * تم إصلاح خطأ استيراد Badge وتثبيت هيكلة الوحدات التكنولوجية الرشيقة.
  */
 export function SpotTradingGuide({ open, onOpenChange }: SpotTradingGuideProps) {
   const router = useRouter();
@@ -126,9 +127,9 @@ export function SpotTradingGuide({ open, onOpenChange }: SpotTradingGuideProps) 
           <div className="flex flex-col md:flex-row min-h-fit md:min-h-[520px]">
              
              {/* الجانب البصري - Intelligence Node */}
-             <div className="md:w-5/12 bg-[#001a2d] relative overflow-hidden flex flex-col items-center justify-center p-8 border-l border-white/5 h-[140px] md:h-auto">
+             <div className="md:w-5/12 bg-[#001a2d] relative overflow-hidden flex flex-col items-center justify-center p-8 border-l border-white/5 h-[140px] md:h-auto text-center">
                 <NebulaBackground />
-                <div className="relative z-10 w-full max-w-[100px] md:max-w-[240px] aspect-square flex items-center justify-center">
+                <div className="relative z-10 w-full max-w-[100px] md:max-w-[240px] aspect-square flex items-center justify-center mx-auto">
                    <div className="absolute inset-0 bg-white/5 rounded-full blur-[40px] animate-pulse" />
                    {animationData ? (
                      <Lottie animationData={animationData} loop={true} className="w-full h-full scale-125" />
