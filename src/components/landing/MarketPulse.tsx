@@ -14,8 +14,8 @@ interface MarketPulseProps {
 }
 
 /**
- * @fileOverview مُفاعل نبض الأسواق v14.0 - Lottie Calibration Edition
- * تم استبدال مؤشر التحميل التقليدي برسم تفاعلي متطور لتعزيز تجربة المزامنة اللحظية.
+ * @fileOverview مُفاعل نبض الأسواق v14.1 - Silent Lottie Calibration
+ * تم تطهير حالة التحميل من النصوص والاكتفاء بالرسم التفاعلي لتعزيز الرقي البصري.
  */
 export function MarketPulse({ symbols }: MarketPulseProps) {
   const [displayPrices, setDisplayPrices] = useState<Record<string, number>>({});
@@ -65,7 +65,7 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
 
   if (!isCalibrated || filteredSymbols.length === 0) {
     return (
-      <section className="w-full bg-white border-y border-gray-50 py-6 flex flex-col items-center justify-center gap-3">
+      <section className="w-full bg-white border-y border-gray-50 py-6 flex flex-col items-center justify-center">
          <div className="h-16 w-16 md:h-20 md:w-20 opacity-40">
             {animationData ? (
               <Lottie animationData={animationData} loop={true} />
@@ -73,7 +73,6 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
               <div className="h-10 w-10 border-2 border-gray-100 border-t-blue-500 rounded-full animate-spin" />
             )}
          </div>
-         <span className="text-[8px] md:text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] mr-2">جاري مزامنة نبض الأسواق...</span>
       </section>
     );
   }
