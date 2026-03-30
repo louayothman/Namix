@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CryptoIcon } from "@/lib/crypto-icons";
@@ -10,69 +10,19 @@ import {
   TrendingDown, 
   Star, 
   ChevronLeft, 
-  Activity, 
   Info, 
   Zap, 
-  BrainCircuit, 
-  ShieldCheck, 
-  ChevronRight,
-  Sparkles,
-  MousePointerClick,
-  Target,
-  BarChart3,
-  Loader2
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
-import Lottie from "lottie-react";
+import { SpotTradingGuide } from "./SpotTradingGuide";
 
 interface EliteWatchlistProps {
   favorites: any[];
 }
-
-/**
- * NebulaBackground - محرك سديم البيانات الخلفي
- */
-const NebulaBackground = () => {
-  const [particles, setParticles] = useState<{ x: number; y: number; s: number; d: number }[]>([]);
-
-  useEffect(() => {
-    const p = [...Array(25)].map(() => ({
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      s: 0.5 + Math.random() * 1.5,
-      d: 5 + Math.random() * 10
-    }));
-    setParticles(p);
-  }, []);
-
-  return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-[#001a2d]">
-      <motion.div 
-        animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2], rotate: [0, 360] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-20%] right-[-10%] w-[100%] h-[100%] bg-blue-600/10 rounded-full blur-[80px]" 
-      />
-      <motion.div 
-        animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.3, 0.1], rotate: [360, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[-20%] left-[-10%] w-[100%] h-[100%] bg-[#f9a885]/10 rounded-full blur-[80px]" 
-      />
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          animate={{ y: [0, -100, 0], opacity: [0, 0.4, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: p.d, repeat: Infinity, delay: i * 0.1 }}
-          className="absolute rounded-full bg-white/60 shadow-[0_0_5px_rgba(255,255,255,0.3)]"
-          style={{ top: `${p.y}%`, left: `${p.x}%`, width: p.s, height: p.s }}
-        />
-      ))}
-    </div>
-  );
-};
 
 const EliteAssetCard = React.memo(({ asset, price, change }: { asset: any, price: number, change: number }) => {
   const isUp = change >= 0;
@@ -130,41 +80,6 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
   const prices = useMarketStore(state => state.prices);
   const changes = useMarketStore(state => state.dailyChanges);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [animationData, setAnimationData] = useState<any>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (guideOpen) {
-      fetch("https://lottie.host/cd21e4c4-bf4d-4e52-b6b1-a1a25e7863e5/fabb0ZLzCZ.json")
-        .then(res => res.json())
-        .then(data => setAnimationData(data))
-        .catch(err => console.error("Lottie Load Error:", err));
-    }
-  }, [guideOpen]);
-
-  const guideNodes = [
-    { 
-      title: "ما هو التداول الفوري السريع؟", 
-      desc: "هو تنفيذ صفقات تعتمد على توقع اتجاه السعر صعوداً أو هبوطاً بلحظة التنفيذ، لتحقيق أرباح سريعة من نبض السوق.",
-      icon: BarChart3,
-      color: "text-blue-500",
-      bg: "bg-blue-50"
-    },
-    { 
-      title: "استراتيجية الرصد الذكي", 
-      desc: "قبل التنفيذ، راقب اتجاه السعر (Trend). ابحث عن القمم والقمم لبيع الأصول، والقيعان لاقتناص فرص الشراء بذكاء.",
-      icon: Target,
-      color: "text-emerald-500",
-      bg: "bg-emerald-50"
-    },
-    { 
-      title: "التنفيذ الآلي بدعم AI", 
-      desc: "استعن بمحرك NAMIX AI الذي يحلل الزخم ويعطيك إشارات دخول لحظية. اختر المبلغ والمدة ثم انطلق بنقرة واحدة.",
-      icon: Zap,
-      color: "text-orange-500",
-      bg: "bg-orange-50"
-    }
-  ];
 
   return (
     <div className="relative space-y-5 py-2 font-body" dir="rtl">
@@ -226,95 +141,7 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
         </div>
       )}
 
-      <Dialog open={guideOpen} onOpenChange={setGuideOpen}>
-        <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
-          <DialogContent className="fixed left-[50%] top-[50%] z-[1001] translate-x-[-50%] translate-y-[-50%] rounded-[48px] border-none p-0 max-w-[850px] w-[95vw] overflow-hidden bg-white shadow-2xl outline-none font-body text-right" dir="rtl">
-            
-            <div className="flex flex-col md:flex-row min-h-fit md:min-h-[500px]">
-               {/* Left Column: Visual Nebula - Hidden or Shrunk on small mobile height */}
-               <div className="hidden md:flex md:w-5/12 bg-[#001a2d] relative overflow-hidden flex-col items-center justify-center p-8 border-l border-white/5">
-                  <NebulaBackground />
-                  <div className="relative z-10 w-full max-w-[220px] aspect-square flex items-center justify-center">
-                     <div className="absolute inset-0 bg-white/5 rounded-full blur-[60px] animate-pulse" />
-                     {animationData ? (
-                       <Lottie animationData={animationData} loop={true} className="w-full h-full scale-125" />
-                     ) : (
-                       <Loader2 className="h-8 w-8 animate-spin text-[#f9a885] opacity-20" />
-                     )}
-                  </div>
-                  <div className="mt-8 text-center space-y-1 relative z-10">
-                     <div className="flex items-center justify-center gap-2 text-[#f9a885] font-black text-[8px] uppercase tracking-[0.3em]">
-                        <Sparkles size={10} />
-                        Next-Gen Intelligence
-                     </div>
-                     <p className="text-blue-100/30 text-[7px] font-bold uppercase tracking-widest">Global Asset Trading</p>
-                  </div>
-               </div>
-
-               {/* Right Column: Tactical Briefcase Nodes */}
-               <div className="w-full md:w-7/12 p-6 md:p-12 flex flex-col justify-between bg-white relative">
-                  <div className="space-y-6 md:space-y-8">
-                     <div className="space-y-1 text-right">
-                        <div className="flex items-center gap-3">
-                           <div className="h-1 w-6 bg-blue-600 rounded-full" />
-                           <DialogTitle className="text-xl md:text-3xl font-black text-[#002d4d] tracking-normal">دليل التداول الاحترافي</DialogTitle>
-                        </div>
-                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest pr-9">Market Execution Briefing</p>
-                     </div>
-
-                     <div className="space-y-4 md:space-y-5">
-                        {guideNodes.map((node, i) => (
-                          <motion.div 
-                            key={i}
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 + i * 0.1, duration: 0.6 }}
-                            className="group relative flex items-start gap-4 p-4 rounded-[24px] border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all"
-                          >
-                             <div className={cn(
-                               "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-all duration-500",
-                               node.bg, node.color, "group-hover:bg-[#002d4d] group-hover:text-[#f9a885]"
-                             )}>
-                                <node.icon size={18} />
-                             </div>
-                             <div className="space-y-0.5">
-                                <h5 className="font-black text-xs md:text-sm text-[#002d4d] tracking-normal">{node.title}</h5>
-                                <p className="text-[10px] md:text-[11px] font-bold text-gray-500 leading-relaxed tracking-normal">{node.desc}</p>
-                             </div>
-                             {i < guideNodes.length - 1 && (
-                               <div className="absolute right-[39px] top-[55px] w-[1px] h-4 bg-gradient-to-b from-gray-100 to-transparent pointer-events-none hidden md:block" />
-                             )}
-                          </motion.div>
-                        ))}
-                     </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-gray-50 flex flex-col gap-3">
-                     <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-3">
-                           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                           <span className="text-[8px] md:text-[9px] font-black text-[#002d4d] uppercase tracking-normal">Safe Execution Guaranteed</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                           <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                           <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Ready to launch</span>
-                        </div>
-                     </div>
-                     <Link href="/trade" onClick={() => setGuideOpen(false)} className="block">
-                        <Button className="w-full h-14 md:h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs md:text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4 group/btn overflow-hidden relative">
-                           <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover/btn:translate-x-[-200%] transition-transform duration-1000" />
-                           <span>انطلق لغرفة التداول</span>
-                           <MousePointerClick className="h-5 w-5 text-[#f9a885] transition-transform group-hover/btn:scale-125" />
-                        </Button>
-                     </Link>
-                     <button onClick={() => setGuideOpen(false)} className="text-[8px] md:text-[9px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors text-center tracking-normal">إغلاق المساعد</button>
-                  </div>
-               </div>
-            </div>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
+      <SpotTradingGuide open={guideOpen} onOpenChange={setGuideOpen} />
     </div>
   );
 }
