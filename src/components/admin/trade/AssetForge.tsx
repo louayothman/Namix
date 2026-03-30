@@ -36,6 +36,7 @@ import { getBinanceExchangeSymbols } from "@/app/actions/binance-actions";
 import { CRYPTO_ICONS_MAP, CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AssetForgeProps {
   initialData?: any;
@@ -89,13 +90,17 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const handleSelectBinanceSymbol = (sym: string) => {
     const asset = binanceSymbols.find(s => s.symbol === sym);
     if (asset) {
+      // محاولة مطابقة الأيقونة المتخصصة تلقائياً
+      const possibleIcon = asset.baseAsset.toUpperCase();
+      const hasSpecialized = CRYPTO_ICONS_MAP[possibleIcon] !== undefined;
+
       setFormData({
         ...formData,
         name: `${asset.baseAsset} / ${asset.quoteAsset}`,
         code: `${asset.baseAsset}/${asset.quoteAsset}`,
         binanceSymbol: asset.symbol,
         priceSource: 'binance',
-        icon: asset.baseAsset === 'BTC' ? 'Bitcoin' : asset.baseAsset === 'ETH' ? 'Ethereum' : 'Coins'
+        icon: hasSpecialized ? possibleIcon : 'Coins'
       });
     }
   };
@@ -198,22 +203,24 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                               <SelectValue placeholder={binanceLoading ? "جاري الجرد من السيرفر..." : "ابحث عن رمز..."} />
                            </SelectTrigger>
                            <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper" sideOffset={5}>
-                              {binanceSymbols.length === 0 && !binanceLoading ? (
-                                <div className="p-10 text-center space-y-4">
-                                   <AlertCircle className="h-8 w-8 text-gray-200 mx-auto" />
-                                   <p className="text-[10px] font-bold text-gray-400">فشل جلب القائمة. يرجى المحاولة لاحقاً.</p>
-                                   <Button size="sm" variant="outline" onClick={fetchBinanceData} className="h-8 text-[9px] font-black">إعادة المحاولة</Button>
-                                </div>
-                              ) : (
-                                binanceSymbols.map(s => (
-                                  <SelectItem key={s.symbol} value={s.symbol} className="font-bold py-3 text-right cursor-pointer">
-                                     <div className="flex items-center justify-between w-full min-w-[280px]">
-                                        <span className="text-[9px] text-gray-400">{s.baseAsset} Pair</span>
-                                        <span className="font-black text-[#002d4d]" dir="ltr">{s.symbol}</span>
-                                     </div>
-                                  </SelectItem>
-                                ))
-                              )}
+                              <ScrollArea className="h-[280px]">
+                                {binanceSymbols.length === 0 && !binanceLoading ? (
+                                  <div className="p-10 text-center space-y-4">
+                                     <AlertCircle className="h-8 w-8 text-gray-200 mx-auto" />
+                                     <p className="text-[10px] font-bold text-gray-400">فشل جلب القائمة. يرجى المحاولة لاحقاً.</p>
+                                     <Button size="sm" variant="outline" onClick={fetchBinanceData} className="h-8 text-[9px] font-black">إعادة المحاولة</Button>
+                                  </div>
+                                ) : (
+                                  binanceSymbols.map(s => (
+                                    <SelectItem key={s.symbol} value={s.symbol} className="font-bold py-3 text-right cursor-pointer">
+                                       <div className="flex items-center justify-between w-full min-w-[280px]">
+                                          <span className="text-[9px] text-gray-400">{s.baseAsset} Pair</span>
+                                          <span className="font-black text-[#002d4d]" dir="ltr">{s.symbol}</span>
+                                       </div>
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </ScrollArea>
                            </SelectContent>
                         </Select>
                         {binanceLoading ? <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-200 animate-spin" /> : <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-100" />}
@@ -235,22 +242,24 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                 </div>
 
                 <div className="space-y-2">
-                   <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">أيقونة الأصل</Label>
+                   <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">أيقونة الأصل (ترسانة موسعة)</Label>
                    <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
                       <SelectTrigger className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 shadow-inner outline-none">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" position="popper">
-                         {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
-                           <SelectItem key={iconId} value={iconId} className="font-bold py-3 cursor-pointer">
-                              <div className="flex items-center gap-4 justify-start w-full">
-                                <div className="h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center shadow-inner">
-                                  <CryptoIcon name={iconId} size={20} />
+                         <ScrollArea className="h-[350px]">
+                           {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
+                             <SelectItem key={iconId} value={iconId} className="font-bold py-3 cursor-pointer">
+                                <div className="flex items-center gap-4 justify-start w-full">
+                                  <div className="h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center shadow-inner">
+                                    <CryptoIcon name={iconId} size={20} />
+                                  </div>
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{iconId}</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{iconId}</span>
-                              </div>
-                           </SelectItem>
-                         ))}
+                             </SelectItem>
+                           ))}
+                         </ScrollArea>
                       </SelectContent>
                    </Select>
                 </div>
