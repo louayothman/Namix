@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { 
@@ -231,7 +232,7 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
           <DialogContent className="fixed left-[50%] top-[50%] z-[1001] translate-x-[-50%] translate-y-[-50%] rounded-[48px] border-none p-0 max-w-[850px] w-[95vw] overflow-hidden bg-white shadow-2xl outline-none font-body text-right" dir="rtl">
             
             <div className="flex flex-col md:flex-row min-h-[500px]">
-               {/* Left Column: Visual Nebula (Prop 2 style) */}
+               {/* Left Column: Visual Nebula */}
                <div className="md:w-5/12 bg-[#001a2d] relative overflow-hidden flex flex-col items-center justify-center p-8 border-l border-white/5">
                   <NebulaBackground />
                   <div className="relative z-10 w-full max-w-[220px] aspect-square flex items-center justify-center">
@@ -251,7 +252,7 @@ export function EliteWatchlist({ favorites }: EliteWatchlistProps) {
                   </div>
                </div>
 
-               {/* Right Column: Tactical Briefcase Nodes (Prop 1 style) */}
+               {/* Right Column: Tactical Briefcase Nodes */}
                <div className="md:w-7/12 p-8 md:p-12 flex flex-col justify-between bg-white relative">
                   <div className="space-y-8">
                      <div className="space-y-2 text-right">
