@@ -5,26 +5,36 @@ import React, { useMemo, useEffect, useState } from "react";
 import { useMarketStore } from "@/store/use-market-store";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
+import Lottie from "lottie-react";
 
 interface MarketPulseProps {
   symbols: any[];
 }
 
 /**
- * @fileOverview مُفاعل نبض الأسواق v4.0 - Hybrid Ticker Edition
- * يدعم الحركة التلقائية (Auto-Marquee) مع قابلية التمرير اليدوي (Manual Scroll) للتحكم الكامل.
+ * @fileOverview مُفاعل نبض الأسواق v14.0 - Lottie Calibration Edition
+ * تم استبدال مؤشر التحميل التقليدي برسم تفاعلي متطور لتعزيز تجربة المزامنة اللحظية.
  */
 export function MarketPulse({ symbols }: MarketPulseProps) {
   const [displayPrices, setDisplayPrices] = useState<Record<string, number>>({});
   const [displayChanges, setDisplayChanges] = useState<Record<string, number>>({});
   const [isCalibrated, setIsCalibrated] = useState(false);
+  const [animationData, setAnimationData] = useState<any>(null);
 
   const filteredSymbols = useMemo(() => {
     if (!symbols) return [];
     return symbols.filter(s => s.priceSource === 'binance').slice(0, 15);
   }, [symbols]);
+
+  // جلب الرسم التفاعلي للمزامنة
+  useEffect(() => {
+    fetch("https://lottie.host/88443461-2dbf-44fa-93f3-b09117f21443/klQMvrw3pq.json")
+      .then(res => res.json())
+      .then(data => setAnimationData(data))
+      .catch(err => console.error("Lottie Load Error:", err));
+  }, []);
 
   useEffect(() => {
     if (filteredSymbols.length === 0) return;
@@ -55,9 +65,15 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
 
   if (!isCalibrated || filteredSymbols.length === 0) {
     return (
-      <section className="w-full bg-white border-y border-gray-50 py-4 flex items-center justify-center gap-3">
-         <Loader2 size={12} className="animate-spin text-blue-200" />
-         <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">جاري مزامنة القنوات...</span>
+      <section className="w-full bg-white border-y border-gray-50 py-6 flex flex-col items-center justify-center gap-3">
+         <div className="h-16 w-16 md:h-20 md:w-20 opacity-40">
+            {animationData ? (
+              <Lottie animationData={animationData} loop={true} />
+            ) : (
+              <div className="h-10 w-10 border-2 border-gray-100 border-t-blue-500 rounded-full animate-spin" />
+            )}
+         </div>
+         <span className="text-[8px] md:text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] mr-2">جاري مزامنة نبض الأسواق...</span>
       </section>
     );
   }
