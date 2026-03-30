@@ -25,6 +25,7 @@ import {
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 const ICON_MAP: Record<string, any> = {
   Facebook, Send, Twitter, Instagram, Linkedin, Youtube, Github, Mail, Phone, MessageSquare, Globe
@@ -71,9 +72,19 @@ export function Footer({
   };
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body" dir="rtl">
-      <div className="container mx-auto px-6">
-        
+    <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body relative overflow-hidden" dir="rtl">
+      {/* Sovereign Background Watermark */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
+        <motion.div 
+          animate={{ rotate: [0, 5, 0], scale: [1, 1.05, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-32 -left-32 opacity-[0.03] scale-[4] md:scale-[6] text-[#002d4d]"
+        >
+          <Logo size="lg" />
+        </motion.div>
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 mb-16">
           
           {/* Section 1: الخدمات */}
@@ -199,16 +210,6 @@ export function Footer({
         <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <Logo size="sm" />
-            <div className="flex items-center gap-6 opacity-40">
-               <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-[8px] md:text-[9px] font-black text-[#002d4d] uppercase tracking-normal">مرخص ومعتمد</span>
-               </div>
-               <div className="flex items-center gap-2">
-                  <Globe className="h-3.5 w-3.5 text-blue-500" />
-                  <span className="text-[8px] md:text-[9px] font-black text-[#002d4d] uppercase tracking-normal">وصول عالمي</span>
-               </div>
-            </div>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-2 opacity-30">
