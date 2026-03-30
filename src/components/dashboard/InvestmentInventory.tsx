@@ -9,7 +9,9 @@ import {
   Clock,
   ShieldCheck,
   ChevronLeft,
-  TrendingUp
+  TrendingUp,
+  Zap,
+  Box
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,9 +20,11 @@ import Link from "next/link";
 import React, { useState, useEffect, useMemo } from "react";
 
 /**
- * AnimatedDigit - مكون الخانة الرقمية المستقلة (محرك الأرقام الذرية)
- * يقوم بتحريك الرقم عمودياً من 0 إلى 9 بناءً على القيمة
+ * @fileOverview مُفاعل الحجرات السائلة v15.0 - Liquid Chamber Edition
+ * يحول الاستثمارات إلى خزانات طاقة زجاجية تمتلئ بالسيولة تدريجياً.
+ * تم تطهير النصوص من "السيادة" وتثبيت انسيابية الخط العربي.
  */
+
 function AnimatedDigit({ digit }: { digit: string }) {
   if (digit === "." || digit === "$" || digit === ",") {
     return <span className="inline-block px-0.5">{digit}</span>;
@@ -30,14 +34,14 @@ function AnimatedDigit({ digit }: { digit: string }) {
   if (isNaN(num)) return <span className="inline-block">{digit}</span>;
 
   return (
-    <div className="relative h-[24px] w-[12px] overflow-hidden inline-block leading-none">
+    <div className="relative h-[22px] w-[11px] overflow-hidden inline-block leading-none">
       <motion.div
-        animate={{ y: -num * 24 }}
+        animate={{ y: -num * 22 }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className="absolute top-0 left-0 flex flex-col items-center"
       >
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <div key={n} className="h-[24px] flex items-center justify-center font-black">
+          <div key={n} className="h-[22px] flex items-center justify-center font-black">
             {n}
           </div>
         ))}
@@ -52,10 +56,6 @@ interface InvestmentInventoryProps {
   now: Date;
 }
 
-/**
- * @fileOverview مُفاعل العمليات السيادي v13.0 - Precision Yield Edition
- * تم ضبط الدقة لـ 3 فواصل عشرية للحصول على مظهر مالي أنقى وأكثر احترافية.
- */
 export function InvestmentInventory({ investments, isLoading, now }: InvestmentInventoryProps) {
   if (isLoading || !investments || investments.length === 0) {
     return null;
@@ -77,155 +77,144 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-body" dir="rtl">
-      {/* Header Info */}
+      {/* Dynamic Reactor Header */}
       <div className="flex items-center justify-between px-4">
         <div className="space-y-0.5 text-right">
-          <h3 className="text-xs font-black text-[#002d4d] flex items-center gap-2">
-            <Activity className="h-3.5 w-3.5 text-blue-500" />
-            مُفاعل الأصول النشطة
+          <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2">
+            <Activity className="h-4 w-4 text-emerald-500 animate-pulse" />
+            مُفاعل النمو الحي
           </h3>
-          <p className="text-[7px] font-black text-gray-400 uppercase tracking-[0.2em]">Sovereign Operational Matrix</p>
+          <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.3em] tracking-normal">Operational Inflow Matrix</p>
         </div>
-        <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[8px] rounded-full px-4 py-1 shadow-md">
-          {investments.length} NODES ACTIVE
+        <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[8px] rounded-full px-4 py-1.5 shadow-lg uppercase tracking-widest">
+          {investments.length} Active Nodes
         </Badge>
       </div>
 
       <div className="flex items-stretch gap-4">
         
-        {/* Master Integrated Card */}
-        <Card className="flex-1 border-none shadow-[0_48px_100px_-20px_rgba(0,45,77,0.15)] rounded-[56px] md:rounded-[64px] bg-white border border-gray-50 overflow-hidden relative group">
-          
-          {/* Sovereign Seal Icon - Persistent & Reactive */}
-          <motion.div 
-            variants={{
-              initial: { scale: 1, opacity: 0.03, rotate: 0 },
-              hover: { scale: 1.05, opacity: 0.08, rotate: 5 }
-            }}
-            initial="initial"
-            whileHover="hover"
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute -bottom-10 -right-10 pointer-events-none text-[#002d4d] z-0"
-          >
-             <ShieldCheck size={280} strokeWidth={1} />
-          </motion.div>
-
-          <CardContent className="p-8 md:p-12 relative z-10 space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
-              {displayInvestments.map((inv, idx) => {
-                const { percent, accrued } = getProgressData(inv.startTime, inv.endTime, inv.expectedProfit);
-                const totalReturn = inv.amount + inv.expectedProfit;
-                const accruedStr = accrued.toFixed(3);
-                
-                return (
+        {/* The Liquid Chamber Grid */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayInvestments.map((inv, idx) => {
+            const { percent, accrued } = getProgressData(inv.startTime, inv.endTime, inv.expectedProfit);
+            const totalReturn = inv.amount + inv.expectedProfit;
+            const accruedStr = accrued.toFixed(3);
+            
+            return (
+              <motion.div
+                key={inv.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="h-full"
+              >
+                <Card className="border-none shadow-sm rounded-[44px] bg-white border border-gray-100/50 overflow-hidden relative group h-full flex flex-col transition-all duration-700 hover:shadow-2xl">
+                  
+                  {/* Digital Liquid Fill Effect - The "Liquid Chamber" */}
                   <motion.div 
-                    key={inv.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="space-y-5 group/node"
+                    initial={{ height: 0 }}
+                    animate={{ height: `${percent}%` }}
+                    transition={{ duration: 2, ease: "easeOut" }}
+                    className="absolute bottom-0 left-0 right-0 bg-emerald-500/[0.04] z-0 pointer-events-none"
                   >
-                    {/* Header: Title & Atomic Accrued Profit */}
+                    {/* Glowing Surface Line */}
+                    <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent shadow-[0_0_15px_rgba(16,185,129,0.2)]" />
+                    
+                    {/* Internal Flow Shimmer */}
+                    <motion.div 
+                      animate={{ x: ['-100%', '100%'] }}
+                      transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-emerald-500/[0.02] to-transparent skew-x-[-20deg]"
+                    />
+                  </motion.div>
+
+                  <CardContent className="p-7 relative z-10 flex-1 flex flex-col justify-between space-y-8">
+                    
+                    {/* Top Identity & Status */}
                     <div className="flex justify-between items-start">
-                       <div className="space-y-0.5">
-                          <h4 className="font-black text-sm text-[#002d4d] tracking-tight group-hover/node:text-blue-600 transition-colors">
-                            {inv.planTitle}
-                          </h4>
-                          <span className="text-[7px] font-black text-gray-300 uppercase tracking-widest">NODE: {inv.id.slice(-6).toUpperCase()}</span>
-                       </div>
-                       <div className="text-left flex flex-col items-end">
-                          <div className="flex items-center gap-1">
-                             <div className="flex items-center text-lg font-black text-emerald-600 tabular-nums tracking-tighter overflow-hidden h-[24px]" dir="ltr">
-                                <span>+</span>
-                                <span>$</span>
-                                {accruedStr.split("").map((char, i) => (
-                                  <AnimatedDigit key={i} digit={char} />
-                                ))}
-                             </div>
+                       <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500 shrink-0">
+                             <Zap size={20} className={cn(percent >= 100 ? "text-emerald-500" : "text-[#002d4d]/40")} />
                           </div>
-                          <p className="text-[7px] font-black text-emerald-500/60 uppercase tracking-widest mt-0.5">Nano Yield Stream</p>
+                          <div className="text-right">
+                             <h4 className="font-black text-[13px] text-[#002d4d] leading-none tracking-tight">{inv.planTitle}</h4>
+                             <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest mt-1.5">ID: {inv.id.slice(-6).toUpperCase()}</p>
+                          </div>
+                       </div>
+                       <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[7px] px-2 py-0.5 rounded-md">
+                          %{inv.profitPercent} YIELD
+                       </Badge>
+                    </div>
+
+                    {/* Central Accumulation Node */}
+                    <div className="space-y-4 text-center">
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Accrued Yield</p>
+                          <div className="flex items-center justify-center text-3xl font-black text-emerald-600 tabular-nums tracking-tighter h-[32px]" dir="ltr">
+                            <span className="mr-1">+</span>
+                            <span className="mr-0.5 text-emerald-300/50">$</span>
+                            {accruedStr.split("").map((char, i) => (
+                              <AnimatedDigit key={i} digit={char} />
+                            ))}
+                          </div>
+                       </div>
+                       
+                       <div className="p-4 bg-gray-50/50 rounded-[28px] border border-gray-100/50 flex items-center justify-between shadow-inner">
+                          <div className="text-right space-y-0.5">
+                             <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Capital</p>
+                             <p className="text-xs font-black text-[#002d4d] tabular-nums">${inv.amount.toLocaleString()}</p>
+                          </div>
+                          <div className="h-6 w-[1px] bg-gray-200" />
+                          <div className="text-left space-y-0.5">
+                             <p className="text-[7px] font-black text-gray-300 uppercase leading-none">Target</p>
+                             <p className="text-xs font-black text-[#002d4d] tabular-nums">${totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                          </div>
                        </div>
                     </div>
 
-                    {/* Integrated Amount & Progress Row */}
-                    <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner group-hover/node:bg-white transition-all duration-500">
-                       <div className="shrink-0 text-right">
-                          <p className="text-[7px] font-black text-gray-400 uppercase leading-none">Capital</p>
-                          <p className="text-xs font-black text-[#002d4d] tabular-nums mt-1">${inv.amount.toLocaleString()}</p>
+                    {/* Footer: Progress & Date */}
+                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                          <Clock size={12} className="text-blue-400" />
+                          <p className="text-[9px] font-bold text-gray-400 tabular-nums">{new Date(inv.endTime).toLocaleDateString('ar-EG')}</p>
                        </div>
-                       
-                       <div className="flex-1 space-y-1.5 pt-1">
-                          <div className="relative h-[3.5px] w-full bg-gray-200 rounded-full overflow-hidden">
-                             {/* Progress Fill */}
+                       <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black text-emerald-600 tabular-nums">%{percent}</span>
+                          <div className="h-1.5 w-12 bg-gray-100 rounded-full overflow-hidden">
                              <motion.div 
                                initial={{ width: 0 }}
                                animate={{ width: `${percent}%` }}
-                               transition={{ duration: 2, ease: "easeOut" }}
-                               className="absolute right-0 h-full bg-[#002d4d] overflow-hidden"
-                             >
-                                {/* WHITE Shimmer moving from RIGHT to LEFT */}
-                                <motion.div 
-                                  animate={{ x: ['100%', '-100%'] }}
-                                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                                  className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg]"
-                                />
-                             </motion.div>
-                          </div>
-                          <div className="flex justify-between items-center px-0.5">
-                             <span className="text-[7px] font-black text-gray-300 tabular-nums">%{percent}</span>
-                             <div className="flex items-center gap-1 opacity-40">
-                                <Clock size={8} className="text-[#f9a885]" />
-                                <span className="text-[7px] font-bold text-gray-400 uppercase">Live Node</span>
-                             </div>
+                               className="h-full bg-emerald-500 rounded-full"
+                             />
                           </div>
                        </div>
                     </div>
 
-                    {/* Footer: Final Yield & End Time */}
-                    <div className="flex justify-between items-center px-1">
-                       <div className="flex items-center gap-2">
-                          <Badge className="bg-blue-50 text-blue-600 border border-blue-100/50 font-black text-[8px] px-2 py-0.5 rounded-lg shadow-sm">
-                             Target: ${totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </Badge>
-                       </div>
-                       <div className="text-left">
-                          <p className="text-[7px] font-bold text-gray-400 uppercase tracking-widest">Ends: {new Date(inv.endTime).toLocaleDateString('ar-EG')}</p>
-                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
 
-            {/* Footer Action: View All Nodes */}
-            <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-6">
-               <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                     <ShieldCheck size={24} />
-                  </div>
-                  <div className="text-right">
-                     <p className="text-sm font-black text-[#002d4d]">بروتوكول الأصول النشطة</p>
-                     <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Sovereign Oversight Active</p>
-                  </div>
-               </div>
-               
-               <Link href="/my-investments">
-                  <Button variant="ghost" className="h-12 rounded-full bg-gray-50 hover:bg-[#002d4d] hover:text-white text-gray-400 font-black text-[10px] px-10 transition-all active:scale-95 group/all">
-                    عرض كافة العقود <ChevronLeft className="mr-2 h-4 w-4 group/all:-translate-x-1 transition-transform" />
-                  </Button>
-               </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* NAMIX PROTOCOL Vertical Label - Side Rail (Left Side in RTL) */}
-        <div className="flex flex-col items-center justify-center gap-4 shrink-0 px-1 opacity-20 select-none">
+        {/* Tactical Identity Rail - Side Strip */}
+        <div className="hidden md:flex flex-col items-center justify-center gap-4 shrink-0 px-2 opacity-[0.15] select-none">
            <span className="text-[7px] font-black text-[#002d4d] uppercase tracking-[0.6em] [writing-mode:vertical-lr] rotate-180">
              NAMIX PROTOCOL
            </span>
-           <div className="w-[1px] flex-1 bg-gradient-to-b from-[#002d4d] via-blue-500/20 to-transparent rounded-full" />
+           <div className="w-[0.5px] flex-1 bg-gradient-to-b from-[#002d4d] via-emerald-500/20 to-transparent rounded-full" />
         </div>
 
+      </div>
+
+      {/* Global Action: Explore All Assets */}
+      <div className="flex justify-center pt-2">
+         <Link href="/my-investments">
+            <Button variant="ghost" className="h-12 px-10 rounded-full bg-white border border-gray-100 hover:bg-[#002d4d] hover:text-white text-gray-400 font-black text-[10px] shadow-sm transition-all active:scale-95 group">
+               سجل العقود الكامل 
+               <ChevronLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-1" />
+            </Button>
+         </Link>
       </div>
     </div>
   );
