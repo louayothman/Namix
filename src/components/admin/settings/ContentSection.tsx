@@ -7,14 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit2, Plus, Trash2, HelpCircle, Loader2, Sparkles, MessageSquare, Info, Wand2, Quote, BookOpen, BrainCircuit, ShieldCheck, Zap, Route, Award, TrendingUp, Cpu, Landmark, Shield, Coins, Target } from "lucide-react";
+import { 
+  Edit2, 
+  Plus, 
+  Trash2, 
+  HelpCircle, 
+  Loader2, 
+  Sparkles, 
+  MessageSquare, 
+  Info, 
+  Wand2, 
+  BookOpen, 
+  BrainCircuit, 
+  ShieldCheck, 
+  Zap, 
+  Route, 
+  Award, 
+  TrendingUp, 
+  Cpu, 
+  Target,
+  Globe,
+  Type,
+  FileText
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مستودع المحتوى المعرفي السيادي v7.0
- * تم رفد النظام بـ 50 درساً أكاديمياً و 50 سؤالاً شائعاً شاملة لكافة جوانب المنصة.
- * تم تحسين تجربة التمرير والقوائم المنسدلة لتناسب الهواتف المحمولة.
+ * @fileOverview مستودع المحتوى المعرفي السيادي v8.0
+ * تم إضافة قسم تعديل "عن المنصة" لتمكين المشرف من التحكم في الهوية النصية للشركة.
  */
 
 const ACADEMY_TEMPLATES = Array.from({ length: 50 }).map((_, i) => ({
@@ -50,7 +71,7 @@ const FAQ_TEMPLATES = Array.from({ length: 50 }).map((_, i) => ({
     "كيف يتم توثيق الإيداعات عبر البلوكشين؟", "ما هي فترات انتظار السحب (Cooldown)؟", 
     "هل أموالي محمية في حال تقلب السوق؟", "كيف أستخدم بوصلة التوجيه المالي؟", 
     "ما هي عمولات الشركاء المباشرة؟", "كيف يتم تفعيل رمز PIN للخزنة؟", 
-    "ما الفرق بين التداول الفوري والعقود؟", "هل يمكنني سحب رأس المال قبل انتهاء العقد؟", 
+    "ما الفرق بين التداول الفوري والعقود؟", "هل يمكنني سحب رأس المال قبل انتهاء العقد? ", 
     "كيف يعمل نظام الرتب والمكافآت؟", "ما هو دور صندوق التأمين السيادي؟"
   ][i % 10] + ` (استفسار #${i + 1})`,
   a: `تتم هذه العملية وفقاً لبروتوكولات الأمان المعتمدة في ناميكس. يتم التحقق من كافة المعطيات برمجياً لضمان دقة التنفيذ وحماية الأصول. 
@@ -130,7 +151,67 @@ export function ContentSection({ data, onChange, academyData, onAcademyChange, o
   return (
     <div className="space-y-16 animate-in fade-in slide-in-from-left-6 duration-700 font-body text-right" dir="rtl">
       
-      {/* ACADEMY MANAGEMENT SECTION */}
+      {/* 1. CORPORATE IDENTITY (ABOUT US) MANAGEMENT */}
+      <Card className="border-none shadow-xl rounded-[56px] bg-white overflow-hidden">
+        <CardHeader className="px-12 py-10 border-b border-gray-50 bg-[#002d4d] text-white relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5"><Globe className="h-32 w-32" /></div>
+          <CardTitle className="text-xl font-black flex items-center gap-4 relative z-10">
+            <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
+              <Info className="h-6 w-6 text-[#f9a885]" />
+            </div>
+            إدارة الهوية المؤسسية (عن ناميكس)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-12 space-y-10">
+          <div className="grid gap-10">
+            <div className="space-y-3 text-right">
+              <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4 flex items-center gap-2 justify-end">
+                العنوان الترويجي (Tagline)
+                <Type className="h-3.5 w-3.5 text-blue-500" />
+              </Label>
+              <Input 
+                value={data.tagline || ""} 
+                onChange={e => onChange({...data, tagline: e.target.value})}
+                placeholder="مثال: حيث تحقق راحتك المالية الاحترافية"
+                className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner text-right text-[#002d4d] text-lg"
+              />
+            </div>
+
+            <div className="space-y-3 text-right">
+              <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4 flex items-center gap-2 justify-end">
+                وصف المنصة (About Description)
+                <FileText className="h-3.5 w-3.5 text-blue-500" />
+              </Label>
+              <Textarea 
+                value={data.aboutUs || ""} 
+                onChange={e => onChange({...data, aboutUs: e.target.value})}
+                placeholder="اكتب قصة المنصة ورؤيتها الاستراتيجية هنا..."
+                className="min-h-[200px] rounded-[32px] bg-gray-50 border-none font-bold text-sm p-8 leading-loose shadow-inner text-right scrollbar-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              />
+            </div>
+          </div>
+
+          <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100 flex items-start gap-6">
+             <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                <Sparkles className="h-7 w-7 text-blue-600" />
+             </div>
+             <p className="text-[11px] font-bold text-blue-800/60 leading-[2.2] pt-1">
+               هذه النصوص تظهر في نافذة "من نحن" التفاعلية وفي صفحة التعريف المستقلة. تأكد من صياغتها بأسلوب يعكس ريادة وموثوقية ناميكس العالمية.
+             </p>
+          </div>
+
+          <Button onClick={onSave} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 group transition-all">
+            {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
+              <div className="flex items-center gap-4">
+                <span>تحديث الهوية المؤسسية</span>
+                <ShieldCheck className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+              </div>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* 2. ACADEMY MANAGEMENT SECTION */}
       <Card className="border-none shadow-xl rounded-[56px] bg-white overflow-hidden">
         <CardHeader className="px-12 py-10 border-b border-gray-50 bg-blue-50/20">
           <CardTitle className="text-xl font-black flex items-center gap-4 text-blue-700">
@@ -222,9 +303,9 @@ export function ContentSection({ data, onChange, academyData, onAcademyChange, o
         </CardContent>
       </Card>
 
-      {/* FAQ MANAGEMENT SECTION */}
+      {/* 3. FAQ MANAGEMENT SECTION */}
       <Card className="border-none shadow-xl rounded-[56px] bg-white overflow-hidden">
-        <CardHeader className="px-12 py-10 border-b border-gray-100 bg-emerald-50/20">
+        <CardHeader className="px-12 py-10 border-b border-gray-50 bg-emerald-50/20">
           <CardTitle className="text-xl font-black flex items-center gap-4 text-emerald-700">
             <div className="h-12 w-12 rounded-2xl bg-white shadow-inner flex items-center justify-center">
               <HelpCircle className="h-6 w-6" />
