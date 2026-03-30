@@ -26,9 +26,6 @@ import {
   Layers,
   Box,
   Hexagon,
-  Circle,
-  Triangle,
-  Square,
   Star,
   Sparkles,
   RefreshCcw,
@@ -39,54 +36,84 @@ import {
   BarChart3,
   PieChart,
   Waves,
-  Unplug,
-  Wifi,
   Lock,
   Eye,
   Scan,
   Fingerprint,
-  TrendingDown
+  TrendingDown,
+  Briefcase,
+  Gift,
+  Timer,
+  Navigation,
+  KeyRound,
+  FileText,
+  UserCheck,
+  Search,
+  CheckCircle2,
+  AlertTriangle,
+  Radar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX SOVEREIGN ICONS v5.0 - Universal Hybrid Engine
- * تم دمج Iconify للعملات الرقمية الملونة مع Lucide لأيقونات النظام.
- * متوافق تماماً مع React 19.
+ * NAMIX SOVEREIGN ICONS v15.0 - Ultimate Unique Arsenal
+ * مصفوفة أيقونات فريدة 100% تدمج بين العملات الملونة (Iconify) وأيقونات النظام (Lucide).
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
-  // --- Crypto Mappings (Iconify - Colored) ---
+  // --- Unique Crypto Assets (Iconify - Colored) ---
   BTC: "cryptocurrency:btc",
-  Bitcoin: "cryptocurrency:btc",
   ETH: "cryptocurrency:eth",
-  Ethereum: "cryptocurrency:eth",
   USDT: "cryptocurrency:usdt",
-  Tether: "cryptocurrency:usdt",
   SOL: "cryptocurrency:sol",
-  Solana: "cryptocurrency:sol",
   TRX: "cryptocurrency:trx",
-  Tron: "cryptocurrency:trx",
   ADA: "cryptocurrency:ada",
-  Cardano: "cryptocurrency:ada",
   DOT: "cryptocurrency:dot",
-  Polkadot: "cryptocurrency:dot",
   MATIC: "cryptocurrency:matic",
-  Polygon: "cryptocurrency:matic",
   LINK: "cryptocurrency:link",
-  Chainlink: "cryptocurrency:link",
   LTC: "cryptocurrency:ltc",
-  Litecoin: "cryptocurrency:ltc",
   DOGE: "cryptocurrency:doge",
-  Dogecoin: "cryptocurrency:doge",
   XRP: "cryptocurrency:xrp",
-  Xrp: "cryptocurrency:xrp",
   BNB: "cryptocurrency:bnb",
   USDC: "cryptocurrency:usdc",
   AVAX: "cryptocurrency:avax",
   SHIB: "cryptocurrency:shib",
+  DAI: "cryptocurrency:dai",
+  UNI: "cryptocurrency:uni",
+  ATOM: "cryptocurrency:atom",
+  BCH: "cryptocurrency:bch",
+  ALGO: "cryptocurrency:algo",
+  NEAR: "cryptocurrency:near",
+  FIL: "cryptocurrency:fil",
+  ICP: "cryptocurrency:icp",
+  VET: "cryptocurrency:vet",
+  SAND: "cryptocurrency:sand",
+  MANA: "cryptocurrency:mana",
+  AAVE: "cryptocurrency:aave",
+  AXS: "cryptocurrency:axs",
+  EOS: "cryptocurrency:eos",
+  THETA: "cryptocurrency:theta",
+  FTM: "cryptocurrency:ftm",
+  MKR: "cryptocurrency:mkr",
+  GRT: "cryptocurrency:grt",
+  CAKE: "cryptocurrency:cake",
+  KAVA: "cryptocurrency:kava",
+  RUNE: "cryptocurrency:rune",
+  ZEC: "cryptocurrency:zec",
+  DASH: "cryptocurrency:dash",
+  XMR: "cryptocurrency:xmr",
+  WAVES: "cryptocurrency:waves",
+  BAT: "cryptocurrency:bat",
+  ENJ: "cryptocurrency:enj",
+  HOT: "cryptocurrency:hot",
+  CELO: "cryptocurrency:celo",
+  ROSE: "cryptocurrency:rose",
+  GALA: "cryptocurrency:gala",
+  FLOW: "cryptocurrency:flow",
+  LUNA: "cryptocurrency:luna",
+  HBAR: "cryptocurrency:hbar",
   
-  // --- Generic & Financial (Lucide) ---
+  // --- Unique System & Finance (Lucide) ---
   Coins,
   Zap,
   Globe,
@@ -109,9 +136,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   Layers,
   Box,
   Hexagon,
-  Circle,
-  Triangle,
-  Square,
   Star,
   Sparkles,
   RefreshCcw,
@@ -122,19 +146,27 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   BarChart3,
   PieChart,
   Waves,
-  Unplug,
-  Wifi,
   Lock,
   Eye,
   Scan,
   Fingerprint,
-  TrendingDown
+  TrendingDown,
+  Briefcase,
+  Gift,
+  Timer,
+  Navigation,
+  KeyRound,
+  FileText,
+  UserCheck,
+  Search,
+  CheckCircle2,
+  AlertTriangle,
+  Radar
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconData = CRYPTO_ICONS_MAP[name] || CRYPTO_ICONS_MAP.Coins;
   
-  // إذا كانت البيانات نصية، فهي أيقونة من Iconify
   if (typeof iconData === 'string') {
     return (
       <Icon 
@@ -147,7 +179,6 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // إذا كانت مكوناً، فهي من Lucide
   const LucideIcon = iconData;
   return (
     <div style={{ width: size, height: size }} className={cn("flex items-center justify-center shrink-0", className)}>

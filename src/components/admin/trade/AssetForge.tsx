@@ -31,7 +31,7 @@ import {
   Activity
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
-import { collection, addDoc, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getBinanceExchangeSymbols } from "@/app/actions/binance-actions";
 import { CRYPTO_ICONS_MAP, CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
@@ -90,7 +90,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const handleSelectBinanceSymbol = (sym: string) => {
     const asset = binanceSymbols.find(s => s.symbol === sym);
     if (asset) {
-      // محاولة مطابقة الأيقونة المتخصصة تلقائياً
       const possibleIcon = asset.baseAsset.toUpperCase();
       const hasSpecialized = CRYPTO_ICONS_MAP[possibleIcon] !== undefined;
 
@@ -130,17 +129,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       } else {
         await updateDoc(doc(db, "trading_symbols", symbolId), payload);
         toast({ title: "تم تحديث بيانات الرمز" });
-      }
-
-      if (source === 'internal') {
-        await addDoc(collection(db, "symbol_settings_log"), {
-          symbolId,
-          minPrice: Number(formData.minPrice),
-          maxPrice: Number(formData.maxPrice),
-          volatility: Number(formData.volatility),
-          trendBias: formData.trendBias,
-          timestamp: Date.now()
-        });
       }
 
       setOpen(false);
@@ -241,27 +229,34 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                    </div>
                 </div>
 
-                <div className="space-y-2">
-                   <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">أيقونة الأصل (ترسانة موسعة)</Label>
-                   <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
-                      <SelectTrigger className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 shadow-inner outline-none">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" position="popper">
-                         <ScrollArea className="h-[350px]">
-                           {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
-                             <SelectItem key={iconId} value={iconId} className="font-bold py-3 cursor-pointer">
-                                <div className="flex items-center gap-4 justify-start w-full">
-                                  <div className="h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center shadow-inner">
-                                    <CryptoIcon name={iconId} size={20} />
-                                  </div>
-                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{iconId}</span>
-                                </div>
-                             </SelectItem>
-                           ))}
-                         </ScrollArea>
-                      </SelectContent>
-                   </Select>
+                <div className="space-y-4">
+                   <Label className="text-[10px] font-black text-[#002d4d] pr-4 uppercase tracking-widest">أيقونة الأصل (ترسانة ناميكس الكاملة)</Label>
+                   <div className="p-4 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner">
+                      <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
+                         <SelectTrigger className="h-14 rounded-2xl bg-white border-none font-black px-6 shadow-sm outline-none">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent className="rounded-3xl border-none shadow-2xl z-[1200] min-w-[300px]" position="popper">
+                            <ScrollArea className="h-[400px] p-2">
+                              <div className="grid grid-cols-1 gap-1">
+                                {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
+                                  <SelectItem key={iconId} value={iconId} className="font-bold py-3 rounded-xl cursor-pointer hover:bg-gray-50">
+                                     <div className="flex items-center gap-4 justify-start w-full pr-2">
+                                       <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center shadow-inner shrink-0">
+                                         <CryptoIcon name={iconId} size={24} />
+                                       </div>
+                                       <div className="flex flex-col items-start leading-none">
+                                          <span className="text-[11px] font-black text-[#002d4d] uppercase tracking-tighter">{iconId}</span>
+                                          <span className="text-[7px] font-black text-gray-300 uppercase tracking-widest mt-1">Unique Asset Node</span>
+                                       </div>
+                                     </div>
+                                  </SelectItem>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                         </SelectContent>
+                      </Select>
+                   </div>
                 </div>
 
                 {source === 'internal' && (
@@ -308,9 +303,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                            </div>
                         </div>
                      </div>
-                     <p className="text-[8px] text-blue-400 font-bold text-center leading-relaxed">
-                        * سيتم حفظ هذه الإعدادات كخطوة زمنية؛ النظام سيقوم برسم الشموع التاريخية بناءً على تسلسل تعديلاتك.
-                     </p>
                   </div>
                 )}
              </div>
