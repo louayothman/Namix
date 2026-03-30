@@ -3,13 +3,13 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Rocket, Zap, Sparkles } from "lucide-react";
+import { Activity, Rocket, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview المفاعل التكتيكي المورفي v50.0 - Geometric Morph Edition
- * تصميم يدمج بين "الأناقة المصغرة" ومحرك تحويل الأشكال الهندسي (المربع، المثلث، الدائرة).
+ * @fileOverview المفاعل التكتيكي المورفي v51.0 - Clean Edition
+ * تم تطهير الواجهة من النصوص الخارجية وتباعد الحروف العربية مع حصر المحرك المورفي داخل الشريط.
  */
 
 const eliteServices = [
@@ -48,19 +48,11 @@ export function ServiceGateway() {
   return (
     <div className="w-full py-4 animate-in fade-in slide-in-from-bottom-6 duration-1000 font-body" dir="rtl">
       
-      {/* Label Concept - Minimalist Alpha */}
-      <div className="flex flex-col items-center mb-10 space-y-1 opacity-30">
-        <div className="flex items-center gap-2">
-          <Sparkles size={10} className="text-[#002d4d]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d] ml-2">Tactical Morphic Rail</span>
-        </div>
-      </div>
-
       <div className="max-w-md mx-auto relative px-4">
         {/* Main Sovereign Container - Wallet Color Matching */}
         <div className="bg-[#8899AA] rounded-[40px] border border-white/10 p-2 shadow-[0_40px_80px_-15px_rgba(0,45,77,0.25)] flex items-center justify-between gap-1 relative overflow-hidden group/rail">
           
-          {/* THE MORPHING GEOMETRIC CORE - المحرك المورفي الهندسي */}
+          {/* THE MORPHING GEOMETRIC CORE - المحرك المورفي الهندسي داخل الشريط */}
           <motion.div
             animate={{
               x: ["-20%", "120%", "-20%"],
@@ -80,7 +72,7 @@ export function ServiceGateway() {
           {/* Morphing Object - Visible Physics */}
           <motion.div
             animate={{
-              borderRadius: ["0%", "50%", "20% 80%", "0%"], // Square -> Circle -> Rectangle-ish -> Square
+              borderRadius: ["0%", "50%", "20% 80%", "0%"],
               rotate: [0, 45, 135, 360],
               scale: [1, 1.2, 0.9, 1],
               opacity: [0.05, 0.15, 0.05]
@@ -128,7 +120,7 @@ export function ServiceGateway() {
                       />
                     </div>
 
-                    {/* Adaptive Label Stream */}
+                    {/* Adaptive Label Stream - Cleaned from tracking */}
                     <AnimatePresence mode="wait">
                       {isHovered && (
                         <motion.div
@@ -137,10 +129,10 @@ export function ServiceGateway() {
                           exit={{ opacity: 0, x: 10, filter: "blur(10px)" }}
                           className="flex flex-col items-start text-right min-w-[75px]"
                         >
-                          <span className="text-[11px] font-black text-white leading-none tracking-tight">
+                          <span className="text-[11px] font-black text-white leading-none tracking-normal">
                             {service.title}
                           </span>
-                          <span className="text-[7px] font-bold text-blue-200/50 uppercase tracking-[0.2em] mt-1">
+                          <span className="text-[7px] font-bold text-blue-200/50 uppercase mt-1 tracking-normal">
                             {service.desc}
                           </span>
                         </motion.div>
@@ -167,15 +159,6 @@ export function ServiceGateway() {
 
         {/* Tactical Shadow Layer */}
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[85%] h-6 bg-blue-900/[0.05] blur-2xl rounded-full pointer-events-none" />
-      </div>
-
-      {/* Signature Protocol Branding */}
-      <div className="mt-10 flex flex-col items-center gap-3 opacity-10 select-none">
-         <div className="flex items-center gap-6">
-            <div className="h-[0.5px] w-12 bg-gradient-to-r from-transparent to-[#002d4d]" />
-            <span className="text-[7px] font-black uppercase tracking-[0.8em] text-[#002d4d] ml-[0.8em]">MORPHIC ENGINE ALPHA</span>
-            <div className="h-[0.5px] w-12 bg-gradient-to-l from-transparent to-[#002d4d]" />
-         </div>
       </div>
     </div>
   );
