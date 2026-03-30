@@ -5,15 +5,15 @@ import React, { useMemo, useEffect, useState } from "react";
 import { useMarketStore } from "@/store/use-market-store";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, ShieldCheck } from "lucide-react";
 
 interface MarketPulseProps {
   symbols: any[];
 }
 
 /**
- * @fileOverview مُفاعل نبض الأسواق v14.2 - Standard Calibration Protocol
- * تمت العودة لنظام التحميل النظامي مع توحيد الارتفاع (py-4 md:py-6) لمنع القفزات البصرية.
+ * @fileOverview مُفاعل نبض الأسواق v15.0 - Sovereign Calibration Edition
+ * تم تحديث واجهة المزامنة لتعتمد على مفاعل أيقوني صامت وفخم، مع تثبيت الارتفاع لمنع القفزات البصرية.
  */
 export function MarketPulse({ symbols }: MarketPulseProps) {
   const storePrices = useMarketStore(state => state.prices);
@@ -25,7 +25,6 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
 
   const filteredSymbols = useMemo(() => {
     if (!symbols) return [];
-    // نركز على أهم 15 رمزاً من بينانس للعرض في صفحة الهبوط
     return symbols.filter(s => s.priceSource === 'binance').slice(0, 15);
   }, [symbols]);
 
@@ -43,13 +42,8 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
       }
     };
 
-    // محاولة مزامنة أولية
     performSync();
-
-    // تحديث هادئ كل 20 ثانية للحفاظ على الأداء
     const interval = setInterval(performSync, 20000);
-
-    // التحقق من المعايرة كل ثانية في البداية فقط
     const calInterval = setInterval(() => {
       if (!isCalibrated) performSync();
       else clearInterval(calInterval);
@@ -61,24 +55,28 @@ export function MarketPulse({ symbols }: MarketPulseProps) {
     };
   }, [filteredSymbols, isCalibrated]);
 
-  // حالة المعايرة النظامية - بارتفاع ثابت يمنع اهتزاز الصفحة
+  // بروتوكول المعايرة السيادي - صامت، فخم، وبدون نصوص
   if (!isCalibrated || filteredSymbols.length === 0) {
     return (
-      <section className="w-full bg-white border-y border-gray-50 py-4 md:py-6 flex flex-col items-center justify-center gap-2 opacity-30">
-         <Loader2 className="h-5 w-5 animate-spin text-gray-200" />
-         <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">جاري معايرة نبض الأسواق...</p>
+      <section className="w-full bg-white border-y border-gray-50 h-[72px] md:h-[88px] flex items-center justify-center">
+         <div className="relative flex items-center justify-center opacity-20">
+            {/* حلقة المزامنة الدورانية */}
+            <div className="h-8 w-8 md:h-10 md:w-10 border-[2px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+            {/* أيقونة الختم المركزي */}
+            <div className="absolute inset-0 flex items-center justify-center">
+               <ShieldCheck className="h-4 w-4 text-[#002d4d]" />
+            </div>
+         </div>
       </section>
     );
   }
 
   return (
-    <section className="w-full bg-white border-y border-gray-50 py-4 md:py-6 relative select-none overflow-hidden">
-      {/* التدرج الجانبي لإخفاء الحواف بأسلوب نخبوي */}
+    <section className="w-full bg-white border-y border-gray-50 py-4 md:py-6 relative select-none overflow-hidden h-[72px] md:h-[88px]">
       <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-20 pointer-events-none" />
       <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-20 pointer-events-none" />
 
       <div className="flex whitespace-nowrap animate-marquee-lux min-w-max hover:pause-animation">
-        {/* تكرار المحتوى لضمان استمرارية الحركة الانسيابية */}
         {Array.from({ length: 3 }).map((_, idx) => (
           <div key={idx} className="flex items-center gap-10 md:gap-20 px-6 md:px-10">
             {filteredSymbols.map((s) => {
