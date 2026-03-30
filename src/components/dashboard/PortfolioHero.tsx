@@ -21,8 +21,8 @@ interface PortfolioHeroProps {
 }
 
 /**
- * @fileOverview نبض المحفظة المورفي v9.0 - Liquid Intelligence Edition
- * تحويل الخلفية إلى كائن مورفي سائل يتحرك بانسيابية مع نبضات ترددية محيطة.
+ * @fileOverview نبض المحفظة المورفي v9.5 - Sharp Top Edition
+ * تم تصفير الحواف العلوية لتندمج المحفظة مع سقف الصفحة، مع الحفاظ على المفاعل السائل.
  */
 export function PortfolioHero({ 
   user, 
@@ -34,7 +34,7 @@ export function PortfolioHero({
 }: PortfolioHeroProps) {
   return (
     <div className="relative w-full">
-      <Card className="border-none shadow-[0_48px_100px_-12px_rgba(0,45,77,0.3)] rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group transition-all duration-1000">
+      <Card className="border-none shadow-[0_48px_100px_-12px_rgba(0,45,77,0.3)] rounded-t-none rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group transition-all duration-1000">
         
         {/* Sovereign Morphing Background Engine */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
