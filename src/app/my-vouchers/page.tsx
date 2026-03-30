@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 
 export default function MyVouchersPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function MyVouchersPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-emerald-500 font-black text-[9px] uppercase tracking-[0.3em]">
-              <Sparkles className="h-3 w-3" />
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Capital Asset Inventory
             </div>
             <h1 className="text-3xl font-black text-[#002d4d]">القسائم والهدايا</h1>
@@ -86,7 +87,7 @@ export default function MyVouchersPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-5">
                         <div className={cn(
-                          "h-14 w-14 rounded-[22px] flex items-center justify-center shadow-inner transition-transform group-hover:scale-105",
+                          "h-14 w-14 rounded-[22px] flex items-center justify-center shadow-inner transition-all duration-500 group-hover:scale-105",
                           v.isRedeemed ? "bg-gray-50 text-gray-300" : "bg-emerald-50 text-emerald-600"
                         )}>
                           <Gift className="h-7 w-7" />
@@ -147,7 +148,7 @@ export default function MyVouchersPage() {
                   <CardContent className="p-8 space-y-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-5">
-                        <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform">
+                        <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform duration-700">
                           <Coins className="h-7 w-7" />
                         </div>
                         <div>
