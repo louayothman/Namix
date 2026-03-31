@@ -3,10 +3,9 @@
 
 import { Shell } from "@/components/layout/Shell";
 import { Card, CardContent } from "@/components/ui/card";
-import { useFirestore, useCollection } from "@/firebase";
-import { collection, query, where, orderBy, doc, writeBatch } from "firebase/firestore";
-import { useMemoFirebase } from "@/firebase";
-import { Bell, Clock, Info, AlertCircle, CheckCircle2, Loader2, Check, ExternalLink, ChevronRight, Sparkles, MessageSquare } from "lucide-react";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where, orderBy, doc, writeBatch, limit } from "firebase/firestore";
+import { Bell, Clock, Info, AlertCircle, CheckCircle2, Loader2, Check, ExternalLink, ChevronRight, Sparkles, MessageSquare, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
@@ -18,6 +17,7 @@ import { useRouter } from "next/navigation";
 export default function NotificationsPage() {
   const router = useRouter();
   const [localUser, setLocalUser] = useState<any>(null);
+  const [visibleCount, setVisibleCount] = useState(7);
   const db = useFirestore();
 
   useEffect(() => {
@@ -30,9 +30,10 @@ export default function NotificationsPage() {
     return query(
       collection(db, "notifications"),
       where("userId", "==", localUser.id),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
+      limit(visibleCount)
     );
-  }, [db, localUser?.id]);
+  }, [db, localUser?.id, visibleCount]);
 
   const { data: notifications, isLoading, error } = useCollection(notificationsQuery);
 
@@ -52,6 +53,10 @@ export default function NotificationsPage() {
       case 'error': return <AlertCircle className="h-6 w-6 text-red-500" />;
       default: return <Info className="h-6 w-6 text-blue-500" />;
     }
+  };
+
+  const handleShowMore = () => {
+    setVisibleCount(prev => prev + 7);
   };
 
   return (
@@ -92,29 +97,46 @@ export default function NotificationsPage() {
         )}
 
         <div className="space-y-5">
-          {isLoading ? (
+          {isLoading && visibleCount === 7 ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <Loader2 className="h-10 w-10 animate-spin text-gray-200" />
               <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">جاري مسح صندوق الوارد...</p>
             </div>
           ) : notifications && notifications.length > 0 ? (
-            notifications.map((n) => (
-              <Card key={n.id} className={cn("border-none shadow-sm rounded-[40px] overflow-hidden transition-all group hover:shadow-md", !n.isRead ? "bg-white ring-2 ring-blue-50" : "bg-white/60 opacity-80")}>
-                <CardContent className="p-8 flex items-start gap-6">
-                  <div className={cn("h-16 w-16 rounded-[24px] flex items-center justify-center shrink-0 shadow-inner", !n.isRead ? "bg-blue-50" : "bg-gray-100")}>{getIcon(n.type)}</div>
-                  <div className="flex-1 space-y-2 pt-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="font-black text-[#002d4d] text-base leading-tight break-all">{n.title}</h3>
-                      <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0">
-                        <Clock className="h-3 w-3" />
-                        {n.createdAt && formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ar })}
+            <>
+              <div className="space-y-5">
+                {notifications.map((n) => (
+                  <Card key={n.id} className={cn("border-none shadow-sm rounded-[40px] overflow-hidden transition-all group hover:shadow-md", !n.isRead ? "bg-white ring-2 ring-blue-50" : "bg-white/60 opacity-80")}>
+                    <CardContent className="p-8 flex items-start gap-6">
+                      <div className={cn("h-16 w-16 rounded-[24px] flex items-center justify-center shrink-0 shadow-inner", !n.isRead ? "bg-blue-50" : "bg-gray-100")}>{getIcon(n.type)}</div>
+                      <div className="flex-1 space-y-2 pt-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <h3 className="font-black text-[#002d4d] text-base leading-tight break-all">{n.title}</h3>
+                          <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0">
+                            <Clock className="h-3 w-3" />
+                            {n.createdAt && formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ar })}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 leading-loose font-bold pr-1 break-all whitespace-pre-wrap">{n.message}</p>
                       </div>
-                    </div>
-                    <p className="text-xs text-gray-500 leading-loose font-bold pr-1 break-all whitespace-pre-wrap">{n.message}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {notifications.length === visibleCount && (
+                <div className="flex justify-center pt-6">
+                  <Button 
+                    onClick={handleShowMore} 
+                    disabled={isLoading}
+                    className="h-14 px-10 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[10px] shadow-xl active:scale-95 transition-all group"
+                  >
+                    {isLoading ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <ChevronDown className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />}
+                    عرض المزيد من التنبيهات
+                  </Button>
+                </div>
+              )}
+            </>
           ) : !error && (
             <div className="text-center py-40 bg-white/40 rounded-[56px] border-2 border-dashed border-gray-100 flex flex-col items-center gap-8">
               <MessageSquare className="h-12 w-12 text-gray-200" />
