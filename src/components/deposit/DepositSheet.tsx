@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirestore, useCollection, useDoc } from "@/firebase";
-import { collection, doc, query, where, updateDoc, increment, addDoc, onSnapshot, getDocs } from "firebase/firestore";
+import { collection, doc, query, where, updateDoc, increment, onSnapshot, getDocs } from "firebase/firestore";
 import { useMemoFirebase } from "@/firebase";
 import { 
   Copy, 
@@ -108,7 +108,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           ...prev,
           details: { ...prev.details, [fieldName]: text }
         }));
-        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "تم اللصق!", isError: false } }));
+        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "تم!", isError: false } }));
       }
     } catch (err) {
       setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "فشل", isError: true } }));
@@ -227,7 +227,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       });
       setStep("success");
     } catch (e: any) {
-      setBinanceError("خطأ تقني في التوثيق.");
+      setBinanceError("خطأ تقني في التحقق.");
       setStep("fail");
     } finally {
       setLoading(false);
@@ -252,46 +252,46 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] outline-none flex flex-col bg-white rounded-t-[40px] border-none shadow-2xl z-[1001] font-body" dir="rtl">
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] outline-none flex flex-col bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] font-body" dir="rtl">
             
-            <DrawerHeader className="px-6 pt-5 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-3">
+            <DrawerHeader className="px-6 pt-4 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-2">
               <div className="flex items-center gap-3 text-right">
-                 <div className="h-10 w-10 rounded-[16px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg relative overflow-hidden">
-                    <ArrowUpCircle className="h-5 w-5 relative z-10" />
+                 <div className="h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg">
+                    <ArrowUpCircle className="h-5 w-5" />
                  </div>
                  <div className="space-y-0">
-                   <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-normal leading-none">شحن الرصيد</DrawerTitle>
-                   <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1">Namix Inflow</p>
+                   <DrawerTitle className="text-base font-black text-[#002d4d] tracking-normal leading-none">شحن الرصيد</DrawerTitle>
+                   <p className="text-gray-400 font-black text-[7px] uppercase tracking-widest mt-1">Capital Accumulation</p>
                  </div>
               </div>
               
               {step !== "select_category" && step !== "success" && step !== "validating" && (
-                <button onClick={handleBack} className="rounded-full h-8 px-4 bg-gray-50 text-gray-400 font-black text-[9px] border border-gray-100 group active:scale-95 transition-all flex items-center gap-1.5">
-                  <ChevronRight className="h-3.5 w-3.5" /> رجوع
+                <button onClick={handleBack} className="rounded-full h-7 px-3 bg-gray-50 text-gray-400 font-black text-[8px] border border-gray-100 active:scale-95 transition-all flex items-center gap-1.5">
+                  <ChevronRight className="h-3 w-3" /> رجوع
                 </button>
               )}
             </DrawerHeader>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-none space-y-6 bg-gradient-to-b from-white to-gray-50/20">
+            <div className="flex-1 overflow-y-auto px-5 py-3 scrollbar-none space-y-5 bg-gradient-to-b from-white to-gray-50/20">
               {step === "select_category" && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
                   <div className="px-2 space-y-0.5 text-right">
-                    <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">
-                      حدد فئة الأصول <ListFilter className="h-3.5 w-3.5 text-blue-500" />
+                    <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">
+                      اختر فئة الإيداع <ListFilter className="h-3 w-3 text-blue-500" />
                     </h3>
-                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Category</p>
+                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Category</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {categories?.map(cat => (
                       <button
                         key={cat.id}
                         onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }}
-                        className="p-4 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-3 text-center group active:scale-[0.98] relative overflow-hidden"
+                        className="p-4 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-2.5 text-center group active:scale-[0.98] relative overflow-hidden"
                       >
-                        <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
-                          <Layers className="h-5 w-5" />
+                        <div className="h-10 w-10 rounded-[16px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
+                          <Layers className="h-4 w-4" />
                         </div>
-                        <p className="font-black text-xs text-[#002d4d] tracking-normal">{cat.name}</p>
+                        <p className="font-black text-[11px] text-[#002d4d] tracking-normal">{cat.name}</p>
                       </button>
                     ))}
                   </div>
@@ -299,55 +299,61 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               )}
 
               {step === "select_portal" && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500 text-right">
+                <div className="space-y-5 animate-in fade-in slide-in-from-left-2 duration-500 text-right">
                   <div className="px-2 space-y-0.5">
-                    <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">
-                      بوابات {selectedCategory?.name} <Zap className="h-3.5 w-3.5 text-emerald-500" />
+                    <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">
+                      بوابات {selectedCategory?.name} <Zap className="h-3 w-3 text-emerald-500" />
                     </h3>
-                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
+                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {activePortals.map((p: any) => (
                       <button
                         key={p.id}
                         onClick={() => setSelectedPortalId(p.id)}
                         className={cn(
-                          "flex flex-col items-center justify-center gap-3 p-4 rounded-[32px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group",
-                          selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-100 bg-white"
+                          "flex flex-col items-center justify-center gap-2 p-4 rounded-[36px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group min-h-[110px]",
+                          selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-50 bg-white"
                         )}
                       >
-                        <div className={cn(
-                          "h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner transition-all",
-                          selectedPortalId === p.id ? "bg-[#002d4d] text-[#f9a885]" : "bg-gray-50 text-[#002d4d]"
-                        )}>
-                          <CryptoIcon name={p.icon} size={24} />
+                        {/* Background Watermark */}
+                        <div className="absolute -bottom-2 -left-2 opacity-[0.03] transition-all duration-700 pointer-events-none group-hover:opacity-[0.08] group-hover:scale-125">
+                           <CryptoIcon name={p.icon} size={80} />
                         </div>
-                        <span className={cn("font-black text-[11px] block tracking-normal", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-500")}>{p.name}</span>
+
+                        {/* Floating Icon - Clean Style */}
+                        <div className={cn(
+                          "transition-all duration-500 relative z-10",
+                          selectedPortalId === p.id ? "text-[#f9a885] scale-110" : "text-gray-300 group-hover:text-[#002d4d]"
+                        )}>
+                          <CryptoIcon name={p.icon} size={32} />
+                        </div>
+                        <span className={cn("font-black text-[10px] block tracking-normal relative z-10 leading-none", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-400")}>{p.name}</span>
                       </button>
                     ))}
                   </div>
-                  <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl transition-all">
-                     المتابعة للتعليمات
+                  <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-13 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl transition-all">
+                     المتابعة
                   </Button>
                 </div>
               )}
 
               {step === "instructions" && selectedPortal && (
-                <div className="space-y-6 animate-in fade-in duration-500 text-right">
-                  <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-3 shadow-inner">
-                    <div className="flex items-center gap-2 pr-1 text-blue-600">
-                      <Info size={16} />
-                      <h4 className="text-xs font-black uppercase tracking-normal">بروتوكول الشحن:</h4>
+                <div className="space-y-5 animate-in fade-in duration-500 text-right">
+                  <div className="p-5 bg-blue-50/40 rounded-[28px] border border-blue-100/50 space-y-2 shadow-inner">
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Info size={14} />
+                      <h4 className="text-[11px] font-black uppercase tracking-normal">خطوات الشحن:</h4>
                     </div>
-                    <p className="text-[12px] font-bold leading-relaxed text-blue-800/70 pr-1 tracking-normal">{selectedPortal.instructions}</p>
+                    <p className="text-[11px] font-bold leading-relaxed text-blue-800/70 tracking-normal">{selectedPortal.instructions}</p>
                   </div>
 
                   {selectedPortal.walletAddress && (
-                    <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 space-y-3 shadow-sm">
-                      <Label className="text-[9px] text-gray-400 font-black uppercase tracking-widest pr-2">Portal Destination</Label>
-                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-[20px] border border-gray-100">
-                        <div className="flex-1 px-3 font-mono text-[10px] break-all font-black text-[#002d4d] text-left leading-relaxed" dir="ltr">{selectedPortal.walletAddress}</div>
-                        <Button size="icon" className="shrink-0 h-10 w-10 rounded-xl bg-[#002d4d] text-[#f9a885]" onClick={() => handleCopy(selectedPortal.walletAddress)}>
+                    <div className="p-5 bg-gray-50 rounded-[28px] border border-gray-100 space-y-2 shadow-sm">
+                      <Label className="text-[8px] text-gray-400 font-black uppercase tracking-widest pr-2">Portal Destination</Label>
+                      <div className="flex items-center gap-2 bg-white p-1 rounded-[18px] border border-gray-100">
+                        <div className="flex-1 px-3 font-mono text-[9px] break-all font-black text-[#002d4d] text-left leading-relaxed" dir="ltr">{selectedPortal.walletAddress}</div>
+                        <Button size="icon" className="shrink-0 h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885]" onClick={() => handleCopy(selectedPortal.walletAddress)}>
                           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </Button>
                       </div>
@@ -361,83 +367,83 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               )}
 
               {step === "form" && (
-                <div className="space-y-6 animate-in fade-in duration-500 text-right">
+                <div className="space-y-5 animate-in fade-in duration-500 text-right">
                   {!selectedPortal?.isBinanceLinked && (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <div className="flex items-center justify-between px-4">
-                        <Label className="font-black text-[#002d4d] text-[9px] uppercase tracking-widest">المبلغ المودع ($)</Label>
+                        <Label className="font-black text-[#002d4d] text-[8px] uppercase tracking-widest">المبلغ المودع ($)</Label>
                         {currentBonusData.percent > 0 && <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-2 py-0.5 rounded-full animate-pulse">BONUS +{currentBonusData.percent}%</Badge>}
                       </div>
                       <div className="relative">
-                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-16 rounded-[24px] bg-gray-50 border-none font-black text-center text-3xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
-                        <Coins className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-100" />
+                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-14 rounded-[20px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
+                        <Coins className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-100" />
                       </div>
-                      {fieldErrors.amount && <p className="text-red-500 text-[9px] font-black pr-4">{fieldErrors.amount}</p>}
+                      {fieldErrors.amount && <p className="text-red-500 text-[8px] font-black pr-4">{fieldErrors.amount}</p>}
                     </div>
                   )}
 
-                  <div className="p-6 bg-gray-50/50 rounded-[36px] border border-gray-100 space-y-5 shadow-inner">
-                    <div className="grid gap-4">
+                  <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100 space-y-4 shadow-inner">
+                    <div className="grid gap-3">
                       {selectedPortal?.fields?.map((f: any, i: number) => (
-                        <div key={i} className="space-y-1.5">
+                        <div key={i} className="space-y-1">
                           <Label className="font-black text-gray-400 text-[8px] pr-3 uppercase tracking-widest">{f.label}</Label>
                           {f.type === 'select' ? (
                             <Select onValueChange={(val) => {
                               setFormData(prev => ({ ...prev, details: { ...prev.details, [f.label]: val } }));
                               setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; });
                             }}>
-                               <SelectTrigger className="h-12 rounded-[18px] bg-white border-none font-black text-xs shadow-sm px-6">
+                               <SelectTrigger className="h-11 rounded-[16px] bg-white border-none font-black text-xs shadow-sm px-5">
                                   <SelectValue placeholder={f.placeholder} />
                                 </SelectTrigger>
                                <SelectContent className="rounded-2xl" dir="rtl">
                                   {f.options?.map((opt: string, idx: number) => (
-                                    <SelectItem key={idx} value={opt} className="font-bold text-right py-2.5">{opt}</SelectItem>
+                                    <SelectItem key={idx} value={opt} className="font-bold text-right py-2">{opt}</SelectItem>
                                   ))}
                                </SelectContent>
                             </Select>
                           ) : (
                             <div className="relative">
-                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-12 rounded-[18px] bg-white border-none font-black text-center text-[11px] shadow-sm px-6", f.hasPasteButton && "pl-12")} />
+                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-11 rounded-[16px] bg-white border-none font-black text-center text-[10px] shadow-sm px-5", f.hasPasteButton && "pl-10")} />
                               {f.hasPasteButton && (
-                                <button onClick={() => handlePaste(f.label)} className="absolute left-2.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all">
-                                  <ClipboardPaste size={14} />
+                                <button onClick={() => handlePaste(f.label)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all shadow-sm">
+                                  <ClipboardPaste size={12} />
                                 </button>
                               )}
                             </div>
                           )}
                           <div className="flex justify-between px-3">
-                            {fieldErrors[f.label] && <p className="text-red-500 text-[8px] font-black">{fieldErrors[f.label]}</p>}
-                            {pasteStatus[f.label] && <p className="text-[8px] font-black text-emerald-500">{pasteStatus[f.label].msg}</p>}
+                            {fieldErrors[f.label] && <p className="text-red-500 text-[7px] font-black">{fieldErrors[f.label]}</p>}
+                            {pasteStatus[f.label] && <p className="text-[7px] font-black text-emerald-500">{pasteStatus[f.label].msg}</p>}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <Button onClick={handleSubmit} disabled={loading} className="w-full h-16 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-base shadow-xl active:scale-95 transition-all group overflow-hidden relative">
-                    {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إكمال بروتوكول الإيداع"}
+                  <Button onClick={handleSubmit} disabled={loading} className="w-full h-15 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-sm shadow-xl active:scale-95 transition-all">
+                    {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال البيانات"}
                   </Button>
                 </div>
               )}
 
               {step === "validating" && (
-                <div className="h-full flex flex-col items-center justify-center py-12 gap-6 animate-in zoom-in-95">
+                <div className="h-full flex flex-col items-center justify-center py-10 gap-5 animate-in zoom-in-95">
                    <div className="relative">
-                      <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+                      <div className="h-16 w-16 border-[2px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
                       <div className="absolute inset-0 flex items-center justify-center text-[#002d4d] animate-pulse">
-                         <ShieldCheck className="h-8 w-8" />
+                         <ShieldCheck className="h-6 w-6" />
                       </div>
                    </div>
-                   <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري توثيق المعاملة...</p>
+                   <p className="text-xs font-black text-[#002d4d] tracking-normal">جاري التحقق الرقمي...</p>
                 </div>
               )}
 
               {step === "fail" && (
-                <div className="space-y-6 animate-in fade-in duration-500 text-center py-6">
-                   <div className="h-16 w-16 bg-red-50 rounded-[24px] flex items-center justify-center mx-auto border border-red-100">
-                      <ShieldX className="h-8 w-8 text-red-500" />
+                <div className="space-y-5 animate-in fade-in duration-500 text-center py-4">
+                   <div className="h-14 w-14 bg-red-50 rounded-[20px] flex items-center justify-center mx-auto border border-red-100">
+                      <ShieldX className="h-7 w-7 text-red-500" />
                    </div>
-                   <p className="text-xs font-bold text-red-800/60 leading-relaxed px-6">{binanceError}</p>
+                   <p className="text-[11px] font-bold text-red-800/60 leading-relaxed px-6 tracking-normal">{binanceError}</p>
                    <Button onClick={handleBack} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl">تعديل البيانات</Button>
                 </div>
               )}
@@ -457,7 +463,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               <div className="space-y-1">
                 <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">عملية ناجحة!</DialogTitle>
                 <DialogDescription className="text-xs text-gray-400 font-bold leading-relaxed tracking-normal">
-                  لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء التدقيق الأمني المعتمد.
+                  لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء الفحص الفني المعتمد.
                 </DialogDescription>
               </div>
               <Button onClick={handleClose} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>

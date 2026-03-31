@@ -89,7 +89,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       setLocalUser(parsed);
       const userRef = doc(db, "users", parsed.id);
       const unsub = onSnapshot(userRef, (snap) => {
-        if (snap.exists()) setDbUser({ ...snap.data(), id: snap.id });
+        if (snap.exists()) setDbUser(snap.data());
       });
       return () => unsub();
     }
@@ -162,8 +162,8 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
     const balance = dbUser?.totalBalance || 0;
     
     if (amt > balance) return { type: 'error', message: 'المبلغ يتجاوز رصيدك.' };
-    if (amt < (rules?.minWithdrawalAmount || 1)) return { type: 'error', message: `الحد الأدنى للسحب $${rules?.minWithdrawalAmount || 1}.` };
-    if (amt > (rules?.maxWithdrawalAmount || Infinity)) return { type: 'error', message: `الحد الأقصى للسحب $${rules?.maxWithdrawalAmount}.` };
+    if (amt < (rules?.minWithdrawalAmount || 1)) return { type: 'error', message: `الحد الأدنى $${rules?.minWithdrawalAmount || 1}.` };
+    if (amt > (rules?.maxWithdrawalAmount || Infinity)) return { type: 'error', message: `الحد الأقصى $${rules?.maxWithdrawalAmount}.` };
     
     return { type: 'success', message: 'المبلغ متاح للسحب.' };
   }, [formData.amount, dbUser?.totalBalance, rules]);
@@ -238,67 +238,67 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[40px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             
-            <DrawerHeader className="px-6 pt-5 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-3">
+            <DrawerHeader className="px-6 pt-4 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-2">
               <div className="flex items-center gap-3 text-right">
-                 <div className="h-10 w-10 rounded-[16px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg relative overflow-hidden">
-                    <ArrowDownCircle className="h-5 w-5 rotate-180 relative z-10" />
+                 <div className="h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg relative overflow-hidden">
+                    <ArrowDownCircle className="h-5 w-5 rotate-180" />
                  </div>
                  <div className="space-y-0">
-                   <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-normal leading-none">سحب الأرباح</DrawerTitle>
-                   <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1">Capital Outflow</p>
+                   <DrawerTitle className="text-base font-black text-[#002d4d] tracking-normal leading-none">سحب الأرباح</DrawerTitle>
+                   <p className="text-gray-400 font-black text-[7px] uppercase tracking-widest mt-1">Capital Outflow</p>
                  </div>
               </div>
               {step !== "select_category" && step !== "success" && !ruleError && (
-                <button onClick={() => setStep(step === "verify_pin" ? "form" : step === "form" ? "select_portal" : "select_category")} className="rounded-full h-8 px-4 bg-gray-50 text-gray-400 font-black text-[9px] border border-gray-100 group active:scale-[0.98] transition-all flex items-center gap-1.5">
-                  <ChevronRight className="h-3.5 w-3.5" /> رجوع
+                <button onClick={() => setStep(step === "verify_pin" ? "form" : step === "form" ? "select_portal" : "select_category")} className="rounded-full h-7 px-3 bg-gray-50 text-gray-400 font-black text-[8px] border border-gray-100 group active:scale-[0.98] transition-all flex items-center gap-1.5">
+                  <ChevronRight className="h-3 w-3" /> رجوع
                 </button>
               )}
             </DrawerHeader>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-none space-y-6 bg-gradient-to-b from-white to-gray-50/20">
+            <div className="flex-1 overflow-y-auto px-5 py-3 scrollbar-none space-y-5 bg-gradient-to-b from-white to-gray-50/20">
               {checkingRules ? (
-                <div className="h-full flex flex-col items-center justify-center py-12 gap-6 animate-pulse">
-                  <div className="h-16 w-16 border-[3px] border-gray-100 border-t-orange-500 rounded-full animate-spin" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">تدقيق الامتثال...</p>
+                <div className="h-full flex flex-col items-center justify-center py-10 gap-5 animate-pulse">
+                  <div className="h-14 w-14 border-[2px] border-gray-100 border-t-orange-500 rounded-full animate-spin" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">مراجعة الطلب...</p>
                 </div>
               ) : ruleError ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 text-right">
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500 text-right">
                   <div className="p-6 bg-[#002d4d] rounded-[36px] text-white relative overflow-hidden shadow-xl">
                     <div className="relative z-10 space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-[18px] bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">{ruleError.icon && <ruleError.icon className="h-5 w-5 text-[#f9a885]" />}</div>
+                        <div className="h-10 w-10 rounded-[16px] bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">{ruleError.icon && <ruleError.icon className="h-5 w-5 text-[#f9a885]" />}</div>
                         <div className="text-right">
-                          <h4 className="text-base font-black">{ruleError.title}</h4>
-                          <p className="text-[7px] text-blue-200/40 font-black uppercase tracking-widest">Restriction Node</p>
+                          <h4 className="text-base font-black tracking-normal">{ruleError.title}</h4>
+                          <p className="text-[7px] text-blue-200/40 font-black uppercase tracking-widest">Notice</p>
                         </div>
                       </div>
                       <p className="text-[11px] font-bold leading-loose text-blue-100/80 tracking-normal">{ruleError.message}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-3 px-2">
+                  <div className="flex flex-col gap-2 px-2">
                     {ruleError.action && (
                       <Button onClick={() => { handleClose(); router.push(ruleError.action === 'deposit' ? '/home' : ruleError.action === 'setup-pin' ? '/profile?action=setup-pin' : '/profile?action=verify'); if(ruleError.action === 'deposit' && onOpenDeposit) onOpenDeposit(); }} className="h-14 rounded-full bg-[#f9a885] text-[#002d4d] font-black text-sm shadow-xl active:scale-95 transition-all">
-                        تفعيل المتطلبات
+                        استكمال المتطلبات
                       </Button>
                     )}
                     <button onClick={handleClose} className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2 hover:text-[#002d4d] text-center tracking-normal">إغلاق</button>
                   </div>
                 </div>
               ) : (
-                <div className="text-right space-y-6">
+                <div className="text-right space-y-5">
                   {step === "select_category" && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
                       <div className="px-2 space-y-0.5 text-right">
-                        <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">حدد فئة الصرف <ListFilter className="h-3.5 w-3.5 text-orange-500" /></h3>
-                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Asset Sector</p>
+                        <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">حدد فئة الصرف <ListFilter className="h-3 w-3 text-orange-500" /></h3>
+                        <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Asset Sector</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2.5">
                         {categories?.map(cat => (
-                          <button key={cat.id} onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }} className="p-4 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-3 text-center group active:scale-[0.98] relative overflow-hidden">
-                            <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all"><Layers className="h-5 w-5" /></div>
-                            <p className="font-black text-xs text-[#002d4d] tracking-normal">{cat.name}</p>
+                          <button key={cat.id} onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }} className="p-4 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-2 text-center group active:scale-[0.98] relative overflow-hidden">
+                            <div className="h-10 w-10 rounded-[16px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all"><Layers className="h-4 w-4" /></div>
+                            <p className="font-black text-[11px] text-[#002d4d] tracking-normal">{cat.name}</p>
                           </button>
                         ))}
                       </div>
@@ -306,94 +306,102 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                   )}
 
                   {step === "select_portal" && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500 text-right">
+                    <div className="space-y-5 animate-in fade-in slide-in-from-left-2 duration-500 text-right">
                       <div className="px-2 space-y-0.5">
-                        <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">بوابات {selectedCategory?.name} <Zap className="h-3.5 w-3.5 text-blue-500" /></h3>
-                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
+                        <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">بوابات {selectedCategory?.name} <Zap className="h-3 w-3 text-blue-500" /></h3>
+                        <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2.5">
                         {activePortals.map((p: any) => (
-                          <button key={p.id} onClick={() => setSelectedPortalId(p.id)} className={cn("flex flex-col items-center justify-center gap-3 p-4 rounded-[32px] border transition-all duration-500 active:scale-[0.98] text-center relative group overflow-hidden", selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-100 bg-white")}>
-                            <div className={cn("h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner transition-all", selectedPortalId === p.id ? "bg-[#002d4d] text-[#f9a885]" : "bg-gray-50 text-blue-600")}>
-                               <CryptoIcon name={p.icon} size={24} />
+                          <button key={p.id} onClick={() => setSelectedPortalId(p.id)} className={cn("flex flex-col items-center justify-center gap-2 p-4 rounded-[36px] border transition-all duration-500 active:scale-[0.98] text-center relative group overflow-hidden min-h-[110px]", selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-50 bg-white")}>
+                            {/* Background Watermark */}
+                            <div className="absolute -bottom-2 -left-2 opacity-[0.03] transition-all duration-700 pointer-events-none group-hover:opacity-[0.08] group-hover:scale-125">
+                               <CryptoIcon name={p.icon} size={80} />
                             </div>
-                            <span className={cn("font-black text-[11px] block tracking-normal", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-500")}>{p.name}</span>
+                            
+                            <div className={cn(
+                              "transition-all duration-500 relative z-10",
+                              selectedPortalId === p.id ? "text-[#f9a885] scale-110" : "text-gray-300 group-hover:text-[#002d4d]"
+                            )}>
+                               <CryptoIcon name={p.icon} size={32} />
+                            </div>
+                            <span className={cn("font-black text-[10px] block tracking-normal relative z-10 leading-none", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-400")}>{p.name}</span>
                           </button>
                         ))}
                       </div>
-                      <Button disabled={!selectedPortalId} onClick={() => setStep("form")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl transition-all">متابعة الصرف</Button>
+                      <Button disabled={!selectedPortalId} onClick={() => setStep("form")} className="w-full h-13 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl transition-all">متابعة</Button>
                     </div>
                   )}
 
                   {step === "form" && selectedPortal && (
-                    <div className="space-y-6 animate-in fade-in duration-500 text-right">
-                      <div className="p-5 bg-blue-50/40 rounded-[28px] border border-blue-100/50 space-y-2">
-                        <div className="flex items-center gap-2 text-blue-600"><Info size={14} /><h4 className="text-[11px] font-black tracking-normal">تعليمات الاستلام:</h4></div>
-                        <p className="text-[11px] font-bold leading-relaxed text-blue-800/70 tracking-normal">{selectedPortal.instructions}</p>
+                    <div className="space-y-5 animate-in fade-in duration-500 text-right">
+                      <div className="p-4 bg-blue-50/40 rounded-[24px] border border-blue-100/50 space-y-1">
+                        <div className="flex items-center gap-2 text-blue-600"><Info size={14} /><h4 className="text-[10px] font-black tracking-normal">تعليمات الاستلام:</h4></div>
+                        <p className="text-[10px] font-bold leading-relaxed text-blue-800/70 tracking-normal">{selectedPortal.instructions}</p>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <div className="flex items-center justify-between px-4">
-                           <Label className="font-black text-[#002d4d] text-[9px] uppercase tracking-widest">المبلغ المسحوب ($)</Label>
-                           <Badge className="bg-red-50 text-red-500 border-none font-black text-[7px] px-2 py-0.5 rounded-full">Fee {rules?.withdrawalFee || 0}%</Badge>
+                           <Label className="font-black text-[#002d4d] text-[8px] uppercase tracking-widest">المبلغ المسحوب ($)</Label>
+                           <Badge className="bg-red-50 text-red-500 border-none font-black text-[7px] px-2 py-0.5 rounded-full">رسوم {rules?.withdrawalFee || 0}%</Badge>
                         </div>
                         <div className="relative">
-                          <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-16 rounded-[24px] bg-gray-50 border-none font-black text-center text-3xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
-                          <Coins className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-100" />
+                          <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-14 rounded-[20px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
+                          <Coins className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-100" />
                         </div>
                         {amountValidationHint && <p className={cn("text-[8px] font-bold px-4", amountValidationHint.type === 'error' ? "text-red-500" : "text-emerald-500")}>{amountValidationHint.message}</p>}
                       </div>
 
-                      <div className="p-6 bg-gray-50/50 rounded-[32px] border border-gray-100 space-y-4 shadow-inner">
-                        <div className="grid gap-4">
+                      <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100 space-y-3 shadow-inner">
+                        <div className="grid gap-3">
                           {selectedPortal?.fields?.map((f: any, i: number) => (
-                            <div key={i} className="space-y-1.5">
+                            <div key={i} className="space-y-1">
                               <Label className="font-black text-gray-400 text-[8px] pr-3 uppercase tracking-widest">{f.label}</Label>
                               {f.type === 'select' ? (
                                 <Select onValueChange={(val) => {
                                   setFormData(prev => ({ ...prev, details: { ...prev.details, [f.label]: val } }));
                                   setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; });
                                 }}>
-                                   <SelectTrigger className="h-12 rounded-[18px] bg-white border-none font-black text-xs shadow-sm px-6"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
+                                   <SelectTrigger className="h-11 rounded-[16px] bg-white border-none font-black text-xs shadow-sm px-5"><SelectValue placeholder={f.placeholder} /></SelectTrigger>
                                    <SelectContent className="rounded-2xl" dir="rtl">
                                       {f.options?.map((opt: string, idx: number) => (
-                                        <SelectItem key={idx} value={opt} className="font-bold text-right py-2.5">{opt}</SelectItem>
+                                        <SelectItem key={idx} value={opt} className="font-bold text-right py-2">{opt}</SelectItem>
                                       ))}
                                    </SelectContent>
                                 </Select>
                               ) : (
                                 <div className="relative">
-                                  <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-12 rounded-[18px] bg-white border-none font-black text-center text-[11px] shadow-sm px-6", f.hasPasteButton && "pl-12")} />
-                                  {f.hasPasteButton && <button onClick={() => handlePaste(f.label)} className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all"><ClipboardPaste size={14} /></button>}
+                                  <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-11 rounded-[16px] bg-white border-none font-black text-center text-[10px] shadow-sm px-5", f.hasPasteButton && "pl-10")} />
+                                  {f.hasPasteButton && <button onClick={() => handlePaste(f.label)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all shadow-sm"><ClipboardPaste size={12} /></button>}
                                 </div>
                               )}
                               <div className="flex justify-between px-3">
-                                {fieldErrors[f.label] && <p className="text-red-500 text-[8px] font-black">{fieldErrors[f.label]}</p>}
-                                {pasteStatus[f.label] && <p className="text-[8px] font-black text-emerald-500">{pasteStatus[f.label].msg}</p>}
+                                {fieldErrors[f.label] && <p className="text-red-500 text-[7px] font-black">{fieldErrors[f.label]}</p>}
+                                {pasteStatus[f.label] && <p className="text-[7px] font-black text-emerald-500">{pasteStatus[f.label].msg}</p>}
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <Button onClick={handleNext} disabled={amountValidationHint?.type === 'error' || !formData.amount} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all">المتابعة للأمان</Button>
+                      <Button onClick={handleNext} disabled={amountValidationHint?.type === 'error' || !formData.amount} className="w-full h-15 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">المتابعة</Button>
                     </div>
                   )}
 
                   {step === "verify_pin" && (
-                    <div className="space-y-8 animate-in zoom-in-95 duration-700 text-center py-6">
-                      <div className="h-20 w-20 bg-emerald-50 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
-                        <Fingerprint className="h-10 w-10 text-emerald-600" />
+                    <div className="space-y-6 animate-in zoom-in-95 duration-700 text-center py-4">
+                      <div className="h-16 w-16 bg-emerald-50 rounded-[24px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
+                        <Fingerprint className="h-8 w-8 text-emerald-600" />
                       </div>
-                      <div className="space-y-6">
+                      <div className="space-y-5">
                         <div className="space-y-1">
-                           <h3 className="text-xl font-black text-[#002d4d] tracking-tight">تأكيد السيادة المالية</h3>
-                           <p className="text-gray-400 font-bold text-[10px]">يرجى إدخال رمز PIN المكون من 6 أرقام.</p>
+                           <h3 className="text-lg font-black text-[#002d4d] tracking-normal">تأكيد الهوية</h3>
+                           <p className="text-gray-400 font-bold text-[9px] uppercase tracking-widest">Security Verification</p>
                         </div>
-                        <input type="password" inputMode="numeric" maxLength={6} placeholder="••••••" value={formData.pin} onChange={e => { setFormData({...formData, pin: e.target.value.replace(/\D/g, '')}); setFieldErrors({}); }} className="h-20 w-full max-w-[240px] rounded-[32px] bg-gray-50 border-none font-black text-center text-5xl tracking-[0.4em] shadow-inner outline-none text-[#002d4d] transition-all" />
-                        {fieldErrors.pin && <p className="text-red-500 text-[10px] font-black mt-2">{fieldErrors.pin}</p>}
+                        <input type="password" inputMode="numeric" maxLength={6} placeholder="••••••" value={formData.pin} onChange={e => { setFormData({...formData, pin: e.target.value.replace(/\D/g, '')}); setFieldErrors({}); }} className="h-16 w-full max-w-[200px] rounded-[28px] bg-gray-50 border-none font-black text-center text-4xl tracking-[0.4em] shadow-inner outline-none text-[#002d4d] transition-all" />
+                        {fieldErrors.pin && <p className="text-red-500 text-[9px] font-black mt-1">{fieldErrors.pin}</p>}
                       </div>
-                      <Button onClick={handleSubmit} disabled={loading || formData.pin.length < 6} className="w-full h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base shadow-xl active:scale-95 transition-all">
-                        {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "تأكيد وإرسال الطلب"}
+                      <Button onClick={handleSubmit} disabled={loading || formData.pin.length < 6} className="w-full h-15 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-xl active:scale-95 transition-all">
+                        {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "تأكيد وإرسال الطلب"}
                       </Button>
                     </div>
                   )}
@@ -413,9 +421,9 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">تم بث الطلب!</DialogTitle>
+                <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">طلبك قيد المراجعة!</DialogTitle>
                 <DialogDescription className="text-xs text-gray-400 font-bold leading-relaxed tracking-normal">
-                  لقد تم استلام البيانات. سيتم التحقق وتنفيذ التحويل خلال 24 ساعة وفق بروتوكول الأمان.
+                  لقد تم استلام البيانات. سيتم التحقق وتنفيذ التحويل خلال 24 ساعة وفق معايير الأمان المعتمدة.
                 </DialogDescription>
               </div>
               <Button onClick={handleClose} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
