@@ -1,8 +1,8 @@
 {
-  "name": "Namix Protocol",
+  "name": "Namix Pro",
   "short_name": "Namix",
-  "description": "منصة ناميكس لإدارة الاستثمار الرقمي السيادي",
-  "start_url": "/",
+  "description": "منصة ناميكس المتقدمة لإدارة الاستثمار الرقمي",
+  "start_url": "/home",
   "display": "standalone",
   "background_color": "#002d4d",
   "theme_color": "#002d4d",
@@ -20,6 +20,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "لوحة القيادة",
+      "short_name": "Dashboard",
+      "url": "/home",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "الأسواق الحية",
+      "short_name": "Markets",
+      "url": "/trade",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
