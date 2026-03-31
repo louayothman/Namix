@@ -104,7 +104,6 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
       invites: referralCount
     };
 
-    // Sort by requirements DESC to find the highest achieved
     const sortedTiers = [...list].sort((a,b) => (b.minBalance || 0) - (a.minBalance || 0));
     
     const achieved = sortedTiers.find(t => 
@@ -206,7 +205,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   );
 
   return (
-    <Shell managedUserId={userId} managedUserName={dbUser.displayName}>
+    <Shell isAdmin managedUserId={userId} managedUserName={dbUser.displayName}>
       <div className="space-y-10 pb-24">
         
         <ManagedPortfolioHero 

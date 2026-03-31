@@ -69,7 +69,6 @@ export default function ManagedInvestPage({ params }: { params: Promise<{ userId
 
     setProcessing(true);
     try {
-      // Logic: If scheduled, endTime is fixed to closeTime. Otherwise, use durationValue/Unit.
       const endTime = selectedPlan.isScheduled && selectedPlan.closeTime 
         ? selectedPlan.closeTime 
         : calculateEndDate(selectedPlan.durationValue, selectedPlan.durationUnit);
@@ -115,7 +114,7 @@ export default function ManagedInvestPage({ params }: { params: Promise<{ userId
   };
 
   return (
-    <Shell managedUserId={userId} managedUserName={dbUser?.displayName}>
+    <Shell isAdmin managedUserId={userId} managedUserName={dbUser?.displayName}>
       <div className="max-w-5xl mx-auto space-y-6 px-4">
         <div className="pt-8 flex items-center justify-between">
           <h1 className="text-2xl font-black text-[#002d4d]">تفعيل استثمار للمستخدم</h1>

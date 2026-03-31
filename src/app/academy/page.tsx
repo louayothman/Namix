@@ -59,7 +59,7 @@ export default function AcademyPage() {
   const lessons = academy?.lessons || [];
 
   return (
-    <Shell>
+    <Shell isPublic>
       <div className="max-w-2xl mx-auto space-y-8 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">

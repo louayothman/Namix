@@ -18,16 +18,15 @@ import {
   Activity,
   Settings,
   BarChart3,
-  Home,
-  Zap,
-  Target,
-  UserCircle
+  Loader2,
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 
 const NavItem = memo(({ item, active }: { item: any, active: boolean }) => (
   <Link 
@@ -49,12 +48,14 @@ NavItem.displayName = "NavItem";
 export function Shell({ 
   children, 
   isAdmin = false,
+  isPublic = false,
   managedUserId = null,
   managedUserName = "",
   hideMobileNav = false
 }: { 
   children: React.ReactNode; 
   isAdmin?: boolean;
+  isPublic?: boolean;
   managedUserId?: string | null;
   managedUserName?: string;
   hideMobileNav?: boolean;
@@ -62,25 +63,44 @@ export function Shell({
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [mounted, setMounted] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
   const db = useFirestore();
 
   useEffect(() => {
-    setMounted(true);
     const userSession = localStorage.getItem("namix_user");
-    if (userSession) {
-      const parsedUser = JSON.parse(userSession);
+    const parsedUser = userSession ? JSON.parse(userSession) : null;
+    
+    // 1. بروتوكول الصفحات العامة (About, FAQ, Academy)
+    if (isPublic) {
       setUser(parsedUser);
-
-      const uid = managedUserId || parsedUser.id;
-      if (uid) {
-        const updatePulse = () => updateDoc(doc(db, "users", uid), { lastActive: new Date().toISOString() }).catch(() => {});
-        updatePulse();
-        const interval = setInterval(updatePulse, 60000);
-        return () => clearInterval(interval);
-      }
+      setAuthorized(true);
+      return;
     }
-  }, [db, managedUserId]);
+
+    // 2. التحقق من وجود جلسة نشطة
+    if (!parsedUser) {
+      router.replace("/login");
+      return;
+    }
+
+    // 3. حماية مسارات المشرف (Admin Guard)
+    if (isAdmin && parsedUser.role !== 'admin') {
+      router.replace("/home");
+      return;
+    }
+
+    // 4. تحديث نبض النشاط وتثبيت الحالة
+    setUser(parsedUser);
+    setAuthorized(true);
+
+    const uid = managedUserId || parsedUser.id;
+    if (uid) {
+      const updatePulse = () => updateDoc(doc(db, "users", uid), { lastActive: new Date().toISOString() }).catch(() => {});
+      updatePulse();
+      const interval = setInterval(updatePulse, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, isPublic, managedUserId, db, router]);
 
   const adminNav = useMemo(() => [
     { name: "الرئيسية", href: "/admin", icon: LayoutDashboard },
@@ -92,10 +112,23 @@ export function Shell({
     { name: "تداول ناميكس", href: "/admin/trade", icon: Activity },
     { name: "المستخدمين", href: "/admin/users", icon: Users },
     { name: "الإشعارات", href: "/admin/notifications", icon: Bell },
-    { name: "الإعدادات", href: "/admin/settings", icon: Settings },
+    { name: "إعدادات المنصة", href: "/admin/settings", icon: Settings },
   ], []);
 
-  if (!mounted) return <div className="min-h-screen bg-white" />;
+  // واجهة التحميل أثناء فحص الصلاحيات (Security Splash)
+  if (!authorized) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-6 font-body">
+         <div className="relative">
+            <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+               <ShieldCheck className="h-8 w-8 text-[#002d4d] animate-pulse" />
+            </div>
+         </div>
+         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Verifying Access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fcfdfe] font-body text-[12px] selection:bg-[#f9a885]/30" dir="rtl">

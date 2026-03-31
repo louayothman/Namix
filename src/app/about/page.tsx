@@ -16,7 +16,7 @@ export default function AboutPage() {
   const { data: legal, isLoading } = useDoc(legalDocRef);
 
   return (
-    <Shell>
+    <Shell isPublic>
       <div className="max-w-2xl mx-auto space-y-12 px-6 pt-10 pb-24 font-body">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

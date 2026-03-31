@@ -23,7 +23,7 @@ export default function FAQPage() {
   const faqs = legal?.faq || [];
 
   return (
-    <Shell>
+    <Shell isPublic>
       <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-24">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
