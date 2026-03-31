@@ -17,11 +17,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { parseISO, differenceInMilliseconds } from "date-fns";
 import Link from "next/link";
 import React, { useMemo } from "react";
+import { SafeInvestmentTrigger } from "./SafeInvestmentTrigger";
 
 /**
  * @fileOverview مُفاعل الصواريخ النخبوية v3.0 - Blue Gray Edition
  * تصميم مطور يعتمد على لون المحفظة الموحد (#8899AA) مع صاروخ عائم بدون خلفية.
- * تم استبدال نصوص البث بنسبة العائد وإضافة مبلغ الربح المستهدف في المصفوفة الجانبية.
+ * تم إضافة "دليل الاستثمار الآمن" في حال عدم وجود عقود نشطة.
  */
 
 function AnimatedDigit({ digit }: { digit: string }) {
@@ -70,8 +71,13 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
     }).slice(0, 5);
   }, [investments, now]);
 
-  if (isLoading || !investments || displayInvestments.length === 0) {
+  if (isLoading) {
     return null;
+  }
+
+  // إذا لم يكن هناك عقود نشطة، اعرض زر دليل الاستثمار الآمن
+  if (!investments || displayInvestments.length === 0) {
+    return <SafeInvestmentTrigger />;
   }
 
   const getProgressData = (startTime: string, endTime: string, expectedProfit: number) => {
