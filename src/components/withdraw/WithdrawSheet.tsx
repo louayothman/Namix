@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -41,7 +40,8 @@ import {
   X,
   ClipboardPaste,
   Briefcase,
-  Clock
+  Clock,
+  ListFilter
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -167,28 +167,6 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
     
     return { type: 'success', message: 'المبلغ متاح للسحب.' };
   }, [formData.amount, dbUser?.totalBalance, rules]);
-
-  const handlePaste = async (fieldName: string) => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        setFormData(prev => ({
-          ...prev,
-          details: { ...prev.details, [fieldName]: text }
-        }));
-        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "تم!", isError: false } }));
-      }
-    } catch (err) {
-      setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "فشل", isError: true } }));
-    }
-    setTimeout(() => {
-      setPasteStatus(prev => {
-        const newState = { ...prev };
-        delete newState[fieldName];
-        return newState;
-      });
-    }, 2000);
-  };
 
   const handleNext = () => {
     if (amountValidationHint?.type === 'error') return;
