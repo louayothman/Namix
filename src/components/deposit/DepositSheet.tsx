@@ -39,7 +39,8 @@ import {
   X,
   ClipboardPaste,
   TrendingUp,
-  Gift
+  Gift,
+  Star
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -280,22 +281,80 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
             <div className="flex-1 overflow-y-auto px-5 py-3 scrollbar-none space-y-5 bg-gradient-to-b from-white to-gray-50/20">
               {step === "select_category" && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <div className="px-2 space-y-0.5 text-right">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  
+                  {/* مفاعل حوافز التدفق - التصميم الفاخر الجديد */}
+                  {vaultBonusConfig?.depositBonuses && vaultBonusConfig.depositBonuses.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-6 bg-[#002d4d] rounded-[40px] text-white relative overflow-hidden shadow-2xl group"
+                    >
+                       <div className="absolute top-0 right-0 p-6 opacity-[0.05] pointer-events-none group-hover:rotate-12 transition-transform duration-1000">
+                          <Gift size={120} />
+                       </div>
+                       
+                       {/* خيوط طاقة متحركة */}
+                       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
+                          <motion.div 
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                            className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent skew-x-[-45deg]"
+                          />
+                          <motion.div 
+                            animate={{ x: ['100%', '-100%'] }}
+                            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                            className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-400 to-transparent skew-x-[45deg]"
+                          />
+                       </div>
+
+                       <div className="relative z-10 space-y-4">
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
+                                   <Sparkles size={16} className="text-[#f9a885] animate-pulse" />
+                                </div>
+                                <div className="text-right">
+                                   <h4 className="text-[13px] font-black tracking-normal">حوافز تعزيز السيولة</h4>
+                                   <p className="text-[7px] font-black text-blue-200/40 uppercase tracking-widest leading-none">Incentive Multipliers</p>
+                                </div>
+                             </div>
+                             <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-3 py-1 rounded-full shadow-lg animate-pulse">ACTIVE BONUS</Badge>
+                          </div>
+
+                          <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 px-1">
+                             {vaultBonusConfig.depositBonuses.map((tier: any, i: number) => (
+                               <div key={i} className="shrink-0 p-3 px-4 bg-white/5 border border-white/10 rounded-[22px] backdrop-blur-md flex flex-col items-center gap-1 min-w-[100px] transition-all hover:bg-white/10">
+                                  <span className="text-[7px] font-black text-white/30 uppercase tracking-tighter">Above ${tier.min}</span>
+                                  <span className="text-[15px] font-black text-[#f9a885] tabular-nums tracking-tighter">%{tier.percent}+</span>
+                               </div>
+                             ))}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 px-2 opacity-40">
+                             <ShieldCheck size={10} className="text-emerald-400" />
+                             <p className="text-[7px] font-bold tracking-normal">تُضاف المكافأة تلقائياً إلى رصيدك فور تأكيد العملية.</p>
+                          </div>
+                       </div>
+                    </motion.div>
+                  )}
+
+                  <div className="px-2 space-y-0.5 text-right pt-2">
                     <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">
                       اختر فئة الإيداع <ListFilter className="h-3 w-3 text-blue-500" />
                     </h3>
-                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Category</p>
+                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Inflow Nodes</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5">
+
+                  <div className="grid grid-cols-2 gap-3">
                     {categories?.map(cat => (
                       <button
                         key={cat.id}
                         onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }}
-                        className="p-4 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-2.5 text-center group active:scale-[0.98] relative overflow-hidden"
+                        className="p-5 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-2.5 text-center group active:scale-[0.98] relative overflow-hidden"
                       >
-                        <div className="h-10 w-10 rounded-[16px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
-                          <Layers className="h-4 w-4" />
+                        <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
+                          <Layers className="h-5 w-5" />
                         </div>
                         <p className="font-black text-[11px] text-[#002d4d] tracking-normal">{cat.name}</p>
                       </button>
@@ -310,15 +369,15 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                     <h3 className="font-black text-[#002d4d] text-xs flex items-center gap-2 justify-end tracking-normal">
                       بوابات {selectedCategory?.name} <Zap className="h-3 w-3 text-emerald-500" />
                     </h3>
-                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
+                    <p className="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Select Access Node</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-3">
                     {activePortals.map((p: any) => (
                       <button
                         key={p.id}
                         onClick={() => setSelectedPortalId(p.id)}
                         className={cn(
-                          "flex flex-col items-center justify-center gap-2 p-4 rounded-[36px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group min-h-[110px]",
+                          "flex flex-col items-center justify-center gap-2 p-5 rounded-[36px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group min-h-[120px]",
                           selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-50 bg-white"
                         )}
                       >
@@ -336,7 +395,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                       </button>
                     ))}
                   </div>
-                  <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-13 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl transition-all">
+                  <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl transition-all">
                      المتابعة
                   </Button>
                 </div>
@@ -344,28 +403,28 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
               {step === "instructions" && selectedPortal && (
                 <div className="space-y-5 animate-in fade-in duration-500 text-right">
-                  <div className="p-5 bg-blue-50/40 rounded-[28px] border border-blue-100/50 space-y-2 shadow-inner">
+                  <div className="p-5 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 shadow-inner">
                     <div className="flex items-center gap-2 text-blue-600">
                       <Info size={14} />
-                      <h4 className="text-[11px] font-black uppercase tracking-normal">خطوات الشحن:</h4>
+                      <h4 className="text-[11px] font-black uppercase tracking-normal">خطوات التنفيذ:</h4>
                     </div>
                     <p className="text-[11px] font-bold leading-relaxed text-blue-800/70 tracking-normal">{selectedPortal.instructions}</p>
                   </div>
 
                   {selectedPortal.walletAddress && (
-                    <div className="p-5 bg-gray-50 rounded-[28px] border border-gray-100 space-y-2 shadow-sm">
+                    <div className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 space-y-2 shadow-sm">
                       <Label className="text-[8px] text-gray-400 font-black uppercase tracking-widest pr-2">Portal Destination</Label>
-                      <div className="flex items-center gap-2 bg-white p-1 rounded-[18px] border border-gray-100">
+                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-[22px] border border-gray-100 shadow-inner">
                         <div className="flex-1 px-3 font-mono text-[9px] break-all font-black text-[#002d4d] text-left leading-relaxed" dir="ltr">{selectedPortal.walletAddress}</div>
-                        <Button size="icon" className="shrink-0 h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885]" onClick={() => handleCopy(selectedPortal.walletAddress)}>
+                        <Button size="icon" className="shrink-0 h-10 w-10 rounded-xl bg-[#002d4d] text-[#f9a885] shadow-lg" onClick={() => handleCopy(selectedPortal.walletAddress)}>
                           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>
                   )}
 
-                  <Button onClick={() => setStep("form")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">
-                     لقد أتممت التحويل
+                  <Button onClick={() => setStep("form")} className="w-full h-15 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">
+                     لقد أتممت التحويل الفعلي
                   </Button>
                 </div>
               )}
@@ -378,16 +437,15 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                         <Label className="font-black text-[#002d4d] text-[8px] uppercase tracking-widest">المبلغ المودع ($)</Label>
                       </div>
                       <div className="relative">
-                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-14 rounded-[20px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
+                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
                         <Coins className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-100" />
                       </div>
                       {fieldErrors.amount && <p className="text-red-500 text-[8px] font-black pr-4">{fieldErrors.amount}</p>}
                     </div>
                   )}
 
-                  {/* التنسيق الجميل للبونص المقترح */}
                   <AnimatePresence>
-                    {currentBonusData.percent > 0 && (
+                    {currentBonusData.percent > 0 && !selectedPortal?.isBinanceLinked && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -426,7 +484,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                               setFormData(prev => ({ ...prev, details: { ...prev.details, [f.label]: val } }));
                               setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; });
                             }}>
-                               <SelectTrigger className="h-11 rounded-[16px] bg-white border-none font-black text-xs shadow-sm px-5">
+                               <SelectTrigger className="h-11 rounded-[18px] bg-white border-none font-black text-xs shadow-sm px-5">
                                   <SelectValue placeholder={f.placeholder} />
                                 </SelectTrigger>
                                <SelectContent className="rounded-2xl" dir="rtl">
@@ -437,7 +495,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                             </Select>
                           ) : (
                             <div className="relative">
-                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-11 rounded-[16px] bg-white border-none font-black text-center text-[10px] shadow-sm px-5", f.hasPasteButton && "pl-10")} />
+                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-11 rounded-[18px] bg-white border-none font-black text-center text-[10px] shadow-sm px-5", f.hasPasteButton && "pl-10")} />
                               {f.hasPasteButton && (
                                 <button onClick={() => handlePaste(f.label)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all shadow-sm">
                                   <ClipboardPaste size={12} />
@@ -455,7 +513,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
 
                   <Button onClick={handleSubmit} disabled={loading} className="w-full h-15 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-sm shadow-xl active:scale-95 transition-all">
-                    {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال البيانات"}
+                    {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال بيانات التحويل"}
                   </Button>
                 </div>
               )}
@@ -474,7 +532,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
               {step === "fail" && (
                 <div className="space-y-5 animate-in fade-in duration-500 text-center py-4">
-                   <div className="h-14 w-14 bg-red-50 rounded-[20px] flex items-center justify-center mx-auto border border-red-100">
+                   <div className="h-14 w-14 bg-red-50 rounded-[24px] flex items-center justify-center mx-auto border border-red-100 shadow-inner">
                       <ShieldX className="h-7 w-7 text-red-500" />
                    </div>
                    <p className="text-[11px] font-bold text-red-800/60 leading-relaxed px-6 tracking-normal">{binanceError}</p>
@@ -496,11 +554,11 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               </div>
               <div className="space-y-1">
                 <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">
-                  {successType === 'instant' ? "شحن فوري ناجح!" : "طلبك قيد المراجعة!"}
+                  {successType === 'instant' ? "تم الشحن بنجاح!" : "طلبك قيد المراجعة!"}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-gray-400 font-bold leading-relaxed tracking-normal">
                   {successType === 'instant' 
-                    ? "تم التحقق من المعاملة آلياً وإضافة الإيداع مع المكافأة لرصيدك بنجاح." 
+                    ? "تم التحقق من العملية آلياً وإضافة الإيداع مع المكافأة لرصيدك بنجاح." 
                     : "لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء الفحص الفني المعتمد خلال 24 ساعة."}
                 </DialogDescription>
               </div>
