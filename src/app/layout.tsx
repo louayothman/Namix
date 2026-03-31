@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
@@ -19,7 +20,8 @@ export const metadata: Metadata = {
     'mobile-web-app-capable': 'yes',
     'format-detection': 'telephone=no',
     'apple-touch-fullscreen': 'yes',
-    'apple-mobile-web-app-title': 'Namix'
+    'apple-mobile-web-app-title': 'Namix',
+    'theme-color': '#002d4d'
   }
 };
 
@@ -55,6 +57,7 @@ export default function RootLayout({
         
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#002d4d" />
       </head>
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">
         <FirebaseClientProvider>

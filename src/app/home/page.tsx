@@ -9,6 +9,8 @@ import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, incremen
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
+import { Logo } from "@/components/layout/Logo";
+import { motion } from "framer-motion";
 
 const PortfolioHero = lazy(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })));
 const EliteWatchlist = lazy(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })));
@@ -25,9 +27,14 @@ const DepositSheet = lazy(() => import("@/components/deposit/DepositSheet").then
 const WithdrawSheet = lazy(() => import("@/components/withdraw/WithdrawSheet").then(m => ({ default: m.WithdrawSheet })));
 
 const SectionLoader = () => (
-  <div className="flex flex-col items-center justify-center py-12 gap-4 opacity-40">
-    <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
-    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Syncing Node...</p>
+  <div className="flex flex-col items-center justify-center py-12 gap-6 opacity-40">
+    <motion.div
+      animate={{ scale: [1, 1.1, 1], opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      <Logo size="sm" className="grayscale contrast-50" />
+    </motion.div>
+    <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.4em] animate-pulse">Syncing Node...</p>
   </div>
 );
 

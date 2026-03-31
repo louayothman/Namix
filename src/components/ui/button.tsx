@@ -1,6 +1,8 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { hapticFeedback } from "@/lib/haptic-engine"
 
 import { cn } from "@/lib/utils"
 
@@ -36,16 +38,26 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+  asChild?: boolean;
+  haptic?: 'light' | 'medium' | 'success' | 'error';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, haptic = 'light', onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    
+    const handleOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (haptic && hapticFeedback[haptic]) {
+        hapticFeedback[haptic]();
+      }
+      if (onClick) onClick(e);
+    };
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        onClick={handleOnClick}
         {...props}
       />
     )
