@@ -7,6 +7,7 @@ import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://namix.pro'),
   title: {
     default: 'ناميكس برو | منصة الاستثمار الرقمي المتقدمة',
     template: '%s | ناميكس برو'
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     description: 'ابدأ رحلتك الاستثمارية اليوم مع ناميكس برو. محرك تداول متطور وبروتوكولات حماية عالمية.',
     images: [
       {
-        url: 'https://namix.pro/og-image.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Namix Pro Sovereign Dashboard',
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ناميكس برو | منصة الاستثمار الرقمي المتقدمة',
     description: 'تداول واستثمر بذكاء مع بروتوكول ناميكس المعتمد.',
-    images: ['https://namix.pro/og-image.png'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
