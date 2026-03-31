@@ -152,13 +152,12 @@ export default function LandingPage() {
                   transition={{ duration: 0.8 }}
                   className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 backdrop-blur-md mb-4"
                 >
-                  <Sparkles size={14} className="text-[#f9a885]" />
                   <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em]">Join The Growth Engine</span>
                 </motion.div>
 
                 <div className="space-y-6">
                   <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter">
-                    ابدأ رحلتك <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">الاحترافية</span> اليوم
+                    ابدأ رحلتك مع <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">ناميكس</span> اليوم
                   </h2>
                   <p className="text-blue-100/60 text-lg md:text-2xl font-medium max-w-2xl mx-auto leading-loose">
                     انضم لرواد المستثمرين في ناميكس واستفد من أحدث تقنيات التحليل والذكاء الاصطناعي المتقدمة.

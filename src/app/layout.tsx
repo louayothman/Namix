@@ -9,17 +9,17 @@ import { SWRegistration } from "@/components/pwa/SWRegistration";
 export const metadata: Metadata = {
   metadataBase: new URL('https://namix.pro'),
   title: {
-    default: 'ناميكس برو | منصة الاستثمار الرقمي المتقدمة',
-    template: '%s | ناميكس برو'
+    default: 'ناميكس | منصة الاستثمار الرقمي المتقدمة',
+    template: '%s | ناميكس'
   },
-  description: 'ناميكس برو (Namix Pro) هي المنصة الرائدة في إدارة الأصول الرقمية والتداول بالذكاء الاصطناعي. أمان متطور، عوائد استراتيجية، وحماية رأس المال للنخبة.',
-  applicationName: 'Namix Pro',
+  description: 'ناميكس (Namix) هي المنصة الرائدة في إدارة الأصول الرقمية والتداول بالذكاء الاصطناعي. أمان متطور، عوائد استراتيجية، وحماية رأس المال للنخبة.',
+  applicationName: 'Namix',
   authors: [{ name: 'Namix Universal Network' }],
   generator: 'Next.js',
-  keywords: ['تداول', 'استثمار', 'ذكاء اصطناعي', 'عملات رقمية', 'ناميكس', 'Namix Pro', 'أرباح', 'بوت تداول', 'استثمار آمن'],
+  keywords: ['تداول', 'استثمار', 'ذكاء اصطناعي', 'عملات رقمية', 'ناميكس', 'Namix', 'أرباح', 'بوت تداول', 'استثمار آمن'],
   referrer: 'origin-when-cross-origin',
   creator: 'Namix Core',
-  publisher: 'Namix Pro',
+  publisher: 'Namix',
   formatDetection: {
     email: false,
     address: false,
@@ -29,27 +29,27 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Namix Pro',
+    title: 'Namix',
   },
   openGraph: {
     type: 'website',
     locale: 'ar_SA',
     url: 'https://namix.pro',
-    siteName: 'ناميكس برو',
-    title: 'ناميكس برو | بوابتك لعالم الاستثمار الرقمي بذكاء',
-    description: 'ابدأ رحلتك الاستثمارية اليوم مع ناميكس برو. محرك تداول متطور وبروتوكولات حماية عالمية.',
+    siteName: 'ناميكس',
+    title: 'ناميكس | بوابتك لعالم الاستثمار الرقمي بذكاء',
+    description: 'ابدأ رحلتك الاستثمارية اليوم مع ناميكس. محرك تداول متطور وبروتوكولات حماية عالمية.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Namix Pro Sovereign Dashboard',
+        alt: 'Namix Sovereign Dashboard',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ناميكس برو | منصة الاستثمار الرقمي المتقدمة',
+    title: 'ناميكس | منصة الاستثمار الرقمي المتقدمة',
     description: 'تداول واستثمر بذكاء مع بروتوكول ناميكس المعتمد.',
     images: ['/og-image.png'],
   },
@@ -117,7 +117,7 @@ export default function RootLayout({
               {
                 "@context": "https://schema.org",
                 "@type": "Organization",
-                "name": "ناميكس برو - Namix Pro",
+                "name": "ناميكس - Namix",
                 "url": "https://namix.pro",
                 "logo": "https://namix.pro/icon-192.png",
                 "description": "المنصة الرائدة في إدارة الأصول الرقمية والتداول بالذكاء الاصطناعي.",

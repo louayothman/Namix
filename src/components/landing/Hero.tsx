@@ -16,7 +16,7 @@ interface HeroProps {
 
 /**
  * @fileOverview مُفاعل الهيرو v13.0 - Balanced Professional Edition
- * تم تصغير أحجام العناوين وتحديث النصوص لإزالة مصطلح السيادة وضمان التناسق مع Lottie.
+ * تم تصغير أحجام العناوين وتحديث النصوص لتعكس هوية "ناميكس" الرسمية.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [animationData, setAnimationData] = useState<any>(null);
