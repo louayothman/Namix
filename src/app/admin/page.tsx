@@ -1,20 +1,21 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, Suspense, lazy } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, doc } from "firebase/firestore";
 import { parseISO, differenceInMilliseconds, addDays, isBefore } from "date-fns";
 import { Loader2 } from "lucide-react";
 
-const AdminHeader = lazy(() => import("@/components/admin/dashboard/AdminHeader").then(m => ({ default: m.AdminHeader })));
-const TreasuryReactor = lazy(() => import("@/components/admin/dashboard/TreasuryReactor").then(m => ({ default: m.TreasuryReactor })));
-const LiabilityReactor = lazy(() => import("@/components/admin/dashboard/LiabilityReactor").then(m => ({ default: m.LiabilityReactor })));
-const GrowthReactor = lazy(() => import("@/components/admin/dashboard/GrowthReactor").then(m => ({ default: m.GrowthReactor })));
-const UserIntelligenceReactor = lazy(() => import("@/components/admin/dashboard/UserIntelligenceReactor").then(m => ({ default: m.UserIntelligenceReactor })));
-const OperationalTerminal = lazy(() => import("@/components/admin/dashboard/OperationalTerminal").then(m => ({ default: m.OperationalTerminal })));
-const MarketPulseReactor = lazy(() => import("@/components/admin/dashboard/MarketPulseReactor").then(m => ({ default: m.MarketPulseReactor })));
+const AdminHeader = dynamic(() => import("@/components/admin/dashboard/AdminHeader").then(m => ({ default: m.AdminHeader })), { ssr: false });
+const TreasuryReactor = dynamic(() => import("@/components/admin/dashboard/TreasuryReactor").then(m => ({ default: m.TreasuryReactor })), { ssr: false });
+const LiabilityReactor = dynamic(() => import("@/components/admin/dashboard/LiabilityReactor").then(m => ({ default: m.LiabilityReactor })), { ssr: false });
+const GrowthReactor = dynamic(() => import("@/components/admin/dashboard/GrowthReactor").then(m => ({ default: m.GrowthReactor })), { ssr: false });
+const UserIntelligenceReactor = dynamic(() => import("@/components/admin/dashboard/UserIntelligenceReactor").then(m => ({ default: m.UserIntelligenceReactor })), { ssr: false });
+const OperationalTerminal = dynamic(() => import("@/components/admin/dashboard/OperationalTerminal").then(m => ({ default: m.OperationalTerminal })), { ssr: false });
+const MarketPulseReactor = dynamic(() => import("@/components/admin/dashboard/MarketPulseReactor").then(m => ({ default: m.MarketPulseReactor })), { ssr: false });
 
 const ReactorLoader = () => (
   <div className="h-[200px] flex flex-col items-center justify-center gap-3 bg-gray-50/50 rounded-[48px] border border-gray-100 border-dashed opacity-40">

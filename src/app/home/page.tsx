@@ -1,8 +1,9 @@
 
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from "react";
+import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion, limit, addDoc } from "firebase/firestore";
@@ -12,19 +13,19 @@ import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
 import { motion } from "framer-motion";
 
-const PortfolioHero = lazy(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })));
-const EliteWatchlist = lazy(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })));
-const FeaturedProtocols = lazy(() => import("@/components/dashboard/FeaturedProtocols").then(m => ({ default: m.FeaturedProtocols })));
-const ServiceGateway = lazy(() => import("@/components/dashboard/ServiceGateway").then(m => ({ default: m.ServiceGateway })));
-const InvestmentInventory = lazy(() => import("@/components/dashboard/InvestmentInventory").then(m => ({ default: m.InvestmentInventory })));
-const TierProgress = lazy(() => import("@/components/dashboard/TierProgress").then(m => ({ default: m.TierProgress })));
-const YieldSimulator = lazy(() => import("@/components/dashboard/YieldSimulator").then(m => ({ default: m.YieldSimulator })));
-const NewsTicker = lazy(() => import("@/components/dashboard/NewsTicker").then(m => ({ default: m.NewsTicker })));
-const UpcomingEvents = lazy(() => import("@/components/dashboard/UpcomingEvents").then(m => ({ default: m.UpcomingEvents })));
-const GuidanceCenter = lazy(() => import("@/components/dashboard/GuidanceCenter").then(m => ({ default: m.GuidanceCenter })));
-const ActivationDialog = lazy(() => import("@/components/invest/ActivationDialog").then(m => ({ default: m.ActivationDialog })));
-const DepositSheet = lazy(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })));
-const WithdrawSheet = lazy(() => import("@/components/withdraw/WithdrawSheet").then(m => ({ default: m.WithdrawSheet })));
+const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
+const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
+const FeaturedProtocols = dynamic(() => import("@/components/dashboard/FeaturedProtocols").then(m => ({ default: m.FeaturedProtocols })), { ssr: false });
+const ServiceGateway = dynamic(() => import("@/components/dashboard/ServiceGateway").then(m => ({ default: m.ServiceGateway })), { ssr: false });
+const InvestmentInventory = dynamic(() => import("@/components/dashboard/InvestmentInventory").then(m => ({ default: m.InvestmentInventory })), { ssr: false });
+const TierProgress = dynamic(() => import("@/components/dashboard/TierProgress").then(m => ({ default: m.TierProgress })), { ssr: false });
+const YieldSimulator = dynamic(() => import("@/components/dashboard/YieldSimulator").then(m => ({ default: m.YieldSimulator })), { ssr: false });
+const NewsTicker = dynamic(() => import("@/components/dashboard/NewsTicker").then(m => ({ default: m.NewsTicker })), { ssr: false });
+const UpcomingEvents = dynamic(() => import("@/components/dashboard/UpcomingEvents").then(m => ({ default: m.UpcomingEvents })), { ssr: false });
+const GuidanceCenter = dynamic(() => import("@/components/dashboard/GuidanceCenter").then(m => ({ default: m.GuidanceCenter })), { ssr: false });
+const ActivationDialog = dynamic(() => import("@/components/invest/ActivationDialog").then(m => ({ default: m.ActivationDialog })), { ssr: false });
+const DepositSheet = dynamic(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })), { ssr: false });
+const WithdrawSheet = dynamic(() => import("@/components/withdraw/WithdrawSheet").then(m => ({ default: m.WithdrawSheet })), { ssr: false });
 
 const SectionLoader = () => (
   <div className="flex flex-col items-center justify-center py-12 gap-6 opacity-40">

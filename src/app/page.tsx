@@ -2,24 +2,27 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { Navbar } from "@/components/landing/Navbar";
-import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
-import { AboutDialog } from "@/components/landing/AboutDialog";
-import { ContractLabDialog } from "@/components/landing/ContractLabDialog";
-import { SpotTradingDialog } from "@/components/landing/SpotTradingDialog";
-import { AdventureArenaDialog } from "@/components/landing/AdventureArenaDialog";
-import { FAQDialog } from "@/components/landing/FAQDialog";
-import { PrivacyDialog } from "@/components/landing/PrivacyDialog";
-import { TermsDialog } from "@/components/landing/TermsDialog";
 import { SupportSheet } from "@/components/support/SupportSheet";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { Sparkles, Zap, ArrowRight, ShieldCheck } from "lucide-react";
+
+// Dynamic Imports for Heavy Components & Dialogs (with Lottie)
+const Hero = dynamic(() => import("@/components/landing/Hero").then(m => ({ default: m.Hero })), { ssr: false });
+const AboutDialog = dynamic(() => import("@/components/landing/AboutDialog").then(m => ({ default: m.AboutDialog })), { ssr: false });
+const ContractLabDialog = dynamic(() => import("@/components/landing/ContractLabDialog").then(m => ({ default: m.ContractLabDialog })), { ssr: false });
+const SpotTradingDialog = dynamic(() => import("@/components/landing/SpotTradingDialog").then(m => ({ default: m.SpotTradingDialog })), { ssr: false });
+const AdventureArenaDialog = dynamic(() => import("@/components/landing/AdventureArenaDialog").then(m => ({ default: m.AdventureArenaDialog })), { ssr: false });
+const FAQDialog = dynamic(() => import("@/components/landing/FAQDialog").then(m => ({ default: m.FAQDialog })), { ssr: false });
+const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog").then(m => ({ default: m.PrivacyDialog })), { ssr: false });
+const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 export default function LandingPage() {
   const db = useFirestore();

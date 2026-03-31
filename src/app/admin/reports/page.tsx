@@ -1,21 +1,23 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 
-// Modular Components
-import { ReportsHeader } from "@/components/admin/reports/ReportsHeader";
-import { ProfitKPIs } from "@/components/admin/reports/ProfitKPIs";
-import { YieldDistribution } from "@/components/admin/reports/YieldDistribution";
-import { LiquidityNodes } from "@/components/admin/reports/LiquidityNodes";
-import { ReportsSidebar } from "@/components/admin/reports/ReportsSidebar";
+// Modular Components via Dynamic Loading
+const ReportsHeader = dynamic(() => import("@/components/admin/reports/ReportsHeader").then(m => ({ default: m.ReportsHeader })), { ssr: false });
+const ProfitKPIs = dynamic(() => import("@/components/admin/reports/ProfitKPIs").then(m => ({ default: m.ProfitKPIs })), { ssr: false });
+const YieldDistribution = dynamic(() => import("@/components/admin/reports/YieldDistribution").then(m => ({ default: m.YieldDistribution })), { ssr: false });
+const LiquidityNodes = dynamic(() => import("@/components/admin/reports/LiquidityNodes").then(m => ({ default: m.LiquidityNodes })), { ssr: false });
+const ReportsSidebar = dynamic(() => import("@/components/admin/reports/ReportsSidebar").then(m => ({ default: m.ReportsSidebar })), { ssr: false });
 
 /**
  * @fileOverview صفحة التقارير المالية السيادية للمشرف v1.2
- * تم إعادة الهيكلة لفصل المكونات ومعالجة أخطاء المتغيرات المفقودة.
+ * تم استخدام التحميل الديناميكي لتجزئة كود الرسوم البيانية الثقيلة (Recharts).
  */
 export default function AdminReportsPage() {
   const db = useFirestore();

@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useEffect, useState, use, Suspense, lazy, useMemo } from "react";
+import { useEffect, useState, use, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -25,14 +26,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerPortal, DrawerOverlay } from "@/components/ui/drawer";
-import { NamixAIContainer } from "@/components/trade/ai/NamixAIContainer";
 
-const PriceChart = lazy(() => import("@/components/trade/terminal/PriceChart").then(m => ({ default: m.PriceChart })));
-const InternalPriceChart = lazy(() => import("@/components/trade/terminal/InternalPriceChart").then(m => ({ default: m.InternalPriceChart })));
-const OrderPanel = lazy(() => import("@/components/trade/terminal/OrderPanel").then(m => ({ default: m.OrderPanel })));
-const DepositSheet = lazy(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })));
-const TradeHistoryOverlay = lazy(() => import("@/components/trade/terminal/TradeHistoryOverlay").then(m => ({ default: m.TradeHistoryOverlay })));
-const MarketIntelligenceOverlay = lazy(() => import("@/components/trade/terminal/MarketIntelligenceOverlay").then(m => ({ default: m.MarketIntelligenceOverlay })));
+const PriceChart = dynamic(() => import("@/components/trade/terminal/PriceChart").then(m => ({ default: m.PriceChart })), { ssr: false });
+const InternalPriceChart = dynamic(() => import("@/components/trade/terminal/InternalPriceChart").then(m => ({ default: m.InternalPriceChart })), { ssr: false });
+const OrderPanel = dynamic(() => import("@/components/trade/terminal/OrderPanel").then(m => ({ default: m.OrderPanel })), { ssr: false });
+const DepositSheet = dynamic(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })), { ssr: false });
+const TradeHistoryOverlay = dynamic(() => import("@/components/trade/terminal/TradeHistoryOverlay").then(m => ({ default: m.TradeHistoryOverlay })), { ssr: false });
+const MarketIntelligenceOverlay = dynamic(() => import("@/components/trade/terminal/MarketIntelligenceOverlay").then(m => ({ default: m.MarketIntelligenceOverlay })), { ssr: false });
+const NamixAIContainer = dynamic(() => import("@/components/trade/ai/NamixAIContainer").then(m => ({ default: m.NamixAIContainer })), { ssr: false });
 
 const TerminalLoader = () => (
   <div className="flex flex-col items-center justify-center h-full gap-6 bg-gray-50/20 backdrop-blur-sm">
@@ -96,7 +97,9 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
         const parsed = JSON.parse(userSession);
         setDbUser(parsed);
         const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => {
-          if (snap.exists()) setDbUser({ ...snap.data(), id: snap.id });
+          if (snap.exists()) {
+            setDbUser({ ...snap.data(), id: snap.id });
+          }
         });
         return () => unsub();
       } catch (e) { router.push("/login"); }
