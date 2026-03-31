@@ -283,57 +283,41 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               {step === "select_category" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                   
-                  {/* مفاعل حوافز التدفق - التصميم الفاخر الجديد */}
+                  {/* شريط حوافز الشحن الزمردي - تصميم رشيق وفخم */}
                   {vaultBonusConfig?.depositBonuses && vaultBonusConfig.depositBonuses.length > 0 && (
                     <motion.div 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-6 bg-[#002d4d] rounded-[40px] text-white relative overflow-hidden shadow-2xl group"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="relative overflow-hidden rounded-[32px] bg-emerald-500 p-4 shadow-lg shadow-emerald-900/10 group"
                     >
-                       <div className="absolute top-0 right-0 p-6 opacity-[0.05] pointer-events-none group-hover:rotate-12 transition-transform duration-1000">
-                          <Gift size={120} />
-                       </div>
-                       
-                       {/* خيوط طاقة متحركة */}
-                       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
+                       {/* ومضة طاقة متحركة */}
+                       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
                           <motion.div 
-                            animate={{ x: ['-100%', '100%'] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                            className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent skew-x-[-45deg]"
-                          />
-                          <motion.div 
-                            animate={{ x: ['100%', '-100%'] }}
-                            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-                            className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-400 to-transparent skew-x-[45deg]"
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg]"
                           />
                        </div>
 
-                       <div className="relative z-10 space-y-4">
-                          <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
-                                   <Sparkles size={16} className="text-[#f9a885] animate-pulse" />
-                                </div>
-                                <div className="text-right">
-                                   <h4 className="text-[13px] font-black tracking-normal">حوافز تعزيز السيولة</h4>
-                                   <p className="text-[7px] font-black text-blue-200/40 uppercase tracking-widest leading-none">Incentive Multipliers</p>
-                                </div>
-                             </div>
-                             <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-3 py-1 rounded-full shadow-lg animate-pulse">ACTIVE BONUS</Badge>
+                       <div className="relative z-10 flex items-center gap-4">
+                          {/* أيقونة وميضية نانوية */}
+                          <div className="h-10 w-10 shrink-0 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+                             <Star size={20} className="text-white fill-white animate-pulse" />
                           </div>
 
-                          <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 px-1">
+                          {/* عرض الشرائح بأسلوب انسيابي */}
+                          <div className="flex-1 flex items-center gap-3 overflow-x-auto scrollbar-none py-1">
                              {vaultBonusConfig.depositBonuses.map((tier: any, i: number) => (
-                               <div key={i} className="shrink-0 p-3 px-4 bg-white/5 border border-white/10 rounded-[22px] backdrop-blur-md flex flex-col items-center gap-1 min-w-[100px] transition-all hover:bg-white/10">
-                                  <span className="text-[7px] font-black text-white/30 uppercase tracking-tighter">Above ${tier.min}</span>
-                                  <span className="text-[15px] font-black text-[#f9a885] tabular-nums tracking-tighter">%{tier.percent}+</span>
+                               <div key={i} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-xl border border-white/10 transition-all hover:bg-white/20">
+                                  <span className="text-[8px] font-black text-white/60 uppercase tracking-tighter">Above ${tier.min}</span>
+                                  <span className="text-[14px] font-black text-white tabular-nums tracking-tighter">%{tier.percent}</span>
                                </div>
                              ))}
                           </div>
                           
-                          <div className="flex items-center gap-2 px-2 opacity-40">
-                             <ShieldCheck size={10} className="text-emerald-400" />
-                             <p className="text-[7px] font-bold tracking-normal">تُضاف المكافأة تلقائياً إلى رصيدك فور تأكيد العملية.</p>
+                          {/* شارة الحالة المدمجة */}
+                          <div className="shrink-0 text-left">
+                             <Badge className="bg-white text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm">ACTIVE</Badge>
                           </div>
                        </div>
                     </motion.div>
