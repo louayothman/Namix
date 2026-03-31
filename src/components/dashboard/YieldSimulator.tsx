@@ -5,6 +5,8 @@ import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { 
   Home, 
   Car, 
@@ -80,8 +82,7 @@ const HolographicValue = ({ label, value, colorClass }: { label: string, value: 
 
 /**
  * @fileOverview المِسقاط الهولوغرامي v19.0 - Holographic Projector Edition
- * تصميم درامي يحول محاكي الأرباح إلى منصة إسقاط ضوئي للبيانات المستقبلية.
- * تم تطهير كافة النصوص من تباعد الحروف (tracking-normal).
+ * تم إصلاح أخطاء الاستيراد (Label & Button) وتطهير النصوص العربية بالكامل.
  */
 export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, onIncrement, onDecrement }: YieldSimulatorProps) {
   const router = useRouter();
@@ -237,7 +238,7 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
       <div className="mt-8 flex flex-col items-center gap-4 opacity-20 select-none">
          <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em] mr-[-0.8em]">Namix Holographic Console v19.0</p>
          <div className="flex gap-2">
-            {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
+            {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
          </div>
       </div>
     </div>
