@@ -1,24 +1,13 @@
-// Namix Service Worker - Sovereign Connectivity Protocol
-const CACHE_NAME = 'namix-v1';
-const ASSETS = [
-  '/',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
-
+// Service Worker for Namix PWA
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  // Pass-through fetch handler required for PWA installability
+  event.respondWith(fetch(event.request));
 });
