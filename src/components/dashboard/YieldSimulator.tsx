@@ -38,7 +38,33 @@ interface YieldSimulatorProps {
 }
 
 /**
- * NebulaEffect - سديم البيانات المتحرك الذي يعطي انطباع الهولوغرام
+ * AnimatedDigit - محرك الخانة الرقمية المنزلقة بدقة نانوية
+ */
+function AnimatedDigit({ digit, colorClass = "text-white" }: { digit: string, colorClass?: string }) {
+  if (digit === "." || digit === "$" || digit === ",") {
+    return <span className={cn("inline-block px-0.5", colorClass)}>{digit}</span>;
+  }
+  const num = parseInt(digit);
+  if (isNaN(num)) return <span className={cn("inline-block", colorClass)}>{digit}</span>;
+  return (
+    <div className="relative h-[1em] w-[0.6em] overflow-hidden inline-block leading-none">
+      <motion.div
+        animate={{ y: -num * 100 + "%" }}
+        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+        className="absolute top-0 left-0 flex flex-col items-center w-full h-[1000%]"
+      >
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          <div key={n} className={cn("h-[10%] flex items-center justify-center font-black w-full", colorClass)}>
+            {n}
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+/**
+ * NebulaEffect - سديم البيانات الضوئي
  */
 const NebulaEffect = ({ intensity }: { intensity: number }) => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
@@ -63,42 +89,21 @@ const NebulaEffect = ({ intensity }: { intensity: number }) => (
   </div>
 );
 
-/**
- * HolographicValue - عرض الأرقام بتأثير نيون عائم
- */
-const HolographicValue = ({ label, value, colorClass }: { label: string, value: string, colorClass: string }) => (
-  <div className="flex flex-col items-center gap-1">
-    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
-    <motion.div 
-      key={value}
-      initial={{ y: 10, opacity: 0, filter: "blur(10px)" }}
-      animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-      className={cn("text-2xl md:text-3xl font-black tabular-nums tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]", colorClass)}
-    >
-      ${value}
-    </motion.div>
-  </div>
-);
-
-/**
- * @fileOverview المِسقاط الهولوغرامي v19.0 - Holographic Projector Edition
- * تم إصلاح أخطاء الاستيراد (Label & Button) وتطهير النصوص العربية بالكامل.
- */
 export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, onIncrement, onDecrement }: YieldSimulatorProps) {
   const router = useRouter();
   const ratio = marketingConfig?.simulatorRatio || 45;
-  const amount = parseInt(calcAmount || "0");
+  const amountValue = parseInt(calcAmount || "0");
   
-  const intensity = useMemo(() => Math.max(1, amount / 1000), [amount]);
+  const intensity = useMemo(() => Math.max(1, amountValue / 1000), [amountValue]);
   const goals = useMemo(() => marketingConfig?.simulatorGoals || [], [marketingConfig]);
 
   const { monthlyProfit, annualProfit } = useMemo(() => {
-    const monthly = (amount * ratio) / 100;
+    const monthly = (amountValue * ratio) / 100;
     return {
       monthlyProfit: Math.floor(monthly),
       annualProfit: Math.floor(monthly * 12)
     };
-  }, [amount, ratio]);
+  }, [amountValue, ratio]);
 
   const getIcon = useCallback((iconName: string, size = 14) => {
     const iconMap: Record<string, any> = { Plane, Car, Briefcase, Home, Target, Ship, Gem, Award };
@@ -108,56 +113,70 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
 
   return (
     <div className="relative py-4 font-body tracking-normal" dir="rtl">
-      {/* Dynamic Module Header */}
-      <div className="flex items-center justify-between px-6 mb-6">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-normal">
-            <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            Namix Prediction Protocol
-          </div>
-          <h3 className="text-xl font-black text-[#002d4d] tracking-normal">محاكي التوقع الرقمي</h3>
-        </div>
-        <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner animate-pulse">LIVE CALIBRATION</Badge>
-      </div>
-
-      <Card className="border-none shadow-2xl rounded-[64px] bg-white overflow-hidden border border-gray-100 relative group min-h-[600px] flex flex-col">
+      <Card className="border-none shadow-2xl rounded-[64px] bg-white overflow-hidden border border-gray-100 relative group min-h-[650px] flex flex-col">
         
-        {/* UPPER: The Hologram Area (Nebula + Floating Stats) */}
-        <div className="relative flex-1 p-8 md:p-12 flex flex-col items-center justify-center overflow-hidden border-b border-gray-50 bg-gradient-to-b from-gray-50/30 to-white">
+        {/* INTERNAL HEADER - الصغير والمدمج */}
+        <div className="px-10 pt-10 pb-2 flex items-center justify-between relative z-30 bg-transparent">
+           <div className="space-y-0.5">
+              <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-normal">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Growth Prediction Terminal
+              </div>
+              <h3 className="text-xl font-black text-[#002d4d] tracking-normal">محاكي التوقع الرقمي</h3>
+           </div>
+           <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">LIVE ENGINE</Badge>
+        </div>
+
+        {/* UPPER: The Hologram Area - عرض العوائد جنباً إلى جنب */}
+        <div className="relative flex-1 p-8 flex flex-col items-center justify-center overflow-hidden border-b border-gray-50 bg-gradient-to-b from-gray-50/20 to-white">
            <NebulaEffect intensity={intensity} />
            
-           {/* The Light Beam - الإسقاط الضوئي */}
            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-64 bg-gradient-to-t from-blue-500/10 via-blue-500/5 to-transparent blur-[40px] opacity-40 pointer-events-none" />
 
            <div className="relative z-10 flex flex-col items-center gap-12 w-full">
-              {/* Primary Floating Result */}
-              <div className="text-center space-y-2">
-                 <p className="text-[10px] font-black text-blue-600/40 uppercase tracking-widest leading-none">Net Predicted Wealth</p>
-                 <motion.h2 
-                   key={annualProfit}
-                   initial={{ scale: 0.9, opacity: 0 }}
-                   animate={{ scale: 1, opacity: 1 }}
-                   className="text-6xl md:text-7xl font-black text-[#002d4d] tabular-nums tracking-tighter drop-shadow-[0_10px_30px_rgba(0,45,77,0.1)]"
-                 >
-                   <span className="text-xl md:text-2xl text-gray-200 mr-2">$</span>
-                   {annualProfit.toLocaleString()}
-                 </motion.h2>
-                 <div className="flex items-center justify-center gap-2 px-4 py-1 bg-white border border-gray-100 rounded-full shadow-sm">
-                    <TrendingUp size={12} className="text-emerald-500" />
-                    <span className="text-[10px] font-black text-[#002d4d]">عائد سنوي متوقع</span>
+              
+              {/* Results Matrix - الجريان الجانبي */}
+              <div className="grid grid-cols-2 gap-8 md:gap-20 w-full max-w-2xl px-4">
+                 
+                 {/* Monthly Flow Node */}
+                 <div className="flex flex-col items-center text-center space-y-3 group/node">
+                    <p className="text-[9px] font-black text-blue-600/40 uppercase tracking-widest leading-none">التدفق الشهري</p>
+                    <div className="flex items-center text-3xl md:text-5xl font-black text-blue-600 tabular-nums tracking-tighter drop-shadow-[0_10px_20px_rgba(59,130,246,0.1)] h-[1.2em]" dir="ltr">
+                       <span className="text-xl mr-1.5 opacity-30">$</span>
+                       {monthlyProfit.toLocaleString().split("").map((char, i) => (
+                         <AnimatedDigit key={i} digit={char} colorClass="text-blue-600" />
+                       ))}
+                    </div>
+                    <div className="h-0.5 w-8 bg-blue-100 rounded-full group-hover/node:w-16 transition-all duration-700" />
                  </div>
+
+                 {/* Annual Yield Node */}
+                 <div className="flex flex-col items-center text-center space-y-3 group/node">
+                    <p className="text-[9px] font-black text-emerald-600/40 uppercase tracking-widest leading-none">العائد السنوي</p>
+                    <div className="flex items-center text-3xl md:text-5xl font-black text-emerald-600 tabular-nums tracking-tighter drop-shadow-[0_10px_20px_rgba(16,185,129,0.1)] h-[1.2em]" dir="ltr">
+                       <span className="text-xl mr-1.5 opacity-30">$</span>
+                       {annualProfit.toLocaleString().split("").map((char, i) => (
+                         <AnimatedDigit key={i} digit={char} colorClass="text-emerald-600" />
+                       ))}
+                    </div>
+                    <div className="h-0.5 w-8 bg-emerald-100 rounded-full group-hover/node:w-16 transition-all duration-700" />
+                 </div>
+
               </div>
 
-              {/* Secondary Floating Stats */}
-              <div className="grid grid-cols-2 gap-16 md:gap-24">
-                 <HolographicValue label="التدفق الشهري" value={monthlyProfit.toLocaleString()} colorClass="text-blue-600" />
-                 <HolographicValue label="كفاءة المحرك" value={`%${ratio}`} colorClass="text-emerald-600" />
+              {/* Dynamic Spark Label */}
+              <div className="flex items-center gap-3 px-6 py-2 bg-white/80 backdrop-blur-md border border-gray-100 rounded-full shadow-lg">
+                 <div className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#002d4d] tracking-normal">عوائد تشغيلية مبنية على كفاءة المحرك</span>
               </div>
            </div>
         </div>
 
-        {/* MIDDLE: Goal Ignition Hub */}
-        <div className="px-8 md:px-12 py-8 bg-white relative z-20">
+        {/* MIDDLE: Goal Hub - مصفوفة الأهداف */}
+        <div className="px-8 md:px-12 py-8 bg-white relative z-20 border-b border-gray-50">
            <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
               {goals.map((goal: any) => {
                 const isReached = annualProfit >= goal.target;
@@ -176,7 +195,7 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
                      >
                         {getIcon(goal.icon, 20)}
                      </motion.div>
-                     <p className={cn("text-[7px] font-black uppercase text-center leading-none", isReached ? "text-[#002d4d]" : "text-gray-300")}>
+                     <p className={cn("text-[7px] font-black uppercase text-center leading-none tracking-normal", isReached ? "text-[#002d4d]" : "text-gray-300")}>
                         {goal.labelAr}
                      </p>
                   </div>
@@ -185,48 +204,50 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
            </div>
         </div>
 
-        {/* BOTTOM: The Control Base (Input) */}
+        {/* BOTTOM: The Control Base - التحكم برأس المال مع عداد منزلق */}
         <div className="p-8 md:p-12 bg-[#002d4d] text-white relative z-30 shrink-0">
-           <div className="max-w-md mx-auto space-y-8">
-              <div className="text-center space-y-1">
-                 <Label className="text-[10px] font-black text-blue-200/40 uppercase tracking-widest">تحميل رأس المال (Capital Injection)</Label>
+           <div className="max-w-md mx-auto space-y-10">
+              <div className="text-center space-y-4">
+                 <Label className="text-[10px] font-black text-blue-200/40 uppercase tracking-widest">حقن رأس المال (Capital Injection)</Label>
                  <div className="flex items-center justify-center gap-8">
                     <motion.button 
                       whileTap={{ scale: 0.8 }} 
                       onClick={onDecrement}
-                      className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/40 transition-all shadow-xl"
+                      className="h-14 w-14 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/40 transition-all shadow-xl active:scale-90 outline-none"
                     >
-                       <Minus size={20} />
+                       <Minus size={24} />
                     </motion.button>
                     
-                    <div className="flex-1 flex flex-col items-center">
-                       <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-[#f9a885]">$</span>
-                          <span className="text-5xl font-black tabular-nums tracking-tighter">{amount.toLocaleString()}</span>
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                       <div className="flex items-center text-5xl font-black tabular-nums tracking-tighter drop-shadow-[0_0_20px_rgba(249,168,133,0.3)] h-[1.2em]" dir="ltr">
+                          <span className="text-2xl font-bold text-[#f9a885] mr-2">$</span>
+                          {amountValue.toLocaleString().split("").map((char, i) => (
+                            <AnimatedDigit key={i} digit={char} colorClass="text-white" />
+                          ))}
                        </div>
                     </div>
 
                     <motion.button 
                       whileTap={{ scale: 0.8 }} 
                       onClick={onIncrement}
-                      className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#f9a885] hover:text-[#002d4d] transition-all shadow-xl"
+                      className="h-14 w-14 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#f9a885] hover:text-[#002d4d] transition-all shadow-xl active:scale-90 outline-none"
                     >
-                       <Plus size={20} />
+                       <Plus size={24} />
                     </motion.button>
                  </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4 pt-4">
-                 <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-2xl border border-white/5">
-                    <ShieldCheck size={14} className="text-emerald-400" />
-                    <span className="text-[9px] font-black text-blue-100/60 uppercase">Verified Calculation</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-2">
+                 <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-[20px] border border-white/5 backdrop-blur-md">
+                    <ShieldCheck size={16} className="text-emerald-400" />
+                    <span className="text-[9px] font-black text-blue-100/60 uppercase tracking-normal">Capital Guard Active</span>
                  </div>
                  <Button 
                    onClick={() => router.push('/invest')}
-                   className="h-12 px-8 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] shadow-xl active:scale-95 transition-all group"
+                   className="w-full sm:w-auto h-14 px-10 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-xs shadow-2xl active:scale-95 transition-all group"
                  >
-                    تفعيل العقد المقترح
-                    <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                    انطلق لمختبر العقود
+                    <ChevronLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                  </Button>
               </div>
            </div>
@@ -235,8 +256,8 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
       </Card>
 
       {/* Global Brand Footer */}
-      <div className="mt-8 flex flex-col items-center gap-4 opacity-20 select-none">
-         <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em] mr-[-0.8em]">Namix Holographic Console v19.0</p>
+      <div className="mt-8 flex flex-col items-center gap-4 opacity-20 select-none pb-4">
+         <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em] mr-[-0.8em]">Namix Simulation Hub v20.0</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
          </div>
