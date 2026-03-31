@@ -9,8 +9,8 @@ import { SWRegistration } from "@/components/pwa/SWRegistration";
 export const metadata: Metadata = {
   metadataBase: new URL('https://namix.pro'),
   title: {
-    default: 'ناميكس | منصة الاستثمار الرقمي المتقدمة',
-    template: '%s | ناميكس'
+    default: 'ناميكس - Namix | منصة الاستثمار الرقمي المتقدمة',
+    template: '%s | ناميكس - Namix'
   },
   description: 'ناميكس (Namix) هي المنصة الرائدة في إدارة الأصول الرقمية والتداول بالذكاء الاصطناعي. أمان متطور، عوائد استراتيجية، وحماية رأس المال للنخبة.',
   applicationName: 'Namix',
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ar_SA',
     url: 'https://namix.pro',
-    siteName: 'ناميكس',
-    title: 'ناميكس | بوابتك لعالم الاستثمار الرقمي بذكاء',
+    siteName: 'ناميكس - Namix',
+    title: 'ناميكس - Namix | بوابتك لعالم الاستثمار الرقمي بذكاء',
     description: 'ابدأ رحلتك الاستثمارية اليوم مع ناميكس. محرك تداول متطور وبروتوكولات حماية عالمية.',
     images: [
       {
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ناميكس | منصة الاستثمار الرقمي المتقدمة',
+    title: 'ناميكس - Namix | منصة الاستثمار الرقمي المتقدمة',
     description: 'تداول واستثمر بذكاء مع بروتوكول ناميكس المعتمد.',
     images: ['/og-image.png'],
   },
