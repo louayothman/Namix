@@ -35,7 +35,7 @@ interface YieldSimulatorProps {
 }
 
 /**
- * AnimatedDigit - محرك الخانة الرقمية المنزلقة بدقة نانوية
+ * AnimatedDigit - محرك الخانة الرقمية المنزلقة بأسلوب العداد النصي
  */
 function AnimatedDigit({ digit, colorClass = "text-[#002d4d]" }: { digit: string, colorClass?: string }) {
   if (digit === "." || digit === "$" || digit === ",") {
@@ -43,8 +43,9 @@ function AnimatedDigit({ digit, colorClass = "text-[#002d4d]" }: { digit: string
   }
   const num = parseInt(digit);
   if (isNaN(num)) return <span className={cn("inline-block", colorClass)}>{digit}</span>;
+  
   return (
-    <div className="relative h-[1em] w-[0.6em] overflow-hidden inline-block leading-none">
+    <div className="relative h-[1em] w-[0.6em] overflow-hidden inline-block leading-none align-baseline">
       <motion.div
         animate={{ y: -num * 100 + "%" }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
@@ -81,28 +82,28 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
   }, []);
 
   return (
-    <div className="relative py-2 font-body tracking-normal" dir="rtl">
-      <Card className="border-none shadow-xl rounded-[48px] bg-white overflow-hidden border border-gray-100 relative group flex flex-col">
+    <div className="relative py-1 font-body tracking-normal" dir="rtl">
+      <Card className="border-none shadow-xl rounded-[40px] bg-white overflow-hidden border border-gray-100 relative group flex flex-col max-w-2xl mx-auto">
         
-        {/* Header - Compact */}
-        <div className="px-8 pt-8 pb-2 flex items-center justify-between relative z-30">
-           <div className="space-y-0.5">
-              <div className="flex items-center gap-2 text-blue-500 font-black text-[8px] uppercase tracking-normal">
+        {/* Header - Minimalist Inside */}
+        <div className="px-6 pt-6 pb-1 flex items-center justify-between relative z-30">
+           <div className="space-y-0">
+              <div className="flex items-center gap-2 text-blue-500 font-black text-[7px] uppercase tracking-normal">
                 <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                Yield Prediction Node
+                Yield Simulation
               </div>
-              <h3 className="text-lg font-black text-[#002d4d] tracking-normal">محاكي التوقع الرقمي</h3>
+              <h3 className="text-base font-black text-[#002d4d] tracking-normal">محاكي التوقع الرقمي</h3>
            </div>
-           <Badge className="bg-gray-50 text-gray-400 border-none font-black text-[7px] px-2 py-0.5 rounded-full shadow-inner">V21.0</Badge>
+           <Badge className="bg-gray-50 text-gray-400 border-none font-black text-[6px] px-2 py-0.5 rounded-full">V21.0</Badge>
         </div>
 
-        {/* Output Section - Two Columns */}
-        <div className="p-6 md:p-8 grid grid-cols-2 gap-4 relative z-10 border-b border-gray-50">
+        {/* Output Section - Compact Side-by-Side */}
+        <div className="px-6 py-4 grid grid-cols-2 gap-3 relative z-10 border-b border-gray-50">
            {/* Monthly Flow */}
-           <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100 shadow-inner flex flex-col items-center text-center space-y-2">
-              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">التدفق الشهري</p>
-              <div className="flex items-center text-2xl font-black text-blue-600 tabular-nums tracking-tighter h-[1.2em]" dir="ltr">
-                 <span className="text-sm mr-1 opacity-30">$</span>
+           <div className="p-4 bg-gray-50/50 rounded-[28px] border border-gray-100 shadow-inner flex flex-col items-center text-center space-y-1">
+              <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest leading-none">التدفق الشهري</p>
+              <div className="flex items-center text-xl font-black text-blue-600 tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
+                 <span className="text-xs mr-0.5 opacity-30">$</span>
                  {monthlyProfit.toLocaleString().split("").map((char, i) => (
                    <AnimatedDigit key={i} digit={char} colorClass="text-blue-600" />
                  ))}
@@ -110,10 +111,10 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
            </div>
 
            {/* Annual Yield */}
-           <div className="p-5 bg-emerald-50/30 rounded-[32px] border border-emerald-100/20 shadow-inner flex flex-col items-center text-center space-y-2">
-              <p className="text-[8px] font-black text-emerald-600/40 uppercase tracking-widest leading-none">العائد السنوي</p>
-              <div className="flex items-center text-2xl font-black text-emerald-600 tabular-nums tracking-tighter h-[1.2em]" dir="ltr">
-                 <span className="text-sm mr-1 opacity-30">$</span>
+           <div className="p-4 bg-emerald-50/30 rounded-[28px] border border-emerald-100/20 shadow-inner flex flex-col items-center text-center space-y-1">
+              <p className="text-[7px] font-black text-emerald-600/40 uppercase tracking-widest leading-none">العائد السنوي</p>
+              <div className="flex items-center text-xl font-black text-emerald-600 tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
+                 <span className="text-xs mr-0.5 opacity-30">$</span>
                  {annualProfit.toLocaleString().split("").map((char, i) => (
                    <AnimatedDigit key={i} digit={char} colorClass="text-emerald-600" />
                  ))}
@@ -121,20 +122,20 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
            </div>
         </div>
 
-        {/* Goals Grid - Minimized */}
-        <div className="px-6 py-5 bg-white relative z-20 border-b border-gray-50">
-           <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+        {/* Goals Grid - Ultra Compact */}
+        <div className="px-6 py-3 bg-white relative z-20 border-b border-gray-50 overflow-x-auto scrollbar-none">
+           <div className="flex items-center justify-between gap-4 min-w-max md:min-w-0 md:grid md:grid-cols-8">
               {goals.map((goal: any) => {
                 const isReached = annualProfit >= goal.target;
                 return (
-                  <div key={goal.id} className="flex flex-col items-center gap-2">
+                  <div key={goal.id} className="flex flex-col items-center gap-1.5 shrink-0">
                      <div className={cn(
-                       "h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-700",
-                       isReached ? "bg-[#f9a885] text-[#002d4d] shadow-md" : "bg-gray-50 text-gray-200 opacity-30 grayscale"
+                       "h-8 w-8 rounded-[14px] flex items-center justify-center transition-all duration-700",
+                       isReached ? "bg-[#f9a885] text-[#002d4d] shadow-md" : "bg-gray-50 text-gray-200 opacity-30"
                      )}>
-                        {getIcon(goal.icon, 16)}
+                        {getIcon(goal.icon, 14)}
                      </div>
-                     <p className={cn("text-[6px] font-black uppercase text-center leading-none tracking-normal", isReached ? "text-[#002d4d]" : "text-gray-300")}>
+                     <p className={cn("text-[5.5px] font-black uppercase text-center leading-none tracking-normal", isReached ? "text-[#002d4d]" : "text-gray-300")}>
                         {goal.labelAr}
                      </p>
                   </div>
@@ -143,21 +144,21 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
            </div>
         </div>
 
-        {/* Input Section - Dark Base */}
-        <div className="p-6 md:p-8 bg-[#002d4d] text-white relative z-30 shrink-0">
-           <div className="max-w-sm mx-auto space-y-6">
-              <div className="text-center space-y-3">
-                 <Label className="text-[9px] font-black text-blue-200/30 uppercase tracking-widest">حقن رأس المال (Capital)</Label>
-                 <div className="flex items-center justify-center gap-6">
+        {/* Input Section - Dark Base Balanced */}
+        <div className="p-6 bg-[#002d4d] text-white relative z-30 shrink-0">
+           <div className="max-w-sm mx-auto space-y-5">
+              <div className="text-center space-y-2">
+                 <Label className="text-[8px] font-black text-blue-200/30 uppercase tracking-widest">حقن رأس المال (Capital)</Label>
+                 <div className="flex items-center justify-center gap-5">
                     <button 
                       onClick={onDecrement}
-                      className="h-11 w-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 transition-all active:scale-90 outline-none"
+                      className="h-10 w-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 transition-all active:scale-90 outline-none"
                     >
-                       <Minus size={18} />
+                       <Minus size={16} />
                     </button>
                     
-                    <div className="flex items-center text-4xl font-black tabular-nums tracking-tighter h-[1.2em]" dir="ltr">
-                       <span className="text-xl font-bold text-[#f9a885] mr-1.5">$</span>
+                    <div className="flex items-center text-3xl font-black tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
+                       <span className="text-lg font-bold text-[#f9a885] mr-1">$</span>
                        {amountValue.toLocaleString().split("").map((char, i) => (
                          <AnimatedDigit key={i} digit={char} colorClass="text-white" />
                        ))}
@@ -165,24 +166,24 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
 
                     <button 
                       onClick={onIncrement}
-                      className="h-11 w-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#f9a885] hover:text-[#002d4d] transition-all active:scale-90 outline-none"
+                      className="h-10 w-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-[#f9a885] hover:text-[#002d4d] transition-all active:scale-90 outline-none"
                     >
-                       <Plus size={18} />
+                       <Plus size={16} />
                     </button>
                  </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                 <div className="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
-                    <ShieldCheck size={12} className="text-emerald-400" />
-                    <span className="text-[8px] font-black text-blue-100/40 uppercase tracking-normal">Asset Protection Active</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                 <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                    <ShieldCheck size={10} className="text-emerald-400" />
+                    <span className="text-[7px] font-black text-blue-100/40 uppercase tracking-normal">Asset Protection Active</span>
                  </div>
                  <Button 
                    onClick={() => router.push('/invest')}
-                   className="w-full sm:w-auto h-12 px-8 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] shadow-xl active:scale-95 transition-all group"
+                   className="w-full sm:w-auto h-11 px-8 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[9px] shadow-xl active:scale-95 transition-all group"
                  >
                     بدء التشغيل
-                    <ChevronLeft className="mr-1.5 h-3.5 w-3.5 group-hover:-translate-x-1 transition-transform" />
+                    <ChevronLeft className="mr-1 h-3 w-3 group-hover:-translate-x-1 transition-transform" />
                  </Button>
               </div>
            </div>
