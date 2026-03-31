@@ -17,7 +17,6 @@ const ServiceGateway = lazy(() => import("@/components/dashboard/ServiceGateway"
 const InvestmentInventory = lazy(() => import("@/components/dashboard/InvestmentInventory").then(m => ({ default: m.InvestmentInventory })));
 const TierProgress = lazy(() => import("@/components/dashboard/TierProgress").then(m => ({ default: m.TierProgress })));
 const YieldSimulator = lazy(() => import("@/components/dashboard/YieldSimulator").then(m => ({ default: m.YieldSimulator })));
-const GlobalStats = lazy(() => import("@/components/dashboard/GlobalStats").then(m => ({ default: m.GlobalStats })));
 const NewsTicker = lazy(() => import("@/components/dashboard/NewsTicker").then(m => ({ default: m.NewsTicker })));
 const UpcomingEvents = lazy(() => import("@/components/dashboard/UpcomingEvents").then(m => ({ default: m.UpcomingEvents })));
 const GuidanceCenter = lazy(() => import("@/components/dashboard/GuidanceCenter").then(m => ({ default: m.GuidanceCenter })));
@@ -286,7 +285,6 @@ export default function HomePage() {
           </Suspense>
           <Suspense fallback={<SectionLoader />}><UpcomingEvents scheduledPlans={scheduledPlans} /></Suspense>
           <Suspense fallback={<SectionLoader />}><GuidanceCenter /></Suspense>
-          <Suspense fallback={<SectionLoader />}><GlobalStats marketingConfig={marketingConfig} dynamicStats={{ withdrawals: 0, activeUsers: 0, investments: 0 }} /></Suspense>
           <Suspense fallback={<SectionLoader />}><NewsTicker marketingConfig={marketingConfig} /></Suspense>
         </div>
 
