@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, use, Suspense } from "react";
+import { useEffect, useState, use, Suspense, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
