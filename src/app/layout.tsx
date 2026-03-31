@@ -41,9 +41,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Namix Sovereign Dashboard',
+        width: 1280,
+        height: 499,
+        alt: 'Namix Sovereign Interface',
       },
     ],
   },
