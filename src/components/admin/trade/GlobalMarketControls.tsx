@@ -54,7 +54,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
               <div className="h-12 w-12 rounded-2xl bg-white shadow-inner flex items-center justify-center group-hover:rotate-12 transition-transform">
                 <Globe className="h-6 w-6" />
               </div>
-              بروتوكول الضبط العالمي <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mr-2">Market Core</span>
+              الضبط العالمي الموحد <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mr-2">Market Core</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-10">
@@ -157,7 +157,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shadow-inner"><Target className="h-7 w-7 text-[#f9a885]" /></div>
                <div className="space-y-2">
                   <h4 className="text-xl font-black">حوكمة النبض</h4>
-                  <p className="text-[12px] font-bold text-blue-100/60 leading-[2.2]">تؤثر هذه الضوابط على كافة العمليات اللحظية؛ ضمان التوازن بين العائد المرتفع واستقرار السيولة هو أولوية هذا البروتوكول.</p>
+                  <p className="text-[12px] font-bold text-blue-100/60 leading-[2.2]">تؤثر هذه الضوابط على كافة العمليات اللحظية؛ ضمان التوازن بين العائد المرتفع واستقرار السيولة هو أولوية هذا النظام.</p>
                </div>
             </div>
          </div>
@@ -167,8 +167,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
             <div className="space-y-3">
                {[
                  { label: 'الذكاء الاصطناعي (NAMIX AI)', id: 'aiEnabled', color: 'bg-blue-500' },
-                 { label: 'محرك التحليل الفني', id: 'chartsEnabled', color: 'bg-emerald-500' },
-                 { label: 'التداول الاجتماعي', id: 'socialEnabled', color: 'bg-[#f9a885]' }
+                 { label: 'محرك التحليل الفني', id: 'chartsEnabled', color: 'bg-emerald-500' }
                ].map(opt => (
                  <div key={opt.id} className="flex items-center justify-between p-5 bg-white rounded-3xl border border-gray-100 shadow-sm">
                     <span className="text-[10px] font-black text-[#002d4d]">{opt.label}</span>

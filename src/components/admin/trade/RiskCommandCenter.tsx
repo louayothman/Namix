@@ -95,7 +95,7 @@ export function RiskCommandCenter({ data, onChange, onSave, saving }: RiskComman
                <div className="h-16 w-16 rounded-[24px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shadow-inner"><ShieldAlert className="h-8 w-8 text-[#f9a885]" /></div>
                <div className="space-y-2">
                   <h4 className="text-2xl font-black">حوكمة المخاطر</h4>
-                  <p className="text-[13px] font-bold text-red-50 leading-[2.2]">تعمل هذه الضوابط كصمامات أمان ذكية؛ عند تفعيل "وقف الخسارة"، سيقوم النظام بتعطيل زر الشراء للمستثمر فور وصول خسائره للحد المحدد لضمان استقرار مركزه المالي.</p>
+                  <p className="text-[13px] font-bold text-red-50 leading-[2.2]">تعمل هذه الضوابط كصمامات أمان ذكية؛ عند تفعيل "وقف الخسارة"، سيقوم النظام بتعطيل أزرار التداول للمستثمر فور وصول خسائره للحد المحدد لضمان استقرار مركزه المالي.</p>
                </div>
             </div>
          </div>
@@ -103,21 +103,19 @@ export function RiskCommandCenter({ data, onChange, onSave, saving }: RiskComman
          <div className="p-10 bg-white border border-gray-100 rounded-[48px] shadow-sm space-y-8">
             <div className="flex items-center gap-3 px-2">
                <Target className="h-5 w-5 text-emerald-500" />
-               <h4 className="font-black text-sm text-[#002d4d]">أتمتة التشغيل الميكروني</h4>
+               <h4 className="font-black text-sm text-[#002d4d]">أتمتة التشغيل المعتمد</h4>
             </div>
             <div className="space-y-6">
                <div className="flex items-center justify-between p-5 bg-gray-50 rounded-3xl">
                   <span className="text-[10px] font-black text-gray-400 uppercase">تأمين بـ PIN</span>
                   <Switch checked={!!data.requirePinToTrade} onCheckedChange={val => onChange({...data, requirePinToTrade: val})} className="data-[state=checked]:bg-[#002d4d] scale-75" />
                </div>
-               <div className="flex items-center justify-between p-5 bg-gray-50 rounded-3xl">
-                  <span className="text-[10px] font-black text-gray-400 uppercase">التدقيق الذاتي</span>
-                  <Switch checked={!!data.autoCompliance} onCheckedChange={val => onChange({...data, autoCompliance: val})} className="data-[state=checked]:bg-[#002d4d] scale-75" />
-               </div>
-               <div className="p-6 bg-emerald-50 rounded-[32px] border border-emerald-100 space-y-4">
-                  <p className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">تذبذب الألياف (Internal Volatility)</p>
-                  <Input type="number" step="0.1" value={data.internalVolatilityMult || 1.0} onChange={e => onChange({...data, internalVolatilityMult: Number(e.target.value)})} className="h-12 rounded-xl bg-white border-none font-black text-center text-emerald-600" />
-                  <p className="text-[8px] text-emerald-600/60 font-bold text-center">مضاعف حركة السعر للأصول الداخلية.</p>
+               <div className="p-6 bg-emerald-50 rounded-[32px] border border-emerald-100 space-y-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <span className="text-[10px] font-black text-emerald-800">حماية السيولة</span>
+                  </div>
+                  <p className="text-[10px] text-emerald-600/60 font-bold leading-relaxed">كافة عمليات التداول تخضع لبروتوكول حماية الأصول لضمان استدامة رأس مال المستثمر.</p>
                </div>
             </div>
          </div>
