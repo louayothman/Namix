@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useCallback } from "react";
@@ -24,7 +23,9 @@ import {
   Repeat,
   Activity,
   Waves,
-  Cpu
+  Cpu,
+  Plus,
+  Minus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -251,7 +252,7 @@ export function YieldSimulator({ marketingConfig, calcAmount, onAmountChange, on
                     key={goal.id} 
                     onClick={() => handleGoalClick(goal.linkedPlanId)}
                     className={cn(
-                      "group p-6 rounded-[40px] border transition-all duration-700 relative overflow-hidden text-right flex flex-col justify-between h-[120px] active:scale-95",
+                      "group p-6 rounded-[40px] border transition-all duration-700 relative overflow-hidden text-right flex flex-col justify-between h-[120px] active:scale-[0.98]",
                       isAchievableSoon ? "bg-blue-50/50 border-blue-100 hover:shadow-xl hover:bg-white" : "bg-gray-50/30 border-gray-50 hover:bg-white"
                     )}
                   >
