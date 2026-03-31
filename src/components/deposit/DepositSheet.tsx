@@ -24,11 +24,9 @@ import {
   ChevronRight, 
   Loader2, 
   CheckCircle2, 
-  Wallet, 
   Zap, 
   ShieldCheck, 
   Sparkles, 
-  CreditCard, 
   Coins, 
   Hash, 
   ChevronLeft, 
@@ -110,12 +108,10 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           ...prev,
           details: { ...prev.details, [fieldName]: text }
         }));
-        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "تم اللصق بنجاح!", isError: false } }));
-      } else {
-        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "الحافظة فارغة", isError: true } }));
+        setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "تم اللصق!", isError: false } }));
       }
     } catch (err) {
-      setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "فشل الوصول", isError: true } }));
+      setPasteStatus(prev => ({ ...prev, [fieldName]: { msg: "فشل", isError: true } }));
     }
     setTimeout(() => {
       setPasteStatus(prev => {
@@ -145,10 +141,10 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.amount && !selectedPortal?.isBinanceLinked) newErrors.amount = "يرجى تحديد مبلغ الإيداع.";
+    if (!formData.amount && !selectedPortal?.isBinanceLinked) newErrors.amount = "مطلوب.";
     
     selectedPortal?.fields?.forEach((f: any) => {
-      if (!formData.details[f.label]) newErrors[f.label] = "هذا البيان مطلوب.";
+      if (!formData.details[f.label]) newErrors[f.label] = "مطلوب.";
     });
 
     if (Object.keys(newErrors).length > 0) {
@@ -159,19 +155,13 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
     const txidField = selectedPortal.fields?.find((f: any) => f.isTxid) || selectedPortal.fields?.[0];
     const txid = txidField ? (formData.details[txidField.label] || "").trim() : "";
 
-    if (!txid) {
-      const targetLabel = txidField?.label || "TXID";
-      setFieldErrors({ [targetLabel]: "معرف العملية مطلوب للتوثيق." });
-      return;
-    }
-
     setStep("validating");
 
     try {
       const q = query(collection(db, "deposit_requests"), where("transactionId", "==", txid));
       const duplicateSnap = await getDocs(q);
       if (!duplicateSnap.empty) {
-        setBinanceError("عذراً، هذا المعرف تم استخدامه مسبقاً في عملية إيداع أخرى.");
+        setBinanceError("هذا المعرف مستخدم مسبقاً.");
         setStep("fail");
         return;
       }
@@ -215,18 +205,9 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             totalBalance: increment(totalToAdd)
           });
 
-          await addDoc(collection(db, "notifications"), {
-            userId: localUser.id,
-            title: "تم توثيق الإيداع بنجاح ⚡",
-            message: `تم التحقق من المعاملة ${txid} وإيداع المبلغ الفعلي مع المكافأة في محفظتك فوراً.`,
-            type: "success",
-            isRead: false,
-            createdAt: new Date().toISOString()
-          });
-
           setStep("success");
         } else {
-          setBinanceError("تعذر العثور على المعاملة الموثقة. تأكد من صحة البيانات والشبكة المستخدمة.");
+          setBinanceError("تعذر العثور على المعاملة. تأكد من صحة البيانات.");
           setStep("fail");
         }
         return;
@@ -246,7 +227,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       });
       setStep("success");
     } catch (e: any) {
-      setBinanceError("حدث خطأ تقني أثناء محاولة توثيق العملية.");
+      setBinanceError("خطأ تقني في التوثيق.");
       setStep("fail");
     } finally {
       setLoading(false);
@@ -271,50 +252,46 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] outline-none flex flex-col bg-white rounded-t-[48px] border-none shadow-[0_-20px_80px_rgba(0,45,77,0.4)] z-[1001] font-body" dir="rtl">
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] outline-none flex flex-col bg-white rounded-t-[40px] border-none shadow-2xl z-[1001] font-body" dir="rtl">
             
-            <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-5">
-              <div className="flex items-center gap-4 text-right">
-                 <div className="h-12 w-12 rounded-[20px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl relative overflow-hidden">
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute inset-0 opacity-10 bg-gradient-to-tr from-white to-transparent" />
-                    <ArrowUpCircle className="h-6 w-6 relative z-10" />
+            <DrawerHeader className="px-6 pt-5 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-3">
+              <div className="flex items-center gap-3 text-right">
+                 <div className="h-10 w-10 rounded-[16px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg relative overflow-hidden">
+                    <ArrowUpCircle className="h-5 w-5 relative z-10" />
                  </div>
-                 <div className="space-y-0.5">
-                   <DrawerTitle className="text-xl font-black text-[#002d4d] tracking-tight">شحن الرصيد</DrawerTitle>
-                   <p className="text-[#f9a885] font-black text-[8px] uppercase tracking-[0.3em]">Capital Inflow Protocol</p>
+                 <div className="space-y-0">
+                   <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-normal leading-none">شحن الرصيد</DrawerTitle>
+                   <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1">Namix Inflow</p>
                  </div>
               </div>
               
               {step !== "select_category" && step !== "success" && step !== "validating" && (
-                <button onClick={handleBack} className="rounded-full h-10 px-5 bg-gray-50 text-gray-400 font-black text-[10px] border border-gray-100 group active:scale-95 transition-all flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /> رجوع
+                <button onClick={handleBack} className="rounded-full h-8 px-4 bg-gray-50 text-gray-400 font-black text-[9px] border border-gray-100 group active:scale-95 transition-all flex items-center gap-1.5">
+                  <ChevronRight className="h-3.5 w-3.5" /> رجوع
                 </button>
               )}
             </DrawerHeader>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-none space-y-8 bg-gradient-to-b from-white to-gray-50/30">
+            <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-none space-y-6 bg-gradient-to-b from-white to-gray-50/20">
               {step === "select_category" && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                  <div className="px-2 space-y-1 text-right">
-                    <h3 className="font-black text-[#002d4d] text-base flex items-center gap-3 justify-end tracking-normal">
-                      حدد فئة الأصول <ListFilter className="h-4 w-4 text-blue-500" />
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="px-2 space-y-0.5 text-right">
+                    <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">
+                      حدد فئة الأصول <ListFilter className="h-3.5 w-3.5 text-blue-500" />
                     </h3>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Inflow Categorization</p>
+                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Category</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {categories?.map(cat => (
                       <button
                         key={cat.id}
                         onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }}
-                        className="p-6 rounded-[40px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-2xl transition-all duration-500 flex flex-col items-center gap-4 text-center group active:scale-[0.98] relative overflow-hidden"
+                        className="p-4 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-3 text-center group active:scale-[0.98] relative overflow-hidden"
                       >
-                        <div className="absolute -bottom-4 -left-4 opacity-[0.02] group-hover:opacity-[0.08] transition-opacity duration-1000">
-                           <Layers size={80} />
+                        <div className="h-11 w-11 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
+                          <Layers className="h-5 w-5" />
                         </div>
-                        <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500">
-                          <Layers className="h-7 w-7" />
-                        </div>
-                        <p className="font-black text-sm text-[#002d4d] tracking-normal">{cat.name}</p>
+                        <p className="font-black text-xs text-[#002d4d] tracking-normal">{cat.name}</p>
                       </button>
                     ))}
                   </div>
@@ -322,196 +299,146 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               )}
 
               {step === "select_portal" && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 text-right">
-                  <div className="px-2 space-y-1">
-                    <h3 className="font-black text-[#002d4d] text-base flex items-center gap-3 justify-end tracking-normal">
-                      بوابات {selectedCategory?.name} <Zap className="h-4 w-4 text-emerald-500" />
+                <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500 text-right">
+                  <div className="px-2 space-y-0.5">
+                    <h3 className="font-black text-[#002d4d] text-sm flex items-center gap-2 justify-end tracking-normal">
+                      بوابات {selectedCategory?.name} <Zap className="h-3.5 w-3.5 text-emerald-500" />
                     </h3>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Protocol Entry Points</p>
+                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Portal</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {activePortals.map((p: any) => (
                       <button
                         key={p.id}
                         onClick={() => setSelectedPortalId(p.id)}
                         className={cn(
-                          "flex flex-col items-center justify-center gap-4 p-6 rounded-[40px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group",
-                          selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-2xl scale-[1.02]" : "border-gray-100 bg-white"
+                          "flex flex-col items-center justify-center gap-3 p-4 rounded-[32px] border transition-all duration-500 active:scale-[0.98] text-center relative overflow-hidden group",
+                          selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-100 bg-white"
                         )}
                       >
-                        <div className="absolute -bottom-4 -left-4 opacity-[0.02] group-hover:opacity-[0.08] transition-opacity duration-1000">
-                           <CryptoIcon name={p.icon} size={80} />
-                        </div>
                         <div className={cn(
-                          "h-16 w-16 rounded-[24px] flex items-center justify-center shadow-inner transition-all duration-500",
+                          "h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner transition-all",
                           selectedPortalId === p.id ? "bg-[#002d4d] text-[#f9a885]" : "bg-gray-50 text-[#002d4d]"
                         )}>
-                          <CryptoIcon name={p.icon} size={32} />
+                          <CryptoIcon name={p.icon} size={24} />
                         </div>
-                        <div className="space-y-1 relative z-10">
-                           <span className={cn("font-black text-[13px] block tracking-normal", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-500")}>{p.name}</span>
-                           {selectedPortalId === p.id && <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[7px] px-2 py-0.5 rounded-md animate-in fade-in">SELECTED</Badge>}
-                        </div>
+                        <span className={cn("font-black text-[11px] block tracking-normal", selectedPortalId === p.id ? "text-[#002d4d]" : "text-gray-500")}>{p.name}</span>
                       </button>
                     ))}
                   </div>
-                  <div className="pt-4">
-                    <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-2xl active:scale-95 transition-all">
-                       المتابعة للتعليمات
-                       <ChevronLeft className="mr-2 h-5 w-5 text-[#f9a885]" />
-                    </Button>
-                  </div>
+                  <Button disabled={!selectedPortalId} onClick={() => setStep("instructions")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl transition-all">
+                     المتابعة للتعليمات
+                  </Button>
                 </div>
               )}
 
               {step === "instructions" && selectedPortal && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 text-right">
-                  <div className="p-8 bg-blue-50/40 rounded-[40px] border border-blue-100/50 space-y-4 shadow-inner relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:scale-110 transition-transform"><Info size={120} /></div>
-                    <div className="flex items-center gap-3 pr-1 text-blue-600 relative z-10">
-                      <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm"><Info size={18} /></div>
-                      <h4 className="text-sm font-black uppercase tracking-tight">بروتوكول الشحن المعتمد:</h4>
+                <div className="space-y-6 animate-in fade-in duration-500 text-right">
+                  <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-3 shadow-inner">
+                    <div className="flex items-center gap-2 pr-1 text-blue-600">
+                      <Info size={16} />
+                      <h4 className="text-xs font-black uppercase tracking-normal">بروتوكول الشحن:</h4>
                     </div>
-                    <p className="text-[13px] font-bold leading-[2.2] text-blue-800/70 pr-1 tracking-normal relative z-10">{selectedPortal.instructions}</p>
+                    <p className="text-[12px] font-bold leading-relaxed text-blue-800/70 pr-1 tracking-normal">{selectedPortal.instructions}</p>
                   </div>
 
                   {selectedPortal.walletAddress && (
-                    <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 space-y-4 shadow-sm">
-                      <div className="flex justify-between items-center px-4">
-                         <Label className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Portal Destination</Label>
-                         <Badge variant="outline" className="text-[8px] font-black border-gray-200 text-gray-400">ENCRYPTED</Badge>
-                      </div>
-                      <div className="flex items-center gap-3 bg-white p-2 rounded-[28px] border border-gray-100 shadow-sm">
-                        <div className="flex-1 px-5 font-mono text-[11px] break-all font-black text-[#002d4d] text-left leading-relaxed py-2" dir="ltr">{selectedPortal.walletAddress}</div>
-                        <Button size="icon" className="shrink-0 h-12 w-12 rounded-2xl bg-[#002d4d] text-[#f9a885] shadow-xl active:scale-[0.9] transition-all" onClick={() => handleCopy(selectedPortal.walletAddress)}>
-                          {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                    <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 space-y-3 shadow-sm">
+                      <Label className="text-[9px] text-gray-400 font-black uppercase tracking-widest pr-2">Portal Destination</Label>
+                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-[20px] border border-gray-100">
+                        <div className="flex-1 px-3 font-mono text-[10px] break-all font-black text-[#002d4d] text-left leading-relaxed" dir="ltr">{selectedPortal.walletAddress}</div>
+                        <Button size="icon" className="shrink-0 h-10 w-10 rounded-xl bg-[#002d4d] text-[#f9a885]" onClick={() => handleCopy(selectedPortal.walletAddress)}>
+                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>
                   )}
 
-                  <Button onClick={() => setStep("form")} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-2xl active:scale-95 group">
+                  <Button onClick={() => setStep("form")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">
                      لقد أتممت التحويل
-                     <ChevronLeft className="mr-2 h-5 w-5 text-[#f9a885] group-hover:-translate-x-1 transition-transform" />
                   </Button>
                 </div>
               )}
 
               {step === "form" && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 text-right">
+                <div className="space-y-6 animate-in fade-in duration-500 text-right">
                   {!selectedPortal?.isBinanceLinked && (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between px-4">
-                        <Label className="font-black text-[#002d4d] text-[10px] uppercase tracking-[0.3em]">المبلغ المودع ($)</Label>
-                        {currentBonusData.percent > 0 && (
-                          <Badge className="bg-emerald-500 text-white border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse shadow-lg shadow-emerald-900/20">
-                            BONUS ACTIVE +{currentBonusData.percent}%
-                          </Badge>
-                        )}
+                        <Label className="font-black text-[#002d4d] text-[9px] uppercase tracking-widest">المبلغ المودع ($)</Label>
+                        {currentBonusData.percent > 0 && <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-2 py-0.5 rounded-full animate-pulse">BONUS +{currentBonusData.percent}%</Badge>}
                       </div>
-                      <div className="relative group">
-                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-20 rounded-[32px] bg-gray-50 border-none font-black text-center text-4xl shadow-inner focus-visible:ring-4 focus-visible:ring-emerald-500/5 transition-all text-[#002d4d] tabular-nums tracking-tighter" />
-                        <Coins className="absolute left-8 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-100 group-focus-within:text-emerald-500/20 transition-colors" />
+                      <div className="relative">
+                        <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-16 rounded-[24px] bg-gray-50 border-none font-black text-center text-3xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
+                        <Coins className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-100" />
                       </div>
-                      {fieldErrors.amount && <p className="text-red-500 text-[10px] font-black pr-6 animate-in slide-in-from-top-1">{fieldErrors.amount}</p>}
+                      {fieldErrors.amount && <p className="text-red-500 text-[9px] font-black pr-4">{fieldErrors.amount}</p>}
                     </div>
                   )}
 
-                  <div className="p-8 bg-gray-50/50 rounded-[48px] border border-gray-100 space-y-8 shadow-inner">
-                    <div className="flex items-center justify-between px-2">
-                       <h4 className="text-sm font-black text-[#002d4d] uppercase tracking-tight">بيانات التوثيق السيادي</h4>
-                       {selectedPortal?.isBinanceLinked && (
-                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                            <span className="text-[8px] font-black text-blue-600 uppercase">Automated API Node</span>
-                         </div>
-                       )}
-                    </div>
-                    
-                    <div className="grid gap-6">
+                  <div className="p-6 bg-gray-50/50 rounded-[36px] border border-gray-100 space-y-5 shadow-inner">
+                    <div className="grid gap-4">
                       {selectedPortal?.fields?.map((f: any, i: number) => (
-                        <div key={i} className="space-y-2">
-                          <Label className="font-black text-gray-400 text-[9px] pr-4 uppercase tracking-widest">{f.label}</Label>
+                        <div key={i} className="space-y-1.5">
+                          <Label className="font-black text-gray-400 text-[8px] pr-3 uppercase tracking-widest">{f.label}</Label>
                           {f.type === 'select' ? (
                             <Select onValueChange={(val) => {
                               setFormData(prev => ({ ...prev, details: { ...prev.details, [f.label]: val } }));
                               setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; });
                             }}>
-                               <SelectTrigger className="h-14 rounded-[20px] bg-white border-none font-black text-sm shadow-sm px-8">
+                               <SelectTrigger className="h-12 rounded-[18px] bg-white border-none font-black text-xs shadow-sm px-6">
                                   <SelectValue placeholder={f.placeholder} />
                                 </SelectTrigger>
-                               <SelectContent className="rounded-[28px] border-none shadow-2xl z-[1100]" dir="rtl">
+                               <SelectContent className="rounded-2xl" dir="rtl">
                                   {f.options?.map((opt: string, idx: number) => (
-                                    <SelectItem key={idx} value={opt} className="font-bold text-right py-3 cursor-pointer">{opt}</SelectItem>
+                                    <SelectItem key={idx} value={opt} className="font-bold text-right py-2.5">{opt}</SelectItem>
                                   ))}
                                </SelectContent>
                             </Select>
                           ) : (
-                            <div className="relative group/field">
-                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-14 rounded-[20px] bg-white border-none font-black text-center text-xs shadow-sm px-8 group-focus-within/field:ring-2 group-focus-within/field:ring-blue-500/10 transition-all", f.hasPasteButton && "pl-14")} />
+                            <div className="relative">
+                              <Input placeholder={f.placeholder} value={formData.details[f.label] || ""} onChange={e => { setFormData({...formData, details: { ...formData.details, [f.label]: e.target.value }}); setFieldErrors(prev => { const newErrs = {...prev}; delete newErrs[f.label]; return newErrs; }); }} className={cn("h-12 rounded-[18px] bg-white border-none font-black text-center text-[11px] shadow-sm px-6", f.hasPasteButton && "pl-12")} />
                               {f.hasPasteButton && (
-                                <button 
-                                  onClick={() => handlePaste(f.label)}
-                                  className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl bg-gray-50 flex items-center justify-center text-[#f9a885] hover:bg-[#002d4d] hover:text-white transition-all shadow-sm active:scale-90"
-                                  title="لصق من الحافظة"
-                                >
-                                  <ClipboardPaste size={16} />
+                                <button onClick={() => handlePaste(f.label)} className="absolute left-2.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 transition-all">
+                                  <ClipboardPaste size={14} />
                                 </button>
                               )}
                             </div>
                           )}
-                          <div className="flex justify-between items-center px-4 mt-1 min-h-[16px]">
+                          <div className="flex justify-between px-3">
                             {fieldErrors[f.label] && <p className="text-red-500 text-[8px] font-black">{fieldErrors[f.label]}</p>}
-                            {pasteStatus[f.label] && (
-                              <p className={cn("text-[9px] font-black animate-in fade-in slide-in-from-top-1", pasteStatus[f.label].isError ? "text-red-500" : "text-emerald-500")}>
-                                {pasteStatus[f.label].msg}
-                              </p>
-                            )}
+                            {pasteStatus[f.label] && <p className="text-[8px] font-black text-emerald-500">{pasteStatus[f.label].msg}</p>}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <Button onClick={handleSubmit} disabled={loading} className="w-full h-18 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-lg shadow-2xl active:scale-95 transition-all group overflow-hidden relative">
-                    <div className="absolute inset-0 bg-white/10 skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
-                    {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                      <div className="flex items-center gap-3 relative z-10">
-                        <span>إكمال بروتوكول الإيداع</span>
-                        <ShieldCheck className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-                      </div>
-                    )}
+                  <Button onClick={handleSubmit} disabled={loading} className="w-full h-16 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-base shadow-xl active:scale-95 transition-all group overflow-hidden relative">
+                    {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إكمال بروتوكول الإيداع"}
                   </Button>
                 </div>
               )}
 
               {step === "validating" && (
-                <div className="h-full flex flex-col items-center justify-center py-20 gap-10 animate-in zoom-in-95 duration-1000">
+                <div className="h-full flex flex-col items-center justify-center py-12 gap-6 animate-in zoom-in-95">
                    <div className="relative">
-                      <div className="h-28 w-28 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin shadow-inner" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                         <ShieldCheck className="h-10 w-10 text-[#002d4d] animate-pulse" />
+                      <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center text-[#002d4d] animate-pulse">
+                         <ShieldCheck className="h-8 w-8" />
                       </div>
                    </div>
-                   <div className="text-center space-y-2">
-                      <h4 className="text-2xl font-black text-[#002d4d]">جاري توثيق المعاملة...</h4>
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] animate-pulse">Operational Verification Node</p>
-                   </div>
+                   <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري توثيق المعاملة...</p>
                 </div>
               )}
 
               {step === "fail" && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 text-center py-10">
-                   <div className="h-24 w-24 bg-red-50 rounded-[36px] flex items-center justify-center shadow-inner mx-auto border border-red-100 animate-bounce">
-                      <ShieldX className="h-12 w-12 text-red-500" />
+                <div className="space-y-6 animate-in fade-in duration-500 text-center py-6">
+                   <div className="h-16 w-16 bg-red-50 rounded-[24px] flex items-center justify-center mx-auto border border-red-100">
+                      <ShieldX className="h-8 w-8 text-red-500" />
                    </div>
-                   <div className="space-y-2">
-                      <h3 className="text-2xl font-black text-red-600 tracking-tight">فشل التحقق أمنياً</h3>
-                      <p className="text-[13px] font-bold text-red-800/60 leading-[2] px-10 tracking-normal">{binanceError}</p>
-                   </div>
-                   <div className="pt-4 px-6">
-                      <Button onClick={handleBack} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95 transition-all">العودة لتصحيح البيانات</Button>
-                   </div>
+                   <p className="text-xs font-bold text-red-800/60 leading-relaxed px-6">{binanceError}</p>
+                   <Button onClick={handleBack} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl">تعديل البيانات</Button>
                 </div>
               )}
             </div>
@@ -522,18 +449,18 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       <Dialog open={step === "success"} onOpenChange={(open) => !open && handleClose()}>
         <DialogPortal>
           <DialogOverlay className="fixed inset-0 bg-black/40 backdrop-blur-md z-[1100]" />
-          <DialogContent className="fixed left-[50%] top-[50%] z-[1101] translate-x-[-50%] translate-y-[-50%] rounded-[64px] border-none p-10 max-w-[380px] text-center bg-white shadow-2xl outline-none font-body" dir="rtl">
-            <div className="flex flex-col items-center space-y-8">
-              <div className="h-24 w-24 bg-emerald-50 rounded-[40px] flex items-center justify-center shadow-inner animate-in zoom-in-50 duration-700 border border-emerald-100">
-                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+          <DialogContent className="fixed left-[50%] top-[50%] z-[1101] translate-x-[-50%] translate-y-[-50%] rounded-[40px] border-none p-10 max-w-[340px] text-center bg-white shadow-2xl outline-none font-body" dir="rtl">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="h-20 w-20 bg-emerald-50 rounded-[32px] flex items-center justify-center shadow-inner border border-emerald-100">
+                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
               </div>
-              <div className="space-y-2">
-                <DialogTitle className="text-2xl font-black text-[#002d4d] tracking-tight">عملية شحن ناجحة!</DialogTitle>
-                <DialogDescription className="text-[13px] text-gray-400 font-bold leading-[2] px-4 tracking-normal">
-                  لقد تم استلام بيانات العملية بنجاح. سيتم تحديث رصيد محفظتك فور انتهاء التدقيق الأمني المعتمد.
+              <div className="space-y-1">
+                <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">عملية ناجحة!</DialogTitle>
+                <DialogDescription className="text-xs text-gray-400 font-bold leading-relaxed tracking-normal">
+                  لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء التدقيق الأمني المعتمد.
                 </DialogDescription>
               </div>
-              <Button onClick={handleClose} className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all">العودة للوحة القيادة</Button>
+              <Button onClick={handleClose} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
             </div>
           </DialogContent>
         </DialogPortal>
