@@ -11,36 +11,21 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Wallet, 
   Plus, 
   Trash2, 
   ChevronDown, 
   ChevronUp, 
   ChevronLeft,
-  CreditCard, 
   Layers, 
   ShieldAlert, 
   AlertTriangle, 
   ListFilter, 
   Type,
-  Bitcoin,
-  Coins,
-  Zap,
-  Globe,
-  Landmark,
-  Diamond,
-  CircleDollarSign,
-  Banknote,
   Cpu,
   ShieldCheck,
   Hash,
   Loader2,
   Sparkles,
-  TrendingUp,
-  Activity,
-  Gem,
-  Award,
-  Shield,
   X,
   ClipboardPaste
 } from "lucide-react";
@@ -62,24 +47,35 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getBinanceDepositAddress } from "@/app/actions/binance-actions";
 import { BINANCE_SUPPORTED_ASSETS } from "@/lib/binance-constants";
+import { CryptoIcon } from "@/lib/crypto-icons";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const ICON_OPTIONS = [
-  { id: 'Bitcoin', icon: Bitcoin, label: 'Bitcoin (BTC)' },
-  { id: 'Coins', icon: Coins, label: 'Stablecoin (USDT)' },
-  { id: 'Diamond', icon: Diamond, label: 'Ethereum (ETH)' },
-  { id: 'Zap', icon: Zap, label: 'TRON / Fast' },
-  { id: 'Landmark', icon: Landmark, label: 'Bank Transfer' },
-  { id: 'CreditCard', icon: CreditCard, label: 'Credit Card' },
-  { id: 'Banknote', icon: Banknote, label: 'Cash / Local' },
-  { id: 'Wallet', icon: Wallet, label: 'Digital Wallet' },
-  { id: 'Globe', icon: Globe, label: 'International' },
-  { id: 'CircleDollarSign', icon: CircleDollarSign, label: 'USD / Fiat' },
-  { id: 'Gem', icon: Gem, label: 'Premium / Assets' },
-  { id: 'Award', icon: Award, label: 'Verified / Top' },
-  { id: 'Cpu', icon: Cpu, label: 'Automated / AI' },
-  { id: 'ShieldCheck', icon: ShieldCheck, label: 'Secured' },
-  { id: 'TrendingUp', icon: TrendingUp, label: 'Growth' },
-  { id: 'Activity', icon: Activity, label: 'Live Pulse' }
+  { id: 'USDT', label: 'Tether (USDT)' },
+  { id: 'BTC', label: 'Bitcoin (BTC)' },
+  { id: 'ETH', label: 'Ethereum (ETH)' },
+  { id: 'SOL', label: 'Solana (SOL)' },
+  { id: 'TRX', label: 'Tron (TRX)' },
+  { id: 'BNB', label: 'Binance Coin (BNB)' },
+  { id: 'LTC', label: 'Litecoin (LTC)' },
+  { id: 'USDC', label: 'USD Coin (USDC)' },
+  { id: 'XRP', label: 'Ripple (XRP)' },
+  { id: 'DOGE', label: 'Dogecoin (DOGE)' },
+  { id: 'ADA', label: 'Cardano (ADA)' },
+  { id: 'DOT', label: 'Polkadot (DOT)' },
+  { id: 'MATIC', label: 'Polygon (MATIC)' },
+  { id: 'LINK', label: 'Chainlink (LINK)' },
+  { id: 'Landmark', label: 'Bank Transfer' },
+  { id: 'CreditCard', label: 'Credit Card' },
+  { id: 'Banknote', label: 'Cash / Local' },
+  { id: 'Wallet', label: 'Digital Wallet' },
+  { id: 'Globe', label: 'International' },
+  { id: 'CircleDollarSign', label: 'Fiat / USD' },
+  { id: 'Zap', label: 'Instant / Fast' },
+  { id: 'ShieldCheck', label: 'Secured' },
+  { id: 'Cpu', label: 'Automated' },
+  { id: 'Award', label: 'Verified' },
+  { id: 'Activity', label: 'Live Node' }
 ];
 
 export function DepositLogicSection() {
@@ -98,7 +94,7 @@ export function DepositLogicSection() {
     name: "",
     walletAddress: "",
     instructions: "",
-    icon: "Coins",
+    icon: "USDT",
     isBinanceLinked: false,
     asset: "USDT",
     network: "TRX"
@@ -139,7 +135,7 @@ export function DepositLogicSection() {
       await updateDoc(doc(db, "deposit_methods", activeCatId), {
         portals: arrayUnion(portalData)
       });
-      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "Coins", isBinanceLinked: false, asset: "USDT", network: "TRX" });
+      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "USDT", isBinanceLinked: false, asset: "USDT", network: "TRX" });
       setIsAddPortalOpen(false);
       toast({ title: "تمت إضافة البوابة للقسم" });
     } catch (e) { toast({ variant: "destructive", title: "فشل الإرسال" }); }
@@ -229,12 +225,6 @@ export function DepositLogicSection() {
     await updateDoc(doc(db, "deposit_methods", catId), { portals: updatedPortals });
   };
 
-  const getPortalIcon = (iconId: string) => {
-    const option = ICON_OPTIONS.find(o => o.id === iconId);
-    const IconComp = option ? option.icon : Coins;
-    return <IconComp className="h-6 w-6" />;
-  };
-
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-left-6 duration-700 font-body">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -259,7 +249,7 @@ export function DepositLogicSection() {
               <div className="p-8 flex items-center justify-between bg-gray-50/50 border-b border-gray-100" dir="rtl">
                 <div className="flex items-center gap-5">
                   <div className="h-14 w-14 rounded-[22px] bg-white shadow-sm flex items-center justify-center text-[#002d4d]">
-                    <Wallet className="h-7 w-7" />
+                    <CryptoIcon name="Wallet" size={28} />
                   </div>
                   <div className="space-y-0.5 text-right">
                     <h3 className="font-black text-xl text-[#002d4d]">{category.name}</h3>
@@ -298,8 +288,8 @@ export function DepositLogicSection() {
                         <div key={portal.id} className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6 relative group/portal">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-[18px] bg-white flex items-center justify-center text-emerald-600 shadow-sm">
-                                {getPortalIcon(portal.icon)}
+                              <div className="h-12 w-12 rounded-[18px] bg-white flex items-center justify-center shadow-sm">
+                                <CryptoIcon name={portal.icon} size={24} />
                               </div>
                               <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
                             </div>
@@ -331,7 +321,7 @@ export function DepositLogicSection() {
                             <div className="space-y-1.5 text-right">
                               <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">أيقونة الواجهة</Label>
                               <Select 
-                                value={portal.icon || "Coins"} 
+                                value={portal.icon || "USDT"} 
                                 onValueChange={async (val) => {
                                   const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, icon: val } : p);
                                   await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
@@ -344,7 +334,7 @@ export function DepositLogicSection() {
                                   {ICON_OPTIONS.map(opt => (
                                     <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                                       <div className="flex items-center gap-3">
-                                        <opt.icon className="h-4 w-4" />
+                                        <CryptoIcon name={opt.id} size={16} />
                                         <span>{opt.label}</span>
                                       </div>
                                     </SelectItem>
@@ -575,7 +565,7 @@ export function DepositLogicSection() {
                     </div>
                   ) : (
                     <div className="text-center py-16 opacity-20 flex flex-col items-center gap-4">
-                       <CreditCard className="h-12 w-12 text-[#002d4d]" />
+                       <CryptoIcon name="CreditCard" size={48} />
                        <p className="text-[10px] font-black uppercase tracking-widest">لا توجد بوابات مضافة لهذا القسم</p>
                     </div>
                   )}
@@ -669,7 +659,7 @@ export function DepositLogicSection() {
         <DialogContent className="rounded-[48px] border-none p-10 max-w-[480px] font-body text-right flex flex-col max-h-[90vh]" dir="rtl">
           <DialogHeader className="items-center gap-4 shrink-0">
             <div className="h-14 w-14 rounded-[22px] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
-               <CreditCard className="h-7 w-7" />
+               <CryptoIcon name="CreditCard" size={28} />
             </div>
             <DialogTitle className="text-2xl font-black text-[#002d4d]">إضافة بوابة جديدة</DialogTitle>
           </DialogHeader>
@@ -712,7 +702,7 @@ export function DepositLogicSection() {
                               )}
                             >
                                <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center">
-                                  {getPortalIcon(asset.icon)}
+                                  <CryptoIcon name={asset.icon} size={16} />
                                </div>
                                <span className="font-black text-xs">{asset.coin}</span>
                             </button>
@@ -774,7 +764,7 @@ export function DepositLogicSection() {
                        {ICON_OPTIONS.map(opt => (
                          <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                            <div className="flex items-center gap-3">
-                             <opt.icon className="h-4 w-4" />
+                             <CryptoIcon name={opt.id} size={16} />
                              <span>{opt.label}</span>
                            </div>
                          </SelectItem>

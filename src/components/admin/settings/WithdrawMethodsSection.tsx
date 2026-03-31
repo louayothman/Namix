@@ -11,9 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Landmark, 
   Plus, 
-  CreditCard, 
   Trash2, 
   ChevronDown, 
   ChevronUp, 
@@ -22,14 +20,6 @@ import {
   AlertTriangle, 
   ListFilter, 
   Type,
-  Bitcoin,
-  Coins,
-  Zap,
-  Globe,
-  Diamond,
-  CircleDollarSign,
-  Banknote,
-  Wallet,
   X,
   ClipboardPaste
 } from "lucide-react";
@@ -49,17 +39,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CryptoIcon } from "@/lib/crypto-icons";
 
-const ICON_OPTIONS = [
-  { id: 'Bitcoin', icon: Bitcoin, label: 'Bitcoin (BTC)' },
-  { id: 'Coins', icon: Coins, label: 'Stablecoin (USDT/USDC)' },
-  { id: 'CircleDollarSign', icon: CircleDollarSign, label: 'Dollar' },
-  { id: 'Diamond', icon: Diamond, label: 'Ethereum (ETH)' },
-  { id: 'Zap', icon: Zap, label: 'Flash / Instant' },
-  { id: 'Landmark', icon: Landmark, label: 'Bank Transfer' },
-  { id: 'Banknote', icon: Banknote, label: 'Cash / Bill' },
-  { id: 'Wallet', icon: Wallet, label: 'Digital Wallet' },
-  { id: 'Globe', icon: Globe, label: 'International' },
+export const ICON_OPTIONS = [
+  { id: 'USDT', label: 'Tether (USDT)' },
+  { id: 'BTC', label: 'Bitcoin (BTC)' },
+  { id: 'ETH', label: 'Ethereum (ETH)' },
+  { id: 'SOL', label: 'Solana (SOL)' },
+  { id: 'TRX', label: 'Tron (TRX)' },
+  { id: 'BNB', label: 'Binance Coin (BNB)' },
+  { id: 'LTC', label: 'Litecoin (LTC)' },
+  { id: 'CircleDollarSign', label: 'Dollar / Fiat' },
+  { id: 'Landmark', label: 'Bank Transfer' },
+  { id: 'Banknote', label: 'Cash / Bill' },
+  { id: 'Wallet', label: 'Digital Wallet' },
+  { id: 'Globe', label: 'International' },
+  { id: 'Zap', label: 'Flash / Instant' },
+  { id: 'ShieldCheck', label: 'Secured' },
+  { id: 'Gem', label: 'Premium' },
+  { id: 'Award', label: 'Verified' }
 ];
 
 export function WithdrawMethodsSection() {
@@ -76,7 +74,7 @@ export function WithdrawMethodsSection() {
   const [newPortal, setNewPortal] = useState({
     name: "",
     instructions: "",
-    icon: "Landmark"
+    icon: "USDT"
   });
 
   const categoriesQuery = useMemoFirebase(() => collection(db, "withdraw_methods"), [db]);
@@ -110,7 +108,7 @@ export function WithdrawMethodsSection() {
       await updateDoc(doc(db, "withdraw_methods", activeCatId), {
         portals: arrayUnion(portalData)
       });
-      setNewPortal({ name: "", instructions: "", icon: "Landmark" });
+      setNewPortal({ name: "", instructions: "", icon: "USDT" });
       setIsAddPortalOpen(false);
       toast({ title: "تمت إضافة بوابة السحب" });
     } catch (e) { toast({ variant: "destructive", title: "خطأ" }); }
@@ -158,12 +156,6 @@ export function WithdrawMethodsSection() {
     await updateDoc(doc(db, "withdraw_methods", catId), { portals: updatedPortals });
   };
 
-  const getPortalIcon = (iconId: string) => {
-    const option = ICON_OPTIONS.find(o => o.id === iconId);
-    const IconComp = option ? option.icon : Landmark;
-    return <IconComp className="h-6 w-6" />;
-  };
-
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-left-6 duration-700 font-body">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -188,7 +180,7 @@ export function WithdrawMethodsSection() {
               <div className="p-8 flex items-center justify-between bg-gray-50/50 border-b border-gray-100" dir="rtl">
                 <div className="flex items-center gap-5">
                   <div className="h-14 w-14 rounded-[22px] bg-white shadow-sm flex items-center justify-center text-blue-600">
-                    <Landmark className="h-7 w-7" />
+                    <CryptoIcon name="Landmark" size={28} />
                   </div>
                   <div className="space-y-0.5 text-right">
                     <h3 className="font-black text-xl text-[#002d4d]">{category.name}</h3>
@@ -228,7 +220,7 @@ export function WithdrawMethodsSection() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                               <div className="h-12 w-12 rounded-[18px] bg-white flex items-center justify-center text-blue-600 shadow-sm">
-                                {getPortalIcon(portal.icon)}
+                                <CryptoIcon name={portal.icon} size={24} />
                               </div>
                               <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
                             </div>
@@ -248,7 +240,7 @@ export function WithdrawMethodsSection() {
                             <div className="space-y-1.5 text-right">
                               <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">Portal Icon</Label>
                               <Select 
-                                value={portal.icon || "Landmark"} 
+                                value={portal.icon || "USDT"} 
                                 onValueChange={async (val) => {
                                   const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, icon: val } : p);
                                   await updateDoc(doc(db, "withdraw_methods", category.id), { portals: updated });
@@ -261,7 +253,7 @@ export function WithdrawMethodsSection() {
                                   {ICON_OPTIONS.map(opt => (
                                     <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                                       <div className="flex items-center gap-3">
-                                        <opt.icon className="h-4 w-4" />
+                                        <CryptoIcon name={opt.id} size={16} />
                                         <span>{opt.label}</span>
                                       </div>
                                     </SelectItem>
@@ -413,7 +405,7 @@ export function WithdrawMethodsSection() {
                     </div>
                   ) : (
                     <div className="text-center py-16 opacity-20 flex flex-col items-center gap-4">
-                       <Landmark className="h-12 w-12 text-[#002d4d]" />
+                       <CryptoIcon name="Landmark" size={48} />
                        <p className="text-[10px] font-black uppercase tracking-widest">لا توجد قنوات سحب مضافة حالياً</p>
                     </div>
                   )}
@@ -469,7 +461,7 @@ export function WithdrawMethodsSection() {
               </div>
             </div>
             <AlertDialogDescription className="text-[13px] font-bold text-gray-500 leading-[2.2] px-2">
-              تحذير: سيؤدي هذا الإجراء إلى حذف القسم وكافة قنوات السحب المندرجة تحته بشكل نهائي. تأكد من عدم وجود طلبات معلقة مرتبطة بهذا القسم.
+              تحذير: سيؤدي هذا الإجراء إلى حذف القسم وكافة قنوات السحب المندرجة تحته بشكل نهائي. لا يمكن التراجع عن هذه العملية.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col mt-8">
@@ -504,7 +496,7 @@ export function WithdrawMethodsSection() {
         <DialogContent className="rounded-[48px] border-none p-10 max-w-[420px] font-body text-right" dir="rtl">
           <DialogHeader className="items-center gap-4">
             <div className="h-14 w-14 rounded-[22px] bg-blue-50 text-blue-600 flex items-center justify-center">
-               <Landmark className="h-7 w-7" />
+               <CryptoIcon name="Landmark" size={28} />
             </div>
             <DialogTitle className="text-2xl font-black text-[#002d4d]">إضافة بوابة سحب</DialogTitle>
           </DialogHeader>
@@ -519,7 +511,7 @@ export function WithdrawMethodsSection() {
                     {ICON_OPTIONS.map(opt => (
                       <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                         <div className="flex items-center gap-3">
-                          <opt.icon className="h-4 w-4" />
+                          <CryptoIcon name={opt.id} size={16} />
                           <span>{opt.label}</span>
                         </div>
                       </SelectItem>
