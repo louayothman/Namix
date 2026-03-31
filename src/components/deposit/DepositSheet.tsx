@@ -37,7 +37,9 @@ import {
   Cpu,
   ShieldX,
   X,
-  ClipboardPaste
+  ClipboardPaste,
+  TrendingUp,
+  Gift
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -64,6 +66,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [binanceError, setBinanceError] = useState<string | null>(null);
   const [pasteStatus, setPasteStatus] = useState<Record<string, { msg: string, isError: boolean }>>({});
+  const [successType, setSuccessType] = useState<'instant' | 'pending'>('pending');
   
   const [formData, setFormData] = useState({
     amount: "",
@@ -161,7 +164,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       const q = query(collection(db, "deposit_requests"), where("transactionId", "==", txid));
       const duplicateSnap = await getDocs(q);
       if (!duplicateSnap.empty) {
-        setBinanceError("هذا المعرف مستخدم مسبقاً.");
+        setBinanceError("هنالك خطأ ما، يرجى التأكد من رقم العملية والمحاولة مرة أخرى.");
         setStep("fail");
         return;
       }
@@ -205,9 +208,10 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             totalBalance: increment(totalToAdd)
           });
 
+          setSuccessType('instant');
           setStep("success");
         } else {
-          setBinanceError("تعذر العثور على المعاملة. تأكد من صحة البيانات.");
+          setBinanceError("هنالك خطأ ما، يرجى التأكد من رقم العملية والمحاولة مرة أخرى.");
           setStep("fail");
         }
         return;
@@ -225,9 +229,10 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
         status: "pending",
         createdAt: new Date().toISOString()
       });
+      setSuccessType('pending');
       setStep("success");
     } catch (e: any) {
-      setBinanceError("خطأ تقني في التحقق.");
+      setBinanceError("هنالك خطأ ما، يرجى التأكد من رقم العملية والمحاولة مرة أخرى.");
       setStep("fail");
     } finally {
       setLoading(false);
@@ -244,6 +249,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       setFieldErrors({});
       setBinanceError(null);
       setPasteStatus({});
+      setSuccessType('pending');
     }, 300);
   };
 
@@ -316,12 +322,10 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                           selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-50 bg-white"
                         )}
                       >
-                        {/* Background Watermark */}
                         <div className="absolute -bottom-2 -left-2 opacity-[0.03] transition-all duration-700 pointer-events-none group-hover:opacity-[0.08] group-hover:scale-125">
                            <CryptoIcon name={p.icon} size={80} />
                         </div>
 
-                        {/* Floating Icon - Clean Style */}
                         <div className={cn(
                           "transition-all duration-500 relative z-10",
                           selectedPortalId === p.id ? "text-[#f9a885] scale-110" : "text-gray-300 group-hover:text-[#002d4d]"
@@ -372,7 +376,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between px-4">
                         <Label className="font-black text-[#002d4d] text-[8px] uppercase tracking-widest">المبلغ المودع ($)</Label>
-                        {currentBonusData.percent > 0 && <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-2 py-0.5 rounded-full animate-pulse">BONUS +{currentBonusData.percent}%</Badge>}
                       </div>
                       <div className="relative">
                         <Input type="number" inputMode="decimal" placeholder="0.00" value={formData.amount} onChange={e => { setFormData({...formData, amount: e.target.value}); setFieldErrors({}); }} className="h-14 rounded-[20px] bg-gray-50 border-none font-black text-center text-2xl shadow-inner text-[#002d4d] tabular-nums tracking-tighter" />
@@ -382,7 +385,38 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                     </div>
                   )}
 
-                  <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100 space-y-4 shadow-inner">
+                  {/* التنسيق الجميل للبونص المقترح */}
+                  <AnimatePresence>
+                    {currentBonusData.percent > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="p-5 bg-emerald-50 rounded-[32px] border border-emerald-100 shadow-sm relative overflow-hidden group"
+                      >
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-110 transition-transform duration-700">
+                           <Sparkles size={60} className="text-emerald-600" />
+                        </div>
+                        <div className="flex items-center justify-between relative z-10">
+                           <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-emerald-500 shadow-sm">
+                                 <Gift size={20} />
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[10px] font-black text-emerald-800">مكافأة شحن إضافية</p>
+                                 <p className="text-[8px] font-bold text-emerald-600/60 uppercase tracking-widest">Incentive Multiplier</p>
+                              </div>
+                           </div>
+                           <div className="text-left">
+                              <p className="text-xl font-black text-emerald-600 tabular-nums">%{currentBonusData.percent}</p>
+                              <p className="text-[9px] font-black text-emerald-500/60 tabular-nums">+$ {currentBonusData.bonus.toFixed(2)}</p>
+                           </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100 space-y-3 shadow-inner">
                     <div className="grid gap-3">
                       {selectedPortal?.fields?.map((f: any, i: number) => (
                         <div key={i} className="space-y-1">
@@ -461,9 +495,13 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">عملية ناجحة!</DialogTitle>
+                <DialogTitle className="text-xl font-black text-[#002d4d] tracking-tight">
+                  {successType === 'instant' ? "شحن فوري ناجح!" : "طلبك قيد المراجعة!"}
+                </DialogTitle>
                 <DialogDescription className="text-xs text-gray-400 font-bold leading-relaxed tracking-normal">
-                  لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء الفحص الفني المعتمد.
+                  {successType === 'instant' 
+                    ? "تم التحقق من المعاملة آلياً وإضافة الإيداع مع المكافأة لرصيدك بنجاح." 
+                    : "لقد تم استلام البيانات. سيتم تحديث رصيدك فور انتهاء الفحص الفني المعتمد خلال 24 ساعة."}
                 </DialogDescription>
               </div>
               <Button onClick={handleClose} className="w-full h-12 rounded-full bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
