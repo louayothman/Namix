@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v1.0
- * Handles API calls to Telegram and webhook management.
+ * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v1.2
+ * Expanded with multi-channel navigation and registration support.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -34,21 +34,47 @@ export async function setTelegramWebhook(token: string, url: string) {
   }
 }
 
+/**
+ * يولد لوحة التحكم السيادية للمستخدمين المرتبطين
+ */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     inline_keyboard: [
       [
-        { text: "🚀 فتح منصة ناميكس", web_app: { url: `${baseUrl}/home` } }
+        { text: "🚀 قمرة القيادة الرئيسية", web_app: { url: `${baseUrl}/home` } }
       ],
       [
         { text: "📊 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
         { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
       ],
       [
-        { text: "🎮 ساحة المغامرة", web_app: { url: `${baseUrl}/arena` } }
+        { text: "🎮 ساحة المغامرة", web_app: { url: `${baseUrl}/arena` } },
+        { text: "🛡️ مركز الأمان والـ PIN", web_app: { url: `${baseUrl}/profile?action=setup-pin` } }
       ],
       [
         { text: "💰 شحن / سحب الرصيد", web_app: { url: `${baseUrl}/profile` } }
+      ],
+      [
+        { text: "🎓 الأكاديمية التعليمية", web_app: { url: `${baseUrl}/academy` } }
+      ]
+    ]
+  };
+}
+
+/**
+ * يولد أزرار الترحيب للمستخدمين الجدد
+ */
+export function generateGuestKeyboard(baseUrl: string) {
+  return {
+    inline_keyboard: [
+      [
+        { text: "✨ إنشاء حساب استثماري جديد", web_app: { url: `${baseUrl}/login` } }
+      ],
+      [
+        { text: "🔑 تسجيل الدخول", web_app: { url: `${baseUrl}/login` } }
+      ],
+      [
+        { text: "🌍 الموقع الرسمي", url: baseUrl }
       ]
     ]
   };
