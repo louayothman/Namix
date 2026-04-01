@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { sendTelegramNotification } from "@/app/actions/auth-actions";
 
 // Modular Components
 import { ManagedPortfolioHero } from "@/components/admin/users/ManagedPortfolioHero";
@@ -178,6 +179,8 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
           isProcessed: true,
           completedAt: new Date().toISOString()
         });
+        
+        // App Notification
         await addDoc(collection(db, "notifications"), {
           userId: userId,
           title: "اكتمل الاستثمار! 💰",
@@ -186,6 +189,11 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
           isRead: false,
           createdAt: new Date().toISOString()
         });
+
+        // Telegram Notification
+        await sendTelegramNotification(userId, 
+          `💎 <b>نضوج عقد استثماري</b>\n\nاكتمل عقد <b>'${inv.planTitle}'</b> بنجاح.\n\n💰 إجمالي المحصول: <b>$${totalPayout.toFixed(2)}</b>\n📈 صافي الربح: <b>$${inv.expectedProfit.toFixed(2)}</b>\n\n<i>تم جرد الأرباح وحقنها في المحفظة السيادية.</i>`
+        );
       }
     } catch (e) {
       console.error(e);

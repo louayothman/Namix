@@ -2,8 +2,39 @@
 'use server';
 
 import { Resend } from 'resend';
+import { initializeFirebase } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { sendTelegramMessage } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
+
+/**
+ * يرسل تنبيهاً عبر تلغرام للمستخدم إذا كان مرتباً بالبوت
+ */
+export async function sendTelegramNotification(userId: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    
+    // 1. جلب بيانات المستخدم للتحقق من وجود Chat ID
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    if (!userSnap.exists()) return { success: false, error: "User not found" };
+    
+    const userData = userSnap.data();
+    if (!userData.telegramChatId) return { success: false, error: "Not linked to telegram" };
+
+    // 2. جلب توكن البوت من الإعدادات
+    const configSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const config = configSnap.data();
+    if (!config || !config.botToken) return { success: false, error: "Bot token missing" };
+
+    // 3. إرسال الرسالة
+    await sendTelegramMessage(config.botToken, userData.telegramChatId, message);
+    return { success: true };
+  } catch (e: any) {
+    console.error("Telegram Notification Error:", e);
+    return { success: false, error: e.message };
+  }
+}
 
 export async function sendOTPEmail(email: string, otp: string) {
   try {

@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
 import { motion } from "framer-motion";
+import { sendTelegramNotification } from "@/app/actions/auth-actions";
 
 const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
 const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
@@ -225,6 +226,8 @@ export default function HomePage() {
           isProcessed: true,
           completedAt: new Date().toISOString()
         });
+        
+        // App Notification
         await addDoc(collection(db, "notifications"), {
           userId: localUser.id,
           title: "اكتمل الاستثمار! 💰",
@@ -233,6 +236,11 @@ export default function HomePage() {
           isRead: false,
           createdAt: new Date().toISOString()
         });
+
+        // Telegram Notification
+        await sendTelegramNotification(localUser.id, 
+          `💎 <b>نضوج عقد استثماري</b>\n\nاكتمل عقد <b>'${inv.planTitle}'</b> بنجاح.\n\n💰 إجمالي المحصول: <b>$${totalPayout.toFixed(2)}</b>\n📈 صافي الربح: <b>$${inv.expectedProfit.toFixed(2)}</b>\n\n<i>تم حقن السيولة في محفظتك الجارية الآن.</i>`
+        );
       }
     } catch (e) {
       console.error(e);

@@ -1,16 +1,17 @@
+
 'use server';
 
 /**
- * @fileOverview NAMIX SOVEREIGN TRADING ACTIONS v3.5
- * Idempotent trade execution and settlement logic.
+ * @fileOverview NAMIX SOVEREIGN TRADING ACTIONS v3.6
+ * Idempotent trade execution and settlement logic with Telegram integration.
  */
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
+import { sendTelegramNotification } from './auth-actions';
 
 /**
  * Settles an open trade based on the final price at expiration.
- * Added protection against double counting.
  */
 export async function settleTrade(tradeId: string, finalPrice: number) {
   try {
@@ -22,8 +23,6 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
     
     const trade = tradeSnap.data();
     
-    // CRITICAL: Idempotency check - Ensure trade is still open
-    // This prevents browser triggers from double-adding profits
     if (trade.status !== 'open') {
       return { success: false, error: "Trade already settled" };
     }
@@ -37,7 +36,6 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       result = finalPrice < trade.entryPrice ? 'win' : 'lose';
     }
 
-    // Mark as closed BEFORE updating balance to prevent concurrent triggers from adding twice
     await updateDoc(tradeRef, {
       status: "closed",
       result: result,
@@ -50,13 +48,12 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       profit = trade.expectedProfit;
       const totalPayout = trade.amount + profit;
       
-      // Update User Balance - This happens ONCE because of the status check above
       await updateDoc(doc(firestore, "users", trade.userId), {
         totalBalance: increment(totalPayout),
         totalProfits: increment(profit)
       });
 
-      // Send Notification
+      // App Notification
       await addDoc(collection(firestore, "notifications"), {
         userId: trade.userId,
         title: "صفقة رابحة! 💰",
@@ -65,8 +62,12 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
         isRead: false,
         createdAt: new Date().toISOString()
       });
+
+      // Telegram Notification
+      await sendTelegramNotification(trade.userId, 
+        `💰 <b>صفقة رابحة!</b>\n\nاكتملت صفقاتك على <b>${trade.symbolCode}</b> بنجاح.\n\n📈 الربح الصافي: <b>$${profit.toFixed(2)}</b>\n🏦 المبلغ المسترد: <b>$${totalPayout.toFixed(2)}</b>\n\n<i>تم التحديث عبر محرك ناميكس السيادي.</i>`
+      );
     } else {
-      // Send Notification for loss
       await addDoc(collection(firestore, "notifications"), {
         userId: trade.userId,
         title: "انتهت الصفقة (خسارة) 📉",
@@ -75,6 +76,11 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
         isRead: false,
         createdAt: new Date().toISOString()
       });
+
+      // Telegram Notification
+      await sendTelegramNotification(trade.userId, 
+        `📉 <b>انتهت الصفقة (خسارة)</b>\n\nنعتذر، لم يتحرك السوق في اتجاه توقعك لصفقة <b>${trade.symbolCode}</b>.\n\n💸 الخسارة: <b>$${trade.amount.toFixed(2)}</b>\n\n<i>ننصحك بمراجعة إشارات NAMIX AI قبل العملية القادمة.</i>`
+      );
     }
 
     return { success: true, result };
