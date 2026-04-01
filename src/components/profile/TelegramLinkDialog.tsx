@@ -17,8 +17,8 @@ interface TelegramLinkDialogProps {
 }
 
 /**
- * @fileOverview بروتوكول ربط تلغرام v1.5 - Optimized Auth Flow
- * يولد رمز ربط مؤقت ويضمن حفظه في Firestore قبل التوجه للبوت.
+ * @fileOverview بروتوكول ربط تلغرام v1.6 - Targeted Bot Link
+ * تم تحديث المعرف ليتطابق مع NamiixProBot وضمان الربط السلس.
  */
 export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: TelegramLinkDialogProps) {
   const [loading, setLoading] = useState(false);
@@ -38,12 +38,11 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
         updatedAt: new Date().toISOString()
       });
       
-      // 3. التوجه لتلغرام مع تمرير التوكن كبارامتر Start
-      // ملاحظة: تأكد من أن يوزرنيم البوت هو NamixNexusBot أو استبدله بالاسم الصحيح الذي اخترته في BotFather
-      const botUsername = "NamixNexusBot"; 
+      // 3. التوجه لتلغرام المحدث NamiixProBot
+      const botUsername = "NamiixProBot"; 
       const botUrl = `https://t.me/${botUsername}?start=${tempToken}`;
       
-      // إغلاق النافذة وفتح تلغرام في تبويب جديد
+      // إغلاق النافذة وفتح تلغرام
       window.open(botUrl, '_blank');
       onOpenChange(false);
     } catch (e) {
@@ -74,7 +73,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                 <div className="space-y-2">
                    <h4 className="font-black text-lg text-[#002d4d]">حسابك موثق ونشط ✅</h4>
                    <p className="text-[11px] font-bold text-gray-400 leading-relaxed px-4">
-                     أنت مرتبط الآن ببوت ناميكس نكسوس. ستتلقى كافة إشعارات الأرباح وتنبيهات الأمان هناك فوراً.
+                     أنت مرتبط الآن ببوت ناميكس نكسوس. ستتلقى كافة إشعارات الأرباح وإشارات التداول هناك فوراً.
                    </p>
                 </div>
                 <Button onClick={() => onOpenChange(false)} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black shadow-xl">العودة للملف الشخصي</Button>
@@ -89,9 +88,9 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                    <ul className="space-y-2">
                       {[
                         "إشعارات فورية بنتائج الصفقات",
-                        "تنبيهات عند نضوج العقود الاستثمارية",
+                        "إشارات تداول ذكية (Smart Signals)",
                         "تداول سريع ومؤمن بلمسة واحدة",
-                        "إشارات NAMIX AI الاستراتيجية"
+                        "تنبيهات نضوج العقود الاستثمارية"
                       ].map((txt, i) => (
                         <li key={i} className="flex items-center gap-2 text-[11px] font-bold text-blue-800/70">
                            <div className="h-1 w-1 rounded-full bg-blue-400" />
@@ -110,7 +109,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                         </>
                       )}
                    </Button>
-                   <p className="text-[9px] text-gray-400 font-bold">سيتم توجيهك لتطبيق تلغرام لإتمام بروتوكول المصادقة.</p>
+                   <p className="text-[9px] text-gray-400 font-bold">سيتم توجيهك لـ NamiixProBot لإتمام الربط.</p>
                 </div>
              </div>
            )}

@@ -3,7 +3,7 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { sendTelegramMessage } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
@@ -32,6 +32,40 @@ export async function sendTelegramNotification(userId: string, message: string) 
     return { success: true };
   } catch (e: any) {
     console.error("Telegram Notification Error:", e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * بث إشارة تداول ذكية لكافة المستخدمين المرتبطين بتلغرام
+ */
+export async function broadcastAISignal(title: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    
+    // 1. جلب توكن البوت
+    const configSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = configSnap.data()?.botToken;
+    if (!botToken) return { success: false, error: "بروتوكول تلغرام غير مهيأ (Token Missing)" };
+
+    // 2. جلب كافة المستخدمين الذين لديهم Chat ID
+    const q = query(collection(firestore, "users"), where("telegramChatId", "!=", ""));
+    const usersSnap = await getDocs(q);
+    
+    if (usersSnap.empty) return { success: true, count: 0 };
+
+    const formattedMessage = `<b>🚀 إشارة تداول ذكية | Smart Signal</b>\n\n<b>${title}</b>\n\n${message}\n\n<i>تم بث هذه الإشارة عبر محرك NAMIX AI السيادي.</i>`;
+
+    // 3. إرسال البث
+    const sendPromises = usersSnap.docs.map(u => {
+      const chatId = u.data().telegramChatId;
+      if (chatId) return sendTelegramMessage(botToken, chatId, formattedMessage);
+      return Promise.resolve();
+    });
+
+    await Promise.all(sendPromises);
+    return { success: true, count: usersSnap.size };
+  } catch (e: any) {
     return { success: false, error: e.message };
   }
 }

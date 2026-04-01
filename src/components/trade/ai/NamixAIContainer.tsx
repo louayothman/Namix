@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { analyzeMarket, AIAnalysisResult, AICalibration } from "@/lib/namix-ai-engine";
 import { MarketScanner } from "./MarketScanner";
 import { TrendAnalyzer } from "./TrendAnalyzer";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { sendTelegramNotification } from "@/app/actions/auth-actions";
 
 interface NamixAIContainerProps {
   asset: any;
@@ -23,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v4.0 - Custom Amount Edition
- * إصلاح خطأ Invalid Date وإضافة حقول مبالغ مخصصة لكل توصية تداول.
+ * @fileOverview حاوية NAMIX AI v4.5 - Smart Signal Notification
+ * تم تفعيل ميزة إرسال التوصيات القوية جداً (>95%) لتلغرام المستخدم لحظياً.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -32,6 +33,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [executingTradeId, setExecutingTradeId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
+  const lastNotifiedSignalRef = useRef<string | null>(null);
   
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -88,6 +90,17 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
       
+      // بروتوكول الإشعارات الذكية (Smart Signal Protocol)
+      // إذا كانت الثقة أكبر من 95% ولم نرسل هذا التنبيه في آخر 10 دقائق
+      if (analysis.confidence > 95 && dbUser?.telegramChatId) {
+        const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 600000)}`;
+        if (lastNotifiedSignalRef.current !== signalKey) {
+          lastNotifiedSignalRef.current = signalKey;
+          const msg = `<b>🔥 إشارة استثنائية مكتشفة!</b>\n\nالأصل: <b>${asset.code}</b>\nالعملية: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nدرجة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${livePrice.toLocaleString()}</b>\n\n<i>افتح واجهة التداول الآن لاقتناص هذه الفرصة.</i>`;
+          sendTelegramNotification(dbUser.id, msg).catch(() => {});
+        }
+      }
+      
       // Initialize amounts if not set
       if (Object.keys(customAmounts).length === 0) {
         const init: Record<string, string> = {};
@@ -105,7 +118,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     runAnalysis();
     const interval = setInterval(runAnalysis, 5000);
     return () => clearInterval(interval);
-  }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount]);
+  }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount, dbUser]);
 
   const handleExecuteTrade = (suggestion: any) => {
     if (!dbUser || !asset || !livePrice || suggestion.action === 'wait') return;
@@ -119,7 +132,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     setExecutingTradeId(suggestion.durationLabel);
     
     const startTime = new Date();
-    // CRITICAL: suggestion.seconds is now verified to be present
     const durationSeconds = suggestion.seconds || 60;
     const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
     const profitRate = globalConfig?.defaultProfitRate || 80;
@@ -251,7 +263,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                                </div>
                                <Badge className={cn(
                                  "font-black text-[8px] px-3 py-1 rounded-lg border-none shadow-sm tracking-normal",
-                                 sug.action === 'buy' ? "bg-emerald-500 text-white" : sug.action === 'sell' ? "bg-red-500 text-white" : "bg-gray-200 text-gray-400"
+                                 sug.action === 'buy' ? "bg-emerald-50 text-white" : sug.action === 'sell' ? "bg-red-50 text-white" : "bg-gray-200 text-gray-400"
                                )}>
                                  {sug.action === 'buy' ? 'شراء' : sug.action === 'sell' ? 'بيع' : 'انتظار'}
                                </Badge>
