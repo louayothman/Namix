@@ -2,8 +2,8 @@
 'use client';
 
 /**
- * @fileOverview NAMIX AI CORE ENGINE v1.4 - Precision Seconds Edition
- * محرك الذكاء الاصطناعي السيادي - تم إصلاح فقدان حقل الثواني لضمان دقة تنفيذ الصفقات.
+ * @fileOverview NAMIX AI CORE ENGINE v1.5 - Aggressive Precision Edition
+ * محرك الذكاء الاصطناعي النخبوي - تم خفض عتبة الثقة إلى 65% لتكثيف الإشارات الاستراتيجية.
  */
 
 export type TrendDirection = 'bullish' | 'bearish' | 'neutral';
@@ -43,10 +43,11 @@ export function analyzeMarket(asset: any, livePrice: number, calibration?: AICal
   const price = livePrice || asset.currentPrice;
   const seed = parseInt(asset.id.substring(0, 5), 36);
   
+  // عتبة الثقة المحدثة: 65% لزيادة وتيرة الإشارات
   const config = calibration || {
     rsiOversold: 30,
     rsiOverbought: 70,
-    confidenceThreshold: 85,
+    confidenceThreshold: 65,
     volatilityWeight: 5
   };
 
@@ -65,37 +66,36 @@ export function analyzeMarket(asset: any, livePrice: number, calibration?: AICal
     trend = 'bearish';
     signal = 'sell';
   } else {
-    trend = momentum > 75 ? 'bullish' : momentum < 25 ? 'bearish' : 'neutral';
+    trend = momentum > 70 ? 'bullish' : momentum < 30 ? 'bearish' : 'neutral';
     signal = 'wait';
   }
 
   const guidance = [
     trend === 'bullish' 
-      ? `تراكم سيولة إيجابي عند مستوى RSI ${rsiBase.toFixed(1)}. الإشارة تدعم الصعود.` 
+      ? `رصد تدفق سيولة إيجابي عند RSI ${rsiBase.toFixed(1)}. فرصة نمو وميضية.` 
       : trend === 'bearish'
-      ? `تحذير من تشبع شرائي عند RSI ${rsiBase.toFixed(1)}. احتمال تصحيح سعري مرتفع.`
-      : "السوق يتحرك في قناة عرضية مستقرة؛ ينصح بانتظار اختراق مستويات المقاومة.",
-    `معدل التذبذب الحالي (${volatility.toFixed(2)}) يقع ضمن نطاق الأمان التشغيلي.`,
-    `الهدف الاستراتيجي القادم المقترح هو $${(price * (trend === 'bullish' ? 1.015 : 0.985)).toFixed(2)}.`
+      ? `تشبع شرائي واضح عند RSI ${rsiBase.toFixed(1)}. ترقب تصحيح سعري نخبوي.`
+      : "السوق في حالة ترقب استراتيجي؛ ينصح بمراقبة مستويات الدعم الحالية.",
+    `معدل التذبذب (${volatility.toFixed(2)}) يدعم تنفيذ صفقات سريعة المدى.`,
+    `الهدف المقترح القادم هو $${(price * (trend === 'bullish' ? 1.012 : 0.988)).toFixed(2)}.`
   ];
 
-  // توليد توصيات زمنية بناءً على المدد المتاحة - مع إصلاح الثواني
   const suggestions: TradeSuggestion[] = durations.map((d, idx) => {
     let action: 'buy' | 'sell' | 'wait' = signal;
     let reason = "";
     
     if (d.seconds <= 60) {
-      action = momentum > 60 ? 'buy' : momentum < 40 ? 'sell' : 'wait';
-      reason = action === 'wait' ? "تذبذب عالي في المدى القصير." : `الزخم اللحظي (${momentum.toFixed(0)}) يدعم عملية ${action === 'buy' ? 'شراء' : 'بيع'} وميضية.`;
+      action = momentum > 55 ? 'buy' : momentum < 45 ? 'sell' : 'wait';
+      reason = action === 'wait' ? "توازن مؤقت في قوى العرض والطلب." : `الزخم اللحظي (${momentum.toFixed(0)}) يدعم تنفيذ صفقة ${action === 'buy' ? 'شراء' : 'بيع'} وميضية.`;
     } else {
       action = signal;
-      reason = action === 'wait' ? "عدم وضوح الاتجاه في الدورة الزمنية الحالية." : `توافق مؤشر RSI مع الاتجاه العام يعزز نجاح صفقة الـ ${d.label}.`;
+      reason = action === 'wait' ? "بانتظار تأكيد الاتجاه في الدورة القادمة." : `توافق المؤشرات الفنية يعزز نجاح بروتوكول الـ ${d.label}.`;
     }
 
     return {
       durationLabel: d.label,
       action,
-      confidence: confidence - (idx * 2),
+      confidence: confidence - (idx * 1.5),
       reason,
       seconds: d.seconds
     };
