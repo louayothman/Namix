@@ -4,7 +4,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles } from "lucide-react";
+import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles, Send } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
@@ -19,6 +19,7 @@ import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog"
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
 import { GiftVoucherDialog } from "@/components/profile/GiftVoucherDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
+import { TelegramLinkDialog } from "@/components/profile/TelegramLinkDialog";
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
@@ -28,6 +29,7 @@ function ProfileContent() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [pinSetupOpen, setPinSetupOpen] = useState(false);
   const [giftVoucherOpen, setGiftVoucherOpen] = useState(false);
+  const [telegramOpen, setTelegramOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
@@ -62,6 +64,7 @@ function ProfileContent() {
     if (action === "issue-voucher") setGiftVoucherOpen(true);
     if (action === "setup-pin") setPinSetupOpen(true);
     if (action === "verify") setEditProfileOpen(true);
+    if (action === "telegram") setTelegramOpen(true);
   }, [searchParams]);
 
   if (!user) return (
@@ -73,13 +76,9 @@ function ProfileContent() {
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
-        {/* Navigation Header - Responsive Spacing & Sizing */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-5">
-             <button 
-               onClick={() => router.back()} 
-               className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
-             >
+             <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md">
                <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
              </button>
              <div className="space-y-0.5">
@@ -90,54 +89,40 @@ function ProfileContent() {
                </div>
              </div>
           </div>
-          <button 
-            onClick={() => setSettingsOpen(true)} 
-            className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]"
-          >
-            <Settings className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setTelegramOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-blue-50 text-[#0088cc] flex items-center justify-center shadow-sm border border-blue-100 active:scale-90 transition-all">
+              <Send className="h-5 w-5" />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]">
+              <Settings className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+          </div>
         </div>
 
-        {/* Dynamic Responsive Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
-           
-           {/* Sidebar Section: Identity & Quick Exit */}
            <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-              <ProfileHero 
-                user={dbUser || user} 
-                referralCount={referralCount} 
-                totalInvestments={dbUser?.activeInvestmentsTotal || 0} 
-              />
+              <ProfileHero user={dbUser || user} referralCount={referralCount} totalInvestments={dbUser?.activeInvestmentsTotal || 0} />
               <div className="hidden lg:block">
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>
            </div>
-
-           {/* Main Content Column: Operations & Support */}
            <div className="lg:col-span-8 space-y-10 md:space-y-14">
-              <GrowthSection 
-                dbUser={dbUser} 
-                onOpenVouchers={() => setGiftVoucherOpen(true)} 
-                onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} 
-              />
+              <GrowthSection dbUser={dbUser} onOpenVouchers={() => setGiftVoucherOpen(true)} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
               <FinancialSection />
               <SupportSection />
-              
-              {/* Mobile/Tablet Exit Strategy */}
               <div className="lg:hidden pt-4">
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>
            </div>
         </div>
 
-        {/* Global Dialogs Hub */}
         <SettingsHubDialog open={settingsOpen} onOpenChange={setSettingsOpen} onOpenEdit={() => setEditProfileOpen(true)} onOpenPassword={() => setChangePasswordOpen(true)} onOpenPin={() => setPinSetupOpen(true)} />
         <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
         <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
         <PinSetupDialog open={pinSetupOpen} onOpenChange={setPinSetupOpen} dbUser={dbUser} />
         <GiftVoucherDialog open={giftVoucherOpen} onOpenChange={setGiftVoucherOpen} user={user} dbUser={dbUser} onIssueSuccess={(code) => { setVoucherCode(code); setVoucherCreateSuccess(true); }} onRedeemSuccess={(amt) => { setRedeemAmount(amt); setVoucherRedeemSuccess(true); }} />
+        <TelegramLinkDialog open={telegramOpen} onOpenChange={setTelegramOpen} user={user} dbUser={dbUser} />
 
-        {/* Feedback Success Modals */}
         <SuccessDialog open={profileSuccess} onOpenChange={setProfileSuccess} title="تم تحديث الهوية" description="تم تأمين وحفظ بياناتك الشخصية المحدثة بنجاح." icon={ShieldCheck} type="profile" />
         <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
         <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل بروتوكول إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />

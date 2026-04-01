@@ -21,41 +21,25 @@
         "referredBy": { "type": "string", "description": "The UID of the user who referred this user." },
         "referralEarnings": { "type": "number" },
         "favoriteSymbols": { "type": "array", "items": { "type": "string" }, "description": "List of symbol IDs favorited by the user." },
-        "tradingVolume": { "type": "number", "description": "Total volume of quick trades." },
+        "tradingVolume": { "type": "number" },
+        "isAutoInvestEnabled": { "type": "boolean" },
+        "telegramChatId": { "type": "string", "description": "The unique Telegram Chat ID for notifications and bot interaction." },
+        "telegramUsername": { "type": "string" },
         "lastActive": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "role"]
     },
-    "Raffle": {
-      "title": "Raffle",
+    "TelegramSettings": {
+      "title": "TelegramSettings",
       "type": "object",
-      "description": "A sovereign raffle event configuration.",
+      "description": "Configuration for the Namix Telegram Bot integration.",
       "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "prizePool": { "type": "number" },
-        "ticketPrice": { "type": "number" },
-        "drawDate": { "type": "string", "format": "date-time" },
+        "botToken": { "type": "string" },
+        "webhookUrl": { "type": "string" },
         "isActive": { "type": "boolean" },
-        "maxTicketsPerUser": { "type": "number" },
-        "winnersCount": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "RaffleTicket": {
-      "title": "RaffleTicket",
-      "type": "object",
-      "description": "A ticket purchased for a raffle.",
-      "properties": {
-        "id": { "type": "string" },
-        "raffleId": { "type": "string" },
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "ticketNumber": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -72,10 +56,10 @@
         }
       },
       {
-        "path": "/raffle_tickets/{ticketId}",
+        "path": "/system_settings/telegram",
         "definition": {
-          "entityName": "RaffleTicket",
-          "description": "User purchased raffle tickets."
+          "entityName": "TelegramSettings",
+          "description": "Telegram Bot API configuration."
         }
       }
     ]

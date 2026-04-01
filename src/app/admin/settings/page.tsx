@@ -27,8 +27,9 @@ import { PartnershipSection } from "@/components/admin/settings/PartnershipSecti
 import { ContentSection } from "@/components/admin/settings/ContentSection";
 import { LegalSection } from "@/components/admin/settings/LegalSection";
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
+import { TelegramSection } from "@/components/admin/settings/TelegramSection";
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page' | 'telegram';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -131,6 +132,10 @@ export default function AdminSettingsPage() {
             onSave={() => handleSaveDoc(landingRef, landingData, "واجهة الهبوط")} 
             saving={saving} 
           />
+        )}
+
+        {activeSection === 'telegram' && (
+          <TelegramSection />
         )}
 
         {activeSection === 'binance' && (
