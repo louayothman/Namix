@@ -4,11 +4,11 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, deleteDoc, addDoc, increment, orderBy, limit } from 'firebase/firestore';
 import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
 import { verifyBinanceDeposit } from '@/app/actions/binance-actions';
+import { sendWeeklyPerformanceReport } from '@/app/actions/auth-actions';
 
 /**
- * @fileOverview NAMIX NEXUS INTERACTIVE CORE v7.0
- * محرك المحادثة النخبوي - يدعم العمليات المالية، الأمان، التوثيق، والتداول المكثف.
- * تم تطهير كافة المصطلحات من "سيادة" لضمان الامتثال للهوية المؤسسية.
+ * @fileOverview NAMIX NEXUS INTERACTIVE CORE v8.0
+ * محرك المحادثة النخبوي - يدعم التقارير الأسبوعية، العمليات المالية، والتداول المكثف.
  */
 
 export async function POST(req: NextRequest) {
@@ -120,28 +120,6 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 5. مسار السحب النخبوي
-      if (data === 'start_withdrawal') {
-        const rulesSnap = await getDoc(doc(firestore, "system_settings", "withdrawal_rules"));
-        const rules = rulesSnap.data();
-        
-        if (!user.securityPin) return sendTelegramMessage(botToken, chatId, "❌ <b>متطلب أمني</b>\n\nيرجى إعداد رمز PIN للخزنة أولاً.");
-        if (rules?.requireVerificationToWithdraw && !user.isVerified) return sendTelegramMessage(botToken, chatId, "❌ <b>التوثيق مطلوب</b>\n\nيرجى إكمال ملفك الشخصي لتفعيل السحب.");
-        if (user.totalBalance < (rules?.minAccountBalance || 0)) return sendTelegramMessage(botToken, chatId, `❌ <b>عجز في الرصيد</b>\n\nالحد الأدنى للبقاء هو $${rules?.minAccountBalance}.`);
-
-        const catsSnap = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
-        const buttons = catsSnap.docs.map(doc => ([{ text: doc.data().name, callback_data: `withcat_${doc.id}` }]));
-        await sendTelegramMessage(botToken, chatId, "<b>💸 مركز صرف الأرباح المتقدم</b>\n\nاختر فئة الاستلام:", { inline_keyboard: buttons });
-      }
-
-      if (data.startsWith('withcat_')) {
-        const catId = data.split('_')[1];
-        const catSnap = await getDoc(doc(firestore, "withdraw_methods", catId));
-        const portals = catSnap.data()?.portals?.filter((p: any) => p.isActive) || [];
-        const buttons = portals.map((p: any) => ([{ text: p.name, callback_data: `withportal_${catId}_${p.id}` }]));
-        await sendTelegramMessage(botToken, chatId, `<b>📂 فئة: ${catSnap.data()?.name}</b>\n\nاختر بوابة التحويل:`, { inline_keyboard: buttons });
-      }
-
       return NextResponse.json({ ok: true });
     }
 
@@ -172,66 +150,6 @@ export async function POST(req: NextRequest) {
       return sendTelegramMessage(botToken, chatId, `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nبوابتك المتطورة لإدارة الأصول الرقمية.`, generateGuestKeyboard(baseUrl));
     }
 
-    // --- منطق إنشاء الحساب التفاعلي ---
-    if (text === '✨ إنشاء حساب جديد' && !user) {
-      await setDoc(sessionRef, { step: 'awaiting_email' });
-      return sendTelegramMessage(botToken, chatId, "يرجى إرسال <b>بريدك الإلكتروني</b> للبدء:");
-    }
-
-    if (session?.step === 'awaiting_email') {
-      if (!text.includes('@')) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال بريد إلكتروني صحيح.");
-      await setDoc(sessionRef, { step: 'awaiting_name', email: text.toLowerCase() }, { merge: true });
-      return sendTelegramMessage(botToken, chatId, "تم تسجيل البريد. يرجى إرسال <b>الاسم الكامل</b> كما في الهوية:");
-    }
-
-    if (session?.step === 'awaiting_name') {
-      await setDoc(sessionRef, { step: 'awaiting_password', fullName: text }, { merge: true });
-      return sendTelegramMessage(botToken, chatId, "أهلاً بك. أخيراً، يرجى إرسال <b>كلمة المرور</b> المطلوبة لحسابك:");
-    }
-
-    if (session?.step === 'awaiting_password') {
-      const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
-      const onboardSnap = await getDoc(doc(firestore, "system_settings", "onboarding"));
-      const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
-
-      await setDoc(doc(firestore, "users", userId), {
-        id: userId, email: session.email, displayName: session.fullName,
-        password: text, totalBalance: trialAmount, telegramChatId: chatId,
-        role: "user", createdAt: new Date().toISOString()
-      });
-      await deleteDoc(sessionRef);
-      return sendTelegramMessage(botToken, chatId, `<b>تم إنشاء حسابك النخبوي بنجاح! 🎊</b>\n\nلقد حصلت على رصيد ترحيبي بقيمة <b>$${trialAmount}</b>.`, generateTelegramAppKeyboard(baseUrl));
-    }
-
-    // --- معالجة التداول ---
-    if (session?.step === 'awaiting_trade_amount' && user) {
-      const amt = parseFloat(text);
-      if (isNaN(amt) || amt < 1) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال مبلغ صحيح.");
-      if (amt > user.totalBalance) return sendTelegramMessage(botToken, chatId, "❌ رصيدك غير كافٍ.");
-      
-      await setDoc(sessionRef, { step: 'awaiting_trade_duration', amount: amt }, { merge: true });
-      const globalTradeSnap = await getDoc(doc(firestore, "system_settings", "trading_global"));
-      const durations = globalTradeSnap.data()?.tradeDurations || [];
-      const buttons = durations.map((d: any) => {
-        let secs = d.value;
-        if (d.unit === 'minutes') secs *= 60;
-        return { text: `${d.value} ${d.unit === 'minutes' ? 'د' : 'ث'}`, callback_data: `dur_${secs}` };
-      });
-      
-      const chunkedButtons = [];
-      for (let i = 0; i < buttons.length; i += 2) chunkedButtons.push(buttons.slice(i, i + 2));
-
-      return sendTelegramMessage(botToken, chatId, "اختر <b>مدة العقد</b> المطلوبة للتنفيذ:", { inline_keyboard: chunkedButtons });
-    }
-
-    // --- معالجة تغيير الـ PIN ---
-    if (session?.step === 'awaiting_pin_new' && user) {
-      if (text.length !== 6 || isNaN(parseInt(text))) return sendTelegramMessage(botToken, chatId, "❌ يجب أن يتكون الرمز من 6 أرقام فقط.");
-      await updateDoc(doc(firestore, "users", user.id), { securityPin: text });
-      await deleteDoc(sessionRef);
-      return sendTelegramMessage(botToken, chatId, "<b>✅ تم تحديث رمز PIN بنجاح!</b>\n\nمحفظتك الآن محمية بالبروتوكول الجديد.");
-    }
-
     // --- القائمة الرئيسية للمستثمرين ---
     if (user) {
       if (text === '💰 الرصيد والمحفظة') {
@@ -239,6 +157,11 @@ export async function POST(req: NextRequest) {
           `<b>تقرير المحفظة المتقدم 📊</b>\n\n👤 المستثمر: ${user.displayName}\n🏦 الرصيد المتاح: <b>$${user.totalBalance.toLocaleString()}</b>\n📈 صافي الأرباح: <b>$${(user.totalProfits || 0).toLocaleString()}</b>\n🚀 العقود النشطة: <b>$${(user.activeInvestmentsTotal || 0).toLocaleString()}</b>`,
           { inline_keyboard: [[{ text: "💳 شحن", callback_data: "start_deposit" }, { text: "💸 سحب", callback_data: "start_withdrawal" }], [{ text: "🔐 إدارة PIN", callback_data: "manage_pin" }]] }
         );
+      } else if (text === '📊 التقارير والأداء') {
+        await sendTelegramMessage(botToken, chatId, "⏳ <b>جاري جرد البيانات الاستراتيجية...</b>\nيرجى الانتظار لحظات ريثما نقوم بتحليل بصمتك المالية للأسبوع الماضي.");
+        const res = await sendWeeklyPerformanceReport(user.id);
+        if (!res.success) await sendTelegramMessage(botToken, chatId, "❌ <b>عذراً</b>\nحدث خطأ أثناء محاولة جلب التقرير. يرجى المحاولة لاحقاً.");
+        return NextResponse.json({ ok: true });
       } else if (text === '📊 الأسواق الحية') {
         const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(5)));
         let msg = "<b>📊 نبض الأسواق اللحظي:</b>\n\n";

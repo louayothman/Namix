@@ -3,7 +3,7 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { sendTelegramMessage } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
@@ -30,6 +30,76 @@ export async function sendTelegramNotification(userId: string, message: string, 
     // 3. إرسال الرسالة
     const replyMarkup = inlineButtons ? { inline_keyboard: inlineButtons } : undefined;
     await sendTelegramMessage(config.botToken, userData.telegramChatId, message, replyMarkup);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * يولد ويرسل تقريراً استراتيجياً أسبوعياً للمستثمر عبر تلغرام
+ */
+export async function sendWeeklyPerformanceReport(userId: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    if (!userSnap.exists() || !userSnap.data().telegramChatId) return { success: false };
+
+    const userData = userSnap.data();
+    const configSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = configSnap.data()?.botToken;
+    if (!botToken) return { success: false };
+
+    // حساب تاريخ البداية (منذ 7 أيام)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const dateStr = sevenDaysAgo.toISOString();
+
+    // 1. جلب التداولات الأسبوعية
+    const tradesQ = query(collection(firestore, "trades"), where("userId", "==", userId), where("createdAt", ">=", dateStr));
+    const tradesSnap = await getDocs(tradesQ);
+    const trades = tradesSnap.docs.map(d => d.data());
+    
+    const winTrades = trades.filter(t => t.result === 'win');
+    const totalTradeProfit = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+    const totalTradeLoss = trades.filter(t => t.result === 'lose').reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // 2. جلب الاستثمارات الأسبوعية
+    const invQ = query(collection(firestore, "investments"), where("userId", "==", userId), where("createdAt", ">=", dateStr));
+    const invSnap = await getDocs(invQ);
+    const investments = invSnap.docs.map(d => d.data());
+    const maturedInvProfit = investments.filter(i => i.status === 'completed').reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+
+    // 3. جلب الإيداعات الأسبوعية
+    const depQ = query(collection(firestore, "deposit_requests"), where("userId", "==", userId), where("status", "==", "approved"), where("createdAt", ">=", dateStr));
+    const depSnap = await getDocs(depQ);
+    const weeklyInflow = depSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
+
+    const netWeeklyYield = totalTradeProfit + maturedInvProfit - totalTradeLoss;
+
+    const reportMessage = `
+<b>📊 التقرير الاستراتيجي الأسبوعي | Weekly Ledger</b>
+
+👤 المستثمر: <b>${userData.displayName}</b>
+📅 الفترة: من ${sevenDaysAgo.toLocaleDateString('ar-EG')} حتى اليوم
+
+<b>📈 ملخص الأداء التشغيلي:</b>
+• صافي الأرباح الأسبوعية: <code style="color: #10b981;">+$${netWeeklyYield.toFixed(2)}</code>
+• حجم التداول المنفذ: <b>$${trades.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</b>
+• نسبة نجاح الصفقات: <b>%${trades.length > 0 ? ((winTrades.length / trades.length) * 100).toFixed(0) : 0}</b>
+
+<b>🏦 تدفق السيولة (Inflow):</b>
+• إجمالي الإيداعات: <b>$${weeklyInflow.toLocaleString()}</b>
+• العقود الناضجة: <b>${investments.filter(i => i.status === 'completed').length}</b>
+
+<b>💎 المحفظة الحالية:</b>
+• الرصيد المتاح: <b>$${userData.totalBalance.toLocaleString()}</b>
+• الأرباح التراكمية: <b>$${(userData.totalProfits || 0).toLocaleString()}</b>
+
+<i>تم توليد هذا التقرير عبر محرك ناميكس للذكاء المالي المتقدم لضمان سيادتك على أصولك.</i>
+    `;
+
+    await sendTelegramMessage(botToken, userData.telegramChatId, reportMessage);
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };

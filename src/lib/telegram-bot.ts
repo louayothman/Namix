@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v7.0
- * محرك البوت المتطور - تم تطهير كافة المصطلحات وتحديث واجهات التفاعل.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v8.0
+ * محرك البوت المتطور - تم إضافة ميزة التقارير الأسبوعية وتحديث واجهات التفاعل.
  * يركز على الرشاقة، الأناقة، والفخامة النخبوية.
  */
 
@@ -42,8 +42,8 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
-      [{ text: "💰 الرصيد والمحفظة" }, { text: "💳 شحن الرصيد" }],
-      [{ text: "🚀 المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
+      [{ text: "💰 الرصيد والمحفظة" }, { text: "📊 التقارير والأداء" }],
+      [{ text: "💳 شحن الرصيد" }, { text: "🚀 المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
     ],
     resize_keyboard: true,
     persistent: true
