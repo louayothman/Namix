@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2, ShieldCheck, Zap, Sparkles, CheckCircle2, ChevronLeft, ArrowUpRight, AlertCircle } from "lucide-react";
+import { Send, Loader2, CheckCircle2, ChevronLeft, ArrowUpRight, AlertCircle, Zap } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,8 @@ interface TelegramLinkDialogProps {
 }
 
 /**
- * @fileOverview بروتوكول ربط تلغرام v1.8 - Robust Configuration Detection
- * تم إضافة معالجة حالة التحميل لمنع ظهور رسالة "غير مهيأ" أثناء جلب البيانات.
+ * @fileOverview بروتوكول ربط تلغرام v2.0 - Direct Link Edition
+ * تم تحويل عملية التوجيه لتكون عبر رابط مباشر لضمان استقرار الفتح على كافة المتصفحات.
  */
 export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: TelegramLinkDialogProps) {
   const [loading, setLoading] = useState(false);
@@ -30,27 +30,24 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
   const isLinked = !!dbUser?.telegramChatId;
   const botUsername = telegramConfig?.botUsername;
 
-  const handleLink = async () => {
+  const handleLinkInitiation = async () => {
     if (!user?.id || !botUsername) return;
     setLoading(true);
     try {
-      // 1. توليد توكن فريد للربط
+      // 1. توليد توكن فريد للربط وحفظه قبل التوجيه
       const tempToken = 'LINK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-      
-      // 2. حفظ التوكن في وثيقة المستخدم في Firestore
       await updateDoc(doc(db, "users", user.id), { 
         tempLinkToken: tempToken,
         updatedAt: new Date().toISOString()
       });
       
-      // 3. التوجه لتلغرام المأخوذ من الإعدادات
+      // 2. بناء الرابط المباشر
       const botUrl = `https://t.me/${botUsername}?start=${tempToken}`;
       
-      // إغلاق النافذة وفتح تلغرام
-      window.open(botUrl, '_blank');
-      onOpenChange(false);
+      // 3. التوجيه المباشر عبر نافذة جديدة
+      window.location.href = botUrl;
     } catch (e) {
-      console.error("Telegram Link Generation Error:", e);
+      console.error("Telegram Link Error:", e);
     } finally {
       setLoading(false);
     }
@@ -58,7 +55,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[400px] overflow-hidden text-right font-body" dir="rtl">
+      <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[400px] overflow-hidden text-right font-body outline-none" dir="rtl">
         <div className="bg-[#0088cc] p-8 text-white relative shrink-0 text-center">
            <div className="absolute top-0 right-0 p-6 opacity-[0.1] -rotate-12 pointer-events-none"><Send className="h-32 w-32" /></div>
            <div className="h-16 w-16 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner mx-auto mb-4">
@@ -120,7 +117,11 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                 </div>
 
                 <div className="space-y-4">
-                   <Button onClick={handleLink} disabled={loading} className="w-full h-16 rounded-full bg-[#0088cc] hover:bg-[#0077b5] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 group">
+                   <Button 
+                     onClick={handleLinkInitiation} 
+                     disabled={loading} 
+                     className="w-full h-16 rounded-full bg-[#0088cc] hover:bg-[#0077b5] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                   >
                       {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
                         <>
                           فتح بوت ناميكس والربط

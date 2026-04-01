@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Send, ShieldCheck, Loader2, Sparkles, Zap, Globe, Cpu, RefreshCcw, UserCircle } from "lucide-react";
+import { Send, ShieldCheck, Loader2, Sparkles, Zap, Globe, Cpu, RefreshCcw, UserCircle, Info, AlertTriangle } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
@@ -77,6 +77,8 @@ export function TelegramSection() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-left-6 duration-700 font-body text-right" dir="rtl">
+      
+      {/* 1. Configuration Console */}
       <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
         <CardHeader className="bg-[#0088cc] p-10 text-white relative">
           <div className="absolute top-0 right-0 p-8 opacity-10"><Send className="h-32 w-32" /></div>
@@ -88,7 +90,8 @@ export function TelegramSection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-10 space-y-10">
-          <div className="grid gap-8">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">Telegram Bot API Token</Label>
               <Input 
@@ -110,37 +113,39 @@ export function TelegramSection() {
                 />
                 <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
               </div>
-              <p className="text-[9px] text-gray-400 font-bold pr-4 italic">يستخدم لتوليد روابط الربط المباشر للمستثمرين.</p>
-            </div>
-            
-            <div className="space-y-3">
-              <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">Webhook Endpoint URL</Label>
-              <div className="relative">
-                <Input 
-                  value={data.webhookUrl || ""} 
-                  onChange={e => setData({...data, webhookUrl: e.target.value})}
-                  className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-xs px-8 shadow-inner text-left"
-                  dir="ltr"
-                  placeholder="https://your-domain.com/api/telegram/webhook"
-                />
-                <Globe className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
-              </div>
-              <p className="text-[9px] text-gray-400 font-bold pr-4 italic">اتركه فارغاً ليتم توليده تلقائياً بناءً على الدومين الحالي.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="p-6 bg-blue-50 rounded-[32px] border border-blue-100 flex items-center justify-between">
+          <div className="space-y-3">
+            <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">Webhook Endpoint URL</Label>
+            <div className="relative">
+              <Input 
+                value={data.webhookUrl || ""} 
+                onChange={e => setData({...data, webhookUrl: e.target.value})}
+                className="h-14 rounded-2xl bg-blue-50/30 border border-blue-100 font-mono text-xs px-8 shadow-inner text-left"
+                dir="ltr"
+                placeholder="https://your-domain.com/api/telegram/webhook"
+              />
+              <Globe className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-200" />
+            </div>
+            <p className="text-[9px] text-gray-400 font-bold pr-4 flex items-center gap-2">
+               <Info size={12} className="text-blue-500" />
+               يجب أن يكون الرابط مشفراً (HTTPS) ومتاحاً للعموم لكي تصل رسائل تلغرام.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
+             <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 flex items-center justify-between shadow-inner">
                 <div className="flex items-center gap-3">
                    <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                       <Cpu className="h-5 w-5 text-blue-600" />
                    </div>
                    <div className="text-right">
                       <p className="text-xs font-black text-[#002d4d]">حالة الربط البرمجي</p>
-                      <p className="text-[9px] font-bold text-blue-400 uppercase">Webhook Pulse</p>
+                      <p className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">Webhook Pulse</p>
                    </div>
                 </div>
-                <Badge className={cn("font-black text-[8px] px-3 py-1 rounded-full", data.isActive ? "bg-emerald-500 text-emerald-600 border-none" : "bg-gray-200 text-gray-400 border-none")}>
+                <Badge className={cn("font-black text-[8px] px-3 py-1 rounded-full border-none", data.isActive ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400")}>
                    {data.isActive ? "ACTIVE" : "INACTIVE"}
                 </Badge>
              </div>
@@ -154,13 +159,16 @@ export function TelegramSection() {
              </Button>
           </div>
 
-          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 flex items-start gap-5">
+          <div className="p-8 bg-orange-50 rounded-[40px] border border-orange-100 flex items-start gap-5">
              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
-                <ShieldCheck className="h-6 w-6 text-[#002d4d]" />
+                <AlertTriangle className="h-6 w-6 text-orange-500" />
              </div>
-             <p className="text-[11px] font-bold text-gray-400 leading-relaxed pt-1">
-               تأكد من أن رابط الـ Webhook يبدأ بـ HTTPS لضمان قبول تلغرام للطلب. بمجرد التفعيل، سيتمكن المستخدمون من فتح "ناميكس" كتطبيق مصغر داخل تلغرام.
-             </p>
+             <div className="space-y-1 pt-1">
+                <p className="text-xs font-black text-orange-900">تنبيه المزامنة:</p>
+                <p className="text-[11px] font-bold text-orange-800/60 leading-relaxed">
+                  بعد حفظ التوكن، يجب الضغط على "تفعيل ومزامنة الـ Webhook" لإبلاغ تلغرام بالرابط الجديد للموقع. في حال تغيير الدومين، كرر هذه الخطوة فوراً.
+                </p>
+             </div>
           </div>
 
           <Button onClick={handleSave} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 group transition-all">
