@@ -1,7 +1,7 @@
 
 /**
  * @fileOverview NAMIX NEXUS BOT CORE ENGINE v10.0
- * محرك البوت المطور - إصلاح الأزرار وتوحيد الهوية النصية الاحترافية وتطهير المصطلحات.
+ * محرك البوت المطور - تحديث لوحة التحكم وتوحيد الهوية الاحترافية.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -36,14 +36,15 @@ export async function setTelegramWebhook(token: string, url: string) {
 
 /**
  * يولد لوحة التحكم المتقدمة للمستثمرين الموثقين
- * تم التأكد من أن النصوص تطابق المعالجة في الـ Webhook
+ * تم إضافة زر السحب المفقود وتوحيد المصطلحات
  */
-export function generateTelegramAppKeyboard(baseUrl: string) {
+export function generateTelegramAppKeyboard() {
   return {
     keyboard: [
       [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
       [{ text: "💰 الرصيد والمحفظة" }, { text: "📊 التقارير والأداء" }],
-      [{ text: "💳 شحن الرصيد" }, { text: "🚀 فتح المنصة", web_app: { url: `${baseUrl}/home` } }]
+      [{ text: "💳 شحن الرصيد" }, { text: "📤 سحب الأرباح" }],
+      [{ text: "🚀 فتح المنصة" }]
     ],
     resize_keyboard: true,
     persistent: true
@@ -53,11 +54,11 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
 /**
  * يولد أزرار الترحيب للزوار الجدد
  */
-export function generateGuestKeyboard(baseUrl: string) {
+export function generateGuestKeyboard() {
   return {
     keyboard: [
       [{ text: "✨ إنشاء حساب جديد" }],
-      [{ text: "🔑 تسجيل دخول", web_app: { url: `${baseUrl}/login` } }]
+      [{ text: "🔑 تسجيل دخول" }]
     ],
     resize_keyboard: true,
     one_time_keyboard: true
