@@ -17,15 +17,15 @@ interface TelegramLinkDialogProps {
 }
 
 /**
- * @fileOverview بروتوكول ربط تلغرام v1.7 - Dynamic Bot Link
- * تم تحديث المنطق ليجلب يوزر نيم البوت من إعدادات النظام لضمان المرونة المطلقة.
+ * @fileOverview بروتوكول ربط تلغرام v1.8 - Robust Configuration Detection
+ * تم إضافة معالجة حالة التحميل لمنع ظهور رسالة "غير مهيأ" أثناء جلب البيانات.
  */
 export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: TelegramLinkDialogProps) {
   const [loading, setLoading] = useState(false);
   const db = useFirestore();
   
   const telegramRef = useMemoFirebase(() => doc(db, "system_settings", "telegram"), [db]);
-  const { data: telegramConfig } = useDoc(telegramRef);
+  const { data: telegramConfig, isLoading: configLoading } = useDoc(telegramRef);
 
   const isLinked = !!dbUser?.telegramChatId;
   const botUsername = telegramConfig?.botUsername;
@@ -68,11 +68,11 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
            <p className="text-[8px] font-black text-blue-100/60 uppercase tracking-[0.3em] mt-1">Nexus Notification Protocol</p>
         </div>
 
-        <div className="p-8 space-y-8 bg-white text-center">
-           {!botUsername && !isLinked ? (
-             <div className="py-6 space-y-4 animate-in fade-in">
-                <AlertCircle className="h-12 w-12 text-orange-400 mx-auto" />
-                <p className="text-[11px] font-bold text-gray-400">نعتذر، بروتوكول تلغرام غير مهيأ حالياً من قبل الإدارة. يرجى المحاولة لاحقاً.</p>
+        <div className="p-8 space-y-8 bg-white text-center min-h-[200px] flex flex-col justify-center">
+           {configLoading ? (
+             <div className="py-6 flex flex-col items-center gap-4 animate-in fade-in">
+                <Loader2 className="h-8 w-8 animate-spin text-[#0088cc]" />
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري التحقق من البروتوكول...</p>
              </div>
            ) : isLinked ? (
              <div className="space-y-6 py-4 animate-in zoom-in-95">
@@ -86,6 +86,16 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                    </p>
                 </div>
                 <Button onClick={() => onOpenChange(false)} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black shadow-xl">العودة للملف الشخصي</Button>
+             </div>
+           ) : !botUsername ? (
+             <div className="py-6 space-y-4 animate-in fade-in">
+                <div className="h-16 w-16 rounded-3xl bg-orange-50 flex items-center justify-center mx-auto border border-orange-100">
+                   <AlertCircle className="h-8 w-8 text-orange-400" />
+                </div>
+                <div className="space-y-1">
+                   <p className="text-sm font-black text-[#002d4d]">الخدمة قيد التهيئة</p>
+                   <p className="text-[11px] font-bold text-gray-400 leading-relaxed px-4">نعتذر، بروتوكول تلغرام غير مهيأ حالياً من قبل الإدارة. يرجى المحاولة لاحقاً.</p>
+                </div>
              </div>
            ) : (
              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">

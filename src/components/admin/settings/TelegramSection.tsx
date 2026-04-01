@@ -25,13 +25,24 @@ export function TelegramSection() {
   const [data, setData] = useState<any>({ botToken: "", botUsername: "", webhookUrl: "", isActive: false });
 
   useEffect(() => {
-    if (remoteData) setData(remoteData);
+    if (remoteData) {
+      setData({
+        botToken: remoteData.botToken || "",
+        botUsername: remoteData.botUsername || "",
+        webhookUrl: remoteData.webhookUrl || "",
+        isActive: !!remoteData.isActive
+      });
+    }
   }, [remoteData]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(telegramRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+      await setDoc(telegramRef, { 
+        ...data, 
+        botUsername: data.botUsername.replace('@', '').trim(),
+        updatedAt: new Date().toISOString() 
+      }, { merge: true });
       toast({ title: "تم حفظ الإعدادات", description: "بروتوكول تلغرام محدث في القاعدة." });
     } catch (e) {
       toast({ variant: "destructive", title: "فشل الحفظ" });
@@ -52,6 +63,7 @@ export function TelegramSection() {
       
       if (res.ok) {
         await setDoc(telegramRef, { webhookUrl: currentUrl, isActive: true }, { merge: true });
+        setData(prev => ({ ...prev, webhookUrl: currentUrl, isActive: true }));
         toast({ title: "تم تفعيل Webhook بنجاح", description: "البوت الآن يستقبل الرسائل من تلغرام." });
       } else {
         toast({ variant: "destructive", title: "فشل تفعيل Webhook", description: res.description });
@@ -92,7 +104,7 @@ export function TelegramSection() {
               <div className="relative">
                 <Input 
                   value={data.botUsername || ""} 
-                  onChange={e => setData({...data, botUsername: e.target.value.replace('@', '')})}
+                  onChange={e => setData({...data, botUsername: e.target.value})}
                   className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 pr-12 shadow-inner"
                   placeholder="NamiixProBot"
                 />
@@ -128,7 +140,7 @@ export function TelegramSection() {
                       <p className="text-[9px] font-bold text-blue-400 uppercase">Webhook Pulse</p>
                    </div>
                 </div>
-                <Badge className={cn("font-black text-[8px] px-3 py-1 rounded-full", data.isActive ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400")}>
+                <Badge className={cn("font-black text-[8px] px-3 py-1 rounded-full", data.isActive ? "bg-emerald-500 text-emerald-600 border-none" : "bg-gray-200 text-gray-400 border-none")}>
                    {data.isActive ? "ACTIVE" : "INACTIVE"}
                 </Badge>
              </div>
