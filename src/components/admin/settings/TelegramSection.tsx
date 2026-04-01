@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Send, ShieldCheck, Loader2, Sparkles, Zap, Globe, Cpu, RefreshCcw } from "lucide-react";
+import { Send, ShieldCheck, Loader2, Sparkles, Zap, Globe, Cpu, RefreshCcw, UserCircle } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ export function TelegramSection() {
   
   const telegramRef = useMemoFirebase(() => doc(db, "system_settings", "telegram"), [db]);
   const { data: remoteData } = useDoc(telegramRef);
-  const [data, setData] = useState<any>({ botToken: "", webhookUrl: "", isActive: false });
+  const [data, setData] = useState<any>({ botToken: "", botUsername: "", webhookUrl: "", isActive: false });
 
   useEffect(() => {
     if (remoteData) setData(remoteData);
@@ -47,7 +47,6 @@ export function TelegramSection() {
     }
     setSyncing(true);
     try {
-      // Auto-construct webhook URL based on current domain if not provided
       const currentUrl = data.webhookUrl || `${window.location.origin}/api/telegram/webhook`;
       const res = await setTelegramWebhook(data.botToken, currentUrl);
       
@@ -86,6 +85,20 @@ export function TelegramSection() {
                 className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
                 placeholder="أدخل التوكن من BotFather..."
               />
+            </div>
+
+            <div className="space-y-3">
+              <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">يوزر نيم البوت (بدون @)</Label>
+              <div className="relative">
+                <Input 
+                  value={data.botUsername || ""} 
+                  onChange={e => setData({...data, botUsername: e.target.value.replace('@', '')})}
+                  className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 pr-12 shadow-inner"
+                  placeholder="NamiixProBot"
+                />
+                <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+              </div>
+              <p className="text-[9px] text-gray-400 font-bold pr-4 italic">يستخدم لتوليد روابط الربط المباشر للمستثمرين.</p>
             </div>
             
             <div className="space-y-3">
@@ -133,7 +146,7 @@ export function TelegramSection() {
              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
                 <ShieldCheck className="h-6 w-6 text-[#002d4d]" />
              </div>
-             <p className="text-[11px] font-bold text-gray-500 leading-relaxed pt-1">
+             <p className="text-[11px] font-bold text-gray-400 leading-relaxed pt-1">
                تأكد من أن رابط الـ Webhook يبدأ بـ HTTPS لضمان قبول تلغرام للطلب. بمجرد التفعيل، سيتمكن المستخدمون من فتح "ناميكس" كتطبيق مصغر داخل تلغرام.
              </p>
           </div>

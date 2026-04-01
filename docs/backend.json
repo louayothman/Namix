@@ -25,6 +25,7 @@
         "isAutoInvestEnabled": { "type": "boolean" },
         "telegramChatId": { "type": "string", "description": "The unique Telegram Chat ID for notifications and bot interaction." },
         "telegramUsername": { "type": "string" },
+        "tempLinkToken": { "type": "string", "description": "Temporary token for linking accounts." },
         "lastActive": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -37,6 +38,7 @@
       "description": "Configuration for the Namix Telegram Bot integration.",
       "properties": {
         "botToken": { "type": "string" },
+        "botUsername": { "type": "string", "description": "The bot's username without @" },
         "webhookUrl": { "type": "string" },
         "isActive": { "type": "boolean" },
         "updatedAt": { "type": "string", "format": "date-time" }

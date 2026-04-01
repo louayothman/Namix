@@ -4,8 +4,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2, ShieldCheck, Zap, Sparkles, CheckCircle2, ChevronLeft, ArrowUpRight } from "lucide-react";
-import { useFirestore } from "@/firebase";
+import { Send, Loader2, ShieldCheck, Zap, Sparkles, CheckCircle2, ChevronLeft, ArrowUpRight, AlertCircle } from "lucide-react";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
@@ -17,16 +17,21 @@ interface TelegramLinkDialogProps {
 }
 
 /**
- * @fileOverview بروتوكول ربط تلغرام v1.6 - Targeted Bot Link
- * تم تحديث المعرف ليتطابق مع NamiixProBot وضمان الربط السلس.
+ * @fileOverview بروتوكول ربط تلغرام v1.7 - Dynamic Bot Link
+ * تم تحديث المنطق ليجلب يوزر نيم البوت من إعدادات النظام لضمان المرونة المطلقة.
  */
 export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: TelegramLinkDialogProps) {
   const [loading, setLoading] = useState(false);
   const db = useFirestore();
+  
+  const telegramRef = useMemoFirebase(() => doc(db, "system_settings", "telegram"), [db]);
+  const { data: telegramConfig } = useDoc(telegramRef);
+
   const isLinked = !!dbUser?.telegramChatId;
+  const botUsername = telegramConfig?.botUsername;
 
   const handleLink = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !botUsername) return;
     setLoading(true);
     try {
       // 1. توليد توكن فريد للربط
@@ -38,8 +43,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
         updatedAt: new Date().toISOString()
       });
       
-      // 3. التوجه لتلغرام المحدث NamiixProBot
-      const botUsername = "NamiixProBot"; 
+      // 3. التوجه لتلغرام المأخوذ من الإعدادات
       const botUrl = `https://t.me/${botUsername}?start=${tempToken}`;
       
       // إغلاق النافذة وفتح تلغرام
@@ -65,7 +69,12 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
         </div>
 
         <div className="p-8 space-y-8 bg-white text-center">
-           {isLinked ? (
+           {!botUsername && !isLinked ? (
+             <div className="py-6 space-y-4 animate-in fade-in">
+                <AlertCircle className="h-12 w-12 text-orange-400 mx-auto" />
+                <p className="text-[11px] font-bold text-gray-400">نعتذر، بروتوكول تلغرام غير مهيأ حالياً من قبل الإدارة. يرجى المحاولة لاحقاً.</p>
+             </div>
+           ) : isLinked ? (
              <div className="space-y-6 py-4 animate-in zoom-in-95">
                 <div className="h-20 w-20 bg-emerald-50 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
                    <CheckCircle2 className="h-10 w-10 text-emerald-500" />
@@ -109,7 +118,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                         </>
                       )}
                    </Button>
-                   <p className="text-[9px] text-gray-400 font-bold">سيتم توجيهك لـ NamiixProBot لإتمام الربط.</p>
+                   <p className="text-[9px] text-gray-400 font-bold">سيتم توجيهك للبوت المعتمد لإتمام الربط.</p>
                 </div>
              </div>
            )}
