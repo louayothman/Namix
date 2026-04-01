@@ -70,26 +70,22 @@ export function Shell({
     const userSession = localStorage.getItem("namix_user");
     const parsedUser = userSession ? JSON.parse(userSession) : null;
     
-    // 1. بروتوكول الصفحات العامة (About, FAQ, Academy)
     if (isPublic) {
       setUser(parsedUser);
       setAuthorized(true);
       return;
     }
 
-    // 2. التحقق من وجود جلسة نشطة
     if (!parsedUser) {
       router.replace("/login");
       return;
     }
 
-    // 3. حماية مسارات المشرف (Admin Guard)
     if (isAdmin && parsedUser.role !== 'admin') {
       router.replace("/home");
       return;
     }
 
-    // 4. تحديث نبض النشاط وتثبيت الحالة
     setUser(parsedUser);
     setAuthorized(true);
 
@@ -115,7 +111,6 @@ export function Shell({
     { name: "إعدادات المنصة", href: "/admin/settings", icon: Settings },
   ], []);
 
-  // واجهة التحميل أثناء فحص الصلاحيات (Security Splash)
   if (!authorized) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-6 font-body">
@@ -133,10 +128,10 @@ export function Shell({
   return (
     <div className="flex min-h-screen flex-col bg-[#fcfdfe] font-body text-[12px] selection:bg-[#f9a885]/30" dir="rtl">
       {managedUserId && (
-        <div className="w-full bg-orange-500 text-white px-6 py-2 flex items-center justify-between sticky top-0 z-[200] shadow-md border-b border-white/10">
+        <div className="w-full bg-orange-50 text-white px-6 py-2 flex items-center justify-between sticky top-0 z-[200] shadow-md border-b border-white/10">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 animate-pulse" />
-            <span className="font-black text-[10px] tracking-tight">إدارة الهوية الاحترافية: {managedUserName || managedUserId}</span>
+            <span className="font-black text-[10px] tracking-tight">إدارة الهوية النخبوية: {managedUserName || managedUserId}</span>
           </div>
           <Link href="/admin/users">
             <button className="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full font-black text-[9px] flex items-center gap-1 transition-all shadow-inner">

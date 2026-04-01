@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v9.0
- * محرك البوت المطور - إصلاح الأزرار وتوحيد الهوية النصية الاحترافية.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v10.0
+ * محرك البوت المطور - إصلاح الأزرار وتوحيد الهوية النصية الاحترافية وتطهير المصطلحات.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -56,7 +56,7 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
 export function generateGuestKeyboard(baseUrl: string) {
   return {
     keyboard: [
-      [{ text: "✨ إنشاء حساب جديد", web_app: { url: `${baseUrl}/login` } }],
+      [{ text: "✨ إنشاء حساب جديد" }],
       [{ text: "🔑 تسجيل دخول", web_app: { url: `${baseUrl}/login` } }]
     ],
     resize_keyboard: true,
