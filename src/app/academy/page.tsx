@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   BookOpen, 
   ChevronRight, 
-  Sparkles, 
   Zap, 
   ShieldCheck, 
   TrendingUp, 
@@ -21,13 +20,11 @@ import {
   ArrowRightLeft,
   Loader2,
   ChevronLeft,
-  ShieldAlert,
   Repeat,
   Coins,
   DollarSign,
   Fingerprint,
   Trophy,
-  EyeOff,
   Cpu,
   Radar,
   Share2,
@@ -46,8 +43,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const ICON_MAP: Record<string, any> = {
   BrainCircuit, ShieldCheck, Zap, TrendingUp, Globe, Lock, PlayCircle, Lightbulb, 
-  ArrowRightLeft, ShieldAlert, Repeat, Coins, DollarSign, Fingerprint, Trophy, 
-  EyeOff, Cpu, Radar, Share2, Layers, Brain, BookOpen, Code, Target, Gem, Award
+  ArrowRightLeft, Repeat, Coins, DollarSign, Fingerprint, Trophy, 
+  Cpu, Radar, Share2, Layers, Brain, BookOpen, Code, Target, Gem, Award
 };
 
 export default function AcademyPage() {
@@ -68,7 +65,7 @@ export default function AcademyPage() {
               Namix Insight Academy
             </div>
             <h1 className="text-2xl font-black text-[#002d4d]">أكاديمية الذكاء المالي</h1>
-            <p className="text-muted-foreground font-bold text-[9px]">اتقن مهارات الاستثمار الرقمي وفهم بروتوكولات السيادة المالية.</p>
+            <p className="text-muted-foreground font-bold text-[9px]">اتقن مهارات الاستثمار الرقمي وفهم بروتوكولات التميز المالي.</p>
           </div>
           <Button onClick={() => router.back()} variant="ghost" size="icon" className="rounded-full bg-white shadow-sm h-12 w-12 border border-gray-50 active:scale-95 transition-all hover:shadow-md">
             <ChevronRight className="h-5 w-5 text-[#002d4d]" />
@@ -89,7 +86,7 @@ export default function AcademyPage() {
                </Badge>
             </div>
             <div className="space-y-2">
-               <h2 className="text-xl font-black leading-tight">المعرفة هي القوة السيادية</h2>
+               <h2 className="text-xl font-black leading-tight">المعرفة هي القوة الاستراتيجية</h2>
                <p className="text-[11px] text-blue-100/60 leading-relaxed font-bold max-w-[90%]">المستثمر الناجح هو المستثمر الواعي. اكتشف كيف تولد أموالك أرباحاً استثنائية داخل نظام ناميكس المتطور.</p>
             </div>
           </CardContent>

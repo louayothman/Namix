@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v2.5
- * مطور لدعم التنقل المتعدد، إنشاء الحسابات، وتجربة الـ WebApp الفاخرة.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v3.0
+ * محرك البوت المتطور - تم تطهير كافة المصطلحات من "السيادة".
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,15 +35,14 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم السيادية للمستخدمين المرتبطين
- * تعتمد على Reply Keyboard لسهولة الوصول الدائم
+ * يولد لوحة التحكم المتقدمة للمستثمرين
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
-      [{ text: "💰 الرصيد والمحفظة" }, { text: "🎮 ساحة المغامرة" }],
-      [{ text: "🚀 فتح التطبيق المصغر", web_app: { url: `${baseUrl}/home` } }]
+      [{ text: "💰 الرصيد والمحفظة" }, { text: "💳 شحن الرصيد" }],
+      [{ text: "🎮 ساحة المغامرة" }, { text: "🚀 فتح المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
     ],
     resize_keyboard: true,
     persistent: true
@@ -57,8 +56,7 @@ export function generateGuestKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [{ text: "✨ إنشاء حساب جديد" }],
-      [{ text: "🔑 دخول للمنصة", web_app: { url: `${baseUrl}/login` } }],
-      [{ text: "🌍 الموقع الرسمي", url: baseUrl }]
+      [{ text: "🔑 دخول للمنصة", web_app: { url: `${baseUrl}/login` } }]
     ],
     resize_keyboard: true,
     one_time_keyboard: true
