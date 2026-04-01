@@ -97,7 +97,13 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
         if (lastNotifiedSignalRef.current !== signalKey) {
           lastNotifiedSignalRef.current = signalKey;
           const msg = `<b>🔥 إشارة ذكية مكثفة!</b>\n\nالأصل: <b>${asset.code}</b>\nالعملية: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nدرجة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر: <b>$${livePrice.toLocaleString()}</b>\n\n<i>فرصة تداول وميضية رصدها محرك ناميكس الآن.</i>`;
-          sendTelegramNotification(dbUser.id, msg).catch(() => {});
+          
+          // إضافة زر التنفيذ المباشر للإشعار
+          const buttons = [
+            [{ text: `🚀 تنفيذ ${analysis.signal === 'buy' ? 'شراء' : 'بيع'} الآن`, callback_data: `exec_${asset.id}_${analysis.signal}` }]
+          ];
+          
+          sendTelegramNotification(dbUser.id, msg, buttons).catch(() => {});
         }
       }
       

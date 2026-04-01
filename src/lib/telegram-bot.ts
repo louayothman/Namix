@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v2.0
+ * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v2.5
  * مطور لدعم التنقل المتعدد، إنشاء الحسابات، وتجربة الـ WebApp الفاخرة.
  */
 

@@ -11,7 +11,7 @@ const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 /**
  * يرسل تنبيهاً عبر تلغرام للمستخدم إذا كان مرتباً بالبوت
  */
-export async function sendTelegramNotification(userId: string, message: string) {
+export async function sendTelegramNotification(userId: string, message: string, inlineButtons?: any[]) {
   try {
     const { firestore } = initializeFirebase();
     
@@ -28,7 +28,8 @@ export async function sendTelegramNotification(userId: string, message: string) 
     if (!config || !config.botToken) return { success: false, error: "Bot token missing" };
 
     // 3. إرسال الرسالة
-    await sendTelegramMessage(config.botToken, userData.telegramChatId, message);
+    const replyMarkup = inlineButtons ? { inline_keyboard: inlineButtons } : undefined;
+    await sendTelegramMessage(config.botToken, userData.telegramChatId, message, replyMarkup);
     return { success: true };
   } catch (e: any) {
     console.error("Telegram Notification Error:", e);
@@ -39,7 +40,7 @@ export async function sendTelegramNotification(userId: string, message: string) 
 /**
  * بث إشارة تداول ذكية لكافة المستخدمين المرتبطين بتلغرام
  */
-export async function broadcastAISignal(title: string, message: string) {
+export async function broadcastAISignal(title: string, message: string, symbolId?: string, action?: 'buy' | 'sell') {
   try {
     const { firestore } = initializeFirebase();
     
@@ -56,10 +57,15 @@ export async function broadcastAISignal(title: string, message: string) {
 
     const formattedMessage = `<b>🚀 إشارة تداول ذكية | Smart Signal</b>\n\n<b>${title}</b>\n\n${message}\n\n<i>تم بث هذه الإشارة عبر محرك NAMIX AI السيادي.</i>`;
 
+    // أزرار التنفيذ
+    const inlineButtons = symbolId ? [
+      [{ text: `🚀 تنفيذ ${action === 'buy' ? 'شراء' : 'بيع'} الآن`, callback_data: `exec_${symbolId}_${action}` }]
+    ] : undefined;
+
     // 3. إرسال البث
     const sendPromises = usersSnap.docs.map(u => {
       const chatId = u.data().telegramChatId;
-      if (chatId) return sendTelegramMessage(botToken, chatId, formattedMessage);
+      if (chatId) return sendTelegramMessage(botToken, chatId, formattedMessage, inlineButtons ? { inline_keyboard: inlineButtons } : undefined);
       return Promise.resolve();
     });
 
