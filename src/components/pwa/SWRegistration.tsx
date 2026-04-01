@@ -13,7 +13,7 @@ export function SWRegistration() {
         navigator.serviceWorker
           .register("/sw.js")
           .then((registration) => {
-            // Service Worker registered successfully
+            console.log("Namix Service Worker registered: ", registration.scope);
           })
           .catch((error) => {
             console.error("Service Worker registration failed:", error);

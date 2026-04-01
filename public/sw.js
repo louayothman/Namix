@@ -1,4 +1,4 @@
-// Service Worker for Namix PWA
+// Namix Sovereign Service Worker v1.0
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -8,6 +8,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass-through fetch handler required for PWA installability
+  // بروتوكول المرور المباشر لضمان جلب الأسعار اللحظية دون تخزين مؤقت معطل
   event.respondWith(fetch(event.request));
 });

@@ -1,13 +1,11 @@
 {
   "name": "ناميكس - Namix",
   "short_name": "Namix",
-  "description": "منصة ناميكس المتقدمة لإدارة الاستثمار الرقمي",
-  "start_url": "/home",
+  "description": "بروتوكول إدارة الأصول الرقمية والنمو الاستراتيجي",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#002d4d",
+  "background_color": "#ffffff",
   "theme_color": "#002d4d",
-  "dir": "rtl",
-  "lang": "ar",
   "icons": [
     {
       "src": "/icon-192.png",
