@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v1.5
+ * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v2.0
  * مطور لدعم التنقل المتعدد، إنشاء الحسابات، وتجربة الـ WebApp الفاخرة.
  */
 
@@ -35,47 +35,32 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم السيادية للمستخدمين المرتبطين (WebApp Integration)
+ * يولد لوحة التحكم السيادية للمستخدمين المرتبطين
+ * تعتمد على Reply Keyboard لسهولة الوصول الدائم
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
-    inline_keyboard: [
-      [
-        { text: "🚀 قمرة القيادة (Home)", web_app: { url: `${baseUrl}/home` } }
-      ],
-      [
-        { text: "📊 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
-        { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
-      ],
-      [
-        { text: "🎮 ساحة المغامرة", web_app: { url: `${baseUrl}/arena` } },
-        { text: "🛡️ تأمين المحفظة / PIN", web_app: { url: `${baseUrl}/profile?action=setup-pin` } }
-      ],
-      [
-        { text: "💰 شحن / سحب الرصيد", web_app: { url: `${baseUrl}/profile` } }
-      ],
-      [
-        { text: "🎓 أكاديمية ناميكس", web_app: { url: `${baseUrl}/academy` } }
-      ]
-    ]
+    keyboard: [
+      [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
+      [{ text: "💰 الرصيد والمحفظة" }, { text: "🎮 ساحة المغامرة" }],
+      [{ text: "🚀 فتح التطبيق المصغر", web_app: { url: `${baseUrl}/home` } }]
+    ],
+    resize_keyboard: true,
+    persistent: true
   };
 }
 
 /**
- * يولد أزرار الترحيب للمستخدمين الجدد (دعم إنشاء الحساب)
+ * يولد أزرار الترحيب للمستخدمين الجدد
  */
 export function generateGuestKeyboard(baseUrl: string) {
   return {
-    inline_keyboard: [
-      [
-        { text: "✨ إنشاء حساب استثماري جديد", web_app: { url: `${baseUrl}/login` } }
-      ],
-      [
-        { text: "🔑 تسجيل الدخول للمنصة", web_app: { url: `${baseUrl}/login` } }
-      ],
-      [
-        { text: "🌍 الموقع الرسمي لناميكس", url: baseUrl }
-      ]
-    ]
+    keyboard: [
+      [{ text: "✨ إنشاء حساب جديد" }],
+      [{ text: "🔑 دخول للمنصة", web_app: { url: `${baseUrl}/login` } }],
+      [{ text: "🌍 الموقع الرسمي", url: baseUrl }]
+    ],
+    resize_keyboard: true,
+    one_time_keyboard: true
   };
 }

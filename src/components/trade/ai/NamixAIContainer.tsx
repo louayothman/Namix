@@ -24,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v4.5 - Smart Signal Notification
- * تم تفعيل ميزة إرسال التوصيات القوية جداً (>95%) لتلغرام المستخدم لحظياً.
+ * @fileOverview حاوية NAMIX AI v4.8 - Intensified Signal Protocol
+ * تم تكثيف الإشارات (عتبة 90%، صمت 5 دقائق) وتطوير التفاعل.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -90,18 +90,17 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
       
-      // بروتوكول الإشعارات الذكية (Smart Signal Protocol)
-      // إذا كانت الثقة أكبر من 95% ولم نرسل هذا التنبيه في آخر 10 دقائق
-      if (analysis.confidence > 95 && dbUser?.telegramChatId) {
-        const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 600000)}`;
+      // بروتوكول الإشعارات المكثف (Intensified Signal Protocol)
+      // العتبة: 90%، الصمت: 5 دقائق
+      if (analysis.confidence > 90 && dbUser?.telegramChatId) {
+        const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 300000)}`;
         if (lastNotifiedSignalRef.current !== signalKey) {
           lastNotifiedSignalRef.current = signalKey;
-          const msg = `<b>🔥 إشارة استثنائية مكتشفة!</b>\n\nالأصل: <b>${asset.code}</b>\nالعملية: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nدرجة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${livePrice.toLocaleString()}</b>\n\n<i>افتح واجهة التداول الآن لاقتناص هذه الفرصة.</i>`;
+          const msg = `<b>🔥 إشارة ذكية مكثفة!</b>\n\nالأصل: <b>${asset.code}</b>\nالعملية: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nدرجة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر: <b>$${livePrice.toLocaleString()}</b>\n\n<i>فرصة تداول وميضية رصدها محرك ناميكس الآن.</i>`;
           sendTelegramNotification(dbUser.id, msg).catch(() => {});
         }
       }
       
-      // Initialize amounts if not set
       if (Object.keys(customAmounts).length === 0) {
         const init: Record<string, string> = {};
         analysis.suggestions.forEach(s => {
