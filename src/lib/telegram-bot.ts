@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v1.2
- * Expanded with multi-channel navigation and registration support.
+ * @fileOverview NAMIX TELEGRAM BOT CORE ENGINE v1.5
+ * مطور لدعم التنقل المتعدد، إنشاء الحسابات، وتجربة الـ WebApp الفاخرة.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,13 +35,13 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم السيادية للمستخدمين المرتبطين
+ * يولد لوحة التحكم السيادية للمستخدمين المرتبطين (WebApp Integration)
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     inline_keyboard: [
       [
-        { text: "🚀 قمرة القيادة الرئيسية", web_app: { url: `${baseUrl}/home` } }
+        { text: "🚀 قمرة القيادة (Home)", web_app: { url: `${baseUrl}/home` } }
       ],
       [
         { text: "📊 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
@@ -49,20 +49,20 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
       ],
       [
         { text: "🎮 ساحة المغامرة", web_app: { url: `${baseUrl}/arena` } },
-        { text: "🛡️ مركز الأمان والـ PIN", web_app: { url: `${baseUrl}/profile?action=setup-pin` } }
+        { text: "🛡️ تأمين المحفظة / PIN", web_app: { url: `${baseUrl}/profile?action=setup-pin` } }
       ],
       [
         { text: "💰 شحن / سحب الرصيد", web_app: { url: `${baseUrl}/profile` } }
       ],
       [
-        { text: "🎓 الأكاديمية التعليمية", web_app: { url: `${baseUrl}/academy` } }
+        { text: "🎓 أكاديمية ناميكس", web_app: { url: `${baseUrl}/academy` } }
       ]
     ]
   };
 }
 
 /**
- * يولد أزرار الترحيب للمستخدمين الجدد
+ * يولد أزرار الترحيب للمستخدمين الجدد (دعم إنشاء الحساب)
  */
 export function generateGuestKeyboard(baseUrl: string) {
   return {
@@ -71,10 +71,10 @@ export function generateGuestKeyboard(baseUrl: string) {
         { text: "✨ إنشاء حساب استثماري جديد", web_app: { url: `${baseUrl}/login` } }
       ],
       [
-        { text: "🔑 تسجيل الدخول", web_app: { url: `${baseUrl}/login` } }
+        { text: "🔑 تسجيل الدخول للمنصة", web_app: { url: `${baseUrl}/login` } }
       ],
       [
-        { text: "🌍 الموقع الرسمي", url: baseUrl }
+        { text: "🌍 الموقع الرسمي لناميكس", url: baseUrl }
       ]
     ]
   };

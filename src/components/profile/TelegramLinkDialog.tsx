@@ -17,8 +17,8 @@ interface TelegramLinkDialogProps {
 }
 
 /**
- * @fileOverview بروتوكول ربط تلغرام v1.0
- * يولد رمز ربط مؤقت ويوجه المستخدم للبوت لتأمين الاتصال.
+ * @fileOverview بروتوكول ربط تلغرام v1.5 - Optimized Auth Flow
+ * يولد رمز ربط مؤقت ويضمن حفظه في Firestore قبل التوجه للبوت.
  */
 export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: TelegramLinkDialogProps) {
   const [loading, setLoading] = useState(false);
@@ -29,14 +29,25 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
     if (!user?.id) return;
     setLoading(true);
     try {
+      // 1. توليد توكن فريد للربط
       const tempToken = 'LINK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-      await updateDoc(doc(db, "users", user.id), { tempLinkToken: tempToken });
       
-      const botUrl = `https://t.me/NamixNexusBot?start=${tempToken}`; // استبدل بـ username بوتك
+      // 2. حفظ التوكن في وثيقة المستخدم في Firestore
+      await updateDoc(doc(db, "users", user.id), { 
+        tempLinkToken: tempToken,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // 3. التوجه لتلغرام مع تمرير التوكن كبارامتر Start
+      // ملاحظة: تأكد من أن يوزرنيم البوت هو NamixNexusBot أو استبدله بالاسم الصحيح الذي اخترته في BotFather
+      const botUsername = "NamixNexusBot"; 
+      const botUrl = `https://t.me/${botUsername}?start=${tempToken}`;
+      
+      // إغلاق النافذة وفتح تلغرام في تبويب جديد
       window.open(botUrl, '_blank');
       onOpenChange(false);
     } catch (e) {
-      console.error(e);
+      console.error("Telegram Link Generation Error:", e);
     } finally {
       setLoading(false);
     }
@@ -63,7 +74,7 @@ export function TelegramLinkDialog({ open, onOpenChange, user, dbUser }: Telegra
                 <div className="space-y-2">
                    <h4 className="font-black text-lg text-[#002d4d]">حسابك موثق ونشط ✅</h4>
                    <p className="text-[11px] font-bold text-gray-400 leading-relaxed px-4">
-                     أنت مرتبط الآن ببوت ناميكس (Namix Nexus). ستتلقى كافة إشعارات الأرباح وتنبيهات الأمان هناك فوراً.
+                     أنت مرتبط الآن ببوت ناميكس نكسوس. ستتلقى كافة إشعارات الأرباح وتنبيهات الأمان هناك فوراً.
                    </p>
                 </div>
                 <Button onClick={() => onOpenChange(false)} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black shadow-xl">العودة للملف الشخصي</Button>

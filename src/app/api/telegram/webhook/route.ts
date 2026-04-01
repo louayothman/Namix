@@ -5,36 +5,43 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'fireb
 import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
 
 /**
- * @fileOverview NAMIX TELEGRAM WEBHOOK HANDLER v1.2
- * Enhanced with registration flows, multi-portal access, and account management.
+ * @fileOverview NAMIX TELEGRAM WEBHOOK HANDLER v1.5
+ * المطور لمعالجة الضيوف، إنشاء الحسابات، والربط التلقائي.
  */
 
 export async function POST(req: NextRequest) {
   try {
     const update = await req.json();
-    if (!update.message) return NextResponse.json({ ok: true });
+    
+    // التحقق من وجود رسالة نصية
+    if (!update.message || !update.message.text) {
+      return NextResponse.json({ ok: true });
+    }
 
     const { firestore } = initializeFirebase();
     const configSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
     const config = configSnap.data();
 
-    if (!config || !config.botToken) return NextResponse.json({ ok: true });
+    // إذا لم يتم تهيئة التوكن في الإعدادات، لا نفعل شيئاً
+    if (!config || !config.botToken) {
+      return NextResponse.json({ ok: true });
+    }
 
     const chatId = update.message.chat.id.toString();
-    const text = update.message.text || "";
-    // نحصل على الرابط الأساسي من البيئة أو نفترض رابطاً افتراضياً
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://namix.pro';
+    const text = update.message.text;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://namix.pro');
 
-    // 1. البحث عن المستخدم المرتبط بهذا الـ Chat ID
+    // 1. البحث عن مستخدم مرتبط بهذا الـ Chat ID
     const userQ = query(collection(firestore, "users"), where("telegramChatId", "==", chatId));
     const userSnap = await getDocs(userQ);
-    const linkedUser = !userSnap.empty ? userSnap.docs[0].data() : null;
+    const linkedUser = !userSnap.empty ? { id: userSnap.docs[0].id, ...userSnap.docs[0].data() as any } : null;
 
-    // 2. معالجة أمر البداية والربط
+    // 2. معالجة أمر البداية والربط (/start)
     if (text.startsWith('/start')) {
-      const linkToken = text.split(' ')[1];
+      const parts = text.split(' ');
+      const linkToken = parts.length > 1 ? parts[1] : null;
       
-      // حالة الربط اليدوي عبر توكن مؤقت
+      // حالة الربط عبر توكن مؤقت (Existing User Linking)
       if (linkToken) {
         const tokenQ = query(collection(firestore, "users"), where("tempLinkToken", "==", linkToken));
         const tokenSnap = await getDocs(tokenQ);
@@ -55,40 +62,41 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // الحالة العامة: إذا كان مرتبطاً أصلاً
+      // الحالة العامة: إذا كان المستخدم مرتبطاً بالفعل
       if (linkedUser) {
         await sendTelegramMessage(config.botToken, chatId, 
           `<b>مرحباً بك مجدداً في ناميكس 🛡️</b>\n\nأهلاً <b>${linkedUser.displayName}</b>، قمرة القيادة جاهزة لتنفيذ أوامرك.`,
           generateTelegramAppKeyboard(baseUrl)
         );
       } else {
-        // إذا كان مستخدماً جديداً تماماً
+        // حالة الضيف (Guest/New User)
         await sendTelegramMessage(config.botToken, chatId, 
-          `<b>مرحباً بك في ناميكس السيادية 🚀</b>\n\nناميكس هي المنصة الرائدة لإدارة الأصول الرقمية والتداول بالذكاء الاصطناعي.\n\nيبدو أنك غير مرتبط بنظامنا حالياً، يمكنك البدء بإنشاء حسابك أو تسجيل الدخول عبر الأزرار أدناه:`,
+          `<b>مرحباً بك في ناميكس السيادية 🚀</b>\n\nناميكس هي المنصة الرائدة لإدارة الأصول الرقمية والتداول بالذكاء الاصطناعي.\n\nيبدو أنك لا تملك حساباً مرتبطاً حتى الآن. يمكنك البدء بإنشاء حسابك الاستثماري الجديد أو تسجيل الدخول فوراً عبر الأزرار أدناه:`,
           generateGuestKeyboard(baseUrl)
         );
       }
       return NextResponse.json({ ok: true });
     }
 
-    // 3. معالجة أمر الرصيد (فقط للمرتبطين)
-    if (text === '/balance' || text === '💰 الرصيد') {
-      if (linkedUser) {
+    // 3. معالجة الأوامر التفاعلية للمرتبطين
+    if (linkedUser) {
+      if (text === '💰 الرصيد' || text === '/balance') {
         await sendTelegramMessage(config.botToken, chatId,
-          `<b>تقرير الملاءة المالية 📊</b>\n\n👤 المستثمر: ${linkedUser.displayName}\n💰 الرصيد الجاري: $${linkedUser.totalBalance.toLocaleString()}\n📈 الأرباح المحققة: $${linkedUser.totalProfits.toLocaleString()}\n🚀 حجم التشغيل: $${linkedUser.activeInvestmentsTotal.toLocaleString()}\n\n<i>تم التحديث: ${new Date().toLocaleTimeString('ar-EG')}</i>`,
+          `<b>تقرير الملاءة المالية 📊</b>\n\n👤 المستثمر: ${linkedUser.displayName}\n💰 الرصيد الجاري: $${linkedUser.totalBalance.toLocaleString()}\n📈 الأرباح المحققة: $${(linkedUser.totalProfits || 0).toLocaleString()}\n🚀 حجم التشغيل: $${(linkedUser.activeInvestmentsTotal || 0).toLocaleString()}\n\n<i>تم التحديث: ${new Date().toLocaleTimeString('ar-EG')}</i>`,
           generateTelegramAppKeyboard(baseUrl)
         );
       } else {
-        await sendTelegramMessage(config.botToken, chatId, "يرجى تسجيل الدخول أولاً للوصول لبياناتك المالية.", generateGuestKeyboard(baseUrl));
+        await sendTelegramMessage(config.botToken, chatId, 
+          "استخدم القائمة أدناه للوصول السريع لبوابات ناميكس أو تحديث بياناتك:", 
+          generateTelegramAppKeyboard(baseUrl)
+        );
       }
-      return NextResponse.json({ ok: true });
-    }
-
-    // 4. معالجة أي نص آخر كرسالة ترحيبية أو إرشادية
-    if (linkedUser) {
-      await sendTelegramMessage(config.botToken, chatId, "استخدم القائمة أدناه للوصول السريع لبوابات ناميكس:", generateTelegramAppKeyboard(baseUrl));
     } else {
-      await sendTelegramMessage(config.botToken, chatId, "أهلاً بك في ناميكس. يرجى استخدام القائمة للانضمام إلينا:", generateGuestKeyboard(baseUrl));
+      // رد افتراضي للضيوف في حال أرسلوا رسائل عشوائية
+      await sendTelegramMessage(config.botToken, chatId, 
+        "أهلاً بك. يرجى استخدام القائمة للانضمام لشبكة ناميكس والبدء في نمو أصولك:", 
+        generateGuestKeyboard(baseUrl)
+      );
     }
 
     return NextResponse.json({ ok: true });
