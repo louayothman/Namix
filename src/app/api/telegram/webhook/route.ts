@@ -1,15 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, deleteDoc, addDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, deleteDoc, addDoc, increment, orderBy, limit } from 'firebase/firestore';
 import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
-import { sendOTPEmail } from '@/app/actions/auth-actions';
 import { verifyBinanceDeposit } from '@/app/actions/binance-actions';
-import { differenceInDays, parseISO, differenceInMinutes, differenceInHours, differenceInMonths } from 'date-fns';
 
 /**
- * @fileOverview NAMIX NEXUS CONVERSATIONAL ENGINE v6.0
- * محرك المحادثة المتقدم - يدعم الشحن، السحب، التداول، والتحقق من القوانين الاستراتيجية.
+ * @fileOverview NAMIX NEXUS INTERACTIVE CORE v7.0
+ * محرك المحادثة النخبوي - يدعم العمليات المالية، الأمان، التوثيق، والتداول المكثف.
+ * تم تطهير كافة المصطلحات من "سيادة" لضمان الامتثال للهوية المؤسسية.
  */
 
 export async function POST(req: NextRequest) {
@@ -32,7 +31,7 @@ export async function POST(req: NextRequest) {
 
       if (!user) return NextResponse.json({ ok: true });
 
-      // 1. تنفيذ صفقات
+      // 1. تنفيذ صفقات التداول
       if (data.startsWith('exec_')) {
         const symbolId = data.split('_')[1];
         const tradeType = data.split('_')[2];
@@ -42,7 +41,7 @@ export async function POST(req: NextRequest) {
           tradeType,
           createdAt: new Date().toISOString() 
         }, { merge: true });
-        await sendTelegramMessage(botToken, chatId, `<b>🚀 تنفيذ صفقة ${tradeType === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\n\nيرجى إدخال <b>المبلغ</b> ($):`);
+        await sendTelegramMessage(botToken, chatId, `<b>🚀 بروتوكول تنفيذ ${tradeType === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\n\nيرجى إرسال <b>المبلغ</b> ($):`);
       }
 
       if (data.startsWith('dur_')) {
@@ -51,7 +50,7 @@ export async function POST(req: NextRequest) {
         const session = sessionSnap.data();
         if (session?.step === 'awaiting_trade_duration') {
           if (user.totalBalance < session.amount) {
-            await sendTelegramMessage(botToken, chatId, "❌ <b>عجز في الرصيد</b>\n\nرصيدك الحالي غير كافٍ.", {
+            await sendTelegramMessage(botToken, chatId, "❌ <b>عجز في السيولة</b>\n\nرصيدك الحالي غير كافٍ.", {
               inline_keyboard: [[{ text: "💳 شحن الرصيد الآن", callback_data: "start_deposit" }]]
             });
             await deleteDoc(doc(firestore, "telegram_sessions", chatId));
@@ -60,7 +59,9 @@ export async function POST(req: NextRequest) {
           const symbolSnap = await getDoc(doc(firestore, "trading_symbols", session.symbolId));
           const symbolData = symbolSnap.data();
           const entryPrice = symbolData?.currentPrice || 0;
-          const profitRate = 80;
+          const globalTradeSnap = await getDoc(doc(firestore, "system_settings", "trading_global"));
+          const profitRate = globalTradeSnap.data()?.defaultProfitRate || 80;
+
           await addDoc(collection(firestore, "trades"), {
             userId: user.id, userName: user.displayName, symbolId: session.symbolId, symbolCode: symbolData?.code || "ASSET",
             tradeType: session.tradeType, amount: session.amount, entryPrice, profitRate,
@@ -69,15 +70,28 @@ export async function POST(req: NextRequest) {
           });
           await updateDoc(doc(firestore, "users", user.id), { totalBalance: increment(-session.amount) });
           await deleteDoc(doc(firestore, "telegram_sessions", chatId));
-          await sendTelegramMessage(botToken, chatId, `<b>✅ تم إطلاق الصفقة!</b>\n\nالمبلغ: <b>$${session.amount}</b>\nالمدة: <b>${durationSeconds}ث</b>`, generateTelegramAppKeyboard(baseUrl));
+          await sendTelegramMessage(botToken, chatId, `<b>✅ تم إطلاق الصفقة بنجاح!</b>\n\nالمبلغ: <b>$${session.amount}</b>\nالمدة: <b>${durationSeconds}ث</b>\n\n<i>سيصلك إشعار فوري بالنتيجة فور التنفيذ.</i>`, generateTelegramAppKeyboard(baseUrl));
         }
       }
 
-      // 2. مسار الإيداع
+      // 2. إدارة الأمان (PIN)
+      if (data === 'manage_pin') {
+        await setDoc(doc(firestore, "telegram_sessions", chatId), { step: 'awaiting_pin_new' });
+        await sendTelegramMessage(botToken, chatId, "<b>🔐 بروتوكول حماية الخزنة</b>\n\nيرجى إرسال <b>رمز PIN الجديد</b> (6 أرقام):");
+      }
+
+      // 3. إدارة النمو التلقائي
+      if (data === 'toggle_autoinvest') {
+        const newVal = !user.isAutoInvestEnabled;
+        await updateDoc(doc(firestore, "users", user.id), { isAutoInvestEnabled: newVal });
+        await sendTelegramMessage(botToken, chatId, `<b>${newVal ? '✅ تم تفعيل' : '⚠️ تم تعطيل'} محرك النمو التلقائي</b>\n\nسيتم ${newVal ? 'إعادة استثمار' : 'تجميد'} أرباح العقود الناضجة آلياً.`);
+      }
+
+      // 4. مسار الإيداع التفاعلي
       if (data === 'start_deposit') {
         const catsSnap = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
         const buttons = catsSnap.docs.map(doc => ([{ text: doc.data().name, callback_data: `depcat_${doc.id}` }]));
-        await sendTelegramMessage(botToken, chatId, "<b>💳 مركز الشحن المتقدم</b>\n\nاختر فئة الإيداع:", { inline_keyboard: buttons });
+        await sendTelegramMessage(botToken, chatId, "<b>💳 مركز شحن الرصيد المتقدم</b>\n\nاختر فئة الإيداع المفضلة:", { inline_keyboard: buttons });
       }
 
       if (data.startsWith('depcat_')) {
@@ -85,7 +99,7 @@ export async function POST(req: NextRequest) {
         const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
         const portals = catSnap.data()?.portals?.filter((p: any) => p.isActive) || [];
         const buttons = portals.map((p: any) => ([{ text: p.name, callback_data: `depportal_${catId}_${p.id}` }]));
-        await sendTelegramMessage(botToken, chatId, `<b>📂 فئة: ${catSnap.data()?.name}</b>\n\nاختر بوابة الدفع:`, { inline_keyboard: buttons });
+        await sendTelegramMessage(botToken, chatId, `<b>📂 فئة: ${catSnap.data()?.name}</b>\n\nاختر بوابة الإيداع المعتمدة:`, { inline_keyboard: buttons });
       }
 
       if (data.startsWith('depportal_')) {
@@ -93,43 +107,31 @@ export async function POST(req: NextRequest) {
         const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
         const portal = catSnap.data()?.portals?.find((p: any) => p.id === portalId);
         if (portal) {
-          let message = `<b>🛠️ بوابة: ${portal.name}</b>\n\n<b>📝 التعليمات:</b>\n${portal.instructions}\n\n`;
-          if (portal.walletAddress) message += `<b>🏦 العنوان:</b>\n<code>${portal.walletAddress}</code>\n\n`;
+          let message = `<b>🛠️ بوابة: ${portal.name}</b>\n\n<b>📝 بروتوكول التعليمات:</b>\n${portal.instructions}\n\n`;
+          if (portal.walletAddress) message += `<b>🏦 عنوان الاستلام:</b>\n<code>${portal.walletAddress}</code>\n\n`;
           if (portal.isBinanceLinked) {
-            message += `<i>⚠️ تدقيق آلي مفعل.</i>\n\nيرجى إرسال <b>رقم العملية (TXID)</b> لتوثيق الإيداع:`;
+            message += `<i>⚠️ تدقيق آلي مفعل عبر Binance API.</i>\n\nيرجى إرسال <b>رقم العملية (TXID)</b> لتوثيق الشحن:`;
             await setDoc(doc(firestore, "telegram_sessions", chatId), { step: 'awaiting_txid', catId, portalId }, { merge: true });
           } else {
-            message += `يرجى إرسال <b>المبلغ ($)</b> الذي قمت بتحويله:`;
+            message += `يرجى إرسال <b>المبلغ المطلوب ($)</b>:`;
             await setDoc(doc(firestore, "telegram_sessions", chatId), { step: 'awaiting_dep_amount', catId, portalId }, { merge: true });
           }
           await sendTelegramMessage(botToken, chatId, message);
         }
       }
 
-      // 3. مسار السحب التفاعلي والذكي
+      // 5. مسار السحب النخبوي
       if (data === 'start_withdrawal') {
-        // التحقق من القوانين قبل البدء
         const rulesSnap = await getDoc(doc(firestore, "system_settings", "withdrawal_rules"));
         const rules = rulesSnap.data();
-        const now = new Date();
-
-        // فحص المتطلبات
-        if (!user.securityPin) {
-          return sendTelegramMessage(botToken, chatId, "❌ <b>متطلب أمني</b>\n\nيرجى تعيين رمز PIN للخزنة من الملف الشخصي أولاً لتأمين سحوباتك.");
-        }
-        if (rules?.requireVerificationToWithdraw && !user.isVerified) {
-          return sendTelegramMessage(botToken, chatId, "❌ <b>توثيق الهوية مطلوب</b>\n\nيجب إكمال ملفك الشخصي وتوثيق بياناتك لتفعيل سحب الأرباح.");
-        }
-        if (user.totalBalance < (rules?.minAccountBalance || 0)) {
-          return sendTelegramMessage(botToken, chatId, `❌ <b>عجز في الرصيد</b>\n\nالحد الأدنى للبقاء في المحفظة هو $${rules?.minAccountBalance}. رصيدك الحالي غير كافٍ.`);
-        }
-        if ((user.totalProfits || 0) < (rules?.minTotalProfits || 0)) {
-          return sendTelegramMessage(botToken, chatId, `❌ <b>متطلب أرباح</b>\n\nيجب أن يكون صافي أرباحك $${rules?.minTotalProfits} على الأقل قبل أول سحب.`);
-        }
+        
+        if (!user.securityPin) return sendTelegramMessage(botToken, chatId, "❌ <b>متطلب أمني</b>\n\nيرجى إعداد رمز PIN للخزنة أولاً.");
+        if (rules?.requireVerificationToWithdraw && !user.isVerified) return sendTelegramMessage(botToken, chatId, "❌ <b>التوثيق مطلوب</b>\n\nيرجى إكمال ملفك الشخصي لتفعيل السحب.");
+        if (user.totalBalance < (rules?.minAccountBalance || 0)) return sendTelegramMessage(botToken, chatId, `❌ <b>عجز في الرصيد</b>\n\nالحد الأدنى للبقاء هو $${rules?.minAccountBalance}.`);
 
         const catsSnap = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
         const buttons = catsSnap.docs.map(doc => ([{ text: doc.data().name, callback_data: `withcat_${doc.id}` }]));
-        await sendTelegramMessage(botToken, chatId, "<b>💸 مركز سحب الأرباح المتقدم</b>\n\nيرجى اختيار فئة الصرف المطلوبة:", { inline_keyboard: buttons });
+        await sendTelegramMessage(botToken, chatId, "<b>💸 مركز صرف الأرباح المتقدم</b>\n\nاختر فئة الاستلام:", { inline_keyboard: buttons });
       }
 
       if (data.startsWith('withcat_')) {
@@ -137,17 +139,7 @@ export async function POST(req: NextRequest) {
         const catSnap = await getDoc(doc(firestore, "withdraw_methods", catId));
         const portals = catSnap.data()?.portals?.filter((p: any) => p.isActive) || [];
         const buttons = portals.map((p: any) => ([{ text: p.name, callback_data: `withportal_${catId}_${p.id}` }]));
-        await sendTelegramMessage(botToken, chatId, `<b>📂 فئة: ${catSnap.data()?.name}</b>\n\nاختر بوابة استلام الأموال:`, { inline_keyboard: buttons });
-      }
-
-      if (data.startsWith('withportal_')) {
-        const [_, catId, portalId] = data.split('_');
-        const catSnap = await getDoc(doc(firestore, "withdraw_methods", catId));
-        const portal = catSnap.data()?.portals?.find((p: any) => p.id === portalId);
-        if (portal) {
-          await setDoc(doc(firestore, "telegram_sessions", chatId), { step: 'awaiting_with_amount', catId, portalId }, { merge: true });
-          await sendTelegramMessage(botToken, chatId, `<b>🛠️ بوابة: ${portal.name}</b>\n\nيرجى إدخال <b>المبلغ ($)</b> المراد سحبه:`);
-        }
+        await sendTelegramMessage(botToken, chatId, `<b>📂 فئة: ${catSnap.data()?.name}</b>\n\nاختر بوابة التحويل:`, { inline_keyboard: buttons });
       }
 
       return NextResponse.json({ ok: true });
@@ -164,6 +156,7 @@ export async function POST(req: NextRequest) {
     const userSnap = await getDocs(userQ);
     const user = !userSnap.empty ? { id: userSnap.docs[0].id, ...userSnap.docs[0].data() as any } : null;
 
+    // --- معالجة الأوامر الأساسية ---
     if (text.startsWith('/start')) {
       const startParam = text.split(' ')[1];
       if (startParam && startParam.startsWith('LINK-')) {
@@ -171,7 +164,7 @@ export async function POST(req: NextRequest) {
         const linkSnap = await getDocs(linkQ);
         if (!linkSnap.empty) {
           await updateDoc(linkSnap.docs[0].ref, { telegramChatId: chatId, tempLinkToken: "" });
-          return sendTelegramMessage(botToken, chatId, `<b>تم الربط بنجاح! 🎉</b>\n\nأهلاً بك <b>${linkSnap.docs[0].data().displayName}</b>. حسابك الآن مربوط بمركز العمليات.`, generateTelegramAppKeyboard(baseUrl));
+          return sendTelegramMessage(botToken, chatId, `<b>تم الربط الاستراتيجي بنجاح! 🎉</b>\n\nأهلاً بك <b>${linkSnap.docs[0].data().displayName}</b>. حسابك الآن مربوط بمركز العمليات النخبوي لناميكس.`, generateTelegramAppKeyboard(baseUrl));
         }
       }
       await deleteDoc(sessionRef);
@@ -179,80 +172,83 @@ export async function POST(req: NextRequest) {
       return sendTelegramMessage(botToken, chatId, `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nبوابتك المتطورة لإدارة الأصول الرقمية.`, generateGuestKeyboard(baseUrl));
     }
 
-    // --- معالجة خطوات الإيداع ---
-    if (session?.step === 'awaiting_dep_amount' && user) {
-      const amt = parseFloat(text);
-      if (isNaN(amt) || amt <= 0) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال مبلغ صحيح.");
-      await setDoc(sessionRef, { step: 'awaiting_dep_proof', amount: amt }, { merge: true });
-      await sendTelegramMessage(botToken, chatId, `تم تسجيل $${amt}.\n\nأرسل الآن <b>رقم العملية (TXID)</b> لإتمام الطلب:`);
-      return NextResponse.json({ ok: true });
+    // --- منطق إنشاء الحساب التفاعلي ---
+    if (text === '✨ إنشاء حساب جديد' && !user) {
+      await setDoc(sessionRef, { step: 'awaiting_email' });
+      return sendTelegramMessage(botToken, chatId, "يرجى إرسال <b>بريدك الإلكتروني</b> للبدء:");
     }
 
-    if (session?.step === 'awaiting_dep_proof' && user) {
-      await addDoc(collection(firestore, "deposit_requests"), {
-        userId: user.id, userName: user.displayName, amount: session.amount, methodId: session.portalId, methodName: "Telegram Inflow", transactionId: text, status: "pending", createdAt: new Date().toISOString()
+    if (session?.step === 'awaiting_email') {
+      if (!text.includes('@')) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال بريد إلكتروني صحيح.");
+      await setDoc(sessionRef, { step: 'awaiting_name', email: text.toLowerCase() }, { merge: true });
+      return sendTelegramMessage(botToken, chatId, "تم تسجيل البريد. يرجى إرسال <b>الاسم الكامل</b> كما في الهوية:");
+    }
+
+    if (session?.step === 'awaiting_name') {
+      await setDoc(sessionRef, { step: 'awaiting_password', fullName: text }, { merge: true });
+      return sendTelegramMessage(botToken, chatId, "أهلاً بك. أخيراً، يرجى إرسال <b>كلمة المرور</b> المطلوبة لحسابك:");
+    }
+
+    if (session?.step === 'awaiting_password') {
+      const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
+      const onboardSnap = await getDoc(doc(firestore, "system_settings", "onboarding"));
+      const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
+
+      await setDoc(doc(firestore, "users", userId), {
+        id: userId, email: session.email, displayName: session.fullName,
+        password: text, totalBalance: trialAmount, telegramChatId: chatId,
+        role: "user", createdAt: new Date().toISOString()
       });
       await deleteDoc(sessionRef);
-      return sendTelegramMessage(botToken, chatId, "<b>✅ تم استلام طلب الشحن</b>\n\nسيتم الفحص الفني وتحديث رصيدك قريباً.", generateTelegramAppKeyboard(baseUrl));
+      return sendTelegramMessage(botToken, chatId, `<b>تم إنشاء حسابك النخبوي بنجاح! 🎊</b>\n\nلقد حصلت على رصيد ترحيبي بقيمة <b>$${trialAmount}</b>.`, generateTelegramAppKeyboard(baseUrl));
     }
 
-    // --- معالجة خطوات السحب ---
-    if (session?.step === 'awaiting_with_amount' && user) {
+    // --- معالجة التداول ---
+    if (session?.step === 'awaiting_trade_amount' && user) {
       const amt = parseFloat(text);
-      if (isNaN(amt) || amt <= 0) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال مبلغ صحيح.");
-      const rulesSnap = await getDoc(doc(firestore, "system_settings", "withdrawal_rules"));
-      const rules = rulesSnap.data();
-      if (amt < (rules?.minWithdrawalAmount || 1)) return sendTelegramMessage(botToken, chatId, `❌ الحد الأدنى للسحب هو $${rules?.minWithdrawalAmount}.`);
-      if (amt > user.totalBalance) return sendTelegramMessage(botToken, chatId, "❌ المبلغ يتجاوز رصيدك المتاح.");
+      if (isNaN(amt) || amt < 1) return sendTelegramMessage(botToken, chatId, "❌ يرجى إدخال مبلغ صحيح.");
+      if (amt > user.totalBalance) return sendTelegramMessage(botToken, chatId, "❌ رصيدك غير كافٍ.");
       
-      await setDoc(sessionRef, { step: 'awaiting_with_address', amount: amt }, { merge: true });
-      await sendTelegramMessage(botToken, chatId, `تم تسجيل $${amt}.\n\nأرسل الآن <b>عنوان المحفظة أو الحساب</b> لاستلام الأموال:`);
-      return NextResponse.json({ ok: true });
-    }
-
-    if (session?.step === 'awaiting_with_address' && user) {
-      await setDoc(sessionRef, { step: 'awaiting_with_pin', address: text }, { merge: true });
-      await sendTelegramMessage(botToken, chatId, "أخيراً، يرجى إدخال <b>رمز PIN</b> للخزنة لتأكيد العملية:");
-      return NextResponse.json({ ok: true });
-    }
-
-    if (session?.step === 'awaiting_with_pin' && user) {
-      if (text !== user.securityPin) return sendTelegramMessage(botToken, chatId, "❌ رمز PIN غير صحيح. حاول مجدداً:");
-      const rulesSnap = await getDoc(doc(firestore, "system_settings", "withdrawal_rules"));
-      const fee = (session.amount * (rulesSnap.data()?.withdrawalFee || 0)) / 100;
-      
-      await addDoc(collection(firestore, "withdraw_requests"), {
-        userId: user.id, userName: user.displayName, amount: session.amount, fee, netAmount: session.amount - fee,
-        methodId: session.portalId, methodName: "Telegram Outflow", details: { "العنوان": session.address },
-        status: "pending", createdAt: new Date().toISOString()
+      await setDoc(sessionRef, { step: 'awaiting_trade_duration', amount: amt }, { merge: true });
+      const globalTradeSnap = await getDoc(doc(firestore, "system_settings", "trading_global"));
+      const durations = globalTradeSnap.data()?.tradeDurations || [];
+      const buttons = durations.map((d: any) => {
+        let secs = d.value;
+        if (d.unit === 'minutes') secs *= 60;
+        return { text: `${d.value} ${d.unit === 'minutes' ? 'د' : 'ث'}`, callback_data: `dur_${secs}` };
       });
-      await updateDoc(doc(firestore, "users", user.id), { totalBalance: increment(-session.amount) });
+      
+      const chunkedButtons = [];
+      for (let i = 0; i < buttons.length; i += 2) chunkedButtons.push(buttons.slice(i, i + 2));
+
+      return sendTelegramMessage(botToken, chatId, "اختر <b>مدة العقد</b> المطلوبة للتنفيذ:", { inline_keyboard: chunkedButtons });
+    }
+
+    // --- معالجة تغيير الـ PIN ---
+    if (session?.step === 'awaiting_pin_new' && user) {
+      if (text.length !== 6 || isNaN(parseInt(text))) return sendTelegramMessage(botToken, chatId, "❌ يجب أن يتكون الرمز من 6 أرقام فقط.");
+      await updateDoc(doc(firestore, "users", user.id), { securityPin: text });
       await deleteDoc(sessionRef);
-      return sendTelegramMessage(botToken, chatId, "<b>✅ تم إرسال طلب السحب بنجاح</b>\n\nسيتم تنفيذ الحوالة خلال 24 ساعة وفقاً لبروتوكولات الأمان.", generateTelegramAppKeyboard(baseUrl));
+      return sendTelegramMessage(botToken, chatId, "<b>✅ تم تحديث رمز PIN بنجاح!</b>\n\nمحفظتك الآن محمية بالبروتوكول الجديد.");
     }
 
-    // --- معالجة إنشاء الحساب ---
-    if (text === '✨ إنشاء حساب جديد') {
-      await setDoc(sessionRef, { step: 'awaiting_email', createdAt: new Date().toISOString() });
-      return sendTelegramMessage(botToken, chatId, "يرجى إرسال <b>البريد الإلكتروني</b> للمتابعة:");
-    }
-
-    // --- القائمة الرئيسية ---
+    // --- القائمة الرئيسية للمستثمرين ---
     if (user) {
       if (text === '💰 الرصيد والمحفظة') {
         return sendTelegramMessage(botToken, chatId, 
-          `<b>تقرير المركز المالي 📊</b>\n\n👤 المستثمر: ${user.displayName}\n🏦 الرصيد المتاح: <b>$${user.totalBalance.toLocaleString()}</b>\n📈 صافي الأرباح: <b>$${(user.totalProfits || 0).toLocaleString()}</b>\n🚀 العقود النشطة: <b>$${(user.activeInvestmentsTotal || 0).toLocaleString()}</b>`,
-          { inline_keyboard: [[{ text: "💳 شحن", callback_data: "start_deposit" }, { text: "💸 سحب", callback_data: "start_withdrawal" }]] }
+          `<b>تقرير المحفظة المتقدم 📊</b>\n\n👤 المستثمر: ${user.displayName}\n🏦 الرصيد المتاح: <b>$${user.totalBalance.toLocaleString()}</b>\n📈 صافي الأرباح: <b>$${(user.totalProfits || 0).toLocaleString()}</b>\n🚀 العقود النشطة: <b>$${(user.activeInvestmentsTotal || 0).toLocaleString()}</b>`,
+          { inline_keyboard: [[{ text: "💳 شحن", callback_data: "start_deposit" }, { text: "💸 سحب", callback_data: "start_withdrawal" }], [{ text: "🔐 إدارة PIN", callback_data: "manage_pin" }]] }
         );
-      } else if (text === '💳 شحن الرصيد') {
-        const catsSnap = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
-        const buttons = catsSnap.docs.map(doc => ([{ text: doc.data().name, callback_data: `depcat_${doc.id}` }]));
-        return sendTelegramMessage(botToken, chatId, "<b>💳 مركز الشحن المتقدم</b>", { inline_keyboard: buttons });
+      } else if (text === '📊 الأسواق الحية') {
+        const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(5)));
+        let msg = "<b>📊 نبض الأسواق اللحظي:</b>\n\n";
+        const buttons = symbolsSnap.docs.map(s => ([{ text: `🚀 تداول ${s.data().code} ($${s.data().currentPrice})`, callback_data: `exec_${s.id}_buy` }]));
+        return sendTelegramMessage(botToken, chatId, msg, { inline_keyboard: buttons });
       } else if (text === '🔬 مختبر العقود') {
         const plansSnap = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
         let msg = "<b>🔬 العقود الاستثمارية المتاحة:</b>\n\n";
         plansSnap.forEach(p => msg += `💎 <b>${p.data().title}</b>\n💰 العائد: %${p.data().profitPercent}\n⏱️ المدة: ${p.data().durationValue} ${p.data().durationUnit}\n\n`);
-        return sendTelegramMessage(botToken, chatId, msg, generateTelegramAppKeyboard(baseUrl));
+        return sendTelegramMessage(botToken, chatId, msg + "<i>تفضل بزيارة المنصة لتفعيل العقود بضمان الحماية الشاملة.</i>", generateTelegramAppKeyboard(baseUrl));
       }
     }
 

@@ -1,7 +1,8 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v4.0
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v7.0
  * محرك البوت المتطور - تم تطهير كافة المصطلحات وتحديث واجهات التفاعل.
+ * يركز على الرشاقة، الأناقة، والفخامة النخبوية.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -42,7 +43,7 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
     keyboard: [
       [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
       [{ text: "💰 الرصيد والمحفظة" }, { text: "💳 شحن الرصيد" }],
-      [{ text: "🎮 ساحة المغامرة" }, { text: "🚀 المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
+      [{ text: "🚀 المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
     ],
     resize_keyboard: true,
     persistent: true
