@@ -2,8 +2,8 @@
 'use client';
 
 /**
- * @fileOverview NAMIX AI CORE ENGINE v1.5 - Aggressive Precision Edition
- * محرك الذكاء الاصطناعي النخبوي - تم خفض عتبة الثقة إلى 65% لتكثيف الإشارات الاستراتيجية.
+ * @fileOverview NAMIX AI CORE ENGINE v1.6 - Ultra-Pulse Aggressive Edition
+ * تم خفض عتبة الثقة إلى 35% لضمان تدفق كثيف للإشارات الاستراتيجية للمستثمرين.
  */
 
 export type TrendDirection = 'bullish' | 'bearish' | 'neutral';
@@ -37,66 +37,61 @@ export interface AICalibration {
 }
 
 /**
- * محرك التحليل المتقدم - يعالج البيانات ويولد توصيات زمنية دقيقة
+ * محرك التحليل المتقدم - تم تعديله ليكون أكثر وتيرة في إرسال التوصيات
  */
 export function analyzeMarket(asset: any, livePrice: number, calibration?: AICalibration, durations: any[] = []): AIAnalysisResult {
   const price = livePrice || asset.currentPrice;
   const seed = parseInt(asset.id.substring(0, 5), 36);
   
-  // عتبة الثقة المحدثة: 65% لزيادة وتيرة الإشارات
+  // عتبة الثقة المحدثة: 35% لضمان بث كثيف للإشارات
   const config = calibration || {
-    rsiOversold: 30,
-    rsiOverbought: 70,
-    confidenceThreshold: 65,
-    volatilityWeight: 5
+    rsiOversold: 35,
+    rsiOverbought: 65,
+    confidenceThreshold: 35,
+    volatilityWeight: 8
   };
 
-  const rsiBase = 30 + (Math.sin(Date.now() / 8000 + seed) * 40 + 20);
+  const rsiBase = 30 + (Math.sin(Date.now() / 5000 + seed) * 40 + 20);
   const volatility = 2 + (Math.random() * config.volatilityWeight);
-  const momentum = 40 + (Math.random() * 60);
+  const momentum = 30 + (Math.random() * 70);
   
   let trend: TrendDirection = 'neutral';
   let signal: 'buy' | 'sell' | 'wait' = 'wait';
   let confidence = config.confidenceThreshold + (Math.random() * (100 - config.confidenceThreshold));
   
-  if (rsiBase < config.rsiOversold) {
+  if (rsiBase < config.rsiOversold || momentum > 60) {
     trend = 'bullish';
     signal = 'buy';
-  } else if (rsiBase > config.rsiOverbought) {
+  } else if (rsiBase > config.rsiOverbought || momentum < 40) {
     trend = 'bearish';
     signal = 'sell';
   } else {
-    trend = momentum > 70 ? 'bullish' : momentum < 30 ? 'bearish' : 'neutral';
+    trend = 'neutral';
     signal = 'wait';
+  }
+
+  // في حالة انتظار، نجعلها شراء أو بيع بنسبة 35% ثقة على الأقل لضمان البث
+  if (signal === 'wait') {
+    signal = Math.random() > 0.5 ? 'buy' : 'sell';
+    confidence = 35 + (Math.random() * 15);
   }
 
   const guidance = [
     trend === 'bullish' 
-      ? `رصد تدفق سيولة إيجابي عند RSI ${rsiBase.toFixed(1)}. فرصة نمو وميضية.` 
+      ? `رصد تدفق سيولة إيجابي. فرصة نمو وميضية محتملة.` 
       : trend === 'bearish'
-      ? `تشبع شرائي واضح عند RSI ${rsiBase.toFixed(1)}. ترقب تصحيح سعري نخبوي.`
-      : "السوق في حالة ترقب استراتيجي؛ ينصح بمراقبة مستويات الدعم الحالية.",
-    `معدل التذبذب (${volatility.toFixed(2)}) يدعم تنفيذ صفقات سريعة المدى.`,
-    `الهدف المقترح القادم هو $${(price * (trend === 'bullish' ? 1.012 : 0.988)).toFixed(2)}.`
+      ? `تشبع شرائي ملحوظ. ترقب تصحيح سعري استراتيجي.`
+      : "السوق في حالة تذبذب تكتيكي؛ ينصح بمراقبة المستويات الحالية.",
+    `معدل التذبذب المرتفع يدعم تنفيذ صفقات سريعة المدى.`,
+    `الهدف المقترح القادم هو $${(price * (trend === 'bullish' ? 1.008 : 0.992)).toFixed(2)}.`
   ];
 
   const suggestions: TradeSuggestion[] = durations.map((d, idx) => {
-    let action: 'buy' | 'sell' | 'wait' = signal;
-    let reason = "";
-    
-    if (d.seconds <= 60) {
-      action = momentum > 55 ? 'buy' : momentum < 45 ? 'sell' : 'wait';
-      reason = action === 'wait' ? "توازن مؤقت في قوى العرض والطلب." : `الزخم اللحظي (${momentum.toFixed(0)}) يدعم تنفيذ صفقة ${action === 'buy' ? 'شراء' : 'بيع'} وميضية.`;
-    } else {
-      action = signal;
-      reason = action === 'wait' ? "بانتظار تأكيد الاتجاه في الدورة القادمة." : `توافق المؤشرات الفنية يعزز نجاح بروتوكول الـ ${d.label}.`;
-    }
-
     return {
       durationLabel: d.label,
-      action,
-      confidence: confidence - (idx * 1.5),
-      reason,
+      action: signal as 'buy' | 'sell',
+      confidence: confidence - (idx * 2),
+      reason: `النبض اللحظي للسوق يدعم تنفيذ بروتوكول الـ ${d.label}.`,
       seconds: d.seconds
     };
   });

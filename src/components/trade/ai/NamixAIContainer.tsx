@@ -24,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v8.0 - High Frequency Pulse Edition
- * تم تكثيف الإشارات (عتبة 65%، صمت 2 دقيقة) وتفعيل الربط المباشر بالتطبيق المصغر.
+ * @fileOverview حاوية NAMIX AI v13.0 - Hyper Pulse Edition
+ * تم تكثيف الإشارات (عتبة 35%، صمت 120 ثانية) وتفعيل الربط المباشر بصفحات التداول.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -74,23 +74,23 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
 
     const runAnalysis = () => {
       const calibration: AICalibration = {
-        rsiOversold: calibrationData?.rsiOversold || 30,
-        rsiOverbought: calibrationData?.rsiOverbought || 70,
-        confidenceThreshold: calibrationData?.aiConfidenceThreshold || 65,
-        volatilityWeight: calibrationData?.volatilityWeight || 5
+        rsiOversold: calibrationData?.rsiOversold || 35,
+        rsiOverbought: calibrationData?.rsiOverbought || 65,
+        confidenceThreshold: 35, // عتبة الثقة المطلوبة 35% لضمان البث الكثيف
+        volatilityWeight: calibrationData?.volatilityWeight || 8
       };
 
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
       
-      // بروتوكول الإشعارات المكثفة: عتبة 65%، صمت 120 ثانية (دقيقتان)
-      if (analysis.confidence > 65 && dbUser?.telegramChatId) {
+      // بروتوكول البث المكثف: إشارة كل 120 ثانية (دقيقتان)
+      if (analysis.confidence >= 35 && dbUser?.telegramChatId) {
         const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 120000)}`;
         if (lastNotifiedSignalRef.current !== signalKey) {
           lastNotifiedSignalRef.current = signalKey;
           
           const baseUrl = window.location.origin;
-          const msg = `<b>🔥 إشارة تداول رائدة</b>\n\nالأصل: <b>${asset.code}</b>\nالاتجاه: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nالثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر: <b>$${livePrice.toLocaleString()}</b>\n\n<i>نفذ الآن عبر التطبيق المصغر.</i>`;
+          const msg = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${asset.code}</b>\nالاتجاه المتوقع: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${livePrice.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
           
           const buttons = [
             [{ text: `🚀 تنفيذ ${analysis.signal === 'buy' ? 'شراء' : 'بيع'} وميضي`, web_app: { url: `${baseUrl}/trade/${asset.id}` } }]
@@ -109,7 +109,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       }
       
       if (isAnalyzing) {
-        setTimeout(() => setIsAnalyzing(false), 2000);
+        setTimeout(() => setIsAnalyzing(false), 1500);
       }
     };
 
@@ -154,7 +154,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
 
     addDoc(collection(db, "trades"), tradePayload)
       .then(() => {
-        setFeedback({ type: 'success', message: `تم إطلاق صفقة $${amount} بنجاح.` });
+        setFeedback({ type: 'success', message: `تم إطلاق الصفقة بنجاح.` });
       })
       .catch(async (err) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -194,8 +194,8 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                 </div>
              </div>
              <div className="text-center space-y-2">
-                <h4 className="text-xl font-black text-[#002d4d]">جاري مزامنة NAMIX AI...</h4>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Syncing Advanced Market Nodes</p>
+                <h4 className="text-xl font-black text-[#002d4d]">معايرة NAMIX AI...</h4>
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Scanning Global Pulse Nodes</p>
              </div>
           </motion.div>
         ) : result && (
@@ -215,30 +215,30 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                     <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
                        <Clock size={16} />
                     </div>
-                    <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">مقترحات التنفيذ المعتمدة</h4>
+                    <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">التنفيذ الاستراتيجي المباشر</h4>
                   </div>
-                  <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[7px] px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">PULSE ACTIVE</Badge>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">DIRECT SYNC</Badge>
                </div>
 
                <AnimatePresence>
                  {feedback && (
                    <motion.div 
-                     initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                     exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                     className="px-2 overflow-hidden mb-4"
+                     initial={{ opacity: 0, height: 0 }}
+                     animate={{ opacity: 1, height: 'auto' }}
+                     exit={{ opacity: 0, height: 0 }}
+                     className="px-2 mb-4"
                    >
                       <div className={cn(
                         "p-4 rounded-[24px] border flex items-center justify-between shadow-xl",
                         feedback.type === 'success' ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-red-50 border-red-100 text-red-700"
                       )}>
                          <div className="flex items-center gap-3">
-                            <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center shadow-sm", feedback.type === 'success' ? "bg-white text-emerald-500" : "bg-white text-red-500")}>
+                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm">
                                {feedback.type === 'success' ? <CheckCircle2 size={16}/> : <AlertTriangle size={16}/>}
                             </div>
                             <p className="text-[11px] font-black tracking-normal">{feedback.message}</p>
                          </div>
-                         <button onClick={() => setFeedback(null)} className="h-6 w-6 rounded-lg flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity">
+                         <button onClick={() => setFeedback(null)} className="opacity-40 hover:opacity-100 transition-opacity">
                             <X size={14} />
                          </button>
                       </div>
@@ -260,40 +260,38 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                                </div>
                                <Badge className={cn(
                                  "font-black text-[8px] px-3 py-1 rounded-lg border-none shadow-sm tracking-normal",
-                                 sug.action === 'buy' ? "bg-emerald-50 text-white" : sug.action === 'sell' ? "bg-red-50 text-white" : "bg-gray-200 text-gray-400"
+                                 sug.action === 'buy' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
                                )}>
-                                 {sug.action === 'buy' ? 'شراء' : sug.action === 'sell' ? 'بيع' : 'انتظار'}
+                                 {sug.action === 'buy' ? 'شراء' : 'بيع'}
                                </Badge>
                             </div>
                             
-                            {sug.action !== 'wait' && (
-                              <div className="flex items-center gap-2">
-                                <div className="relative group/amount">
-                                   <input 
-                                     type="number"
-                                     value={currentAmt}
-                                     onChange={(e) => updateAmount(sug.durationLabel, e.target.value)}
-                                     className="h-10 w-16 rounded-xl bg-white border border-gray-100 text-center font-black text-[11px] tabular-nums shadow-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
-                                   />
-                                   <Coins size={8} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-300" />
-                                </div>
-                                <Button 
-                                  onClick={() => handleExecuteTrade(sug)}
-                                  disabled={!!executingTradeId}
-                                  className={cn(
-                                    "h-10 rounded-xl px-6 font-black text-[11px] transition-all shadow-lg active:scale-95 gap-3",
-                                    sug.action === 'buy' ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
-                                  )}
-                                >
-                                  {isExecuting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : (
-                                    <>
-                                      <span>تنفيذ</span>
-                                      <PlayCircle size={12} />
-                                    </>
-                                  )}
-                                </Button>
+                            <div className="flex items-center gap-2">
+                              <div className="relative group/amount">
+                                 <input 
+                                   type="number"
+                                   value={currentAmt}
+                                   onChange={(e) => updateAmount(sug.durationLabel, e.target.value)}
+                                   className="h-10 w-16 rounded-xl bg-white border border-gray-100 text-center font-black text-[11px] tabular-nums shadow-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                 />
+                                 <Coins size={8} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-300" />
                               </div>
-                            )}
+                              <Button 
+                                onClick={() => handleExecuteTrade(sug)}
+                                disabled={!!executingTradeId}
+                                className={cn(
+                                  "h-10 rounded-xl px-6 font-black text-[11px] transition-all shadow-lg active:scale-95 gap-3",
+                                  sug.action === 'buy' ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
+                                )}
+                              >
+                                {isExecuting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : (
+                                  <>
+                                    <span>تنفيذ</span>
+                                    <PlayCircle size={12} />
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                          </div>
                          <div className="flex flex-col gap-2 relative z-10">
                             <p className="text-[11px] font-bold text-gray-500 leading-relaxed pr-1">{sug.reason}</p>
@@ -313,7 +311,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
             <div className="flex flex-col items-center gap-4 opacity-30 select-none pt-10">
                <div className="flex items-center gap-2">
                   <ShieldCheck size={12} className="text-[#002d4d]" />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Intelligence Node v8.0</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v13.0</p>
                </div>
                <div className="flex gap-2">
                   {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}

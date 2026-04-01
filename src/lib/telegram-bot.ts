@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v12.0
- * محرك البوت المطور - دعم التطبيق المصغر والربط التلقائي.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v13.0
+ * محرك البوت المطور - دعم التطبيق المصغر والربط التلقائي بأزرار مباشرة.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,25 +35,22 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم المتقدمة التي تفتح التطبيق المصغر مباشرة
+ * يولد لوحة التحكم الاحترافية التي تفتح الأقسام المطلوبة مباشرة
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [
-        { text: "🚀 فتح المنصة", web_app: { url: `${baseUrl}/home` } }
+        { text: "📊 لوحة القيادة", web_app: { url: `${baseUrl}/home` } },
+        { text: "🔬 الخطط الاستثمارية", web_app: { url: `${baseUrl}/invest` } }
       ],
       [
-        { text: "📈 تداول الآن", web_app: { url: `${baseUrl}/trade` } },
-        { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
+        { text: "📈 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
+        { text: "🎮 العب واكسب", web_app: { url: `${baseUrl}/arena` } }
       ],
       [
-        { text: "💰 المحفظة", web_app: { url: `${baseUrl}/profile` } },
-        { text: "📊 التقارير", web_app: { url: `${baseUrl}/profile` } }
-      ],
-      [
-        { text: "💳 إيداع سريع", web_app: { url: `${baseUrl}/home?action=deposit` } },
-        { text: "📤 سحب الأرباح", web_app: { url: `${baseUrl}/home?action=withdraw` } }
+        { text: "💳 شحن الرصيد", web_app: { url: `${baseUrl}/home?action=deposit` } },
+        { text: "📤 سحب الرصيد", web_app: { url: `${baseUrl}/home?action=withdraw` } }
       ]
     ],
     resize_keyboard: true,
