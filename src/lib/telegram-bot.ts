@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v13.0
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v15.0
  * محرك البوت المطور - دعم التطبيق المصغر والربط التلقائي بأزرار مباشرة.
  */
 

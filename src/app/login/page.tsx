@@ -25,19 +25,11 @@ import { LegalLinks } from "@/components/auth/LegalLinks";
 import { 
   Loader2, 
 } from "lucide-react";
-import { sendOTPEmail } from "@/app/actions/auth-actions";
+import { sendOTPEmail, notifyTelegramLoginSuccess } from "@/app/actions/auth-actions";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SovereignBackground = () => (
   <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none bg-white">
-    <div className="absolute left-[10%] top-[35%] -translate-y-1/2 opacity-[0.03] rotate-[-12deg] select-none">
-       <div className="grid grid-cols-2 gap-6 md:gap-10">
-          <div className="h-16 w-16 md:h-24 md:w-24 rounded-full bg-[#002d4d]" />
-          <div className="h-16 w-16 md:h-24 md:w-24 rounded-full bg-[#f9a885]" />
-          <div className="h-16 w-16 md:h-24 md:w-24 rounded-full bg-[#f9a885]" />
-          <div className="h-16 w-16 md:h-24 md:w-24 rounded-full bg-[#002d4d]" />
-       </div>
-    </div>
     <motion.div 
       animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.08, 0.04] }}
       transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
@@ -79,6 +71,14 @@ function LoginContent() {
       else router.replace("/home");
     }
   }, [router]);
+
+  const handlePostAuthSync = async (userId: string) => {
+    // التحقق مما إذا كنا داخل تلغرام لمزامنة الدخول
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.initDataUnsafe?.user?.id) {
+      await notifyTelegramLoginSuccess(userId, tg.initDataUnsafe.user.id.toString());
+    }
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +123,10 @@ function LoginContent() {
       const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
       const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
       const newUser = { id: userId, email: formData.email, displayName: formData.fullName, role: "user", password: formData.password, totalBalance: trialAmount, createdAt: new Date().toISOString() };
+      
       await setDoc(doc(db, "users", userId), newUser);
+      await handlePostAuthSync(userId);
+      
       localStorage.setItem("namix_user", JSON.stringify(newUser));
       window.location.href = "/home";
     } catch (e) { setError("فشل إنشاء الحساب."); } finally { setLoading(false); }
@@ -132,9 +135,19 @@ function LoginContent() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== existingUser.password) { setError("كلمة المرور خاطئة."); return; }
-    await updateDoc(doc(db, "users", existingUser.id), { lastActive: new Date().toISOString() });
-    localStorage.setItem("namix_user", JSON.stringify(existingUser));
-    window.location.href = existingUser.role === 'admin' ? "/admin" : "/home";
+    
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, "users", existingUser.id), { lastActive: new Date().toISOString() });
+      await handlePostAuthSync(existingUser.id);
+      
+      localStorage.setItem("namix_user", JSON.stringify(existingUser));
+      window.location.href = existingUser.role === 'admin' ? "/admin" : "/home";
+    } catch (e) {
+      setError("حدث خطأ أثناء الدخول.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

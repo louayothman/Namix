@@ -5,8 +5,8 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteField 
 import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
 
 /**
- * @fileOverview NAMIX NEXUS MINI-APP GATEWAY v13.0
- * محرك الربط التلقائي والتحويل الصامت للتطبيق المصغر.
+ * @fileOverview NAMIX NEXUS SMART GATEWAY v15.0
+ * محرك الربط اللحظي والتحويل الصامت للتطبيق المصغر.
  */
 
 export async function POST(req: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const chatId = update.message.chat.id.toString();
     const text = (update.message.text || "").trim();
 
-    // 1. بروتوكول الربط التلقائي (Automatic Linking)
+    // 1. بروتوكول الربط اللحظي (Instant Linking via Token)
     if (text.startsWith('/start ')) {
       const linkToken = text.split(' ')[1];
       const userQ = query(collection(firestore, "users"), where("tempLinkToken", "==", linkToken));
@@ -40,22 +40,22 @@ export async function POST(req: NextRequest) {
         });
 
         await sendTelegramMessage(botToken, chatId, 
-          `<b>✅ تم تفعيل الربط الاحترافي!</b>\n\nأهلاً بك يا <b>${userDoc.data().displayName}</b> في مركز ناميكس المتقدم.\n\n<i>يمكنك الآن إدارة أصولك وتنفيذ الصفقات من لوحة التحكم أدناه.</i>`,
+          `<b>✅ تم تفعيل الربط الاحترافي!</b>\n\nأهلاً بك يا <b>${userDoc.data().displayName}</b> في مركز ناميكس المتقدم.\n\n<i>محرك العمليات الخاص بك نشط وجاهز الآن.</i>`,
           generateTelegramAppKeyboard(baseUrl)
         );
         return NextResponse.json({ ok: true });
       }
     }
 
-    // 2. معالجة البدء العادي
+    // 2. التحقق من وجود حساب مربوط مسبقاً
     const userQ = query(collection(firestore, "users"), where("telegramChatId", "==", chatId));
     const userSnap = await getDocs(userQ);
     const user = !userSnap.empty ? userSnap.docs[0].data() : null;
 
-    if (text.startsWith('/start')) {
+    if (text === '/start') {
       if (user) {
         await sendTelegramMessage(botToken, chatId, 
-          `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nأهلاً <b>${user.displayName}</b>، مركز التحكم الخاص بك نشط وجاهز للعمليات اللحظية.`, 
+          `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nأهلاً <b>${user.displayName}</b>، أصولك تحت الإدارة الاحترافية الموحدة.`, 
           generateTelegramAppKeyboard(baseUrl)
         );
       } else {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         );
       }
     } else {
-      // أي رسالة أخرى تذكر المستخدم بلوحة التحكم
+      // الرد التلقائي لتذكير المستخدم بلوحة التحكم
       await sendTelegramMessage(botToken, chatId, 
         `<b>نظام التشغيل الموحد 🛡️</b>\n\nيرجى استخدام الأزرار أدناه للوصول السريع إلى الأسواق والخدمات الاستراتيجية.`,
         user ? generateTelegramAppKeyboard(baseUrl) : generateGuestKeyboard(baseUrl)
