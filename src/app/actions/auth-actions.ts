@@ -84,19 +84,19 @@ export async function sendWeeklyPerformanceReport(userId: string) {
 📅 الفترة: من ${sevenDaysAgo.toLocaleDateString('ar-EG')} حتى اليوم
 
 <b>📈 ملخص الأداء التشغيلي:</b>
-• صافي الأرباح الأسبوعية: <code style="color: #10b981;">+$${netWeeklyYield.toFixed(2)}</code>
-• حجم التداول المنفذ: <b>$${trades.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</b>
+• صافي الأرباح الأسبوعية: <code>+$${netWeeklyYield.toFixed(2)}</code>
+• حجم التداول المنفذ: <b>$${trades.reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()}</b>
 • نسبة نجاح الصفقات: <b>%${trades.length > 0 ? ((winTrades.length / trades.length) * 100).toFixed(0) : 0}</b>
 
 <b>🏦 تدفق السيولة (Inflow):</b>
 • إجمالي الإيداعات: <b>$${weeklyInflow.toLocaleString()}</b>
-• العقود الناضجة: <b>${investments.filter(i => i.status === 'completed').length}</b>
+• العقود المكتملة: <b>${investments.filter(i => i.status === 'completed').length}</b>
 
 <b>💎 المحفظة الحالية:</b>
 • الرصيد المتاح: <b>$${userData.totalBalance.toLocaleString()}</b>
 • الأرباح التراكمية: <b>$${(userData.totalProfits || 0).toLocaleString()}</b>
 
-<i>تم توليد هذا التقرير عبر محرك ناميكس للذكاء المالي المتقدم لضمان سيادتك على أصولك.</i>
+<i>تم توليد هذا التقرير عبر محرك ناميكس المتقدم لضمان سيادتك على أصولك.</i>
     `;
 
     await sendTelegramMessage(botToken, userData.telegramChatId, reportMessage);

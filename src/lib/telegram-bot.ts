@@ -1,8 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v8.0
- * محرك البوت المتطور - تم إضافة ميزة التقارير الأسبوعية وتحديث واجهات التفاعل.
- * يركز على الرشاقة، الأناقة، والفخامة النخبوية.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v9.0
+ * محرك البوت المطور - إصلاح الأزرار وتوحيد الهوية النصية الاحترافية.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -37,13 +36,14 @@ export async function setTelegramWebhook(token: string, url: string) {
 
 /**
  * يولد لوحة التحكم المتقدمة للمستثمرين الموثقين
+ * تم التأكد من أن النصوص تطابق المعالجة في الـ Webhook
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
       [{ text: "💰 الرصيد والمحفظة" }, { text: "📊 التقارير والأداء" }],
-      [{ text: "💳 شحن الرصيد" }, { text: "🚀 المنصة الكاملة", web_app: { url: `${baseUrl}/home` } }]
+      [{ text: "💳 شحن الرصيد" }, { text: "🚀 فتح المنصة", web_app: { url: `${baseUrl}/home` } }]
     ],
     resize_keyboard: true,
     persistent: true
@@ -56,7 +56,7 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
 export function generateGuestKeyboard(baseUrl: string) {
   return {
     keyboard: [
-      [{ text: "✨ إنشاء حساب جديد" }],
+      [{ text: "✨ إنشاء حساب جديد", web_app: { url: `${baseUrl}/login` } }],
       [{ text: "🔑 تسجيل دخول", web_app: { url: `${baseUrl}/login` } }]
     ],
     resize_keyboard: true,
