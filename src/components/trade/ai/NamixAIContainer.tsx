@@ -24,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v7.5 - High Frequency Signal Edition
- * تم تكثيف الإشارات (عتبة 65%، صمت 2 دقيقة) وتطوير التفاعل لسرعة التنفيذ.
+ * @fileOverview حاوية NAMIX AI v8.0 - High Frequency Pulse Edition
+ * تم تكثيف الإشارات (عتبة 65%، صمت 2 دقيقة) وتفعيل الربط المباشر بالتطبيق المصغر.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -55,13 +55,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
   const { data: globalConfig } = useDoc(globalTradeRef);
 
-  useEffect(() => {
-    if (feedback) {
-      const timer = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [feedback]);
-
   const durations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -90,16 +83,17 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
       
-      // بروتوكول الإشعارات عالي التردد (High-Freq Protocol v7.5)
-      // العتبة: 65%، الصمت: 120 ثانية (دقيقتان) لضمان إشارات مكثفة
+      // بروتوكول الإشعارات المكثفة: عتبة 65%، صمت 120 ثانية (دقيقتان)
       if (analysis.confidence > 65 && dbUser?.telegramChatId) {
         const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 120000)}`;
         if (lastNotifiedSignalRef.current !== signalKey) {
           lastNotifiedSignalRef.current = signalKey;
-          const msg = `<b>🔥 إشارة تداول آلية</b>\n\nالأصل: <b>${asset.code}</b>\nالعملية: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nدرجة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر: <b>$${livePrice.toLocaleString()}</b>\n\n<i>فرصة استراتيجية تم رصدها الآن.</i>`;
+          
+          const baseUrl = window.location.origin;
+          const msg = `<b>🔥 إشارة تداول رائدة</b>\n\nالأصل: <b>${asset.code}</b>\nالاتجاه: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nالثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر: <b>$${livePrice.toLocaleString()}</b>\n\n<i>نفذ الآن عبر التطبيق المصغر.</i>`;
           
           const buttons = [
-            [{ text: `🚀 تنفيذ ${analysis.signal === 'buy' ? 'شراء' : 'بيع'} الآن`, callback_data: `exec_${asset.id}_${analysis.signal}` }]
+            [{ text: `🚀 تنفيذ ${analysis.signal === 'buy' ? 'شراء' : 'بيع'} وميضي`, web_app: { url: `${baseUrl}/trade/${asset.id}` } }]
           ];
           
           sendTelegramNotification(dbUser.id, msg, buttons).catch(() => {});
@@ -129,7 +123,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     
     const amount = Number(customAmounts[suggestion.durationLabel]) || globalConfig?.minTradeAmount || 10;
     if (dbUser.totalBalance < amount) {
-      setFeedback({ type: 'error', message: 'عجز في الملاءة المالية؛ الرصيد الحالي أقل من متطلبات التنفيذ.' });
+      setFeedback({ type: 'error', message: 'عجز في الملاءة المالية الحالية.' });
       return;
     }
 
@@ -168,7 +162,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
           operation: 'create',
           requestResourceData: tradePayload
         }));
-        setFeedback({ type: 'error', message: 'فشل تنفيذ العقد المعتمد.' });
       })
       .finally(() => {
         setExecutingTradeId(null);
@@ -222,7 +215,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                     <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
                        <Clock size={16} />
                     </div>
-                    <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">مقترحات التنفيذ الاحترافي</h4>
+                    <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">مقترحات التنفيذ المعتمدة</h4>
                   </div>
                   <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[7px] px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">PULSE ACTIVE</Badge>
                </div>
@@ -243,7 +236,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                             <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center shadow-sm", feedback.type === 'success' ? "bg-white text-emerald-500" : "bg-white text-red-500")}>
                                {feedback.type === 'success' ? <CheckCircle2 size={16}/> : <AlertTriangle size={16}/>}
                             </div>
-                            <p className="text-[11px] font-black tracking-normal leading-relaxed">{feedback.message}</p>
+                            <p className="text-[11px] font-black tracking-normal">{feedback.message}</p>
                          </div>
                          <button onClick={() => setFeedback(null)} className="h-6 w-6 rounded-lg flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity">
                             <X size={14} />
@@ -303,10 +296,10 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                             )}
                          </div>
                          <div className="flex flex-col gap-2 relative z-10">
-                            <p className="text-[11px] font-bold text-gray-500 leading-relaxed pr-1 tracking-normal">{sug.reason}</p>
+                            <p className="text-[11px] font-bold text-gray-500 leading-relaxed pr-1">{sug.reason}</p>
                             <div className="flex items-center gap-1.5 opacity-40 pr-1">
                                <ShieldCheck size={10} className="text-emerald-500" />
-                               <span className="text-[8px] font-black tabular-nums tracking-normal">%{sug.confidence.toFixed(0)} Model Accuracy</span>
+                               <span className="text-[8px] font-black tabular-nums">%{sug.confidence.toFixed(0)} Model Accuracy</span>
                             </div>
                          </div>
                       </div>
@@ -320,7 +313,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
             <div className="flex flex-col items-center gap-4 opacity-30 select-none pt-10">
                <div className="flex items-center gap-2">
                   <ShieldCheck size={12} className="text-[#002d4d]" />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d] tracking-normal">Institutional Intelligence Node v11.0</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Intelligence Node v8.0</p>
                </div>
                <div className="flex gap-2">
                   {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}

@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v10.0
- * محرك البوت المطور - تحديث لوحة التحكم وتوحيد الهوية الاحترافية.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v12.0
+ * محرك البوت المطور - دعم التطبيق المصغر والربط التلقائي.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,16 +35,26 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم المتقدمة للمستثمرين الموثقين
- * تم إضافة زر السحب المفقود وتوحيد المصطلحات
+ * يولد لوحة التحكم المتقدمة التي تفتح التطبيق المصغر مباشرة
  */
-export function generateTelegramAppKeyboard() {
+export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
-      [{ text: "📊 الأسواق الحية" }, { text: "🔬 مختبر العقود" }],
-      [{ text: "💰 الرصيد والمحفظة" }, { text: "📊 التقارير والأداء" }],
-      [{ text: "💳 شحن الرصيد" }, { text: "📤 سحب الأرباح" }],
-      [{ text: "🚀 فتح المنصة" }]
+      [
+        { text: "🚀 فتح المنصة", web_app: { url: `${baseUrl}/home` } }
+      ],
+      [
+        { text: "📈 تداول الآن", web_app: { url: `${baseUrl}/trade` } },
+        { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
+      ],
+      [
+        { text: "💰 المحفظة", web_app: { url: `${baseUrl}/profile` } },
+        { text: "📊 التقارير", web_app: { url: `${baseUrl}/profile` } }
+      ],
+      [
+        { text: "💳 إيداع سريع", web_app: { url: `${baseUrl}/home?action=deposit` } },
+        { text: "📤 سحب الأرباح", web_app: { url: `${baseUrl}/home?action=withdraw` } }
+      ]
     ],
     resize_keyboard: true,
     persistent: true
@@ -52,15 +62,13 @@ export function generateTelegramAppKeyboard() {
 }
 
 /**
- * يولد أزرار الترحيب للزوار الجدد
+ * يولد أزرار الترحيب للزوار غير الموثقين
  */
-export function generateGuestKeyboard() {
+export function generateGuestKeyboard(baseUrl: string) {
   return {
-    keyboard: [
-      [{ text: "✨ إنشاء حساب جديد" }],
-      [{ text: "🔑 تسجيل دخول" }]
-    ],
-    resize_keyboard: true,
-    one_time_keyboard: true
+    inline_keyboard: [
+      [{ text: "✨ إنشاء حساب نخبوي", web_app: { url: `${baseUrl}/login` } }],
+      [{ text: "🔑 تسجيل الدخول", web_app: { url: `${baseUrl}/login` } }]
+    ]
   };
 }
