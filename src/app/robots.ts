@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
+import { SITE_CONFIG } from '@/lib/site-config'
  
 /**
- * @fileOverview ميثاق الخصوصية لمحركات البحث (Robots.txt)
- * يحدد المسارات المسموح أرشفتها والمسارات المحمية لضمان خصوصية بيانات المستثمرين.
+ * @fileOverview ميثاق الخصوصية لمحركات البحث
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -21,6 +21,6 @@ export default function robots(): MetadataRoute.Robots {
         '/notifications/'
       ],
     },
-    sitemap: 'https://namix.pro/sitemap.xml',
+    sitemap: `${SITE_CONFIG.url}/sitemap.xml`,
   }
 }

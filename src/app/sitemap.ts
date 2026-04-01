@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next'
+import { SITE_CONFIG } from '@/lib/site-config'
  
 /**
- * @fileOverview محرك توليد خارطة الموقع (Sitemap)
- * يقوم بإرشاد عناكب البحث لكافة الروابط العامة لضمان أرشفة سريعة ودقيقة.
+ * @fileOverview محرك توليد خارطة الموقع الديناميكي
+ * يعتمد على SITE_CONFIG لضمان العمل على أي دومين.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://namix.pro'
+  const baseUrl = SITE_CONFIG.url
   
   return [
     {
