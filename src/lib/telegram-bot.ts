@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v20.0
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v21.0
  * محرك البوت المطور - واجهة تحكم موحدة ثنائية اللغة لجميع الزوار والمستثمرين.
  */
 
@@ -51,6 +51,9 @@ export async function sendTelegramPhoto(token: string, chatId: string, photoUrl:
   }
 }
 
+/**
+ * تحديث عنوان الـ Webhook
+ */
 export async function setTelegramWebhook(token: string, url: string) {
   try {
     const response = await fetch(`${TELEGRAM_API_BASE}${token}/setWebhook?url=${url}`);
@@ -62,6 +65,7 @@ export async function setTelegramWebhook(token: string, url: string) {
 
 /**
  * يولد لوحة التحكم الرئيسية الموحدة ثنائية اللغة
+ * تم تثبيت النصوص لضمان دقة المطابقة في الـ Webhook
  */
 export function generateMainKeyboard(baseUrl: string) {
   return {

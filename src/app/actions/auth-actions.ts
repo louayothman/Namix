@@ -9,8 +9,12 @@ import { sendTelegramMessage, sendTelegramPhoto, generateMainKeyboard, generateS
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * يرسل إشارة تداول مرئية لكافة المشتركين في البوت (Bot Subscribers)
- * تم تعديل مصدر البيانات لضمان وصول الإشارات للزوار والمسجلين معاً.
+ * @fileOverview NAMIX AUTH ACTIONS v21.0 - Global Broadcast Core
+ * محرك البث والعمليات - تم إصلاح منطق الإرسال الجماعي وتصدير الوظائف المفقودة.
+ */
+
+/**
+ * يرسل إشارة تداول مرئية لكافة المشتركين في البوت (Global Visual Broadcast)
  */
 export async function broadcastAISignal(symbolId: string, symbolCode: string, action: string, confidence: number, price: number) {
   try {
@@ -23,7 +27,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const lastSignalKey = `lastSignalAt_${symbolId}`;
     const lastSignalTime = configData?.[lastSignalKey] || 0;
 
-    // حماية: إشارة واحدة كل دقيقتين لنفس الأصل لضمان الزخم دون إزعاج
+    // حماية: إشارة واحدة كل دقيقتين لنفس الأصل
     if (now - lastSignalTime < 120000) return { success: false, reason: "Throttled" };
 
     await setDoc(configRef, { [lastSignalKey]: now }, { merge: true });
@@ -32,7 +36,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return { success: false, reason: "Token Missing" };
 
-    // سحب كافة المشتركين في البوت (قناة البث العامة)
+    // سحب كافة المشتركين (قناة البث العالمية)
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
@@ -41,7 +45,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://namix.pro";
     const baseAsset = symbolCode.split('/')[0].toUpperCase();
     
-    // أيقونة السوق الملونة لتعزيز المظهر الاحترافي
+    // أيقونة السوق الملونة
     const iconUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${baseAsset.toLowerCase()}.png`;
     
     const message = `<b>🔥 Tactical Signal / إشارة استراتيجية</b>\n\nAsset: <b>${symbolCode}</b>\nAction: <b>${action === 'buy' ? 'BUY / شراء 📈' : 'SELL / بيع 📉'}</b>\nConfidence: <b>%${confidence.toFixed(1)}</b>\nPrice: <b>$${price.toLocaleString()}</b>\n\n<i>Detected via NAMIX AI Neural Core.</i>`;
@@ -62,7 +66,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
 }
 
 /**
- * يرسل نتيجة إشارة تداول ناجحة لكافة المشتركين (Bot Subscribers)
+ * يرسل نتيجة إشارة تداول ناجحة لكافة المشتركين
  */
 export async function broadcastSignalOutcome(symbolCode: string, result: 'win' | 'lose', profit: number) {
   try {
@@ -73,7 +77,6 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return;
 
-    // سحب كافة المشتركين لبث الخبر السار
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
@@ -89,7 +92,6 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
 
 /**
  * يرسل إشعاراً خاصاً لمستثمر معين (Personal Notifications)
- * يعتمد على معرف تلغرام المربوط بالمستثمر عبر المزامنة الصامتة.
  */
 export async function sendTelegramNotification(userId: string, message: string) {
   try {
@@ -150,7 +152,6 @@ export async function notifyFlashPlan(planTitle: string, profit: number) {
 
 /**
  * تحديث معرف تلغرام بصمت (Silent Identity Sync)
- * يتم استدعاؤها من الصفحة الرئيسية لربط الهوية المالية بمعرف تلغرام.
  */
 export async function syncTelegramChatId(userId: string, chatId: string) {
   try {
