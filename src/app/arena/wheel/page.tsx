@@ -16,8 +16,8 @@ import { WheelBetPanel } from "@/components/arena/wheel/WheelBetPanel";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * @fileOverview صفحة لعبة عجلة السيولة v1.0
- * تم تطهير المصطلحات لتعكس هوية ناميكس الاحترافية.
+ * @fileOverview صفحة لعبة عجلة الحظ النخبوية v2.0
+ * تم تحديث منطق الحركة والمصطلحات لتواكب الهوية الراقية لناميكس.
  */
 
 const SEGMENTS = [1.5, 0, 2, 1.2, 0, 5, 1.2, 0, 1.5, 0, 2, 10];
@@ -55,28 +55,29 @@ export default function WheelPage() {
     setResult(null);
 
     try {
-      // خصم مبلغ الدخول
+      // خصم مبلغ الدخول المعتمد
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
-      // منطق الاحتمالات: 70% خسارة أو ربح طفيف، 30% فرصة للنمو الكبير
-      const forceRestrict = Math.random() < 0.7;
+      // منطق الاحتمالات الاستراتيجي: 75% حظ أوفر أو ربح طفيف، 25% نمو استثنائي
+      const forceRestrict = Math.random() < 0.75;
       let targetIndex: number;
       
       if (forceRestrict) {
-        // اختر عشوائياً من الـ 0 أو 1.2
-        const limitedIndices = SEGMENTS.map((val, i) => (val === 0 || val === 1.2) ? i : -1).filter(i => i !== -1);
+        // اختر عشوائياً من الـ 0 أو 1.2 أو 1.5
+        const limitedIndices = SEGMENTS.map((val, i) => (val <= 1.5) ? i : -1).filter(i => i !== -1);
         targetIndex = limitedIndices[Math.floor(Math.random() * limitedIndices.length)];
       } else {
         targetIndex = Math.floor(Math.random() * SEGMENTS.length);
       }
 
       const segmentAngle = 360 / SEGMENTS.length;
-      const extraSpins = (5 + Math.floor(Math.random() * 5)) * 360;
+      // توليد دوران كامل (10-15 دورة) لضمان زخم بصري فخم
+      const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
       const finalRotation = rotation + extraSpins + (targetIndex * segmentAngle);
       
       setRotation(finalRotation);
 
-      // الانتظار حتى انتهاء الأنيميشن
+      // الانتظار حتى انتهاء دورة التباطؤ (5 ثوانٍ)
       setTimeout(async () => {
         const winMultiplier = SEGMENTS[targetIndex];
         setResult(winMultiplier);
@@ -94,7 +95,7 @@ export default function WheelPage() {
           hapticFeedback.error();
         }
         setIsSpinning(false);
-      }, 4000);
+      }, 5000);
 
     } catch (e) {
       setIsSpinning(false);
@@ -120,7 +121,7 @@ export default function WheelPage() {
             dir="rtl"
           >
             <ArenaHeader 
-              title="عجلة السيولة" 
+              title="عجلة الحظ النخبوية" 
               balance={dbUser?.totalBalance} 
               onOpenDeposit={() => setDepositOpen(true)} 
             />

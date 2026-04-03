@@ -17,7 +17,7 @@ interface WheelBetPanelProps {
 }
 
 /**
- * WheelBetPanel - لوحة تحكم مفاعل الدوران v1.0
+ * WheelBetPanel - لوحة تحكم دورة الأرباح v2.0
  */
 export function WheelBetPanel({ betAmount, setBetAmount, loading, canBet, onSpin }: WheelBetPanelProps) {
   return (
@@ -25,7 +25,7 @@ export function WheelBetPanel({ betAmount, setBetAmount, loading, canBet, onSpin
       <Card className="border-none shadow-[0_-15px_40px_rgba(0,0,0,0.03)] rounded-[32px] bg-white border border-gray-50">
         <CardContent className="p-5 space-y-5">
           <div className="space-y-2 text-right">
-            <Label className="text-[10px] font-black text-gray-400 uppercase pr-2 tracking-normal">مبلغ الدخول الاستراتيجي ($)</Label>
+            <Label className="text-[10px] font-black text-gray-400 uppercase pr-2 tracking-normal">مبلغ الدخول المعتمد ($)</Label>
             <div className="relative">
               <Input 
                 type="number" 
@@ -46,7 +46,7 @@ export function WheelBetPanel({ betAmount, setBetAmount, loading, canBet, onSpin
             <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
             {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
               <>
-                <span className="relative z-10">إطلاق مفاعل الدوران</span>
+                <span className="relative z-10">إطلاق دورة الأرباح</span>
                 <Zap size={20} className="text-[#f9a885] fill-current relative z-10 animate-pulse" />
               </>
             )}
@@ -54,7 +54,7 @@ export function WheelBetPanel({ betAmount, setBetAmount, loading, canBet, onSpin
 
           <div className="flex items-center justify-center gap-3 opacity-10">
              <Sparkles size={10} className="text-[#002d4d]" />
-             <p className="text-[8px] font-black uppercase tracking-[0.6em] text-[#002d4d]">Namix Computation Matrix</p>
+             <p className="text-[8px] font-black uppercase tracking-[0.6em] text-[#002d4d]">Namix Dynamic Odds Protocol</p>
           </div>
         </CardContent>
       </Card>
