@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
@@ -16,8 +15,8 @@ import { WheelBetPanel } from "@/components/arena/wheel/WheelBetPanel";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * @fileOverview صفحة لعبة عجلة الحظ النخبوية v2.0
- * تم تحديث منطق الحركة والمصطلحات لتواكب الهوية الراقية لناميكس.
+ * @fileOverview صفحة لعبة عجلة الحظ النخبوية v3.0
+ * تم إضافة منطق التدوير الآلي (Auto-Spin) وحماية الجلسة.
  */
 
 const SEGMENTS = [1.5, 0, 2, 1.2, 0, 5, 1.2, 0, 1.5, 0, 2, 10];
@@ -33,6 +32,12 @@ export default function WheelPage() {
   const [gameState, setGameState] = useState<'idle' | 'won' | 'lost'>('idle');
   const [depositOpen, setDepositOpen] = useState(false);
 
+  // Auto-Spin States
+  const [isAutoSpin, setIsAutoSpin] = useState(false);
+  const [autoSpinRounds, setAutoSpinRounds] = useState("10");
+  const [remainingRounds, setRemainingRounds] = useState(0);
+  const autoSpinActiveRef = useRef(false);
+
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -44,10 +49,22 @@ export default function WheelPage() {
     }
   }, [db]);
 
-  const handleSpin = async () => {
-    if (!dbUser || isSpinning) return;
+  const handleSpin = useCallback(async () => {
+    if (!dbUser || isSpinning) {
+      if (isAutoSpin && isSpinning) {
+        // Stop auto-spin if button clicked while spinning
+        setIsAutoSpin(false);
+        autoSpinActiveRef.current = false;
+      }
+      return;
+    }
+
     const amt = Number(betAmount);
-    if (amt > (dbUser.totalBalance || 0) || amt < 1) return;
+    if (amt > (dbUser.totalBalance || 0) || amt < 1) {
+      setIsAutoSpin(false);
+      autoSpinActiveRef.current = false;
+      return;
+    }
 
     hapticFeedback.medium();
     setIsSpinning(true);
@@ -55,15 +72,14 @@ export default function WheelPage() {
     setResult(null);
 
     try {
-      // خصم مبلغ الدخول المعتمد
+      // خصم مبلغ الدخول
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
-      // منطق الاحتمالات الاستراتيجي: 75% حظ أوفر أو ربح طفيف، 25% نمو استثنائي
+      // منطق الاحتمالات: 75% حظ أوفر أو ربح طفيف
       const forceRestrict = Math.random() < 0.75;
       let targetIndex: number;
       
       if (forceRestrict) {
-        // اختر عشوائياً من الـ 0 أو 1.2 أو 1.5
         const limitedIndices = SEGMENTS.map((val, i) => (val <= 1.5) ? i : -1).filter(i => i !== -1);
         targetIndex = limitedIndices[Math.floor(Math.random() * limitedIndices.length)];
       } else {
@@ -71,13 +87,11 @@ export default function WheelPage() {
       }
 
       const segmentAngle = 360 / SEGMENTS.length;
-      // توليد دوران كامل (10-15 دورة) لضمان زخم بصري فخم
       const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
       const finalRotation = rotation + extraSpins + (targetIndex * segmentAngle);
       
       setRotation(finalRotation);
 
-      // الانتظار حتى انتهاء دورة التباطؤ (5 ثوانٍ)
       setTimeout(async () => {
         const winMultiplier = SEGMENTS[targetIndex];
         setResult(winMultiplier);
@@ -94,11 +108,40 @@ export default function WheelPage() {
           setGameState('lost');
           hapticFeedback.error();
         }
+        
         setIsSpinning(false);
+
+        // Handle next Auto-Spin cycle
+        if (autoSpinActiveRef.current) {
+          setRemainingRounds(prev => {
+            const next = prev - 1;
+            if (next > 0) {
+              setTimeout(handleSpin, 1500); // Small pause before next spin
+              return next;
+            } else {
+              setIsAutoSpin(false);
+              autoSpinActiveRef.current = false;
+              return 0;
+            }
+          });
+        }
       }, 5000);
 
     } catch (e) {
       setIsSpinning(false);
+      setIsAutoSpin(false);
+      autoSpinActiveRef.current = false;
+    }
+  }, [dbUser, isSpinning, betAmount, rotation, db, isAutoSpin]);
+
+  const handleInitiateSpin = () => {
+    if (isAutoSpin && !isSpinning) {
+      const rounds = parseInt(autoSpinRounds) || 10;
+      setRemainingRounds(rounds);
+      autoSpinActiveRef.current = true;
+      handleSpin();
+    } else {
+      handleSpin();
     }
   };
 
@@ -139,7 +182,11 @@ export default function WheelPage() {
               setBetAmount={setBetAmount} 
               loading={isSpinning} 
               canBet={!!dbUser && Number(betAmount) <= (dbUser.totalBalance || 0)} 
-              onSpin={handleSpin} 
+              onSpin={handleInitiateSpin}
+              isAutoSpin={isAutoSpin}
+              setIsAutoSpin={setIsAutoSpin}
+              autoSpinRounds={autoSpinRounds}
+              setAutoSpinRounds={setAutoSpinRounds}
             />
             
             <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
