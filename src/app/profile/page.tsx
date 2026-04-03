@@ -19,7 +19,6 @@ import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog"
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
 import { GiftVoucherDialog } from "@/components/profile/GiftVoucherDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
-import { TelegramLinkDialog } from "@/components/profile/TelegramLinkDialog";
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
@@ -29,7 +28,6 @@ function ProfileContent() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [pinSetupOpen, setPinSetupOpen] = useState(false);
   const [giftVoucherOpen, setGiftVoucherOpen] = useState(false);
-  const [telegramOpen, setTelegramOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
@@ -64,8 +62,12 @@ function ProfileContent() {
     if (action === "issue-voucher") setGiftVoucherOpen(true);
     if (action === "setup-pin") setPinSetupOpen(true);
     if (action === "verify") setEditProfileOpen(true);
-    if (action === "telegram") setTelegramOpen(true);
   }, [searchParams]);
+
+  const handleOpenBot = () => {
+    const botUsername = "NamiixProBot"; // تأكد من مطابقة اليوزر نيم
+    window.open(`https://t.me/${botUsername}`, '_blank');
+  };
 
   if (!user) return (
     <div className="h-screen flex items-center justify-center bg-white">
@@ -90,7 +92,11 @@ function ProfileContent() {
              </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setTelegramOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-blue-50 text-[#0088cc] flex items-center justify-center shadow-sm border border-blue-100 active:scale-90 transition-all">
+            <button 
+              onClick={handleOpenBot} 
+              className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-blue-50 text-[#0088cc] flex items-center justify-center shadow-sm border border-blue-100 active:scale-90 transition-all hover:bg-blue-100"
+              title="Namix Nexus Bot"
+            >
               <Send className="h-5 w-5" />
             </button>
             <button onClick={() => setSettingsOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]">
@@ -121,7 +127,6 @@ function ProfileContent() {
         <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
         <PinSetupDialog open={pinSetupOpen} onOpenChange={setPinSetupOpen} dbUser={dbUser} />
         <GiftVoucherDialog open={giftVoucherOpen} onOpenChange={setGiftVoucherOpen} user={user} dbUser={dbUser} onIssueSuccess={(code) => { setVoucherCode(code); setVoucherCreateSuccess(true); }} onRedeemSuccess={(amt) => { setRedeemAmount(amt); setVoucherRedeemSuccess(true); }} />
-        <TelegramLinkDialog open={telegramOpen} onOpenChange={setTelegramOpen} user={user} dbUser={dbUser} />
 
         <SuccessDialog open={profileSuccess} onOpenChange={setProfileSuccess} title="تم تحديث الهوية" description="تم تأمين وحفظ بياناتك الشخصية المحدثة بنجاح." icon={ShieldCheck} type="profile" />
         <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
