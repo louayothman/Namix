@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v16.0
- * محرك البوت المطور - تم توحيد الواجهة لتكون بوابة مباشرة للتطبيق المصغر.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v17.0
+ * محرك البوت المطور - تم توحيد الواجهة لتكون بوابة مباشرة للميزات الاستراتيجية.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -60,6 +60,7 @@ export function generateMainKeyboard(baseUrl: string) {
 
 /**
  * دالة مساعدة لتوليد زر التنفيذ الذكي لإشارات التداول
+ * يفتح صفحة تداول الأصل المحدد مباشرة داخل التطبيق المصغر
  */
 export function generateSignalButton(baseUrl: string, symbolId: string, action: string) {
   return {

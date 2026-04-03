@@ -3,7 +3,7 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
 import { sendTelegramMessage, generateMainKeyboard, generateSignalButton } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
@@ -19,22 +19,22 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const configSnap = await getDoc(configRef);
     const configData = configSnap.data();
 
-    // نظام الحماية: إشارة واحدة كحد أقصى لكل عملة كل 120 ثانية
+    // نظام الحماية: إشارة واحدة كحد أقصى لكل عملة كل 120 ثانية لضمان الزخم
     const now = Date.now();
     const lastSignalKey = `lastSignalAt_${symbolId}`;
     const lastSignalTime = configData?.[lastSignalKey] || 0;
 
     if (now - lastSignalTime < 120000) return { success: false, reason: "Throttled" };
 
-    // تحديث وقت آخر إشارة
+    // تحديث وقت آخر إشارة في القاعدة
     await updateDoc(configRef, { [lastSignalKey]: now });
 
-    // جلب توكن البوت
+    // جلب توكن البوت المعتمد
     const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return { success: false };
 
-    // جلب كافة المشتركين (النظام العام)
+    // جلب كافة المشتركين (النظام العام) لضمان وصول الإشارة للجميع
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
@@ -42,13 +42,35 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const message = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${symbolCode}</b>\nالاتجاه: <b>${action === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${price.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
     const replyMarkup = generateSignalButton(baseUrl, symbolId, action);
 
-    // بث الرسالة للجميع
+    // بث الرسالة للجميع عبر بروتوكول نكسوس
     const sendPromises = chatIds.map(chatId => 
       sendTelegramMessage(botToken, chatId, message, replyMarkup).catch(() => {})
     );
 
     await Promise.all(sendPromises);
     return { success: true, count: chatIds.length };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * يرسل إشعاراً خاصاً لمستثمر معين عبر تلغرام إذا كان حسابه مربوطاً
+ */
+export async function sendTelegramNotification(userId: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    const chatId = userSnap.data()?.telegramChatId;
+
+    if (!chatId) return { success: false, reason: "Not linked" };
+
+    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = tgConfigSnap.data()?.botToken;
+    if (!botToken) return { success: false };
+
+    await sendTelegramMessage(botToken, chatId, message);
+    return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
