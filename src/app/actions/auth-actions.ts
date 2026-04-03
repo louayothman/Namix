@@ -3,7 +3,7 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, updateDoc, setDoc, query, where } from 'firebase/firestore';
 import { sendTelegramMessage, sendTelegramPhoto, generateMainKeyboard, generateSignalButton } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
@@ -22,7 +22,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const lastSignalKey = `lastSignalAt_${symbolId}`;
     const lastSignalTime = configData?.[lastSignalKey] || 0;
 
-    // حماية: إشارة واحدة كل دقيقتين لنفس الأصل
+    // حماية: إشارة واحدة كل دقيقتين لنفس الأصل لضمان الزخم دون إزعاج
     if (now - lastSignalTime < 120000) return { success: false, reason: "Throttled" };
 
     await setDoc(configRef, { [lastSignalKey]: now }, { merge: true });
@@ -39,16 +39,13 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://namix.pro";
     const baseAsset = symbolCode.split('/')[0].toLowerCase();
     
-    // جلب أيقونة العملة من مستودع عالمي موثوق
     const iconUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${baseAsset}.png`;
     
-    const message = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${symbolCode}</b>\nالاتجاه: <b>${action === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${price.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
+    const message = `<b>🔥 Tactical Signal / إشارة استراتيجية</b>\n\nAsset: <b>${symbolCode}</b>\nAction: <b>${action === 'buy' ? 'BUY / شراء 📈' : 'SELL / بيع 📉'}</b>\nConfidence: <b>%${confidence.toFixed(1)}</b>\nPrice: <b>$${price.toLocaleString()}</b>\n\n<i>Detected via NAMIX AI Neural Core.</i>`;
     const replyMarkup = generateSignalButton(baseUrl, symbolId, action);
 
-    // بث الصورة مع النص للجميع
     const sendPromises = chatIds.map(chatId => 
       sendTelegramPhoto(botToken, chatId, iconUrl, message, replyMarkup).catch(() => 
-        // fallback للرسالة النصية في حال فشل تحميل الصورة
         sendTelegramMessage(botToken, chatId, message, replyMarkup)
       )
     );
@@ -56,17 +53,16 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     await Promise.all(sendPromises);
     return { success: true, count: chatIds.length };
   } catch (e: any) {
-    console.error("Broadcast Error:", e);
     return { success: false, error: e.message };
   }
 }
 
 /**
- * يرسل نتيجة إشارة تداول ناجحة لكافة المشتركين (إضافة جديدة)
+ * يرسل نتيجة إشارة تداول ناجحة
  */
 export async function broadcastSignalOutcome(symbolCode: string, result: 'win' | 'lose', profit: number) {
   try {
-    if (result !== 'win') return; // نبث النجاحات فقط لتعزيز الزخم
+    if (result !== 'win') return;
 
     const { firestore } = initializeFirebase();
     const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
@@ -76,7 +72,7 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
-    const message = `<b>🎯 اكتمال الهدف بنجاح!</b>\n\nالسوق: <b>${symbolCode}</b>\nالنتيجة: <b>تحقيق أرباح استثنائية ✅</b>\n\n<i>محرك NAMIX AI يثبت دقته مرة أخرى. انضم الآن للمستثمرين.</i>`;
+    const message = `<b>🎯 Target Reached / اكتمال الهدف</b>\n\nMarket: <b>${symbolCode}</b>\nOutcome: <b>Success / فوز استثنائي ✅</b>\n\n<i>NAMIX AI proves precision once again.</i>`;
 
     const sendPromises = chatIds.map(chatId => 
       sendTelegramMessage(botToken, chatId, message).catch(() => {})
@@ -87,7 +83,45 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
 }
 
 /**
- * يرسل إشعاراً خاصاً لمستثمر معين
+ * تنبيه السفراء عند انضمام شريك جديد
+ */
+export async function notifyNewReferral(referrerId: string, newUserName: string) {
+  const message = `<b>👥 New Partner / شريك جديد</b>\n\n<b>${newUserName}</b> joined your network.\nانضم شريك جديد لشبكتك العالمية الآن.\n\n<i>Maintain leadership for higher yields.</i>`;
+  await sendTelegramNotification(referrerId, message);
+}
+
+/**
+ * تنبيه عند الرد على تذكرة دعم
+ */
+export async function notifySupportReply(userId: string) {
+  const message = `<b>🎧 Support Update / رد الدعم الفني</b>\n\nThe technical department has responded to your ticket.\nقام القسم التقني بالرد على استفسارك الآن.\n\n<i>Check your profile for details.</i>`;
+  await sendTelegramNotification(userId, message);
+}
+
+/**
+ * تنبيه الاكتتابات الوميضية
+ */
+export async function notifyFlashPlan(planTitle: string, profit: number) {
+  try {
+    const { firestore } = initializeFirebase();
+    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = tgConfigSnap.data()?.botToken;
+    if (!botToken) return;
+
+    const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
+    const chatIds = subscribersSnap.docs.map(d => d.id);
+
+    const message = `<b>⚡ Flash Protocol / اكتتاب وميضي</b>\n\nNew Opportunity: <b>${planTitle}</b>\nYield Rate: <b>%${profit}</b>\n\n<i>Available for a limited time in Contract Lab.</i>`;
+
+    const sendPromises = chatIds.map(chatId => 
+      sendTelegramMessage(botToken, chatId, message).catch(() => {})
+    );
+    await Promise.all(sendPromises);
+  } catch (e) {}
+}
+
+/**
+ * يرسل إشعاراً خاصاً لمستثمر معين (محدث ليدعم المزامنة الصامتة)
  */
 export async function sendTelegramNotification(userId: string, message: string) {
   try {
@@ -109,7 +143,7 @@ export async function sendTelegramNotification(userId: string, message: string) 
 }
 
 /**
- * تحديث معرف تلغرام بصمت عند الدخول/الإنشاء
+ * تحديث معرف تلغرام بصمت (Silent Sync)
  */
 export async function syncTelegramChatId(userId: string, chatId: string) {
   try {

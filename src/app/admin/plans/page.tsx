@@ -58,6 +58,7 @@ import {
   updateDocumentNonBlocking, 
   deleteDocumentNonBlocking 
 } from "@/firebase/non-blocking-updates";
+import { notifyFlashPlan } from "@/app/actions/auth-actions";
 
 const PLAN_TEMPLATES = [
   { id: 'starter', label: "بروتوكول البداية الذكية", data: { title: "بروتوكول البداية الذكية", profitPercent: 12, durationValue: 7, durationUnit: "days", min: 50, max: 1000, features: "سحب أسبوعي, مخاطر منخفضة, دعم أساسي" } },
@@ -201,6 +202,11 @@ export default function AdminPlansPage() {
         ...planData, 
         createdAt: new Date().toISOString() 
       });
+      
+      // بث تنبيه الاكتتاب الوميضي فور الإنشاء
+      if (formData.isFlash) {
+        notifyFlashPlan(formData.title, Number(formData.profitPercent)).catch(() => {});
+      }
     }
     
     setIsDialogOpen(false);
@@ -433,7 +439,7 @@ export default function AdminPlansPage() {
                     <div className="space-y-2">
                        <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">وحدة الزمن</Label>
                        <Select value={formData.durationUnit} onValueChange={val => setFormData({...formData, durationUnit: val})}>
-                          <SelectTrigger className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-sm shadow-inner px-6">
+                          <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black text-sm shadow-inner px-6">
                              <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-none shadow-2xl" dir="rtl">

@@ -1,8 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v18.0
- * محرك البوت المطور - بوابة وصول وميضية لميزات المنصة الاستراتيجية.
- * تم إضافة دعم إرسال الصور (أيقونات الأسواق) وتوحيد لوحة التحكم.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v19.0
+ * محرك البوت المطور - بوابة وصول وميضية مع دعم الأوامر ثنائية اللغة.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -62,22 +61,25 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم الرئيسية المباشرة لكافة المستخدمين والزوار
+ * يولد لوحة التحكم الرئيسية المباشرة ثنائية اللغة
  */
 export function generateMainKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [
-        { text: "📊 لوحة القيادة", web_app: { url: `${baseUrl}/home` } },
-        { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
+        { text: "📊 الرصيد Check Balance", callback_data: "balance" },
+        { text: "🔬 مختبر العقود Lab", web_app: { url: `${baseUrl}/invest` } }
       ],
       [
-        { text: "📈 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
-        { text: "💎 الملف الشخصي", web_app: { url: `${baseUrl}/profile` } }
+        { text: "📈 التداول الفوري Trading", web_app: { url: `${baseUrl}/trade` } },
+        { text: "💎 ملفي Profile", web_app: { url: `${baseUrl}/profile` } }
       ],
       [
-        { text: "💳 شحن الرصيد", web_app: { url: `${baseUrl}/home?action=deposit` } },
-        { text: "📤 سحب الأرباح", web_app: { url: `${baseUrl}/home?action=withdraw` } }
+        { text: "💳 شحن Deposit", web_app: { url: `${baseUrl}/home?action=deposit` } },
+        { text: "📤 سحب Withdraw", web_app: { url: `${baseUrl}/home?action=withdraw` } }
+      ],
+      [
+        { text: "❓ مساعدة Help", callback_data: "help" }
       ]
     ],
     resize_keyboard: true,
@@ -93,7 +95,7 @@ export function generateSignalButton(baseUrl: string, symbolId: string, action: 
     inline_keyboard: [
       [
         { 
-          text: `🚀 تنفيذ ${action === 'buy' ? 'شراء' : 'بيع'} وميضي`, 
+          text: `🚀 Execute ${action === 'buy' ? 'BUY' : 'SELL'} / تنفيذ الصفقة`, 
           web_app: { url: `${baseUrl}/trade/${symbolId}` } 
         }
       ]
