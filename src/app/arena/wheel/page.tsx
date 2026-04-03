@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -15,8 +16,8 @@ import { WheelBetPanel } from "@/components/arena/wheel/WheelBetPanel";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * @fileOverview صفحة لعبة عجلة الحظ النخبوية v3.0
- * تم إضافة منطق التدوير الآلي (Auto-Spin) وحماية الجلسة.
+ * @fileOverview صفحة لعبة عجلة الحظ النخبوية v4.0
+ * تم تحديث المنطق ليدعم حدود الربح والخسارة في التدوير التلقائي وتطهير المسميات.
  */
 
 const SEGMENTS = [1.5, 0, 2, 1.2, 0, 5, 1.2, 0, 1.5, 0, 2, 10];
@@ -32,9 +33,13 @@ export default function WheelPage() {
   const [gameState, setGameState] = useState<'idle' | 'won' | 'lost'>('idle');
   const [depositOpen, setDepositOpen] = useState(false);
 
-  // Auto-Spin States
+  // Auto-Play States
   const [isAutoSpin, setIsAutoSpin] = useState(false);
   const [autoSpinRounds, setAutoSpinRounds] = useState("10");
+  const [stopProfit, setStopProfit] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  
+  const [sessionStats, setSessionStats] = useState({ totalProfit: 0, totalLoss: 0 });
   const [remainingRounds, setRemainingRounds] = useState(0);
   const autoSpinActiveRef = useRef(false);
 
@@ -52,11 +57,24 @@ export default function WheelPage() {
   const handleSpin = useCallback(async () => {
     if (!dbUser || isSpinning) {
       if (isAutoSpin && isSpinning) {
-        // Stop auto-spin if button clicked while spinning
         setIsAutoSpin(false);
         autoSpinActiveRef.current = false;
       }
       return;
+    }
+
+    // فحص حدود الربح والخسارة للجلسة التلقائية
+    if (autoSpinActiveRef.current) {
+      if (stopProfit && sessionStats.totalProfit >= parseFloat(stopProfit)) {
+        setIsAutoSpin(false);
+        autoSpinActiveRef.current = false;
+        return;
+      }
+      if (stopLoss && sessionStats.totalLoss >= parseFloat(stopLoss)) {
+        setIsAutoSpin(false);
+        autoSpinActiveRef.current = false;
+        return;
+      }
     }
 
     const amt = Number(betAmount);
@@ -72,10 +90,8 @@ export default function WheelPage() {
     setResult(null);
 
     try {
-      // خصم مبلغ الدخول
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       
-      // منطق الاحتمالات: 75% حظ أوفر أو ربح طفيف
       const forceRestrict = Math.random() < 0.75;
       let targetIndex: number;
       
@@ -98,25 +114,27 @@ export default function WheelPage() {
         
         if (winMultiplier > 0) {
           const winAmt = amt * winMultiplier;
+          const netWin = winAmt - amt;
           await updateDoc(doc(db, "users", dbUser.id), { 
             totalBalance: increment(winAmt), 
-            totalProfits: increment(winAmt - amt) 
+            totalProfits: increment(netWin) 
           });
           setGameState('won');
+          setSessionStats(prev => ({ ...prev, totalProfit: prev.totalProfit + netWin }));
           hapticFeedback.success();
         } else {
           setGameState('lost');
+          setSessionStats(prev => ({ ...prev, totalLoss: prev.totalLoss + amt }));
           hapticFeedback.error();
         }
         
         setIsSpinning(false);
 
-        // Handle next Auto-Spin cycle
         if (autoSpinActiveRef.current) {
           setRemainingRounds(prev => {
             const next = prev - 1;
             if (next > 0) {
-              setTimeout(handleSpin, 1500); // Small pause before next spin
+              setTimeout(handleSpin, 1500);
               return next;
             } else {
               setIsAutoSpin(false);
@@ -132,11 +150,12 @@ export default function WheelPage() {
       setIsAutoSpin(false);
       autoSpinActiveRef.current = false;
     }
-  }, [dbUser, isSpinning, betAmount, rotation, db, isAutoSpin]);
+  }, [dbUser, isSpinning, betAmount, rotation, db, isAutoSpin, stopProfit, stopLoss, sessionStats]);
 
   const handleInitiateSpin = () => {
     if (isAutoSpin && !isSpinning) {
-      const rounds = parseInt(autoSpinRounds) || 10;
+      setSessionStats({ totalProfit: 0, totalLoss: 0 });
+      const rounds = parseInt(autoSpinRounds) || 999;
       setRemainingRounds(rounds);
       autoSpinActiveRef.current = true;
       handleSpin();
@@ -187,6 +206,10 @@ export default function WheelPage() {
               setIsAutoSpin={setIsAutoSpin}
               autoSpinRounds={autoSpinRounds}
               setAutoSpinRounds={setAutoSpinRounds}
+              stopProfit={stopProfit}
+              setStopProfit={setStopProfit}
+              stopLoss={stopLoss}
+              setStopLoss={setStopLoss}
             />
             
             <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
