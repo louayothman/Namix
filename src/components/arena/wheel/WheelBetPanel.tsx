@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Coins, Zap, Sparkles, RefreshCcw, PowerOff, Plus, Minus, TrendingUp, TrendingDown } from "lucide-react";
+import { Loader2, Coins, Zap, Sparkles, RefreshCcw, PowerOff, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,8 +28,8 @@ interface WheelBetPanelProps {
 }
 
 /**
- * WheelBetPanel - لوحة تحكم ترفيهية انسيابية v6.0
- * تم تحسين أزرار التحكم وتصغير حجم اللوحة لتناسب العرض الكامل.
+ * WheelBetPanel - لوحة تحكم ترفيهية انسيابية v7.0
+ * تم تحسين أزرار التحكم بالجولات وإضافة أزرار (+) و (-) لسهولة الاستخدام.
  */
 export function WheelBetPanel({ 
   betAmount, setBetAmount, loading, canBet, onSpin, 
