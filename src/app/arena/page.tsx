@@ -5,21 +5,31 @@ import { Shell } from "@/components/layout/Shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gem, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle, Dices } from "lucide-react";
+import { Gem, Zap, Sparkles, ChevronRight, ShieldCheck, PlayCircle, Dices, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ساحة المغامرة v5.1 - Gaming Hub
- * تحديث مسار العودة ليوجه المستخدم للرئيسية الخاصة به /home.
+ * @fileOverview ساحة المغامرة v6.0 - Gaming Hub
+ * تم تحديث قائمة الألعاب لتشمل "عجلة السيولة" مع تطهير كامل للهوية النصية.
  */
 
 const arenaGames = [
   {
+    id: "wheel",
+    name: "Liquid Wheel",
+    desc: "مفاعل تدوير السيولة؛ ضاعف أصولك عبر اقتناص عُقد النمو المتقدمة.",
+    risk: "Medium",
+    href: "/arena/wheel",
+    icon: RefreshCcw,
+    color: "text-emerald-500",
+    bg: "bg-emerald-50"
+  },
+  {
     id: "mines",
-    name: "Sovereign Mines",
-    desc: "استكشف حقول السيولة المربحة وتجنب العثرات التقنية المفاجئة في الشبكة.",
+    name: "Elite Mines",
+    desc: "استكشف حقول النمو المربحة وتجنب العثرات التقنية في الشبكة الاحترافية.",
     risk: "Dynamic",
     href: "/arena/mines",
     icon: Gem,
@@ -46,7 +56,7 @@ const arenaGames = [
     color: "text-[#f9a885]",
     bg: "bg-[#f9a885]/10",
     disabled: true,
-    badge: "UNDER MAINTENANCE"
+    badge: "تحت الصيانة"
   }
 ];
 
@@ -59,10 +69,10 @@ export default function ArenaPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#f9a885] font-black text-[9px] uppercase tracking-[0.4em] justify-start">
               <div className="h-2 w-2 rounded-full bg-[#f9a885] animate-pulse" />
-              Interactive Adventure Arena
+              Professional Adventure Arena
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-[#002d4d] tracking-tight">ساحة المغامرة</h1>
-            <p className="text-muted-foreground font-bold text-[10px]">فرص تفاعلية لتعظيم العوائد بذكاء وجرأة استراتيجية سيادية.</p>
+            <p className="text-muted-foreground font-bold text-[10px]">فرص تفاعلية لتعظيم العوائد بذكاء وجرأة استراتيجية متقدمة.</p>
           </div>
           
           <Link href="/home">
@@ -102,7 +112,7 @@ export default function ArenaPage() {
                     <Badge className={cn(
                       "font-black text-[8px] px-3 py-1 rounded-full border-none shadow-sm tracking-widest",
                       game.risk === 'High' ? "bg-red-50 text-red-500" : 
-                      game.risk === 'Medium' ? "bg-orange-50 text-orange-500" : "bg-emerald-50 text-emerald-500"
+                      game.risk === 'Medium' ? "bg-emerald-50 text-emerald-500" : "bg-blue-50 text-blue-500"
                     )}>
                       RISK: {game.risk.toUpperCase()}
                     </Badge>
@@ -119,7 +129,7 @@ export default function ArenaPage() {
                   <div className="pt-2 mt-auto">
                     {game.disabled ? (
                       <div className="w-full h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-300 uppercase tracking-widest">
-                        تحت الصيانة
+                        {game.badge}
                       </div>
                     ) : (
                       <Link href={game.href} className="block">
@@ -137,7 +147,7 @@ export default function ArenaPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4 py-12 opacity-20 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v5.1</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Arena Hub v6.0</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
            </div>
