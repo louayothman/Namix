@@ -15,33 +15,34 @@ interface WheelReactorProps {
 }
 
 /**
- * @fileOverview مفاعل عجلة الحظ المطور v4.0 - Compact Liquid Edition
- * تم تصغير العجلة لضمان ظهورها بالكامل، واستبدال أيقونة المركز بشعار ناميكس النقي.
+ * @fileOverview مفاعل عجلة الحظ المطور v6.0 - Precise Navigation Edition
+ * تم تصغير القطر لضمان الظهور الكامل، وتثبيت السهم العلوي، ودمج شعار ناميكس في المركز.
  */
 export function WheelReactor({ rotation, isSpinning, result, gameState, segments }: WheelReactorProps) {
   const segmentAngle = 360 / segments.length;
 
   return (
-    <section className="flex-1 w-full flex flex-col items-center justify-center p-4 relative font-body select-none overflow-hidden gap-6">
+    <section className="flex-1 w-full flex flex-col items-center justify-center p-2 relative font-body select-none overflow-hidden gap-4">
       {/* خلفية تقنية خافتة */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.02]">
-         <Activity size={250} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#002d4d]" />
+         <Activity size={200} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#002d4d]" />
       </div>
 
-      <div className="relative w-full max-w-[280px] aspect-square flex items-center justify-center">
+      <div className="relative w-full max-w-[240px] aspect-square flex items-center justify-center">
         
-        {/* السهم النخبوي المطور - في القمة ملامس تماماً للحافة */}
-        <div className="absolute top-[-12px] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+        {/* السهم العلوي - مصمم بأسلوب احترافي ملامس للحافة */}
+        <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
            <motion.div 
              animate={isSpinning ? { 
-               y: [0, 4, 0],
-               scaleY: [1, 0.95, 1]
+               y: [0, 3, 0],
+               scaleY: [1, 0.9, 1]
              } : {}}
-             transition={{ repeat: Infinity, duration: 0.12 }}
-             className="relative flex flex-col items-center"
+             transition={{ repeat: Infinity, duration: 0.1 }}
+             className="relative"
            >
-              <div className="w-1 h-8 bg-gradient-to-b from-[#002d4d] to-[#f9a885] rounded-full shadow-xl" />
-              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[18px] border-t-[#f9a885] mt-[-6px] drop-shadow-[0_6px_12px_rgba(249,168,133,0.5)]" />
+              {/* جسم السهم الهندسي */}
+              <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[22px] border-t-red-600 drop-shadow-[0_4px_8px_rgba(220,38,38,0.4)]" />
+              <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 w-1.5 h-4 bg-red-700 rounded-full opacity-20" />
            </motion.div>
         </div>
 
@@ -50,9 +51,9 @@ export function WheelReactor({ rotation, isSpinning, result, gameState, segments
           animate={{ rotate: rotation }}
           transition={{ 
             duration: 5, 
-            ease: [0.45, 0.05, 0.55, 0.95] 
+            ease: [0.44, -0.2, 0, 1.13] // Cubic Bezier انسيابي
           }}
-          className="relative w-full h-full rounded-full border-[10px] border-[#002d4d] shadow-[0_30px_60px_-15px_rgba(0,45,77,0.3)] overflow-hidden bg-white"
+          className="relative w-full h-full rounded-full border-[8px] border-[#002d4d] shadow-[0_20px_50px_-10px_rgba(0,45,77,0.3)] overflow-hidden bg-white"
         >
           <svg viewBox="0 0 100 100" className="w-full h-full">
             {segments.map((val, i) => {
@@ -75,10 +76,10 @@ export function WheelReactor({ rotation, isSpinning, result, gameState, segments
                   />
                   <text
                     x="50"
-                    y="16"
+                    y="14"
                     transform={`rotate(${startAngle + segmentAngle / 2}, 50, 50)`}
                     fill={val === 0 ? "#cbd5e1" : isJackpot ? "#f9a885" : "#64748b"}
-                    fontSize="4.5"
+                    fontSize="4"
                     fontWeight="900"
                     textAnchor="middle"
                     className="font-mono"
@@ -92,16 +93,16 @@ export function WheelReactor({ rotation, isSpinning, result, gameState, segments
           
           {/* مركز ناميكس النقي المطور */}
           <div className="absolute inset-0 flex items-center justify-center">
-             <div className="h-14 w-14 rounded-full bg-white/95 backdrop-blur-xl border-[3px] border-[#002d4d] shadow-2xl flex items-center justify-center z-20">
+             <div className="h-12 w-12 rounded-full bg-white shadow-2xl flex items-center justify-center z-20 border-2 border-gray-50">
                 <motion.div 
                   animate={isSpinning ? { rotate: 360 } : {}}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                   className="grid grid-cols-2 gap-1"
                 >
-                  <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-                  <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                  <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                  <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </motion.div>
              </div>
           </div>
@@ -109,28 +110,28 @@ export function WheelReactor({ rotation, isSpinning, result, gameState, segments
       </div>
 
       {/* حاوية النتائج - أسفل الدائرة بشكل متناسق */}
-      <div className="h-24 w-full flex flex-col items-center justify-start">
+      <div className="h-20 w-full flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {gameState !== 'idle' && !isSpinning ? (
             <motion.div 
               key="result"
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               className={cn(
-                "p-5 rounded-[28px] shadow-xl border-2 border-white flex items-center gap-4 w-full max-w-[280px]",
+                "p-4 rounded-[24px] shadow-lg border-2 border-white flex items-center gap-3 w-full max-w-[240px]",
                 gameState === 'won' ? "bg-emerald-600" : "bg-orange-500"
               )}
             >
-              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 shadow-inner">
-                {gameState === 'won' ? <CheckCircle2 size={20} className="text-white"/> : <RotateCcw size={20} className="text-white"/>}
+              <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                {gameState === 'won' ? <CheckCircle2 size={18} className="text-white"/> : <RotateCcw size={18} className="text-white"/>}
               </div>
-              <div className="text-right space-y-0.5">
-                <h2 className="text-sm font-black text-white leading-tight uppercase">
+              <div className="text-right">
+                <h2 className="text-xs font-black text-white leading-none uppercase">
                   {gameState === 'won' ? 'فوز نخبوي' : 'حظاً أوفر'}
                 </h2>
-                <p className="text-[10px] font-bold text-white/80 leading-tight">
-                  {gameState === 'won' ? `استحقاق ربح بمقدار x${result}` : 'لم يحالفك التوفيق هذه الدورة.'}
+                <p className="text-[9px] font-bold text-white/80 mt-1">
+                  {gameState === 'won' ? `استحقاق ربح x${result}` : 'لم يحالفك التوفيق.'}
                 </p>
               </div>
             </motion.div>
@@ -139,19 +140,19 @@ export function WheelReactor({ rotation, isSpinning, result, gameState, segments
               key="spinning"
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-2 opacity-40"
+              className="flex flex-col items-center gap-1.5 opacity-30"
             >
                <div className="flex gap-1">
                   {[...Array(3)].map((_, i) => (
                     <motion.div 
                       key={i}
-                      animate={{ scale: [1, 1.3, 1], opacity: [0.3, 1, 0.3] }}
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
                       transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                       className="h-1 w-1 rounded-full bg-[#002d4d]"
                     />
                   ))}
                </div>
-               <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">تحليل المسار...</p>
+               <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest">تحليل المسار...</p>
             </motion.div>
           ) : null}
         </AnimatePresence>

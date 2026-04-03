@@ -16,8 +16,8 @@ import { WheelBetPanel } from "@/components/arena/wheel/WheelBetPanel";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * @fileOverview صفحة عجلة الحظ النخبوية v5.0
- * تم إصلاح منطق الدوران المتتالي لضمان دقة النتائج في التدوير التلقائي.
+ * @fileOverview صفحة عجلة الحظ النخبوية v6.0 - Advanced Physics Sync
+ * تم إصلاح منطق الدوران المتتالي باستخدام التراكم الزاوي لضمان استقرار النتائج.
  */
 
 const SEGMENTS = [1.5, 0, 2, 1.2, 0, 5, 1.2, 0, 1.5, 0, 2, 10];
@@ -102,18 +102,19 @@ export default function WheelPage() {
         targetIndex = Math.floor(Math.random() * SEGMENTS.length);
       }
 
-      // حساب الدوران بدقة لضمان الحركة للأمام دائماً
+      // حساب الزوايا بدقة (السهم في الأعلى عند 0 درجة)
       const segmentAngle = 360 / SEGMENTS.length;
-      const currentRotationMod = rotation % 360;
-      const targetAngle = targetIndex * segmentAngle;
       
-      // المسافة المطلوبة للوصول للهدف من الموقع الحالي
-      const angleToTarget = (targetAngle - currentRotationMod + 360) % 360;
-      const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
+      // الزاوية المستهدفة لوضع القطاع تحت السهم مباشرة
+      // العجلة تدور مع عقارب الساعة، لذا نستخدم طرح الزاوية
+      const targetAngle = 360 - (targetIndex * segmentAngle) - (segmentAngle / 2);
       
-      const finalRotation = rotation + extraSpins + angleToTarget;
+      // التدوير التراكمي لضمان الدوران للأمام دائماً
+      const currentFullSpins = Math.floor(rotation / 360);
+      const extraFullSpins = 10; // عدد الدورات الكاملة للتشويق
+      const newRotation = (currentFullSpins + extraFullSpins) * 360 + targetAngle;
       
-      setRotation(finalRotation);
+      setRotation(newRotation);
 
       setTimeout(async () => {
         const winMultiplier = SEGMENTS[targetIndex];
