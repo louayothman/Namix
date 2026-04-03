@@ -14,12 +14,11 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { Sparkles, Zap, ArrowRight, ShieldCheck } from "lucide-react";
 
-// Dynamic Imports for Heavy Components & Dialogs (with Lottie)
+// Dynamic Imports for Heavy Components & Dialogs
 const Hero = dynamic(() => import("@/components/landing/Hero").then(m => ({ default: m.Hero })), { ssr: false });
 const AboutDialog = dynamic(() => import("@/components/landing/AboutDialog").then(m => ({ default: m.AboutDialog })), { ssr: false });
 const ContractLabDialog = dynamic(() => import("@/components/landing/ContractLabDialog").then(m => ({ default: m.ContractLabDialog })), { ssr: false });
 const SpotTradingDialog = dynamic(() => import("@/components/landing/SpotTradingDialog").then(m => ({ default: m.SpotTradingDialog })), { ssr: false });
-const AdventureArenaDialog = dynamic(() => import("@/components/landing/AdventureArenaDialog").then(m => ({ default: m.AdventureArenaDialog })), { ssr: false });
 const FAQDialog = dynamic(() => import("@/components/landing/FAQDialog").then(m => ({ default: m.FAQDialog })), { ssr: false });
 const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog").then(m => ({ default: m.PrivacyDialog })), { ssr: false });
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
@@ -34,7 +33,6 @@ export default function LandingPage() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isContractLabOpen, setIsContractLabOpen] = useState(false);
   const [isSpotTradingOpen, setIsSpotTradingOpen] = useState(false);
-  const [isArenaOpen, setIsArenaOpen] = useState(false);
   const [isFAQOpen, setIsFAQOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -49,7 +47,6 @@ export default function LandingPage() {
   useMarketSync(allSymbols || []);
 
   useEffect(() => {
-    // Check login status
     const session = localStorage.getItem("namix_user");
     if (session) {
       try {
@@ -61,7 +58,6 @@ export default function LandingPage() {
       }
     }
 
-    // Generate particles client-side only to avoid hydration mismatch
     const generated = [...Array(8)].map((_, i) => ({
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
@@ -99,7 +95,6 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="group relative"
           >
-            {/* Main Interactive CTA Container */}
             <div className="bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl transition-all duration-700 hover:shadow-[0_50px_100px_-20px_rgba(0,45,77,0.5)]">
               
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -122,7 +117,6 @@ export default function LandingPage() {
                   className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#f9a885] rounded-full blur-[120px]" 
                 />
                 
-                {/* Floating Micro-particles */}
                 {particles.map((p, i) => (
                   <motion.div
                     key={i}
@@ -176,17 +170,6 @@ export default function LandingPage() {
                       <ArrowRight className="h-6 w-6 rotate-180 transition-transform group-hover/btn:-translate-x-2" />
                     </motion.button>
                   </a>
-                  
-                  <div className="flex items-center gap-8 opacity-40 group-hover:opacity-100 transition-opacity duration-700">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck size={18} className="text-emerald-400" />
-                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Verified</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Zap size={18} className="text-[#f9a885]" />
-                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Automated</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -202,7 +185,7 @@ export default function LandingPage() {
         onAboutClick={() => setIsAboutOpen(true)} 
         onContractLabClick={() => setIsContractLabOpen(true)} 
         onSpotTradingClick={() => setIsSpotTradingOpen(true)}
-        onArenaClick={() => setIsArenaOpen(true)}
+        onArenaClick={() => {}} // Disabled Arena
         onFAQClick={() => setIsFAQOpen(true)}
         onPrivacyClick={() => setIsPrivacyOpen(true)}
         onTermsClick={() => setIsTermsOpen(true)}
@@ -212,7 +195,6 @@ export default function LandingPage() {
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
-      <AdventureArenaDialog open={isArenaOpen} onOpenChange={setIsArenaOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
       <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />

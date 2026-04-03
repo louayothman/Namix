@@ -5,8 +5,8 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteField 
 import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
 
 /**
- * @fileOverview NAMIX NEXUS SMART GATEWAY v15.0
- * محرك الربط اللحظي والتحويل الصامت للتطبيق المصغر.
+ * @fileOverview NAMIX NEXUS SMART GATEWAY v16.0
+ * محرك الربط اللحظي الموحد - تم حذف إشارات بوابة الساحة.
  */
 
 export async function POST(req: NextRequest) {
@@ -55,19 +55,19 @@ export async function POST(req: NextRequest) {
     if (text === '/start') {
       if (user) {
         await sendTelegramMessage(botToken, chatId, 
-          `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nأهلاً <b>${user.displayName}</b>، أصولك تحت الإدارة الاحترافية الموحدة.`, 
+          `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nأهلاً <b>${user.displayName}</b>، محفظتك الاستراتيجية تحت الإدارة الاحترافية الموحدة.`, 
           generateTelegramAppKeyboard(baseUrl)
         );
       } else {
         await sendTelegramMessage(botToken, chatId, 
-          `<b>مرحباً بك في ناميكس نكسوس المطور 💎</b>\n\nبوابتك النخبوية لإدارة الأصول الرقمية والتداول الذكي. يرجى المتابعة لتوثيق دخولك.`, 
+          `<b>مرحباً بك في ناميكس نكسوس المطور 💎</b>\n\nبوابتك النخبوية لإدارة الأصول الرقمية والتداول الذكي. يرجى المتابعة لتوثيق دخولك عبر التطبيق المصغر.`, 
           generateGuestKeyboard(baseUrl)
         );
       }
     } else {
       // الرد التلقائي لتذكير المستخدم بلوحة التحكم
       await sendTelegramMessage(botToken, chatId, 
-        `<b>نظام التشغيل الموحد 🛡️</b>\n\nيرجى استخدام الأزرار أدناه للوصول السريع إلى الأسواق والخدمات الاستراتيجية.`,
+        `<b>نظام التشغيل الموحد 🛡️</b>\n\nيرجى استخدام الأزرار أدناه للوصول السريع إلى مختبر العقود والأسواق الحية.`,
         user ? generateTelegramAppKeyboard(baseUrl) : generateGuestKeyboard(baseUrl)
       );
     }

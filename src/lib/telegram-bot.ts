@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v15.0
- * محرك البوت المطور - دعم التطبيق المصغر والربط التلقائي بأزرار مباشرة.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v16.0
+ * محرك البوت المطور - تم حذف خيارات الساحة وتوحيد الواجهة بوابتين أساسيتين.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,22 +35,22 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم الاحترافية التي تفتح الأقسام المطلوبة مباشرة
+ * يولد لوحة التحكم النخبوية المركزة على مختبر العقود والأسواق
  */
 export function generateTelegramAppKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [
         { text: "📊 لوحة القيادة", web_app: { url: `${baseUrl}/home` } },
-        { text: "🔬 الخطط الاستثمارية", web_app: { url: `${baseUrl}/invest` } }
+        { text: "🔬 مختبر العقود", web_app: { url: `${baseUrl}/invest` } }
       ],
       [
         { text: "📈 التداول الفوري", web_app: { url: `${baseUrl}/trade` } },
-        { text: "🎮 العب واكسب", web_app: { url: `${baseUrl}/arena` } }
+        { text: "💎 الملف الشخصي", web_app: { url: `${baseUrl}/profile` } }
       ],
       [
         { text: "💳 شحن الرصيد", web_app: { url: `${baseUrl}/home?action=deposit` } },
-        { text: "📤 سحب الرصيد", web_app: { url: `${baseUrl}/home?action=withdraw` } }
+        { text: "📤 سحب الأرباح", web_app: { url: `${baseUrl}/home?action=withdraw` } }
       ]
     ],
     resize_keyboard: true,

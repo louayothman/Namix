@@ -3,14 +3,13 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Rocket, Zap, ChevronLeft } from "lucide-react";
+import { Activity, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مُفاعل القُمرة التكتيكي v70.0 - Merged Pro Edition
- * دمج المقترح الأول (القمرة المنقسمة) والثالث (السكّة التكتيكية).
- * يتميز بوضوح صريح (أيقونة + نص) ومحرك انزلاق مغناطيسي بلون المحفظة.
+ * @fileOverview مُفاعل القُمرة التكتيكي v71.0 - Dual Portal Edition
+ * تم تحديث القمرة لتشمل بوابتين فقط: الأسواق الحية ومختبر العقود.
  */
 
 const services = [
@@ -21,14 +20,6 @@ const services = [
     icon: Activity, 
     href: "/trade",
     desc: "نبض الأصول"
-  },
-  { 
-    id: "arena", 
-    title: "ساحة المغامرة", 
-    en: "ARENA",
-    icon: Rocket, 
-    href: "/arena",
-    desc: "تحديات النمو"
   },
   { 
     id: "yield", 
@@ -47,8 +38,8 @@ export function ServiceGateway() {
     <div className="w-full py-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 font-body" dir="rtl">
       <div className="max-w-xl mx-auto px-4">
         
-        {/* هيكل القمرة الرئيسي - Segmented Cockpit Chassis */}
-        <div className="bg-gray-100/50 rounded-[32px] p-1.5 flex items-center justify-between gap-1 relative overflow-hidden border border-gray-100 shadow-inner">
+        {/* هيكل القمرة الرئيسي - Dual Portal Chassis */}
+        <div className="bg-gray-100/50 rounded-[32px] p-1.5 flex items-center justify-between gap-2 relative overflow-hidden border border-gray-100 shadow-inner">
           
           {services.map((service) => {
             const isActive = hoveredId === service.id;
@@ -62,9 +53,9 @@ export function ServiceGateway() {
                 onMouseLeave={() => setHoveredId(null)}
                 onTouchStart={() => setHoveredId(service.id)}
               >
-                <div className="relative flex flex-col items-center justify-center h-20 md:h-24 rounded-[24px] transition-all duration-500 z-10">
+                <div className="relative flex flex-col items-center justify-center h-24 rounded-[24px] transition-all duration-500 z-10">
                   
-                  {/* السكّة التكتيكية المنزلقة - The Tactical Sliding Rail */}
+                  {/* السكّة التكتيكية المنزلقة */}
                   <AnimatePresence>
                     {isActive && (
                       <motion.div
@@ -78,7 +69,7 @@ export function ServiceGateway() {
                     )}
                   </AnimatePresence>
 
-                  {/* المحتوى الصريح: أيقونة + نص */}
+                  {/* المحتوى */}
                   <div className="relative z-10 flex flex-col items-center gap-2">
                     <motion.div
                       animate={isActive ? { y: -2, scale: 1.1 } : { y: 0, scale: 1 }}
@@ -87,12 +78,12 @@ export function ServiceGateway() {
                         isActive ? "text-white" : "text-[#002d4d]/40"
                       )}
                     >
-                      <service.icon size={isActive ? 22 : 20} strokeWidth={2.5} />
+                      <service.icon size={isActive ? 24 : 22} strokeWidth={2.5} />
                     </motion.div>
                     
                     <div className="text-center space-y-0.5">
                       <p className={cn(
-                        "text-[11px] md:text-[13px] font-black tracking-normal transition-colors duration-500",
+                        "text-[12px] md:text-[14px] font-black tracking-normal transition-colors duration-500",
                         isActive ? "text-white" : "text-[#002d4d]"
                       )}>
                         {service.title}
@@ -118,11 +109,10 @@ export function ServiceGateway() {
                     </div>
                   </div>
 
-                  {/* خيط ضوئي سفلي عند النشاط */}
                   {isActive && (
                     <motion.div 
                       layoutId="rail-glow"
-                      className="absolute bottom-2 h-0.5 w-6 bg-white/40 rounded-full blur-[1px]"
+                      className="absolute bottom-2 h-0.5 w-8 bg-white/40 rounded-full blur-[1px]"
                     />
                   )}
                 </div>
@@ -131,7 +121,6 @@ export function ServiceGateway() {
           })}
         </div>
 
-        {/* تذييل البوابة المدمج */}
         <div className="mt-4 flex items-center justify-center gap-4 opacity-[0.15] select-none">
            <div className="h-[0.5px] flex-1 bg-gradient-to-r from-transparent to-[#002d4d]" />
            <p className="text-[8px] font-black uppercase tracking-[0.6em] text-[#002d4d] mr-[-0.6em]">Namix Gateway</p>
