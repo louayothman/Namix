@@ -2,7 +2,7 @@
 "use client";
 
 import { 
-  Clock, Landmark, Wallet, Coins, Share2, Award, Activity, Edit2, Gavel, ArrowRight, LucideIcon, UserPlus, ShieldCheck, Gift, Cpu, Layout, Send
+  Clock, Landmark, Wallet, Coins, Share2, Award, Activity, Edit2, Gavel, ArrowRight, LucideIcon, UserPlus, ShieldCheck, Gift, Cpu, Layout
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,6 @@ interface MenuItem {
 export function SettingsMenu({ onSelect }: { onSelect: (id: string) => void }) {
   const menuItems: MenuItem[] = [
     { id: 'landing_page', title: "صفحة الهبوط", desc: "تعديل النصوص الترحيبية وروابط التواصل", icon: Layout, color: "text-blue-600", bg: "bg-blue-50" },
-    { id: 'telegram', title: "ربط تلغرام", desc: "أتمتة الإشعارات والتداول عبر Bot API", icon: Send, color: "text-[#0088cc]", bg: "bg-blue-50" },
     { id: 'binance', title: "إعدادات Binance", desc: "ربط وتعديل مفاتيح الـ API للأتمتة", icon: Cpu, color: "text-blue-600", bg: "bg-blue-50" },
     { id: 'onboarding', title: "رصيد الترحيب", desc: "إدارة الحوافز النقدية للمستثمرين الجدد", icon: UserPlus, color: "text-blue-600", bg: "bg-blue-50" },
     { id: 'insurance', title: "صندوق التأمين", desc: "حوكمة وحماية رؤوس أموال المنصة", icon: ShieldCheck, color: "text-emerald-600", bg: "bg-emerald-50" },

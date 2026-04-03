@@ -27,9 +27,8 @@ import { PartnershipSection } from "@/components/admin/settings/PartnershipSecti
 import { ContentSection } from "@/components/admin/settings/ContentSection";
 import { LegalSection } from "@/components/admin/settings/LegalSection";
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
-import { TelegramSection } from "@/components/admin/settings/TelegramSection";
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page' | 'telegram';
+type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -81,10 +80,6 @@ export default function AdminSettingsPage() {
   const { data: remoteLegal } = useDoc(legalRef);
   const [legalData, setLegalData] = useState<any>({});
 
-  const academyRef = useMemoFirebase(() => doc(db, "system_settings", "academy"), [db]);
-  const { data: remoteAcademy } = useDoc(academyRef);
-  const [academyData, setAcademyData] = useState<any>({});
-
   useEffect(() => {
     if (remoteBinance) setBinanceData(remoteBinance);
     if (remoteLanding) setLandingData(remoteLanding);
@@ -97,8 +92,7 @@ export default function AdminSettingsPage() {
     if (remoteMarketing) setMarketingData(remoteMarketing);
     if (remotePartnership) setPartnershipData(remotePartnership);
     if (remoteLegal) setLegalData(remoteLegal);
-    if (remoteAcademy) setAcademyData(remoteAcademy);
-  }, [remoteBinance, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal, remoteAcademy]);
+  }, [remoteBinance, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -132,10 +126,6 @@ export default function AdminSettingsPage() {
             onSave={() => handleSaveDoc(landingRef, landingData, "واجهة الهبوط")} 
             saving={saving} 
           />
-        )}
-
-        {activeSection === 'telegram' && (
-          <TelegramSection />
         )}
 
         {activeSection === 'binance' && (
@@ -327,10 +317,7 @@ export default function AdminSettingsPage() {
           <ContentSection 
             data={legalData} 
             onChange={setLegalData} 
-            academyData={academyData}
-            onAcademyChange={setAcademyData}
             onSave={() => handleSaveDoc(legalRef, legalData, "قاعدة المعرفة")}
-            onAcademySave={() => handleSaveDoc(academyRef, academyData, "الأكاديمية")}
             saving={saving}
           />
         )}

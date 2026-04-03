@@ -4,7 +4,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles, Send } from "lucide-react";
+import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
@@ -64,11 +64,6 @@ function ProfileContent() {
     if (action === "verify") setEditProfileOpen(true);
   }, [searchParams]);
 
-  const handleOpenBot = () => {
-    const botUsername = "NamiixProBot"; // تأكد من مطابقة اليوزر نيم
-    window.open(`https://t.me/${botUsername}`, '_blank');
-  };
-
   if (!user) return (
     <div className="h-screen flex items-center justify-center bg-white">
       <Loader2 className="animate-spin text-[#002d4d]" />
@@ -91,18 +86,9 @@ function ProfileContent() {
                </div>
              </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={handleOpenBot} 
-              className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-blue-50 text-[#0088cc] flex items-center justify-center shadow-sm border border-blue-100 active:scale-90 transition-all hover:bg-blue-100"
-              title="Namix Nexus Bot"
-            >
-              <Send className="h-5 w-5" />
-            </button>
-            <button onClick={() => setSettingsOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]">
-              <Settings className="h-5 w-5 md:h-6 md:w-6" />
-            </button>
-          </div>
+          <button onClick={() => setSettingsOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]">
+            <Settings className="h-5 w-5 md:h-6 md:w-6" />
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">

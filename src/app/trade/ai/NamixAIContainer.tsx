@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { analyzeMarket, AIAnalysisResult, AICalibration } from "@/lib/namix-ai-engine";
 import { MarketScanner } from "./MarketScanner";
 import { TrendAnalyzer } from "./TrendAnalyzer";
 import { GuidanceTerminal } from "./GuidanceTerminal";
 import { IntelligenceMetrics } from "./IntelligenceMetrics";
-import { Loader2, ShieldCheck, Zap, Clock, Sparkles, PlayCircle, CheckCircle2, AlertTriangle, X, Coins } from "lucide-react";
+import { Loader2, Zap, Clock, PlayCircle, CheckCircle2, AlertTriangle, X, Coins } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-import { broadcastAISignal } from "@/app/actions/auth-actions";
 
 interface NamixAIContainerProps {
   asset: any;
@@ -24,8 +23,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v15.0 - Instant Global Broadcast
- * تم تفعيل البث اللحظي للإشارات لكافة مستخدمي تلغرام بكثافة عالية (عتبة 35% ثقة).
+ * @fileOverview حاوية NAMIX AI v16.0 - Pure Engine
+ * تم حذف منطق البث لتلغرام لضمان استقلالية المحرك.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -75,18 +74,12 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const calibration: AICalibration = {
         rsiOversold: calibrationData?.rsiOversold || 35,
         rsiOverbought: calibrationData?.rsiOverbought || 65,
-        confidenceThreshold: 35, // عتبة ثقة منخفضة للبث المكثف
+        confidenceThreshold: 35,
         volatilityWeight: calibrationData?.volatilityWeight || 8
       };
 
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
-      
-      // بث الإشارة لتلغرام فوراً عند رصد أي فرصة
-      if (analysis.signal !== 'wait' && analysis.confidence >= 35) {
-        broadcastAISignal(asset.id, asset.code, analysis.signal, analysis.confidence, livePrice)
-          .catch(err => console.error("Auto Broadcast Error:", err));
-      }
       
       if (Object.keys(customAmounts).length === 0) {
         const init: Record<string, string> = {};
@@ -102,7 +95,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     };
 
     runAnalysis();
-    const interval = setInterval(runAnalysis, 10000); // تحديث التحليل كل 10 ثوانٍ لضمان الدقة
+    const interval = setInterval(runAnalysis, 10000);
     return () => clearInterval(interval);
   }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount]);
 
@@ -205,7 +198,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                     </div>
                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">التنفيذ الاستراتيجي المباشر</h4>
                   </div>
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">DIRECT SYNC</Badge>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">ENGINE READY</Badge>
                </div>
 
                <AnimatePresence>
@@ -283,10 +276,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                          </div>
                          <div className="flex flex-col gap-2 relative z-10">
                             <p className="text-[11px] font-bold text-gray-500 leading-relaxed pr-1">{sug.reason}</p>
-                            <div className="flex items-center gap-1.5 opacity-40 pr-1">
-                               <ShieldCheck size={10} className="text-emerald-500" />
-                               <span className="text-[8px] font-black tabular-nums">%{sug.confidence.toFixed(0)} Model Accuracy</span>
-                            </div>
                          </div>
                       </div>
                     );
@@ -295,16 +284,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
             </section>
 
             <GuidanceTerminal guidance={result.guidance} />
-
-            <div className="flex flex-col items-center gap-4 opacity-30 select-none pt-10">
-               <div className="flex items-center gap-2">
-                  <ShieldCheck size={12} className="text-[#002d4d]" />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v15.0</p>
-               </div>
-               <div className="flex gap-2">
-                  {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
-               </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

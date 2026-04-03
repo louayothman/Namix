@@ -6,13 +6,12 @@ import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, updateDoc, increment, arrayUnion, limit, addDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, orderBy, increment, arrayUnion, limit, addDoc } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
 import { motion } from "framer-motion";
-import { syncTelegramChatId } from "@/app/actions/auth-actions";
 
 const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
 const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
@@ -202,14 +201,6 @@ export default function HomePage() {
       const unsubNotifs = onSnapshot(q, (snap) => setUnreadCount(snap.size));
       const refQuery = query(collection(db, "users"), where("referredBy", "==", parsed.id));
       const unsubRef = onSnapshot(refQuery, (snap) => setReferralCount(snap.size));
-
-      // بروتوكول المزامنة الصامتة الفائق - يتم استدعاؤه فورياً عند التحميل
-      if (typeof window !== 'undefined') {
-        const tg = (window as any).Telegram?.WebApp;
-        if (tg?.initDataUnsafe?.user?.id && parsed.id) {
-          syncTelegramChatId(parsed.id, tg.initDataUnsafe.user.id.toString()).catch(() => {});
-        }
-      }
 
       return () => { unsubUser(); unsubNotifs(); unsubRef(); };
     }
