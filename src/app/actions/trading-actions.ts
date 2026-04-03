@@ -8,7 +8,7 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
-import { sendTelegramNotification } from './auth-actions';
+import { sendTelegramNotification, broadcastSignalOutcome } from './auth-actions';
 
 /**
  * Settles an open trade based on the final price at expiration.
@@ -63,10 +63,13 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
         createdAt: new Date().toISOString()
       });
 
-      // Telegram Notification
+      // Telegram Personal Notification
       await sendTelegramNotification(trade.userId, 
         `💰 <b>صفقة رابحة!</b>\n\nاكتملت صفقاتك على <b>${trade.symbolCode}</b> بنجاح.\n\n📈 الربح الصافي: <b>$${profit.toFixed(2)}</b>\n🏦 المبلغ المسترد: <b>$${totalPayout.toFixed(2)}</b>\n\n<i>تم التحديث عبر محرك ناميكس السيادي.</i>`
       );
+
+      // Global Signal Outcome Broadcast
+      await broadcastSignalOutcome(trade.symbolCode, 'win', profit);
     } else {
       await addDoc(collection(firestore, "notifications"), {
         userId: trade.userId,
@@ -77,7 +80,7 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
         createdAt: new Date().toISOString()
       });
 
-      // Telegram Notification
+      // Telegram Personal Notification
       await sendTelegramNotification(trade.userId, 
         `📉 <b>انتهت الصفقة (خسارة)</b>\n\nنعتذر، لم يتحرك السوق في اتجاه توقعك لصفقة <b>${trade.symbolCode}</b>.\n\n💸 الخسارة: <b>$${trade.amount.toFixed(2)}</b>\n\n<i>ننصحك بمراجعة إشارات NAMIX AI قبل العملية القادمة.</i>`
       );

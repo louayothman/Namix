@@ -7,6 +7,7 @@ import { sendTelegramMessage, generateMainKeyboard } from '@/lib/telegram-bot';
 /**
  * @fileOverview NAMIX NEXUS GATEWAY v18.0
  * محرك البث والوصول المباشر - يلغي كافة حواجز الدخول التقليدية.
+ * أي تفاعل مع البوت يسجل المستخدم تلقائياً في قائمة البث.
  */
 
 export async function POST(req: NextRequest) {

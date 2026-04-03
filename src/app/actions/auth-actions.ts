@@ -3,13 +3,13 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, getDocs, updateDoc, query, where, setDoc } from 'firebase/firestore';
-import { sendTelegramMessage, generateMainKeyboard, generateSignalButton } from '@/lib/telegram-bot';
+import { doc, getDoc, collection, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import { sendTelegramMessage, sendTelegramPhoto, generateMainKeyboard, generateSignalButton } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * يرسل إشارة تداول آلية لكافة المشتركين في البوت
+ * يرسل إشارة تداول مرئية لكافة المشتركين في البوت
  */
 export async function broadcastAISignal(symbolId: string, symbolCode: string, action: string, confidence: number, price: number) {
   try {
@@ -18,34 +18,39 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const configSnap = await getDoc(configRef);
     const configData = configSnap.data();
 
-    // نظام الحماية: إشارة واحدة كل 120 ثانية لضمان الزخم وعدم الإزعاج
     const now = Date.now();
     const lastSignalKey = `lastSignalAt_${symbolId}`;
     const lastSignalTime = configData?.[lastSignalKey] || 0;
 
+    // حماية: إشارة واحدة كل دقيقتين لنفس الأصل
     if (now - lastSignalTime < 120000) return { success: false, reason: "Throttled" };
 
-    // تحديث وقت آخر إشارة
     await setDoc(configRef, { [lastSignalKey]: now }, { merge: true });
 
-    // جلب توكن البوت
     const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return { success: false, reason: "Token Missing" };
 
-    // جلب كافة المشتركين في البث العام
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
     if (chatIds.length === 0) return { success: false, reason: "No Subscribers" };
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://namix.pro";
+    const baseAsset = symbolCode.split('/')[0].toLowerCase();
+    
+    // جلب أيقونة العملة من مستودع عالمي موثوق
+    const iconUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${baseAsset}.png`;
+    
     const message = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${symbolCode}</b>\nالاتجاه: <b>${action === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${price.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
     const replyMarkup = generateSignalButton(baseUrl, symbolId, action);
 
-    // بث الرسالة للجميع
+    // بث الصورة مع النص للجميع
     const sendPromises = chatIds.map(chatId => 
-      sendTelegramMessage(botToken, chatId, message, replyMarkup).catch(() => {})
+      sendTelegramPhoto(botToken, chatId, iconUrl, message, replyMarkup).catch(() => 
+        // fallback للرسالة النصية في حال فشل تحميل الصورة
+        sendTelegramMessage(botToken, chatId, message, replyMarkup)
+      )
     );
 
     await Promise.all(sendPromises);
@@ -57,7 +62,32 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
 }
 
 /**
- * يرسل إشعاراً خاصاً لمستثمر معين (مثل نضوج استثمار)
+ * يرسل نتيجة إشارة تداول ناجحة لكافة المشتركين (إضافة جديدة)
+ */
+export async function broadcastSignalOutcome(symbolCode: string, result: 'win' | 'lose', profit: number) {
+  try {
+    if (result !== 'win') return; // نبث النجاحات فقط لتعزيز الزخم
+
+    const { firestore } = initializeFirebase();
+    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = tgConfigSnap.data()?.botToken;
+    if (!botToken) return;
+
+    const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
+    const chatIds = subscribersSnap.docs.map(d => d.id);
+
+    const message = `<b>🎯 اكتمال الهدف بنجاح!</b>\n\nالسوق: <b>${symbolCode}</b>\nالنتيجة: <b>تحقيق أرباح استثنائية ✅</b>\n\n<i>محرك NAMIX AI يثبت دقته مرة أخرى. انضم الآن للمستثمرين.</i>`;
+
+    const sendPromises = chatIds.map(chatId => 
+      sendTelegramMessage(botToken, chatId, message).catch(() => {})
+    );
+
+    await Promise.all(sendPromises);
+  } catch (e) {}
+}
+
+/**
+ * يرسل إشعاراً خاصاً لمستثمر معين
  */
 export async function sendTelegramNotification(userId: string, message: string) {
   try {
@@ -79,7 +109,7 @@ export async function sendTelegramNotification(userId: string, message: string) 
 }
 
 /**
- * يقوم بتحديث معرف تلغرام للمستخدم بصمت عند فتح التطبيق المصغر
+ * تحديث معرف تلغرام بصمت عند الدخول/الإنشاء
  */
 export async function syncTelegramChatId(userId: string, chatId: string) {
   try {

@@ -2,10 +2,14 @@
 /**
  * @fileOverview NAMIX NEXUS BOT CORE ENGINE v18.0
  * محرك البوت المطور - بوابة وصول وميضية لميزات المنصة الاستراتيجية.
+ * تم إضافة دعم إرسال الصور (أيقونات الأسواق) وتوحيد لوحة التحكم.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
 
+/**
+ * إرسال رسالة نصية عادية
+ */
 export async function sendTelegramMessage(token: string, chatId: string, text: string, replyMarkup?: any) {
   try {
     const response = await fetch(`${TELEGRAM_API_BASE}${token}/sendMessage`, {
@@ -21,6 +25,29 @@ export async function sendTelegramMessage(token: string, chatId: string, text: s
     return await response.json();
   } catch (e) {
     console.error("Telegram Send Error:", e);
+    return { ok: false, error: e };
+  }
+}
+
+/**
+ * إرسال صورة مع نص (تستخدم لإشارات التداول مع أيقونة العملة)
+ */
+export async function sendTelegramPhoto(token: string, chatId: string, photoUrl: string, caption: string, replyMarkup?: any) {
+  try {
+    const response = await fetch(`${TELEGRAM_API_BASE}${token}/sendPhoto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: photoUrl,
+        caption: caption,
+        parse_mode: 'HTML',
+        reply_markup: replyMarkup
+      })
+    });
+    return await response.json();
+  } catch (e) {
+    console.error("Telegram Photo Error:", e);
     return { ok: false, error: e };
   }
 }
