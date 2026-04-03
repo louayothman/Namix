@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
 import { motion } from "framer-motion";
-import { sendTelegramNotification, syncTelegramChatId } from "@/app/actions/auth-actions";
+import { syncTelegramChatId } from "@/app/actions/auth-actions";
 
 const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
 const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
@@ -203,10 +203,12 @@ export default function HomePage() {
       const refQuery = query(collection(db, "users"), where("referredBy", "==", parsed.id));
       const unsubRef = onSnapshot(refQuery, (snap) => setReferralCount(snap.size));
 
-      // بروتوكول المزامنة الصامتة مع تلغرام نكسوس
-      const tg = (window as any).Telegram?.WebApp;
-      if (tg && tg.initDataUnsafe?.user?.id) {
-        syncTelegramChatId(parsed.id, tg.initDataUnsafe.user.id.toString()).catch(() => {});
+      // بروتوكول المزامنة الصامتة الفائق - يتم استدعاؤه فورياً عند التحميل
+      if (typeof window !== 'undefined') {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg?.initDataUnsafe?.user?.id && parsed.id) {
+          syncTelegramChatId(parsed.id, tg.initDataUnsafe.user.id.toString()).catch(() => {});
+        }
       }
 
       return () => { unsubUser(); unsubNotifs(); unsubRef(); };
@@ -243,11 +245,6 @@ export default function HomePage() {
           isRead: false,
           createdAt: new Date().toISOString()
         });
-
-        // Telegram Notification - Silent Sync Enabled
-        await sendTelegramNotification(localUser.id, 
-          `💎 <b>نضوج عقد استثماري</b>\n\nاكتمل عقد <b>'${inv.planTitle}'</b> بنجاح.\n\n💰 إجمالي المحصول: <b>$${totalPayout.toFixed(2)}</b>\n📈 صافي الربح: <b>$${inv.expectedProfit.toFixed(2)}</b>\n\n<i>تم حقن السيولة في محفظتك الجارية الآن.</i>`
-        );
       }
     } catch (e) {
       console.error(e);

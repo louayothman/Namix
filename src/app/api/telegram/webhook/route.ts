@@ -5,8 +5,8 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from 'f
 import { sendTelegramMessage, generateMainKeyboard } from '@/lib/telegram-bot';
 
 /**
- * @fileOverview NAMIX NEXUS GATEWAY v21.0 - Professional Logic Overhaul
- * محرك البوابة السيادي - تمت إعادة البناء لضمان استجابة 100% للأوامر ثنائية اللغة.
+ * @fileOverview NAMIX NEXUS GATEWAY v22.0 - Precision Multi-Channel Bridge
+ * محرك البوابة السيادي - تم تحسين الاستجابة للرصيد ونظام الاشتراك التلقائي.
  */
 
 export async function POST(req: NextRequest) {
@@ -28,14 +28,15 @@ export async function POST(req: NextRequest) {
     const rawText = update.message.text || "";
     const text = rawText.trim();
 
-    // 2. تسجيل المشترك تلقائياً لضمان استلام الإشارات (Lead Capture)
+    // 2. تسجيل المشترك تلقائياً في قناة البث المستقلة (Omni-Channel Lead Capture)
+    // هذا يضمن وصول الإشارات والنتائج للجميع بغض النظر عن حالة تسجيل الدخول.
     await setDoc(doc(firestore, "bot_subscribers", chatId), {
       chatId,
       lastInteraction: new Date().toISOString(),
       isActive: true
     }, { merge: true });
 
-    // 3. محرك معالجة الأوامر المرن (Command Routing Engine)
+    // 3. محرك معالجة الأوامر المطور (Nexus Routing Engine)
     
     // أمر البدء
     if (text.startsWith('/start')) {
@@ -44,20 +45,21 @@ export async function POST(req: NextRequest) {
         generateMainKeyboard(baseUrl)
       );
     } 
-    // أمر الرصيد (مطابقة مرنة للكلمات المفتاحية)
+    // أمر الرصيد - تم تحسين البحث عن المستخدم المرتبط بمعرف تلغرام
     else if (text.includes('الرصيد') || text.includes('Balance')) {
+      // البحث عن المستثمر الذي يملك حقل telegramChatId مطابق
       const q = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
       const userSnap = await getDocs(q);
       
       if (!userSnap.empty) {
         const u = userSnap.docs[0].data();
         await sendTelegramMessage(botToken, chatId, 
-          `<b>📊 Identity Snapshot / ملخص الهوية</b>\n\nInvestor: <b>${u.displayName}</b>\nBalance: <b>$${u.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</b>\nActive Yield: <b>$${u.totalProfits?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</b>\n\n<i>Synced via Namix Secure Node.</i>`,
+          `<b>📊 Identity Snapshot / ملخص الهوية</b>\n\nInvestor: <b>${u.displayName}</b>\nBalance: <b>$${u.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</b>\nActive Yield: <b>$${u.totalProfits?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</b>\n\n<i>Live Data Synced via Namix Secure Node.</i>`,
           generateMainKeyboard(baseUrl)
         );
       } else {
         await sendTelegramMessage(botToken, chatId, 
-          `<b>⚠️ Access Pending / المزامنة مطلوبة</b>\n\nOpen the app to link your financial identity.\nحسابك غير مزامن حالياً. افتح التطبيق المصغر ليتم الربط تلقائياً.`,
+          `<b>⚠️ Sync Required / المزامنة مطلوبة</b>\n\nOpen the app to link your financial identity.\nافتح التطبيق المصغر ليتم ربط هويتك المالية بصمت تلقائياً.`,
           generateMainKeyboard(baseUrl)
         );
       }
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
     // أمر المساعدة
     else if (text.includes('مساعدة') || text.includes('Help')) {
       await sendTelegramMessage(botToken, chatId, 
-        `<b>📚 Support Guide / دليل المساعدة</b>\n\n1. <b>Signals:</b> Received automatically every 2 mins.\n2. <b>Trading:</b> Click Execute to open Mini App.\n3. <b>Vault:</b> Earn APY on idle balance.\n\n<i>Direct human support available inside the app.</i>`,
+        `<b>📚 Support Guide / دليل المساعدة</b>\n\n1. <b>Signals:</b> Received automatically every 2 mins.\n2. <b>Trading:</b> Click Execute to open Mini App.\n3. <b>Yield:</b> Join Contract Lab for automated growth.\n\n<i>Direct human support available inside the app.</i>`,
         generateMainKeyboard(baseUrl)
       );
     }
