@@ -9,7 +9,8 @@ import { sendTelegramMessage, sendTelegramPhoto, generateMainKeyboard, generateS
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * يرسل إشارة تداول مرئية لكافة المشتركين في البوت
+ * يرسل إشارة تداول مرئية لكافة المشتركين في البوت (Bot Subscribers)
+ * تم تعديل مصدر البيانات لضمان وصول الإشارات للزوار والمسجلين معاً.
  */
 export async function broadcastAISignal(symbolId: string, symbolCode: string, action: string, confidence: number, price: number) {
   try {
@@ -31,19 +32,22 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return { success: false, reason: "Token Missing" };
 
+    // سحب كافة المشتركين في البوت (قناة البث العامة)
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
     if (chatIds.length === 0) return { success: false, reason: "No Subscribers" };
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://namix.pro";
-    const baseAsset = symbolCode.split('/')[0].toLowerCase();
+    const baseAsset = symbolCode.split('/')[0].toUpperCase();
     
-    const iconUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${baseAsset}.png`;
+    // أيقونة السوق الملونة لتعزيز المظهر الاحترافي
+    const iconUrl = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${baseAsset.toLowerCase()}.png`;
     
     const message = `<b>🔥 Tactical Signal / إشارة استراتيجية</b>\n\nAsset: <b>${symbolCode}</b>\nAction: <b>${action === 'buy' ? 'BUY / شراء 📈' : 'SELL / بيع 📉'}</b>\nConfidence: <b>%${confidence.toFixed(1)}</b>\nPrice: <b>$${price.toLocaleString()}</b>\n\n<i>Detected via NAMIX AI Neural Core.</i>`;
     const replyMarkup = generateSignalButton(baseUrl, symbolId, action);
 
+    // البث الجماعي المرئي
     const sendPromises = chatIds.map(chatId => 
       sendTelegramPhoto(botToken, chatId, iconUrl, message, replyMarkup).catch(() => 
         sendTelegramMessage(botToken, chatId, message, replyMarkup)
@@ -58,7 +62,7 @@ export async function broadcastAISignal(symbolId: string, symbolCode: string, ac
 }
 
 /**
- * يرسل نتيجة إشارة تداول ناجحة
+ * يرسل نتيجة إشارة تداول ناجحة لكافة المشتركين (Bot Subscribers)
  */
 export async function broadcastSignalOutcome(symbolCode: string, result: 'win' | 'lose', profit: number) {
   try {
@@ -69,6 +73,7 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
     const botToken = tgConfigSnap.data()?.botToken;
     if (!botToken) return;
 
+    // سحب كافة المشتركين لبث الخبر السار
     const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
     const chatIds = subscribersSnap.docs.map(d => d.id);
 
@@ -83,45 +88,8 @@ export async function broadcastSignalOutcome(symbolCode: string, result: 'win' |
 }
 
 /**
- * تنبيه السفراء عند انضمام شريك جديد
- */
-export async function notifyNewReferral(referrerId: string, newUserName: string) {
-  const message = `<b>👥 New Partner / شريك جديد</b>\n\n<b>${newUserName}</b> joined your network.\nانضم شريك جديد لشبكتك العالمية الآن.\n\n<i>Maintain leadership for higher yields.</i>`;
-  await sendTelegramNotification(referrerId, message);
-}
-
-/**
- * تنبيه عند الرد على تذكرة دعم
- */
-export async function notifySupportReply(userId: string) {
-  const message = `<b>🎧 Support Update / رد الدعم الفني</b>\n\nThe technical department has responded to your ticket.\nقام القسم التقني بالرد على استفسارك الآن.\n\n<i>Check your profile for details.</i>`;
-  await sendTelegramNotification(userId, message);
-}
-
-/**
- * تنبيه الاكتتابات الوميضية
- */
-export async function notifyFlashPlan(planTitle: string, profit: number) {
-  try {
-    const { firestore } = initializeFirebase();
-    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
-    const botToken = tgConfigSnap.data()?.botToken;
-    if (!botToken) return;
-
-    const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
-    const chatIds = subscribersSnap.docs.map(d => d.id);
-
-    const message = `<b>⚡ Flash Protocol / اكتتاب وميضي</b>\n\nNew Opportunity: <b>${planTitle}</b>\nYield Rate: <b>%${profit}</b>\n\n<i>Available for a limited time in Contract Lab.</i>`;
-
-    const sendPromises = chatIds.map(chatId => 
-      sendTelegramMessage(botToken, chatId, message).catch(() => {})
-    );
-    await Promise.all(sendPromises);
-  } catch (e) {}
-}
-
-/**
- * يرسل إشعاراً خاصاً لمستثمر معين (محدث ليدعم المزامنة الصامتة)
+ * يرسل إشعاراً خاصاً لمستثمر معين (Personal Notifications)
+ * يعتمد على معرف تلغرام المربوط بالمستثمر عبر المزامنة الصامتة.
  */
 export async function sendTelegramNotification(userId: string, message: string) {
   try {
@@ -143,7 +111,46 @@ export async function sendTelegramNotification(userId: string, message: string) 
 }
 
 /**
- * تحديث معرف تلغرام بصمت (Silent Sync)
+ * تنبيه السفراء عند انضمام شريك جديد
+ */
+export async function notifyNewReferral(referrerId: string, newUserName: string) {
+  const message = `<b>👥 New Partner / شريك جديد</b>\n\n<b>${newUserName}</b> joined your network.\nانضم شريك جديد لشبكتك العالمية الآن.\n\n<i>Maintain leadership for higher yields.</i>`;
+  await sendTelegramNotification(referrerId, message);
+}
+
+/**
+ * تنبيه عند الرد على تذكرة دعم
+ */
+export async function notifySupportReply(userId: string) {
+  const message = `<b>🎧 Support Update / رد الدعم الفني</b>\n\nThe technical department has responded to your ticket.\nقام القسم التقني بالرد على استفسارك الآن.\n\n<i>Check your profile for details.</i>`;
+  await sendTelegramNotification(userId, message);
+}
+
+/**
+ * تنبيه الاكتتابات الوميضية للبث العام
+ */
+export async function notifyFlashPlan(planTitle: string, profit: number) {
+  try {
+    const { firestore } = initializeFirebase();
+    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = tgConfigSnap.data()?.botToken;
+    if (!botToken) return;
+
+    const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
+    const chatIds = subscribersSnap.docs.map(d => d.id);
+
+    const message = `<b>⚡ Flash Protocol / اكتتاب وميضي</b>\n\nNew Opportunity: <b>${planTitle}</b>\nYield Rate: <b>%${profit}</b>\n\n<i>Available for a limited time in Contract Lab.</i>`;
+
+    const sendPromises = chatIds.map(chatId => 
+      sendTelegramMessage(botToken, chatId, message).catch(() => {})
+    );
+    await Promise.all(sendPromises);
+  } catch (e) {}
+}
+
+/**
+ * تحديث معرف تلغرام بصمت (Silent Identity Sync)
+ * يتم استدعاؤها من الصفحة الرئيسية لربط الهوية المالية بمعرف تلغرام.
  */
 export async function syncTelegramChatId(userId: string, chatId: string) {
   try {

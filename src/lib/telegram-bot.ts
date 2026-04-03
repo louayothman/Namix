@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NAMIX NEXUS BOT CORE ENGINE v19.0
- * محرك البوت المطور - بوابة وصول وميضية مع دعم الأوامر ثنائية اللغة.
+ * @fileOverview NAMIX NEXUS BOT CORE ENGINE v20.0
+ * محرك البوت المطور - واجهة تحكم موحدة ثنائية اللغة لجميع الزوار والمستثمرين.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -29,7 +29,7 @@ export async function sendTelegramMessage(token: string, chatId: string, text: s
 }
 
 /**
- * إرسال صورة مع نص (تستخدم لإشارات التداول مع أيقونة العملة)
+ * إرسال صورة مع نص (تستخدم لإشارات التداول مع أيقونة العملة الملونة)
  */
 export async function sendTelegramPhoto(token: string, chatId: string, photoUrl: string, caption: string, replyMarkup?: any) {
   try {
@@ -61,13 +61,13 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم الرئيسية المباشرة ثنائية اللغة
+ * يولد لوحة التحكم الرئيسية الموحدة ثنائية اللغة
  */
 export function generateMainKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [
-        { text: "📊 الرصيد Check Balance", callback_data: "balance" },
+        { text: "📊 الرصيد Check Balance" },
         { text: "🔬 مختبر العقود Lab", web_app: { url: `${baseUrl}/invest` } }
       ],
       [
@@ -79,7 +79,7 @@ export function generateMainKeyboard(baseUrl: string) {
         { text: "📤 سحب Withdraw", web_app: { url: `${baseUrl}/home?action=withdraw` } }
       ],
       [
-        { text: "❓ مساعدة Help", callback_data: "help" }
+        { text: "❓ مساعدة Help" }
       ]
     ],
     resize_keyboard: true,
