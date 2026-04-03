@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-import { sendTelegramNotification } from "@/app/actions/auth-actions";
+import { broadcastAISignal } from "@/app/actions/auth-actions";
 
 interface NamixAIContainerProps {
   asset: any;
@@ -24,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v13.0 - Hyper Pulse Edition
- * تم تكثيف الإشارات (عتبة 35%، صمت 120 ثانية) وتفعيل الربط المباشر بصفحات التداول.
+ * @fileOverview حاوية NAMIX AI v14.0 - Global Broadcast Edition
+ * تم تفعيل البث العام للإشارات لجميع مستخدمي تلغرام عند بلوغ عتبة الثقة 35%.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -33,7 +33,6 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [executingTradeId, setExecutingTradeId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
-  const lastNotifiedSignalRef = useRef<string | null>(null);
   
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
@@ -76,28 +75,16 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const calibration: AICalibration = {
         rsiOversold: calibrationData?.rsiOversold || 35,
         rsiOverbought: calibrationData?.rsiOverbought || 65,
-        confidenceThreshold: 35, // عتبة الثقة المطلوبة 35% لضمان البث الكثيف
+        confidenceThreshold: 35, // عتبة الثقة المحددة بـ 35% لزيادة وتيرة الإشارات
         volatilityWeight: calibrationData?.volatilityWeight || 8
       };
 
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
       
-      // بروتوكول البث المكثف: إشارة كل 120 ثانية (دقيقتان)
-      if (analysis.confidence >= 35 && dbUser?.telegramChatId) {
-        const signalKey = `${asset.id}-${analysis.signal}-${Math.floor(Date.now() / 120000)}`;
-        if (lastNotifiedSignalRef.current !== signalKey) {
-          lastNotifiedSignalRef.current = signalKey;
-          
-          const baseUrl = window.location.origin;
-          const msg = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${asset.code}</b>\nالاتجاه المتوقع: <b>${analysis.signal === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${analysis.confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${livePrice.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
-          
-          const buttons = [
-            [{ text: `🚀 تنفيذ ${analysis.signal === 'buy' ? 'شراء' : 'بيع'} وميضي`, web_app: { url: `${baseUrl}/trade/${asset.id}` } }]
-          ];
-          
-          sendTelegramNotification(dbUser.id, msg, buttons).catch(() => {});
-        }
+      // إطلاق بروتوكول البث العام لتلغرام عند وجود إشارة قوية نسبياً
+      if (analysis.signal !== 'wait' && analysis.confidence >= 35) {
+        broadcastAISignal(asset.id, asset.code, analysis.signal, analysis.confidence, livePrice).catch(() => {});
       }
       
       if (Object.keys(customAmounts).length === 0) {
@@ -116,7 +103,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     runAnalysis();
     const interval = setInterval(runAnalysis, 5000);
     return () => clearInterval(interval);
-  }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount, dbUser]);
+  }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount]);
 
   const handleExecuteTrade = (suggestion: any) => {
     if (!dbUser || !asset || !livePrice || suggestion.action === 'wait') return;
@@ -311,7 +298,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
             <div className="flex flex-col items-center gap-4 opacity-30 select-none pt-10">
                <div className="flex items-center gap-2">
                   <ShieldCheck size={12} className="text-[#002d4d]" />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v13.0</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v14.0</p>
                </div>
                <div className="flex gap-2">
                   {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}

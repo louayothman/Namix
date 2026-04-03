@@ -3,10 +3,56 @@
 
 import { Resend } from 'resend';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
-import { sendTelegramMessage, generateTelegramAppKeyboard } from '@/lib/telegram-bot';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import { sendTelegramMessage, generateMainKeyboard, generateSignalButton } from '@/lib/telegram-bot';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
+
+/**
+ * يرسل إشارة تداول آلية لكافة المشتركين في البوت (مسجلين وغير مسجلين)
+ * مع نظام حماية لمنع التكرار (2 دقيقة فاصلة)
+ */
+export async function broadcastAISignal(symbolId: string, symbolCode: string, action: string, confidence: number, price: number) {
+  try {
+    const { firestore } = initializeFirebase();
+    const configRef = doc(firestore, "system_settings", "trading_ai");
+    const configSnap = await getDoc(configRef);
+    const configData = configSnap.data();
+
+    // نظام الحماية: إشارة واحدة كحد أقصى لكل عملة كل 120 ثانية
+    const now = Date.now();
+    const lastSignalKey = `lastSignalAt_${symbolId}`;
+    const lastSignalTime = configData?.[lastSignalKey] || 0;
+
+    if (now - lastSignalTime < 120000) return { success: false, reason: "Throttled" };
+
+    // تحديث وقت آخر إشارة
+    await updateDoc(configRef, { [lastSignalKey]: now });
+
+    // جلب توكن البوت
+    const tgConfigSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
+    const botToken = tgConfigSnap.data()?.botToken;
+    if (!botToken) return { success: false };
+
+    // جلب كافة المشتركين (النظام العام)
+    const subscribersSnap = await getDocs(collection(firestore, "bot_subscribers"));
+    const chatIds = subscribersSnap.docs.map(d => d.id);
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://namix.pro";
+    const message = `<b>🔥 إشارة تداول استراتيجية</b>\n\nالأصل: <b>${symbolCode}</b>\nالاتجاه: <b>${action === 'buy' ? 'شراء 📈' : 'بيع 📉'}</b>\nنسبة الثقة: <b>%${confidence.toFixed(1)}</b>\nالسعر الحالي: <b>$${price.toLocaleString()}</b>\n\n<i>تم الرصد عبر محرك NAMIX AI المتقدم.</i>`;
+    const replyMarkup = generateSignalButton(baseUrl, symbolId, action);
+
+    // بث الرسالة للجميع
+    const sendPromises = chatIds.map(chatId => 
+      sendTelegramMessage(botToken, chatId, message, replyMarkup).catch(() => {})
+    );
+
+    await Promise.all(sendPromises);
+    return { success: true, count: chatIds.length };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
 
 /**
  * يرسل رسالة ترحيب وتفعيل لوحة التحكم بعد نجاح الدخول من التطبيق المصغر
@@ -15,13 +61,11 @@ export async function notifyTelegramLoginSuccess(userId: string, chatId: string)
   try {
     const { firestore } = initializeFirebase();
     
-    // 1. تحديث معرف الدردشة في الحساب
     await updateDoc(doc(firestore, "users", userId), {
       telegramChatId: chatId,
       updatedAt: new Date().toISOString()
     });
 
-    // 2. جلب بيانات المستخدم وتوكن البوت
     const [userSnap, configSnap] = await Promise.all([
       getDoc(doc(firestore, "users", userId)),
       getDoc(doc(firestore, "system_settings", "telegram"))
@@ -36,28 +80,9 @@ export async function notifyTelegramLoginSuccess(userId: string, chatId: string)
 
     await sendTelegramMessage(botToken, chatId, 
       `<b>✅ تم إثبات الهوية بنجاح!</b>\n\nمرحباً بك يا <b>${userData.displayName}</b>. حسابك الآن مربوط بالكامل بمركز التحكم المتقدم.\n\n<i>يمكنك الآن استخدام الأزرار أدناه للوصول السريع لكافة الخدمات.</i>`,
-      generateTelegramAppKeyboard(baseUrl)
+      generateMainKeyboard(baseUrl)
     );
 
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-export async function sendTelegramNotification(userId: string, message: string, inlineButtons?: any[]) {
-  try {
-    const { firestore } = initializeFirebase();
-    const userSnap = await getDoc(doc(firestore, "users", userId));
-    const userData = userSnap.data();
-    if (!userData || !userData.telegramChatId) return { success: false };
-
-    const configSnap = await getDoc(doc(firestore, "system_settings", "telegram"));
-    const botToken = configSnap.data()?.botToken;
-    if (!botToken) return { success: false };
-
-    const replyMarkup = inlineButtons ? { inline_keyboard: inlineButtons } : undefined;
-    await sendTelegramMessage(botToken, userData.telegramChatId, message, replyMarkup);
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };

@@ -1,12 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteField } from 'firebase/firestore';
-import { sendTelegramMessage, generateTelegramAppKeyboard, generateGuestKeyboard } from '@/lib/telegram-bot';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteField, setDoc } from 'firebase/firestore';
+import { sendTelegramMessage, generateMainKeyboard } from '@/lib/telegram-bot';
 
 /**
- * @fileOverview NAMIX NEXUS SMART GATEWAY v16.0
- * محرك الربط اللحظي الموحد - تم حذف إشارات بوابة الساحة.
+ * @fileOverview NAMIX NEXUS SMART GATEWAY v17.0
+ * محرك الربط والتسجيل اللحظي - يسجل كافة المستخدمين في قائمة البث العام.
  */
 
 export async function POST(req: NextRequest) {
@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
     const chatId = update.message.chat.id.toString();
     const text = (update.message.text || "").trim();
 
+    // تسجيل chatId في قائمة المشتركين لضمان وصول الإشارات للجميع
+    await setDoc(doc(firestore, "bot_subscribers", chatId), {
+      chatId,
+      lastInteraction: new Date().toISOString()
+    }, { merge: true });
+
     // 1. بروتوكول الربط اللحظي (Instant Linking via Token)
     if (text.startsWith('/start ')) {
       const linkToken = text.split(' ')[1];
@@ -41,34 +47,23 @@ export async function POST(req: NextRequest) {
 
         await sendTelegramMessage(botToken, chatId, 
           `<b>✅ تم تفعيل الربط الاحترافي!</b>\n\nأهلاً بك يا <b>${userDoc.data().displayName}</b> في مركز ناميكس المتقدم.\n\n<i>محرك العمليات الخاص بك نشط وجاهز الآن.</i>`,
-          generateTelegramAppKeyboard(baseUrl)
+          generateMainKeyboard(baseUrl)
         );
         return NextResponse.json({ ok: true });
       }
     }
 
-    // 2. التحقق من وجود حساب مربوط مسبقاً
-    const userQ = query(collection(firestore, "users"), where("telegramChatId", "==", chatId));
-    const userSnap = await getDocs(userQ);
-    const user = !userSnap.empty ? userSnap.docs[0].data() : null;
-
+    // 2. معالجة أمر البدء العام
     if (text === '/start') {
-      if (user) {
-        await sendTelegramMessage(botToken, chatId, 
-          `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nأهلاً <b>${user.displayName}</b>، محفظتك الاستراتيجية تحت الإدارة الاحترافية الموحدة.`, 
-          generateTelegramAppKeyboard(baseUrl)
-        );
-      } else {
-        await sendTelegramMessage(botToken, chatId, 
-          `<b>مرحباً بك في ناميكس نكسوس المطور 💎</b>\n\nبوابتك النخبوية لإدارة الأصول الرقمية والتداول الذكي. يرجى المتابعة لتوثيق دخولك عبر التطبيق المصغر.`, 
-          generateGuestKeyboard(baseUrl)
-        );
-      }
-    } else {
-      // الرد التلقائي لتذكير المستخدم بلوحة التحكم
       await sendTelegramMessage(botToken, chatId, 
-        `<b>نظام التشغيل الموحد 🛡️</b>\n\nيرجى استخدام الأزرار أدناه للوصول السريع إلى مختبر العقود والأسواق الحية.`,
-        user ? generateTelegramAppKeyboard(baseUrl) : generateGuestKeyboard(baseUrl)
+        `<b>مرحباً بك في ناميكس نكسوس 🚀</b>\n\nبوابتك النخبوية لإدارة الأصول الرقمية والتداول الذكي. يرجى استخدام الأزرار أدناه للوصول السريع إلى خدماتنا.`, 
+        generateMainKeyboard(baseUrl)
+      );
+    } else {
+      // رد تلقائي ذكي
+      await sendTelegramMessage(botToken, chatId, 
+        `<b>نظام التشغيل الموحد 🛡️</b>\n\nيرجى استخدام لوحة التحكم للوصول السريع إلى مختبر العقود والأسواق الحية.`,
+        generateMainKeyboard(baseUrl)
       );
     }
 

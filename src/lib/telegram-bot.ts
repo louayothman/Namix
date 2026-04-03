@@ -1,7 +1,7 @@
 
 /**
  * @fileOverview NAMIX NEXUS BOT CORE ENGINE v16.0
- * محرك البوت المطور - تم حذف خيارات الساحة وتوحيد الواجهة بوابتين أساسيتين.
+ * محرك البوت المطور - تم توحيد الواجهة لتكون بوابة مباشرة للتطبيق المصغر.
  */
 
 const TELEGRAM_API_BASE = 'https://api.telegram.org/bot';
@@ -35,9 +35,9 @@ export async function setTelegramWebhook(token: string, url: string) {
 }
 
 /**
- * يولد لوحة التحكم النخبوية المركزة على مختبر العقود والأسواق
+ * يولد لوحة التحكم الرئيسية الموحدة لكافة المستخدمين والزوار
  */
-export function generateTelegramAppKeyboard(baseUrl: string) {
+export function generateMainKeyboard(baseUrl: string) {
   return {
     keyboard: [
       [
@@ -59,13 +59,17 @@ export function generateTelegramAppKeyboard(baseUrl: string) {
 }
 
 /**
- * يولد أزرار الترحيب للزوار غير الموثقين
+ * دالة مساعدة لتوليد زر التنفيذ الذكي لإشارات التداول
  */
-export function generateGuestKeyboard(baseUrl: string) {
+export function generateSignalButton(baseUrl: string, symbolId: string, action: string) {
   return {
     inline_keyboard: [
-      [{ text: "✨ إنشاء حساب نخبوي", web_app: { url: `${baseUrl}/login` } }],
-      [{ text: "🔑 تسجيل الدخول", web_app: { url: `${baseUrl}/login` } }]
+      [
+        { 
+          text: `🚀 تنفيذ ${action === 'buy' ? 'شراء' : 'بيع'} وميضي`, 
+          web_app: { url: `${baseUrl}/trade/${symbolId}` } 
+        }
+      ]
     ]
   };
 }
