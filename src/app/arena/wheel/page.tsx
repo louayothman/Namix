@@ -16,8 +16,8 @@ import { WheelBetPanel } from "@/components/arena/wheel/WheelBetPanel";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * @fileOverview صفحة لعبة عجلة الحظ النخبوية v4.0
- * تم تحديث المنطق ليدعم حدود الربح والخسارة في التدوير التلقائي وتطهير المسميات.
+ * @fileOverview صفحة عجلة الحظ النخبوية v5.0
+ * تم إصلاح منطق الدوران المتتالي لضمان دقة النتائج في التدوير التلقائي.
  */
 
 const SEGMENTS = [1.5, 0, 2, 1.2, 0, 5, 1.2, 0, 1.5, 0, 2, 10];
@@ -102,9 +102,16 @@ export default function WheelPage() {
         targetIndex = Math.floor(Math.random() * SEGMENTS.length);
       }
 
+      // حساب الدوران بدقة لضمان الحركة للأمام دائماً
       const segmentAngle = 360 / SEGMENTS.length;
+      const currentRotationMod = rotation % 360;
+      const targetAngle = targetIndex * segmentAngle;
+      
+      // المسافة المطلوبة للوصول للهدف من الموقع الحالي
+      const angleToTarget = (targetAngle - currentRotationMod + 360) % 360;
       const extraSpins = (10 + Math.floor(Math.random() * 5)) * 360;
-      const finalRotation = rotation + extraSpins + (targetIndex * segmentAngle);
+      
+      const finalRotation = rotation + extraSpins + angleToTarget;
       
       setRotation(finalRotation);
 
