@@ -1,294 +1,127 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { namixAI } from "@/lib/namix-ai";
-import { AIAnalysisResult } from "@/lib/namix-ai-engine";
+import { TradeSignal } from "@/lib/namix-ai-orchestrator";
 import { MarketScanner } from "./MarketScanner";
-import { TrendAnalyzer } from "./TrendAnalyzer";
-import { GuidanceTerminal } from "./GuidanceTerminal";
-import { IntelligenceMetrics } from "./IntelligenceMetrics";
-import { Loader2, Zap, Clock, PlayCircle, CheckCircle2, AlertTriangle, X, Coins } from "lucide-react";
+import { Loader2, Zap, Target, ShieldCheck, Sparkles, TrendingUp, TrendingDown, Activity, ChevronLeft, MapPin, ListChecks } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 interface NamixAIContainerProps {
   asset: any;
   livePrice: number | null;
 }
 
-/**
- * @fileOverview واجهة NAMIX AI v17.0 - Core Consumer Edition
- * تم تحديث الحاوية لتكون مستهلكاً لمحرك NamixAI المعزول؛ مما يضمن فصل المنطق التحليلي عن الواجهة.
- */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
-  const [result, setResult] = useState<AIAnalysisResult | null>(null);
-  const [executingTradeId, setExecutingTradeId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
-  
-  const db = useFirestore();
-  const [dbUser, setDbUser] = useState<any>(null);
-
-  useEffect(() => {
-    const session = localStorage.getItem("namix_user");
-    if (session) {
-      const parsed = JSON.parse(session);
-      const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => {
-        if (snap.exists()) setDbUser({ ...snap.data(), id: snap.id });
-      });
-      return () => unsub();
-    }
-  }, [db]);
-
-  const calibrationRef = useMemoFirebase(() => doc(db, "system_settings", "trading_ai"), [db]);
-  const { data: calibrationData } = useDoc(calibrationRef);
-
-  const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
-  const { data: globalConfig } = useDoc(globalTradeRef);
-
-  const durations = useMemo(() => {
-    if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
-      return globalConfig.tradeDurations.map((d: any) => {
-        let mult = 1;
-        let suffix = 's';
-        if (d.unit === 'minutes') { mult = 60; suffix = 'm'; }
-        else if (d.unit === 'hours') { mult = 3600; suffix = 'h'; }
-        else if (d.unit === 'days') { mult = 86400; suffix = 'd'; }
-        return { label: `${d.value}${suffix}`, seconds: d.value * mult };
-      });
-    }
-    return [{ label: '60s', seconds: 60 }, { label: '5m', seconds: 300 }];
-  }, [globalConfig]);
+  const [result, setResult] = useState<TradeSignal | null>(null);
 
   useEffect(() => {
     if (!asset || !livePrice) return;
 
-    const runAnalysis = () => {
-      // معايرة المحرك المركزي قبل التشغيل
-      namixAI.calibrate({
-        rsiOversold: calibrationData?.rsiOversold || 35,
-        rsiOverbought: calibrationData?.rsiOverbought || 65,
-        confidenceThreshold: calibrationData?.aiConfidenceThreshold || 85,
-        volatilityWeight: calibrationData?.volatilityWeight || 8
-      });
-
-      // استهلاك المحرك المعزول
-      const analysis = namixAI.analyze(asset, livePrice, durations);
+    const runAnalysis = async () => {
+      const analysis = await namixAI.getDeepAnalysis(asset, livePrice);
       if (analysis) {
         setResult(analysis);
-        
-        if (Object.keys(customAmounts).length === 0) {
-          const init: Record<string, string> = {};
-          analysis.suggestions.forEach(s => {
-            init[s.durationLabel] = (globalConfig?.minTradeAmount || 10).toString();
-          });
-          setCustomAmounts(init);
-        }
       }
-      
-      if (isAnalyzing) {
-        setTimeout(() => setIsAnalyzing(false), 1500);
-      }
+      setIsAnalyzing(false);
     };
 
     runAnalysis();
     const interval = setInterval(runAnalysis, 10000);
     return () => clearInterval(interval);
-  }, [asset, livePrice, isAnalyzing, calibrationData, durations, globalConfig?.minTradeAmount]);
-
-  const handleExecuteTrade = (suggestion: any) => {
-    if (!dbUser || !asset || !livePrice || suggestion.action === 'wait') return;
-    
-    const amount = Number(customAmounts[suggestion.durationLabel]) || globalConfig?.minTradeAmount || 10;
-    if (dbUser.totalBalance < amount) {
-      setFeedback({ type: 'error', message: 'عجز في الملاءة المالية الحالية.' });
-      return;
-    }
-
-    setExecutingTradeId(suggestion.durationLabel);
-    
-    const startTime = new Date();
-    const durationSeconds = suggestion.seconds || 60;
-    const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
-    const profitRate = globalConfig?.defaultProfitRate || 80;
-    const expectedProfit = (amount * profitRate) / 100;
-
-    const tradePayload = {
-      userId: dbUser.id,
-      userName: dbUser.displayName,
-      symbolId: asset.id,
-      symbolCode: asset.code,
-      tradeType: suggestion.action,
-      amount: amount,
-      entryPrice: livePrice,
-      profitRate: profitRate,
-      expectedProfit: expectedProfit,
-      status: "open",
-      result: "pending",
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      createdAt: startTime.toISOString()
-    };
-
-    addDoc(collection(db, "trades"), tradePayload)
-      .then(() => {
-        setFeedback({ type: 'success', message: `تم إطلاق الصفقة بنجاح.` });
-      })
-      .catch(async (err) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'trades',
-          operation: 'create',
-          requestResourceData: tradePayload
-        }));
-      })
-      .finally(() => {
-        setExecutingTradeId(null);
-      });
-
-    updateDoc(doc(db, "users", dbUser.id), {
-      totalBalance: increment(-amount)
-    }).catch(console.error);
-  };
-
-  const updateAmount = (id: string, val: string) => {
-    setCustomAmounts(prev => ({ ...prev, [id]: val }));
-  };
+  }, [asset, livePrice]);
 
   return (
-    <div className="w-full space-y-10 animate-in fade-in duration-1000 tracking-normal font-body" dir="rtl">
+    <div className="w-full space-y-10 animate-in fade-in duration-1000 font-body" dir="rtl">
       <AnimatePresence mode="wait">
         {isAnalyzing ? (
-          <motion.div 
-            key="loader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="py-20 flex flex-col items-center justify-center gap-8"
-          >
+          <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-20 flex flex-col items-center justify-center gap-8">
              <div className="relative">
                 <div className="h-24 w-24 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <Zap size={32} className="text-[#f9a885] animate-pulse" />
-                </div>
+                <div className="absolute inset-0 flex items-center justify-center"><Zap size={32} className="text-[#f9a885] animate-pulse" /></div>
              </div>
-             <div className="text-center space-y-2">
-                <h4 className="text-xl font-black text-[#002d4d]">معايرة NAMIX AI...</h4>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Scanning Global Pulse Nodes</p>
-             </div>
+             <p className="text-xl font-black text-[#002d4d]">تشغيل وكلاء ناميكس...</p>
           </motion.div>
         ) : result && (
-          <motion.div 
-            key="content"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-12"
-          >
+          <motion.div key="content" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 pb-20">
             <MarketScanner />
-            <TrendAnalyzer trend={result.trend} confidence={result.confidence} />
-            <IntelligenceMetrics rsi={result.rsi} volatility={result.volatility} momentum={result.momentum} />
             
-            <section className="space-y-5 text-right relative">
-               <div className="flex items-center justify-between px-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
-                       <Clock size={16} />
-                    </div>
-                    <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">التنفيذ الاستراتيجي المباشر</h4>
+            {/* Bias & Confidence Hub */}
+            <section className="flex items-center justify-between px-2">
+               <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                     <h4 className="text-2xl font-black text-[#002d4d]">{result.bias === 'Long' ? 'صعود استراتيجي' : result.bias === 'Short' ? 'هبوط استراتيجي' : 'تذبذب جانبي'}</h4>
+                     <Badge className={cn("font-black text-[10px] px-3 py-1 border-none shadow-sm", result.bias === 'Long' ? "bg-emerald-500 text-white" : result.bias === 'Short' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400")}>
+                        {result.bias.toUpperCase()}
+                     </Badge>
                   </div>
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">ENGINE READY</Badge>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Market Directional Bias</p>
                </div>
-
-               <AnimatePresence>
-                 {feedback && (
-                   <motion.div 
-                     initial={{ opacity: 0, height: 0 }}
-                     animate={{ opacity: 1, height: 'auto' }}
-                     exit={{ opacity: 0, height: 0 }}
-                     className="px-2 mb-4"
-                   >
-                      <div className={cn(
-                        "p-4 rounded-[24px] border flex items-center justify-between shadow-xl",
-                        feedback.type === 'success' ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-red-50 border-red-100 text-red-700"
-                      )}>
-                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                               {feedback.type === 'success' ? <CheckCircle2 size={16}/> : <AlertTriangle size={16}/>}
-                            </div>
-                            <p className="text-[11px] font-black tracking-normal">{feedback.message}</p>
-                         </div>
-                         <button onClick={() => setFeedback(null)} className="opacity-40 hover:opacity-100 transition-opacity">
-                            <X size={14} />
-                         </button>
-                      </div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-
-               <div className="grid gap-3">
-                  {result.suggestions.map((sug, i) => {
-                    const isExecuting = executingTradeId === sug.durationLabel;
-                    const currentAmt = customAmounts[sug.durationLabel] || "10";
-                    
-                    return (
-                      <div key={i} className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 flex flex-col gap-4 group transition-all hover:bg-white hover:shadow-xl relative overflow-hidden">
-                         <div className="flex items-center justify-between relative z-10">
-                            <div className="flex items-center gap-3">
-                               <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center font-black text-[10px] shadow-sm text-[#002d4d] tabular-nums">
-                                  {sug.durationLabel}
-                               </div>
-                               <Badge className={cn(
-                                 "font-black text-[8px] px-3 py-1 rounded-lg border-none shadow-sm tracking-normal",
-                                 sug.action === 'buy' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
-                               )}>
-                                 {sug.action === 'buy' ? 'شراء' : 'بيع'}
-                               </Badge>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <div className="relative group/amount">
-                                 <input 
-                                   type="number"
-                                   value={currentAmt}
-                                   onChange={(e) => updateAmount(sug.durationLabel, e.target.value)}
-                                   className="h-10 w-16 rounded-xl bg-white border border-gray-100 text-center font-black text-[11px] tabular-nums shadow-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
-                                 />
-                                 <Coins size={8} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-300" />
-                              </div>
-                              <Button 
-                                onClick={() => handleExecuteTrade(sug)}
-                                disabled={!!executingTradeId}
-                                className={cn(
-                                  "h-10 rounded-xl px-6 font-black text-[11px] transition-all shadow-lg active:scale-95 gap-3",
-                                  sug.action === 'buy' ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
-                                )}
-                              >
-                                {isExecuting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : (
-                                  <>
-                                    <span>تنفيذ</span>
-                                    <PlayCircle size={12} />
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                         </div>
-                         <div className="flex flex-col gap-2 relative z-10">
-                            <p className="text-[11px] font-bold text-gray-500 leading-relaxed pr-1">{sug.reason}</p>
-                         </div>
-                      </div>
-                    );
-                  })}
+               <div className="text-left">
+                  <div className="h-16 w-16 rounded-full border-4 border-gray-50 flex flex-col items-center justify-center relative group">
+                     <motion.div initial={{ rotate: 0 }} animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute inset-0 rounded-full border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent border-4" />
+                     <span className="text-lg font-black text-blue-600 tabular-nums">%{result.confidence}</span>
+                     <span className="text-[6px] font-black text-gray-300 uppercase">Confidence</span>
+                  </div>
                </div>
             </section>
 
-            <GuidanceTerminal guidance={result.guidance} />
+            {/* Strategy Roadmap */}
+            <section className="grid gap-4 md:grid-cols-2">
+               <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 space-y-4">
+                  <div className="flex items-center gap-3">
+                     <MapPin className="h-4 w-4 text-blue-500" />
+                     <span className="text-[10px] font-black text-gray-400 uppercase">نطاق الدخول المثالي</span>
+                  </div>
+                  <p className="text-xl font-black text-[#002d4d] tabular-nums" dir="ltr">${result.entry_zone}</p>
+               </div>
+               <div className="p-6 bg-red-50/50 rounded-[32px] border border-red-100 space-y-4">
+                  <div className="flex items-center gap-3">
+                     <ShieldCheck className="h-4 w-4 text-red-500" />
+                     <span className="text-[10px] font-black text-gray-400 uppercase">نقطة إلغاء التحليل (SL)</span>
+                  </div>
+                  <p className="text-xl font-black text-red-600 tabular-nums" dir="ltr">${result.invalidated_at.toFixed(2)}</p>
+               </div>
+            </section>
+
+            {/* Target Vault */}
+            <section className="space-y-4">
+               <div className="flex items-center gap-3 px-2">
+                  <Target className="h-4 w-4 text-emerald-500" />
+                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">أهداف جني الأرباح (TP)</h4>
+               </div>
+               <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "TP1", val: result.targets.tp1, color: "text-emerald-500", bg: "bg-emerald-50" },
+                    { label: "TP2", val: result.targets.tp2, color: "text-emerald-600", bg: "bg-emerald-50" },
+                    { label: "TP3", val: result.targets.tp3, color: "text-emerald-700", bg: "bg-emerald-100" }
+                  ].map((target, i) => (
+                    <div key={i} className={cn("p-4 rounded-[24px] text-center border space-y-1 shadow-sm", target.bg, "border-transparent")}>
+                       <p className="text-[8px] font-black opacity-40">{target.label}</p>
+                       <p className={cn("text-xs font-black tabular-nums", target.color)}>${target.val.toFixed(2)}</p>
+                    </div>
+                  ))}
+               </div>
+            </section>
+
+            {/* AI Reasoning Summary */}
+            <section className="p-8 bg-[#002d4d] rounded-[48px] text-white space-y-6 relative overflow-hidden group">
+               <div className="absolute top-0 left-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-1000"><Sparkles size={120} /></div>
+               <div className="flex items-center gap-3 relative z-10">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20"><Activity size={20} className="text-[#f9a885]" /></div>
+                  <h4 className="text-sm font-black">ملخص استنتاجات الوكلاء</h4>
+               </div>
+               <p className="text-xs font-bold leading-[2.2] text-blue-100/70 relative z-10">{result.reasoning_summary}</p>
+               <div className="pt-4 border-t border-white/10 flex items-center gap-3 opacity-40">
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">End-to-End Analysis Verified</span>
+               </div>
+            </section>
           </motion.div>
         )}
       </AnimatePresence>
