@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -18,7 +19,9 @@ import {
   Ticket,
   ChevronLeft,
   ArrowUpRight,
-  Fingerprint
+  Fingerprint,
+  Radar,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -30,7 +33,7 @@ import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "fireb
 import { Slider } from "@/components/ui/slider";
 
 /**
- * @fileOverview Namix Floating Glass Lab v1.0
+ * @fileOverview Namix Floating Glass Lab v2.0
  * واجهة استخباراتية زجاجية شفافة تندمج مع الرسم البياني.
  * تشمل صك الأهداف، مؤشر الاضطراب، والمنزلق الفيزيائي.
  */
@@ -81,7 +84,7 @@ function TargetVoucher({ targets, bias }: { targets: any, bias: string }) {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
            <div className="flex items-center gap-2">
               <Ticket size={14} className="text-[#f9a885]" />
-              <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">Yield Strategy Voucher</span>
+              <span className="text-[9px] font-black text-white/60 uppercase tracking-widest tracking-normal">Yield Strategy Voucher</span>
            </div>
            <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[7px] px-2 py-0.5 rounded-md">ALPHA NODE</Badge>
         </div>
@@ -93,7 +96,7 @@ function TargetVoucher({ targets, bias }: { targets: any, bias: string }) {
              { label: "TP3", val: targets.tp3, color: "text-[#f9a885]" },
            ].map((tp, i) => (
              <div key={i} className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white/5 border border-white/5 group-hover:bg-white/10 transition-all">
-                <span className="text-[7px] font-black text-white/30">{tp.label}</span>
+                <span className="text-[7px] font-black text-white/30 tracking-normal">{tp.label}</span>
                 <span className={cn("text-[11px] font-black tabular-nums tracking-tighter", tp.color)} dir="ltr">${tp.val.toFixed(2)}</span>
              </div>
            ))}
@@ -208,7 +211,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {isAnalyzing ? (
           <div className="py-20 flex flex-col items-center justify-center gap-6">
              <div className="h-16 w-16 border-2 border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-             <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">تنشيط المختبر الزجاجي...</p>
+             <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">تنشيط المختبر الزجاجي...</p>
           </div>
         ) : result && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pb-32">
@@ -228,7 +231,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                      <Activity size={28} className={cn(result.bias !== 'Neutral' && "animate-pulse")} />
                   </div>
                   <div className="text-right">
-                     <h4 className="text-xl font-black text-[#002d4d] leading-none">
+                     <h4 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
                         {result.bias === 'Long' ? 'إشارة صعود سيادية' : result.bias === 'Short' ? 'إشارة هبوط سيادية' : 'حياد استراتيجي'}
                      </h4>
                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.3em] mt-2 tracking-normal">Quantum Analytics Core</p>
@@ -240,7 +243,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             </div>
 
             {/* 3. Target Voucher */}
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                {result.bias !== 'Neutral' && (
                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     <TargetVoucher targets={result.targets} bias={result.bias} />
@@ -259,8 +262,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                      </div>
                   </div>
                   <div className="text-left">
-                     <p className="text-[8px] font-black text-gray-400 uppercase">Available</p>
-                     <p className="text-sm font-black text-[#002d4d] tabular-nums">${dbUser?.totalBalance?.toLocaleString()}</p>
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-normal">Available</p>
+                     <p className="text-sm font-black text-[#002d4d] tabular-nums tracking-normal">${dbUser?.totalBalance?.toLocaleString()}</p>
                   </div>
                </div>
 
@@ -284,14 +287,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                         <MapPin size={12} className="text-blue-500" />
                         <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">Entry</span>
                      </div>
-                     <span className="text-[11px] font-black text-[#002d4d] tabular-nums" dir="ltr">${result.entry_zone}</span>
+                     <span className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">${result.entry_zone}</span>
                   </div>
                   <div className="p-4 bg-red-50/20 rounded-[28px] border border-red-100 flex items-center justify-between group/risk">
                      <div className="flex items-center gap-2">
                         <ShieldX size={12} className="text-red-500 group-hover/risk:animate-bounce" />
                         <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">Inval.</span>
                      </div>
-                     <span className="text-[11px] font-black text-red-600 tabular-nums" dir="ltr">${result.invalidated_at.toFixed(2)}</span>
+                     <span className="text-[11px] font-black text-red-600 tabular-nums tracking-normal" dir="ltr">${result.invalidated_at.toFixed(2)}</span>
                   </div>
                </div>
             </div>
@@ -307,7 +310,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                            <div className="h-10 w-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20"><Info size={20} className="text-[#f9a885]" /></div>
                            <h4 className="text-sm font-black tracking-normal">الرؤية الاستراتيجية</h4>
                         </div>
-                        <Badge variant="outline" className="text-white/40 border-white/10 text-[7px] font-black tracking-widest">SMC ENGINE V5</Badge>
+                        <Badge variant="outline" className="text-white/40 border-white/10 text-[7px] font-black tracking-widest tracking-normal">SMC ENGINE V5</Badge>
                      </div>
                      
                      <p className="text-[13px] font-bold leading-[2.2] text-blue-100/70 tracking-normal">{result.reasoning_summary}</p>
