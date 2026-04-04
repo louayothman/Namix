@@ -33,7 +33,7 @@ const OrderPanel = dynamic(() => import("@/components/trade/terminal/OrderPanel"
 const DepositSheet = dynamic(() => import("@/components/deposit/DepositSheet").then(m => ({ default: m.DepositSheet })), { ssr: false });
 const TradeHistoryOverlay = dynamic(() => import("@/components/trade/terminal/TradeHistoryOverlay").then(m => ({ default: m.TradeHistoryOverlay })), { ssr: false });
 const MarketIntelligenceOverlay = dynamic(() => import("@/components/trade/terminal/MarketIntelligenceOverlay").then(m => ({ default: m.MarketIntelligenceOverlay })), { ssr: false });
-const NamixAIContainer = dynamic(() => import("@/components/trade/ai/NamixAIContainer").then(m => ({ default: m.NamixAIContainer })), { ssr: false });
+const NamixAIContainer = dynamic(() => import("@/app/trade/ai/NamixAIContainer").then(m => ({ default: m.NamixAIContainer })), { ssr: false });
 
 const TerminalLoader = () => (
   <div className="flex flex-col items-center justify-center h-full gap-6 bg-gray-50/20 backdrop-blur-sm">
@@ -136,7 +136,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
                  <h2 className="text-sm md:text-xl font-black text-[#002d4d] tracking-tight">{asset?.name}</h2>
                  <div className="flex items-center gap-1.5 opacity-30 mt-0.5">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    <span className="text-[7px] font-black uppercase tracking-widest">Sovereign Node</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest tracking-normal">Sovereign Node</span>
                  </div>
               </div>
            </div>
@@ -204,18 +204,19 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
           </footer>
         </div>
 
+        {/* Drawer Fix: Stable Logical Appearance without Jump */}
         <Drawer open={aiOpen} onOpenChange={setAiOpen}>
           <DrawerPortal>
             <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
-            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[56px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] max-h-[85vh] bg-white rounded-t-[56px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
               <DrawerHeader className="px-8 pt-8 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-6">
                 <div className="flex items-center gap-4 text-right">
                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center">
                       <NamixAIIcon />
                    </div>
                    <div className="space-y-0.5">
-                     <DrawerTitle className="text-xl font-black text-[#002d4d]">تحليل NAMIX AI</DrawerTitle>
-                     <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1">Sovereign Intelligence Core</p>
+                     <DrawerTitle className="text-xl font-black text-[#002d4d] tracking-normal leading-none">تحليل NAMIX AI</DrawerTitle>
+                     <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1 tracking-normal">Sovereign Intelligence Core</p>
                    </div>
                 </div>
                 <button onClick={() => setAiOpen(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90">
