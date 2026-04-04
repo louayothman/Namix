@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -154,7 +155,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                <div className="space-y-1 text-right">
                   <div className="flex items-center gap-3 justify-end">
                      <h4 className="text-2xl font-black text-[#002d4d] tracking-normal">{result.bias === 'Long' ? 'صعود استراتيجي' : result.bias === 'Short' ? 'هبوط استراتيجي' : 'تذبذب جانبي'}</h4>
-                     <Badge className={cn("font-black text-[10px] px-3 py-1 border-none shadow-sm tracking-normal", result.bias === 'Long' ? "bg-emerald-500 text-white" : result.bias === 'Short' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400")}>
+                     <Badge className={cn("font-black text-[10px] px-3 py-1 border-none shadow-sm tracking-normal", result.bias === 'Long' ? "bg-emerald-50 text-white" : result.bias === 'Short' ? "bg-red-50 text-white" : "bg-gray-100 text-gray-400")}>
                         {result.bias.toUpperCase()}
                      </Badge>
                   </div>
@@ -241,7 +242,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20"><Activity size={20} className="text-[#f9a885]" /></div>
                              <h4 className="text-sm font-black tracking-normal">ملخص استنتاجات الوكلاء</h4>
                           </div>
-                          <Badge className="bg-emerald-500 text-white border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse">LIVE ANALYSIS</Badge>
+                          <Badge className="bg-emerald-500 text-white border-none font-black text-[7px] px-3 py-1 rounded-full animate-pulse">LIVE ANALYSIS</Badge>
                        </div>
                        <p className="text-xs font-bold leading-[2.2] text-blue-100/70 relative z-10 tracking-normal">{result.reasoning_summary}</p>
                        
