@@ -2,12 +2,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Waves, Activity } from "lucide-react";
+import { Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 
 /**
- * AnimatedDigit - محرك الخانة الرقمية المنزلقة (Odometer)
+ * AnimatedDigit - محرك الخانة الرقمية المنزلقة
  */
 function AnimatedDigit({ digit, colorClass = "text-[#002d4d]" }: { digit: string, colorClass?: string }) {
   const isNumber = !isNaN(parseInt(digit)) && isFinite(Number(digit));
@@ -36,54 +36,54 @@ interface MarketPulseHubProps {
 }
 
 export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
-  // توليد مسار سائل عشوائي يتغير مع النبض
+  // توليد مسار سائل مجهري يتغير مع نبض السعر
   const liquidPath = useMemo(() => {
-    const points = Array.from({ length: 10 }).map((_, i) => 
-      `${i * 10},${15 + Math.sin(Date.now() / 500 + i) * (5 + turbulence / 10)}`
+    const points = Array.from({ length: 8 }).map((_, i) => 
+      `${i * 14},${15 + Math.sin(Date.now() / 400 + i) * (3 + turbulence / 12)}`
     ).join(' L ');
     return `M 0,20 L ${points}`;
   }, [turbulence, price]);
 
   return (
-    <div className="flex items-center justify-between px-5 py-3 bg-gray-50/50 rounded-[28px] border border-gray-100 shadow-inner group font-body" dir="rtl">
-      <div className="flex items-center gap-4">
-        <div className="h-10 w-10 rounded-2xl bg-white flex items-center justify-center shadow-sm relative overflow-hidden">
+    <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner group font-body tracking-normal" dir="rtl">
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shadow-sm relative overflow-hidden">
            <motion.div 
              animate={{ rotate: 360 }}
              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
              className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(59,130,246,0.05)_180deg,transparent_360deg)]"
            />
-           <Waves size={18} className="text-blue-500 relative z-10 animate-pulse" />
+           <Waves size={16} className="text-blue-500 relative z-10 animate-pulse" />
         </div>
         <div className="text-right">
-           <p className="text-[11px] font-black text-[#002d4d] leading-none">نبض الأسواق</p>
-           <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Pulse Feed</p>
+           <p className="text-[10px] font-black text-[#002d4d] leading-none tracking-normal">نبض الأسواق</p>
+           <p className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-1 tracking-normal">Live Pulse</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
          {/* الرسم البياني السائل المجهري */}
-         <div className="h-8 w-16 relative overflow-hidden opacity-40 group-hover:opacity-100 transition-opacity">
+         <div className="h-6 w-12 relative overflow-hidden opacity-30 group-hover:opacity-100 transition-opacity">
             <svg viewBox="0 0 100 40" className="h-full w-full">
                <motion.path
                  d={liquidPath}
                  fill="none"
                  stroke="#3b82f6"
-                 strokeWidth="2"
+                 strokeWidth="2.5"
                  strokeLinecap="round"
                  animate={{ d: liquidPath }}
-                 transition={{ duration: 0.5 }}
+                 transition={{ duration: 0.4 }}
                />
             </svg>
          </div>
 
-         <div className="h-8 w-px bg-gray-200" />
+         <div className="h-6 w-px bg-gray-200" />
 
-         {/* العداد السعري الميكانيكي */}
+         {/* العداد السعري الميكانيكي بفاصلتين */}
          <div className="text-right">
-            <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1">Market Price</p>
-            <div className="flex items-center text-lg font-black text-[#002d4d] tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
-               <span className="text-xs mr-0.5 opacity-30">$</span>
+            <p className="text-[6px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1 tracking-normal">Price</p>
+            <div className="flex items-center text-[15px] font-black text-[#002d4d] tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
+               <span className="text-[10px] mr-0.5 opacity-30">$</span>
                {price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split("").map((char, i) => (
                  <AnimatedDigit key={i} digit={char} />
                ))}

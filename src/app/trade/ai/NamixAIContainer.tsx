@@ -4,17 +4,12 @@
 import { useState, useEffect } from "react";
 import { namixAI } from "@/lib/namix-ai";
 import { TradeSignal } from "@/lib/namix-ai-orchestrator";
-import { 
-  Zap, 
-  Loader2, 
-  ShieldCheck,
-} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
-// استيراد المكونات المستقلة المكتنزة
+// استيراد المكونات المستقلة المكتنزة والذكية
 import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
 import { BiasHeader } from "@/components/trade/ai/BiasHeader";
 import { TargetMatrix } from "@/components/trade/ai/TargetMatrix";
@@ -97,18 +92,20 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const minTrade = globalConfig?.minTradeAmount || 10;
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700 font-body tracking-normal" dir="rtl">
+    <div className="w-full space-y-5 animate-in fade-in duration-700 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         {isAnalyzing ? (
           <div className="py-20 flex flex-col items-center justify-center gap-4">
              <div className="relative">
                 <div className="h-12 w-12 border-2 border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center"><Zap size={18} className="text-[#f9a885] animate-pulse" /></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="h-2 w-2 rounded-full bg-[#f9a885] animate-pulse" />
+                </div>
              </div>
-             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة النبض الاستراتيجي...</p>
+             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">مُعايرة الرادار الاستراتيجي...</p>
           </div>
         ) : result && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pb-10">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 pb-8">
             
             <MarketPulseHub price={livePrice} turbulence={result.turbulence} />
 
@@ -139,7 +136,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               summary={result.market_summary} 
             />
 
-            <div className="flex items-center justify-center gap-3 opacity-20 select-none">
+            <div className="flex items-center justify-center gap-3 opacity-20 select-none pt-2">
                <ShieldCheck size={12} className="text-[#002d4d]" />
                <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Sovereign Shield Active</p>
             </div>
@@ -148,5 +145,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function ShieldCheck({ size, className }: { size: number, className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
   );
 }
