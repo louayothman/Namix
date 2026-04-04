@@ -2,14 +2,12 @@
 'use server';
 
 import { Resend } from 'resend';
-import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * @fileOverview NAMIX AUTH ACTIONS v23.0 - Clean Core
- * تم تنظيف الملف بالكامل من كافة وظائف تلغرام (البث، الإشعارات، المزامنة).
+ * @fileOverview NAMIX AUTH ACTIONS v24.0 - Clean Core (No Telegram)
+ * تم حذف كافة وظائف تلغرام نهائياً لضمان نقاء المنظومة البرمجية.
  */
 
 export async function sendOTPEmail(email: string, otp: string) {

@@ -13,7 +13,6 @@ import {
   doc, 
   setDoc, 
   getDoc, 
-  addDoc,
   deleteDoc,
   updateDoc
 } from "firebase/firestore";
@@ -25,7 +24,7 @@ import { LegalLinks } from "@/components/auth/LegalLinks";
 import { 
   Loader2, 
 } from "lucide-react";
-import { sendOTPEmail, notifyTelegramLoginSuccess } from "@/app/actions/auth-actions";
+import { sendOTPEmail } from "@/app/actions/auth-actions";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SovereignBackground = () => (
@@ -72,14 +71,6 @@ function LoginContent() {
     }
   }, [router]);
 
-  const handlePostAuthSync = async (userId: string) => {
-    // التحقق مما إذا كنا داخل تلغرام لمزامنة الدخول
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg && tg.initDataUnsafe?.user?.id) {
-      await notifyTelegramLoginSuccess(userId, tg.initDataUnsafe.user.id.toString());
-    }
-  };
-
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -125,7 +116,6 @@ function LoginContent() {
       const newUser = { id: userId, email: formData.email, displayName: formData.fullName, role: "user", password: formData.password, totalBalance: trialAmount, createdAt: new Date().toISOString() };
       
       await setDoc(doc(db, "users", userId), newUser);
-      await handlePostAuthSync(userId);
       
       localStorage.setItem("namix_user", JSON.stringify(newUser));
       window.location.href = "/home";
@@ -139,7 +129,6 @@ function LoginContent() {
     setLoading(true);
     try {
       await updateDoc(doc(db, "users", existingUser.id), { lastActive: new Date().toISOString() });
-      await handlePostAuthSync(existingUser.id);
       
       localStorage.setItem("namix_user", JSON.stringify(existingUser));
       window.location.href = existingUser.role === 'admin' ? "/admin" : "/home";

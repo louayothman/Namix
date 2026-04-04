@@ -58,7 +58,6 @@ import {
   updateDocumentNonBlocking, 
   deleteDocumentNonBlocking 
 } from "@/firebase/non-blocking-updates";
-import { notifyFlashPlan } from "@/app/actions/auth-actions";
 
 const PLAN_TEMPLATES = [
   { id: 'starter', label: "بروتوكول البداية الذكية", data: { title: "بروتوكول البداية الذكية", profitPercent: 12, durationValue: 7, durationUnit: "days", min: 50, max: 1000, features: "سحب أسبوعي, مخاطر منخفضة, دعم أساسي" } },
@@ -202,11 +201,6 @@ export default function AdminPlansPage() {
         ...planData, 
         createdAt: new Date().toISOString() 
       });
-      
-      // بث تنبيه الاكتتاب الوميضي فور الإنشاء
-      if (formData.isFlash) {
-        notifyFlashPlan(formData.title, Number(formData.profitPercent)).catch(() => {});
-      }
     }
     
     setIsDialogOpen(false);
@@ -271,9 +265,7 @@ export default function AdminPlansPage() {
                   )}
                   {plan.isScheduled && (
                     <div className="absolute top-20 left-8 z-10">
-                      <Badge className="bg-blue-600 text-white font-black border-none text-[9px] px-4 py-1.5 flex items-center gap-2 shadow-lg">
-                        <Calendar className="h-3.5 w-3.5" /> SCHEDULED
-                      </Badge>
+                      <Badge className="bg-blue-600 text-white font-black border-none text-[9px] px-4 py-1.5 rounded-full shadow-lg">SCHEDULED</Badge>
                     </div>
                   )}
 
@@ -429,7 +421,6 @@ export default function AdminPlansPage() {
                   <Input type="number" value={formData.profitPercent} onChange={e => setFormData({...formData, profitPercent: e.target.value})} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-xl text-emerald-600 shadow-inner" />
                </div>
 
-               {/* DURATION SECTION - RESTORED & CONDITIONAL */}
                {!formData.isScheduled && (
                  <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
                     <div className="space-y-2 text-center">
@@ -452,12 +443,11 @@ export default function AdminPlansPage() {
                  </div>
                )}
 
-               {/* FUTURE SCHEDULING SECTION */}
                <div className="p-6 bg-blue-50/30 rounded-[32px] border border-blue-100/50 space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-blue-600" />
-                      <Label className="font-black text-[#002d4d] text-xs">جدولة اكتتاب آجل (Scheduled Launch)</Label>
+                      <Label className="font-black text-[#002d4d] text-xs">جدولة اكتتاب آجل</Label>
                     </div>
                     <Switch checked={formData.isScheduled} onCheckedChange={val => setFormData({...formData, isScheduled: val})} className="data-[state=checked]:bg-blue-600 scale-75" />
                   </div>
@@ -482,9 +472,6 @@ export default function AdminPlansPage() {
                           className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm px-6 text-right"
                         />
                       </div>
-                      <p className="text-[9px] text-blue-400 font-bold px-4 leading-relaxed">
-                        * سيتم احتساب مدة الاستثمار تلقائياً لتنتهي عند حلول موعد الإغلاق المحدد أعلاه.
-                      </p>
                     </div>
                   )}
                </div>
@@ -535,7 +522,7 @@ export default function AdminPlansPage() {
               أنت على وشك تنفيذ عملية حذف نهائية لهذا المنتج الاستثماري من قاعدة البيانات الأساسية. هل أنت متأكد من قرارك؟
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col mt-8">
+          <AlertDialogFooter className="flex flex-col gap-3 mt-8">
             <AlertDialogAction 
               onClick={executeDelete}
               className="w-full h-14 rounded-full bg-red-500 hover:bg-red-600 text-white font-black text-base shadow-xl active:scale-95 transition-all"

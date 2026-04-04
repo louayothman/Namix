@@ -14,7 +14,6 @@ import {
   addDoc 
 } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
-import { notifySupportReply } from "@/app/actions/auth-actions";
 
 // Modular Components
 import { SupportHeader } from "@/components/admin/support/SupportHeader";
@@ -65,7 +64,6 @@ export default function AdminSupportPage() {
 
     setSending(true);
     const msgText = inputText;
-    const currentTicket = allTickets?.find(t => t.id === selectedTicketId);
     setInputText("");
 
     try {
@@ -82,11 +80,6 @@ export default function AdminSupportPage() {
         updatedAt: new Date().toISOString(),
         status: "pending"
       });
-
-      // تنبيه المستخدم عبر تلغرام فور الرد
-      if (currentTicket?.userId) {
-        notifySupportReply(currentTicket.userId).catch(() => {});
-      }
     } catch (e) {
       console.error(e);
     } finally {
