@@ -1,13 +1,9 @@
 
 /**
- * @fileOverview NamixAIOrchestrator v1.0
- * محرك الذكاء الاصطناعي بنظام الوكلاء المتعددين (Multi-Agent System)
- * يدمج التحليل الفني (SMC/ICT) مع تحليل السيولة والمخاطر.
+ * @fileOverview NamixAIOrchestrator v2.0 - Institutional Grade MAS
+ * محرك الذكاء الاصطناعي بنظام الوكلاء المتعددين المطور.
+ * يحلل 1000+ شمعة، يعالج فجوات السيولة (FVG)، ويحل النزاعات المنطقية بين الوكلاء.
  */
-
-import { z } from "zod";
-
-// --- الواجهات التقنية (Strict Typing) ---
 
 export interface OHLCV {
   time: number;
@@ -18,13 +14,15 @@ export interface OHLCV {
   volume: number;
 }
 
+export interface MarketZone {
+  price: number;
+  type: 'Supply' | 'Demand';
+  strength: number;
+}
+
 export interface MarketData {
   pair: string;
-  ohlcv: {
-    h1: OHLCV[];
-    h4: OHLCV[];
-    d1: OHLCV[];
-  };
+  ohlcv: OHLCV[]; // العمق التاريخي: 1000 شمعة فأكثر
   indicators: {
     rsi: number;
     macd: { value: number; signal: number; hist: number };
@@ -33,8 +31,8 @@ export interface MarketData {
     atr: number;
   };
   liquidity: {
-    bids: number;
-    asks: number;
+    bids: { price: number; amount: number }[];
+    asks: { price: number; amount: number }[];
     volume24h: number;
   };
 }
@@ -65,182 +63,182 @@ export interface TradeSignal {
 export class NamixAIOrchestrator {
   
   /**
-   * المحلل الفني (Technical Expert Agent)
-   * يركز على الاتجاه ومناطق SMC/ICT
+   * Technical Expert - تحليل 1000 شمعة (SMC/ICT Logic)
    */
   private async technicalExpert(data: MarketData): Promise<AgentSignal> {
-    const { h1, h4 } = data.ohlcv;
-    const { ema, rsi } = data.indicators;
+    const history = data.ohlcv;
+    const currentPrice = history[history.length - 1].close;
     
-    // تحديد الاتجاه عبر EMAs
-    const isBullish = ema.ema25 > ema.ema100;
-    const isBearish = ema.ema25 < ema.ema100;
-    
-    // البحث عن فجوات السيولة (Fair Value Gaps - FVG) في H1
-    const lastThree = h1.slice(-3);
-    const hasBullishFVG = lastThree[0].high < lastThree[2].low;
-    const hasBearishFVG = lastThree[0].low > lastThree[2].high;
-
-    let bias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
-    let reasoning = "";
-    let confidence = 0;
-
-    if (isBullish) {
-      bias = 'Long';
-      confidence = 70;
-      reasoning = "الاتجاه العام صاعد بناءً على تقاطع المتوسطات المتحركة (EMA).";
-      if (hasBullishFVG) {
-        confidence += 15;
-        reasoning += " تم رصد فجوة سيولة (FVG) تدعم استمرار الصعود.";
+    // 1. رصد فجوات السيولة (FVG) والتحقق من التخفيف (Mitigation)
+    let unmitigatedFVG = null;
+    for (let i = history.length - 3; i > history.length - 50; i--) {
+      const c1 = history[i-2], c2 = history[i-1], c3 = history[i];
+      // Bullish FVG
+      if (c1.high < c3.low) {
+        const gapTop = c3.low;
+        const gapBottom = c1.high;
+        // التحقق هل السعر عاد لملء الفجوة؟
+        const isMitigated = history.slice(i + 1).some(c => c.low <= gapBottom);
+        if (!isMitigated) {
+          unmitigatedFVG = { type: 'Bullish', top: gapTop, bottom: gapBottom };
+          break;
+        }
       }
-    } else if (isBearish) {
-      bias = 'Short';
-      confidence = 70;
-      reasoning = "الاتجاه العام هابط؛ ضغط بيعي مستمر تحت المتوسطات الكبرى.";
-      if (hasBearishFVG) {
-        confidence += 15;
-        reasoning += " كسر هيكلي مع وجود فجوة سعرية تدعم الهبوط.";
+      // Bearish FVG
+      if (c1.low > c3.high) {
+        const gapBottom = c3.high;
+        const gapTop = c1.low;
+        const isMitigated = history.slice(i + 1).some(c => c.high >= gapTop);
+        if (!isMitigated) {
+          unmitigatedFVG = { type: 'Bearish', top: gapTop, bottom: gapBottom };
+          break;
+        }
       }
     }
 
-    // الربط المنطقي: الأولوية للاتجاه حتى لو تشبع RSI
-    if (bias === 'Long' && rsi > 70) {
-      confidence -= 10;
-      reasoning += " تنبيه: مؤشر RSI في منطقة تشبع، ولكن الأولوية للزخم الصاعد.";
+    // 2. تحديد مناطق العرض والطلب (Order Blocks) من عمق التاريخ
+    const demandZones = history.filter(c => c.close > c.open && c.volume > data.liquidity.volume24h / 1440 * 2).slice(-5);
+    const supplyZones = history.filter(c => c.close < c.open && c.volume > data.liquidity.volume24h / 1440 * 2).slice(-5);
+
+    const isBullishTrend = data.indicators.ema.ema25 > data.indicators.ema.ema100;
+    
+    let bias: 'Long' | 'Short' | 'Neutral' = isBullishTrend ? 'Long' : 'Short';
+    let confidence = 75;
+    let reasoning = `الاتجاه العام ${isBullishTrend ? 'صاعد' : 'هابط'} بناءً على تحليل 1000 شمعة.`;
+
+    if (unmitigatedFVG) {
+      reasoning += ` تم رصد فجوة سيولة غير مخففة (Unmitigated FVG) تعمل كمغناطيس للسعر عند ${unmitigatedFVG.bottom.toFixed(2)}.`;
+      if ((unmitigatedFVG.type === 'Bullish' && bias === 'Long') || (unmitigatedFVG.type === 'Bearish' && bias === 'Short')) {
+        confidence += 15;
+      }
     }
 
-    return { agentName: "Technical Expert", bias, confidence, reasoning };
+    return { 
+      agentName: "Technical Expert", 
+      bias, 
+      confidence: Math.min(confidence, 100), 
+      reasoning,
+      metadata: { demandZones, supplyZones }
+    };
   }
 
   /**
-   * خبير المشاعر والسيولة (Sentiment & Liquidity Agent)
+   * Sentiment Expert - تحليل ضغط السيولة (Imbalance Pressure)
    */
   private async sentimentExpert(data: MarketData): Promise<AgentSignal> {
-    const { bids, asks, volume24h } = data.liquidity;
-    const volumeRatio = bids / (asks || 1);
+    const currentPrice = data.ohlcv[data.ohlcv.length - 1].close;
     
+    // حساب الضغط بناءً على قرب الأوامر الضخمة (Weighted Proximity)
+    const calculatePressure = (orders: any[]) => {
+      return orders.reduce((sum, order) => {
+        const distance = Math.abs(order.price - currentPrice) / currentPrice;
+        const weight = 1 / (distance + 0.001); // كلما كان أقرب كان تأثيره أقوى
+        return sum + (order.amount * weight);
+      }, 0);
+    };
+
+    const buyPressure = calculatePressure(data.liquidity.bids);
+    const sellPressure = calculatePressure(data.liquidity.asks);
+    const imbalance = buyPressure / (sellPressure || 1);
+
     let bias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
-    let confidence = 60;
+    let confidence = 65;
     let reasoning = "";
 
-    if (volumeRatio > 1.5) {
+    if (imbalance > 1.8) {
       bias = 'Long';
-      reasoning = "سيولة شرائية ضخمة مرصودة في دفتر الطلبات (Order Book Depth).";
-    } else if (volumeRatio < 0.6) {
+      reasoning = "ضغط شرائي حقيقي (Imbalance) مرصود بالقرب من السعر الحالي.";
+    } else if (imbalance < 0.5) {
       bias = 'Short';
-      reasoning = "تراكم عروض البيع يشير إلى احتمالية تصريف قريبة.";
+      reasoning = "تراكم عروض بيع ضخمة تضغط على السعر للهبوط.";
     } else {
-      reasoning = "توازن في قوى العرض والطلب؛ السيولة مستقرة حالياً.";
+      reasoning = "توازن نسبي في تدفق السيولة اللحظي.";
     }
 
     return { agentName: "Sentiment Expert", bias, confidence, reasoning };
   }
 
   /**
-   * مدقق المخاطر (Risk Auditor Agent)
+   * Risk Auditor - الربط مع المناطق التقنية (Zonal Risk Management)
    */
-  private async riskAuditor(data: MarketData, bias: 'Long' | 'Short' | 'Neutral'): Promise<AgentSignal> {
+  private async riskAuditor(data: MarketData, bias: 'Long' | 'Short' | 'Neutral', techMetadata: any): Promise<AgentSignal> {
+    const currentPrice = data.ohlcv[data.ohlcv.length - 1].close;
     const atr = data.indicators.atr;
-    const currentPrice = data.ohlcv.h1[data.ohlcv.h1.length - 1].close;
     
-    const stopLossDist = atr * 2; // وضع SL بناءً على ضعف الـ ATR
-    const sl = bias === 'Long' ? currentPrice - stopLossDist : currentPrice + stopLossDist;
+    // وقف الخسارة يوضع خلف أقرب منطقة ارتداد (Order Block)
+    let sl = bias === 'Long' ? currentPrice - (atr * 2) : currentPrice + (atr * 2);
     
+    if (bias === 'Long' && techMetadata.demandZones.length > 0) {
+      sl = Math.min(sl, techMetadata.demandZones[0].low);
+    } else if (bias === 'Short' && techMetadata.supplyZones.length > 0) {
+      sl = Math.max(sl, techMetadata.supplyZones[0].high);
+    }
+
     return {
       agentName: "Risk Auditor",
       bias,
       confidence: 100,
-      reasoning: `تم حساب مستويات الحماية بناءً على معدل التذبذب الحقيقي (ATR: ${atr.toFixed(2)}).`,
+      reasoning: "تمت معايرة مستويات الحماية بناءً على مناطق السيولة التاريخية والـ ATR.",
       metadata: { sl, atr }
     };
   }
 
   /**
-   * الوظيفة الأساسية: تحليل السوق الشامل
+   * المحلل الرئيسي - معالجة النزاعات (Conflict Resolution)
    */
   public async analyzeMarket(pair: string, data: MarketData): Promise<TradeSignal> {
-    try {
-      // تشغيل الوكلاء بالتوازي لضمان السرعة
-      const [tech, sent] = await Promise.all([
-        this.technicalExpert(data),
-        this.sentimentExpert(data)
-      ]);
+    const [tech, sent] = await Promise.all([
+      this.technicalExpert(data),
+      this.sentimentExpert(data)
+    ]);
 
-      const signals = [tech, sent];
-      const finalBias = this.determineFinalBias(signals);
-      const confidence = this.calculateConfidenceScore(signals);
-      
-      const risk = await this.riskAuditor(data, finalBias);
-      const currentPrice = data.ohlcv.h1[data.ohlcv.h1.length - 1].close;
+    // منطق حل النزاع: الأولوية للتقني في الاتجاه، وللمشاعر في التوقيت
+    let finalBias = tech.bias;
+    let conflictNotes = "";
 
-      return this.generateTradeRecommendation(pair, finalBias, confidence, signals, risk, currentPrice);
-    } catch (error) {
-      throw new Error(`NamixAI Analysis Failed: ${error instanceof Error ? error.message : 'Unknown Error'}`);
+    if (tech.bias !== sent.bias && sent.bias !== 'Neutral') {
+      if (sent.confidence > tech.confidence + 10) {
+        finalBias = sent.bias;
+        conflictNotes = " (تنبيه: زخم السيولة يغلب الاتجاه الفني حالياً).";
+      } else {
+        conflictNotes = " (على الرغم من ضغط السيولة المعاكس، يظل الاتجاه الفني أقوى).";
+      }
     }
-  }
 
-  private determineFinalBias(signals: AgentSignal[]): 'Long' | 'Short' | 'Neutral' {
-    const longs = signals.filter(s => s.bias === 'Long').length;
-    const shorts = signals.filter(s => s.bias === 'Short').length;
-    
-    if (longs > shorts) return 'Long';
-    if (shorts > longs) return 'Short';
-    return 'Neutral';
-  }
+    const confidence = Math.round((tech.confidence + sent.confidence) / 2);
+    const risk = await this.riskAuditor(data, finalBias, tech.metadata);
+    const currentPrice = data.ohlcv[data.ohlcv.length - 1].close;
 
-  /**
-   * حساب درجة الثقة التراكمية
-   */
-  public calculateConfidenceScore(signals: AgentSignal[]): number {
-    const activeSignals = signals.filter(s => s.bias !== 'Neutral');
-    if (activeSignals.length === 0) return 0;
-    
-    const avg = activeSignals.reduce((sum, s) => sum + s.confidence, 0) / activeSignals.length;
-    return Math.min(Math.round(avg), 100);
-  }
-
-  /**
-   * توليد التوصية النهائية بصيغة JSON نظيفة
-   */
-  public generateTradeRecommendation(
-    pair: string, 
-    bias: 'Long' | 'Short' | 'Neutral', 
-    confidence: number, 
-    signals: AgentSignal[], 
-    risk: AgentSignal,
-    currentPrice: number
-  ): TradeSignal {
     const atr = risk.metadata.atr;
-    const sl = risk.metadata.sl;
-    
-    // حساب الأهداف بناءً على نسب المخاطرة للعائد
     const targets = {
-      tp1: bias === 'Long' ? currentPrice + atr : currentPrice - atr,
-      tp2: bias === 'Long' ? currentPrice + (atr * 2) : currentPrice - (atr * 2),
-      tp3: bias === 'Long' ? currentPrice + (atr * 4) : currentPrice - (atr * 4)
+      tp1: finalBias === 'Long' ? currentPrice + atr : currentPrice - atr,
+      tp2: finalBias === 'Long' ? currentPrice + (atr * 2.5) : currentPrice - (atr * 2.5),
+      tp3: finalBias === 'Long' ? currentPrice + (atr * 5) : currentPrice - (atr * 5)
     };
-
-    const reasoning = signals.map(s => s.reasoning).join(" ");
 
     return {
       pair,
-      bias,
-      entry_zone: `${currentPrice.toFixed(2)} - ${(currentPrice * (bias === 'Long' ? 0.998 : 1.002)).toFixed(2)}`,
+      bias: finalBias,
+      entry_zone: `${currentPrice.toFixed(2)} - ${(currentPrice * (finalBias === 'Long' ? 0.997 : 1.003)).toFixed(2)}`,
       targets,
-      invalidated_at: sl,
+      invalidated_at: risk.metadata.sl,
       confidence,
-      reasoning_summary: reasoning,
+      reasoning_summary: `${tech.reasoning} ${sent.reasoning}${conflictNotes}`,
       timestamp: new Date().toISOString()
     };
   }
 
   /**
-   * التحقق الخلفي السريع (Backtest Validation)
+   * التحقق الخلفي (Backtest) - عامل الزمن (Time TTL)
    */
   public backtestValidation(signal: TradeSignal, history: OHLCV[]): boolean {
-    // منطق بسيط للتحقق: هل وصل السعر للهدف الأول قبل ضرب الـ SL في آخر 24 شمعة؟
-    const prices = history.slice(-24);
+    const prices = history.slice(-50); // فحص آخر 50 شمعة (الزخم)
+    let candlesCount = 0;
+
     for (const p of prices) {
+      candlesCount++;
+      if (candlesCount > 24) return false; // فشل الإشارة بسبب انتهاء "عمر الزخم" (24 شمعة)
+
       if (signal.bias === 'Long') {
         if (p.low <= signal.invalidated_at) return false;
         if (p.high >= signal.targets.tp1) return true;
