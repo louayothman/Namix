@@ -6,150 +6,20 @@ import { namixAI } from "@/lib/namix-ai";
 import { TradeSignal } from "@/lib/namix-ai-orchestrator";
 import { 
   Zap, 
-  Target, 
-  ShieldCheck, 
-  Activity, 
-  MapPin, 
-  PlayCircle, 
   Loader2, 
-  Sparkles,
-  ShieldX,
-  Info,
-  Radar,
-  TrendingUp,
-  Coins,
-  Cpu,
-  Waves
+  ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
-/**
- * MarketPulseHub - مفاعل نبض الأسواق (Sovereign Hub)
- * يعرض نبض السوق عبر 5 نقاط متمددة تمتلئ بحركة سائلة.
- */
-function MarketPulseHub({ turbulence }: { turbulence: number }) {
-  const volLevel = turbulence > 80 ? 5 : turbulence > 60 ? 4 : turbulence > 40 ? 3 : turbulence > 20 ? 2 : 1;
-  const volColor = turbulence > 60 ? "bg-red-500" : turbulence > 30 ? "bg-orange-400" : "bg-emerald-500";
-
-  return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner group font-body tracking-normal" dir="rtl">
-      <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm relative overflow-hidden">
-           <motion.div 
-             animate={{ rotate: 360 }}
-             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-             className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(59,130,246,0.1)_180deg,transparent_360deg)]"
-           />
-           <Waves size={14} className="text-blue-500 relative z-10" />
-        </div>
-        <div className="text-right">
-           <p className="text-[10px] font-black text-[#002d4d] leading-none">نبض الأسواق</p>
-           <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Market Pulse</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-         <div className="flex flex-col items-end">
-            <span className="text-[6px] font-black text-gray-300 uppercase">Volatility</span>
-            <div className="flex gap-1 mt-1">
-               {[1, 2, 3, 4, 5].map((i) => (
-                 <div key={i} className="h-1 w-3 rounded-full bg-gray-200 overflow-hidden relative">
-                    <AnimatePresence>
-                      {i <= volLevel && (
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: "100%" }}
-                          exit={{ width: 0 }}
-                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                          className={cn("absolute inset-0", volColor)}
-                        >
-                           <motion.div 
-                             animate={{ x: ["-100%", "100%"] }}
-                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                             className="absolute inset-0 bg-white/30 skew-x-[-20deg]"
-                           />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                 </div>
-               ))}
-            </div>
-         </div>
-         <div className="h-6 w-px bg-gray-200" />
-         <div className="flex flex-col items-end">
-            <span className="text-[6px] font-black text-gray-300 uppercase">Sync</span>
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mt-1 shadow-[0_0_5px_#10b981]" />
-         </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * TargetVoucher - صك الأهداف (Precision Matrix)
- * تم تعريب الواجهة وتطهير النصوص.
- */
-function TargetVoucher({ targets }: { targets: any }) {
-  return (
-    <div className="relative p-3 bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden font-body tracking-normal" dir="rtl">
-      <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-3 w-3 bg-gray-50 rounded-full border border-gray-100 shadow-inner" />
-      <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 bg-gray-50 rounded-full border border-gray-100 shadow-inner" />
-      
-      <div className="grid grid-cols-3 gap-1.5 relative z-10">
-         {[
-           { label: "الهدف الأول", val: targets.tp1, color: "text-emerald-600" },
-           { label: "الهدف الثاني", val: targets.tp2, color: "text-emerald-600" },
-           { label: "الهدف الأقصى", val: targets.tp3, color: "text-[#f9a885]" },
-         ].map((tp, i) => (
-           <div key={i} className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl bg-gray-50/50 border border-gray-100/50 group hover:bg-white transition-all">
-              <span className="text-[7px] font-black text-gray-400 uppercase leading-none">{tp.label}</span>
-              <span className={cn("text-[9px] font-black tabular-nums tracking-tighter mt-0.5", tp.color)} dir="ltr">
-                ${tp.val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-           </div>
-         ))}
-      </div>
-    </div>
-  );
-}
-
-/**
- * ConfidenceRing - مؤشر الثقة الرقمي (Integer Mode)
- */
-function ConfidenceRing({ value, bias }: { value: number, bias: string }) {
-  const radius = 14;
-  const circumference = 2 * Math.PI * radius;
-  const roundedValue = Math.round(value);
-  const offset = circumference - (roundedValue / 100) * circumference;
-  const color = bias === 'Long' ? "text-emerald-500" : bias === 'Short' ? "text-red-500" : "text-blue-500";
-
-  return (
-    <div className="relative h-8 w-8 flex items-center justify-center shrink-0">
-      <svg className="h-full w-full transform -rotate-90">
-        <circle cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2" fill="transparent" className="text-gray-100" />
-        <motion.circle
-          cx="16" cy="16" r={radius} stroke="currentColor" strokeWidth="2" fill="transparent"
-          strokeDasharray={circumference}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          strokeLinecap="round"
-          className={color}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-         <span className={cn("text-[7px] font-black tabular-nums", color)}>%{roundedValue}</span>
-      </div>
-    </div>
-  );
-}
+// استيراد المكونات المستقلة المكتنزة
+import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
+import { BiasHeader } from "@/components/trade/ai/BiasHeader";
+import { TargetMatrix } from "@/components/trade/ai/TargetMatrix";
+import { ExecutionPanel } from "@/components/trade/ai/ExecutionPanel";
+import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing";
 
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
@@ -227,145 +97,51 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const minTrade = globalConfig?.minTradeAmount || 10;
 
   return (
-    <div className="w-full space-y-4 animate-in fade-in duration-700 font-body tracking-normal text-right" dir="rtl">
+    <div className="w-full space-y-6 animate-in fade-in duration-700 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         {isAnalyzing ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
+          <div className="py-20 flex flex-col items-center justify-center gap-4">
              <div className="relative">
-                <div className="h-10 w-10 border-2 border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center"><Zap size={14} className="text-[#f9a885] animate-pulse" /></div>
+                <div className="h-12 w-12 border-2 border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center"><Zap size={18} className="text-[#f9a885] animate-pulse" /></div>
              </div>
-             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">تحليل النبض الاستراتيجي...</p>
+             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة النبض الاستراتيجي...</p>
           </div>
         ) : result && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pb-10">
             
-            <MarketPulseHub turbulence={result.turbulence} />
+            <MarketPulseHub price={livePrice} turbulence={result.turbulence} />
 
-            <div className="flex items-center justify-between px-1">
-               <div className="flex items-center gap-2.5">
-                  <div className={cn(
-                    "h-9 w-9 rounded-[14px] flex items-center justify-center shadow-inner border transition-all duration-700",
-                    result.bias === 'Long' ? "bg-emerald-50 border-emerald-100 text-emerald-500" :
-                    result.bias === 'Short' ? "bg-red-50 border-red-100 text-red-500" :
-                    "bg-gray-50 border-gray-100 text-gray-400"
-                  )}>
-                     <Activity size={18} className={cn(result.bias !== 'Neutral' && "animate-pulse")} />
-                  </div>
-                  <div className="text-right">
-                     <h4 className="text-xs font-black text-[#002d4d] leading-none">
-                        {result.bias === 'Long' ? 'إشارة صعود' : result.bias === 'Short' ? 'إشارة هبوط' : 'حياد لحظي'}
-                     </h4>
-                     <p className="text-[6px] font-black text-gray-300 uppercase tracking-widest mt-1">Intelligence Node</p>
-                  </div>
-               </div>
-               <Badge className={cn("px-2.5 py-0.5 rounded-full font-black text-[7px] border-none shadow-sm", result.bias === 'Long' ? "bg-emerald-500 text-white" : result.bias === 'Short' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400")}>
-                  {result.bias.toUpperCase()}
-               </Badge>
-            </div>
+            <BiasHeader bias={result.bias} />
 
-            <AnimatePresence mode="wait">
-               {result.bias !== 'Neutral' && (
-                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                    <TargetVoucher targets={result.targets} />
-                 </motion.div>
-               )}
-            </AnimatePresence>
+            {result.bias !== 'Neutral' && (
+              <TargetMatrix 
+                entryZone={result.entry_zone} 
+                targets={result.targets} 
+                invalidatedAt={result.invalidated_at} 
+              />
+            )}
 
-            <div className="p-4 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner space-y-4">
-               <div className="flex justify-between items-center px-1">
-                  <div className="space-y-0.5">
-                     <Label className="text-[7px] font-black text-gray-400 uppercase tracking-widest block">مبلغ التنفيذ (Liquidity)</Label>
-                     <span className="text-xl font-black text-[#002d4d] tabular-nums tracking-tighter">${Number(tradeAmount).toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-gray-100 shadow-sm">
-                     <Coins size={10} className="text-emerald-500" />
-                     <span className="text-[8px] font-black text-[#002d4d]">الرصيد: ${dbUser?.totalBalance?.toFixed(2) || '0.00'}</span>
-                  </div>
-               </div>
+            <ExecutionPanel 
+              amount={tradeAmount}
+              onAmountChange={setTradeAmount}
+              min={minTrade}
+              max={maxTrade}
+              balance={dbUser?.totalBalance || 0}
+              isExecuting={isExecuting}
+              onExecute={handleExecute}
+              confidence={result.confidence}
+              bias={result.bias}
+            />
 
-               <div className="px-2 py-1">
-                  <Slider 
-                    value={[tradeAmount]} 
-                    min={minTrade} 
-                    max={Math.min(maxTrade, dbUser?.totalBalance || maxTrade)} 
-                    step={0.01}
-                    onValueChange={([val]) => {
-                      setTradeAmount(val);
-                      hapticFeedback.light();
-                    }}
-                    className="[&>span]:bg-[#002d4d]"
-                  />
-                  <div className="flex justify-between items-center mt-2 px-1">
-                     <span className="text-[6px] font-bold text-gray-300 tabular-nums">${minTrade}</span>
-                     <span className="text-[6px] font-bold text-gray-300 tabular-nums">${Math.min(maxTrade, dbUser?.totalBalance || maxTrade)}</span>
-                  </div>
-               </div>
+            <IntelligenceBriefing 
+              reasoning={result.reasoning_summary} 
+              summary={result.market_summary} 
+            />
 
-               <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2 bg-white rounded-[18px] border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
-                     <div className="flex items-center gap-1.5">
-                        <MapPin size={8} className="text-blue-500" />
-                        <span className="text-[6px] font-black text-gray-400 uppercase">سعر الدخول</span>
-                     </div>
-                     <span className="text-[8px] font-black text-[#002d4d] tabular-nums" dir="ltr">${Number(result.entry_zone.split(' - ')[0]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="p-2 bg-red-50/30 rounded-[18px] border border-red-100 flex items-center justify-between group hover:shadow-md transition-all">
-                     <div className="flex items-center gap-1.5">
-                        <ShieldX size={8} className="text-red-500" />
-                        <span className="text-[6px] font-black text-gray-400 uppercase">نقطة الإلغاء</span>
-                     </div>
-                     <span className="text-[8px] font-black text-red-600 tabular-nums" dir="ltr">${result.invalidated_at.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-               </div>
-            </div>
-
-            <div className="p-5 bg-[#002d4d] rounded-[36px] text-white relative overflow-hidden group shadow-xl">
-               <div className="absolute top-0 left-0 p-4 opacity-[0.03] transition-transform duration-1000 group-hover:rotate-12"><Sparkles size={80} /></div>
-               <div className="relative z-10 space-y-3">
-                  <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center border border-white/10"><Info size={14} className="text-[#f9a885]" /></div>
-                        <h4 className="text-[10px] font-black">الأسباب الاستراتيجية</h4>
-                     </div>
-                     <Badge variant="outline" className="text-white/30 border-white/5 text-[5px] font-black tracking-widest">SMC ENGINE</Badge>
-                  </div>
-                  
-                  <p className="text-[10px] font-bold leading-relaxed text-blue-100/70">{result.reasoning_summary}</p>
-                  
-                  <div className="pt-3 border-t border-white/10 flex flex-row items-center gap-4">
-                     <div className="flex items-center gap-2">
-                        <ConfidenceRing value={result.confidence} bias={result.bias} />
-                        <div className="text-right">
-                           <p className="text-[6px] font-black text-white/30 uppercase">Conf.</p>
-                           <p className="text-[9px] font-black text-white leading-none">تأكيد</p>
-                        </div>
-                     </div>
-
-                     <Button 
-                       onClick={handleExecute}
-                       disabled={isExecuting || result.bias === 'Neutral'}
-                       className={cn(
-                         "flex-1 h-11 rounded-full font-black text-[10px] shadow-xl transition-all active:scale-95 group/btn relative overflow-hidden",
-                         result.bias === 'Long' ? "bg-emerald-500 hover:bg-emerald-600" : 
-                         result.bias === 'Short' ? "bg-red-500 hover:bg-red-600" : 
-                         "bg-gray-700 opacity-50"
-                       )}
-                     >
-                        {isExecuting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : (
-                          <div className="flex items-center gap-2 relative z-10">
-                             <span>تنفيذ الصفقة المقترحة</span>
-                             <PlayCircle className="h-3.5 w-3.5 group-hover/btn:scale-110 transition-transform" />
-                          </div>
-                        )}
-                     </Button>
-                  </div>
-               </div>
-            </div>
-
-            <div className="px-4 py-2 bg-gray-50 rounded-[20px] border border-gray-100 flex items-start gap-2.5">
-               <Radar size={10} className="text-blue-400 mt-0.5 shrink-0 animate-pulse" />
-               <p className="text-[8px] font-bold text-gray-400 leading-relaxed">{result.market_summary}</p>
+            <div className="flex items-center justify-center gap-3 opacity-20 select-none">
+               <ShieldCheck size={12} className="text-[#002d4d]" />
+               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Sovereign Shield Active</p>
             </div>
 
           </motion.div>
