@@ -92,7 +92,7 @@ export default function AdminSettingsPage() {
     if (remoteMarketing) setMarketingData(remoteMarketing);
     if (remotePartnership) setPartnershipData(remotePartnership);
     if (remoteLegal) setLegalData(remoteLegal);
-  }, [remoteBinance, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal]);
+  }, [remoteBinance, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, partnershipRef, remoteLegal]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -132,7 +132,7 @@ export default function AdminSettingsPage() {
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
             <Card className="rounded-[48px] border-none shadow-xl overflow-hidden">
               <CardHeader className="bg-blue-600 p-10 border-b border-white/10 text-white relative">
-                <div className="absolute top-0 left-0 p-8 opacity-10"><Cpu className="h-32 w-32" /></div>
+                <div className="absolute top-0 right-0 p-8 opacity-10"><Cpu className="h-32 w-32" /></div>
                 <CardTitle className="text-2xl font-black flex items-center gap-4 relative z-10">
                   <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
                     <Cpu className="h-8 w-8 text-[#f9a885]" />

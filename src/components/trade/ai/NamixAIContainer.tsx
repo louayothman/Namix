@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { analyzeMarket, AIAnalysisResult, AICalibration } from "@/lib/namix-ai-engine";
 import { MarketScanner } from "./MarketScanner";
 import { TrendAnalyzer } from "./TrendAnalyzer";
@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-import { broadcastAISignal } from "@/app/actions/auth-actions";
 
 interface NamixAIContainerProps {
   asset: any;
@@ -24,8 +23,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v14.0 - Global Broadcast Edition
- * تم تفعيل البث العام للإشارات لجميع مستخدمي تلغرام عند بلوغ عتبة الثقة 35%.
+ * @fileOverview حاوية NAMIX AI v15.0 - Pure Internal Intelligence
+ * تم اجتثاث كافة أكواد تلغرام ليعمل المحرك بنقاء استخباري داخلي 100%.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -38,9 +37,9 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [dbUser, setDbUser] = useState<any>(null);
 
   useEffect(() => {
-    const session = localStorage.getItem("namix_user");
-    if (session) {
-      const parsed = JSON.parse(session);
+    const userSession = localStorage.getItem("namix_user");
+    if (userSession) {
+      const parsed = JSON.parse(userSession);
       const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => {
         if (snap.exists()) setDbUser({ ...snap.data(), id: snap.id });
       });
@@ -75,17 +74,12 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
       const calibration: AICalibration = {
         rsiOversold: calibrationData?.rsiOversold || 35,
         rsiOverbought: calibrationData?.rsiOverbought || 65,
-        confidenceThreshold: 35, // عتبة الثقة المحددة بـ 35% لزيادة وتيرة الإشارات
+        confidenceThreshold: calibrationData?.aiConfidenceThreshold || 85,
         volatilityWeight: calibrationData?.volatilityWeight || 8
       };
 
       const analysis = analyzeMarket(asset, livePrice, calibration, durations);
       setResult(analysis);
-      
-      // إطلاق بروتوكول البث العام لتلغرام عند وجود إشارة قوية نسبياً
-      if (analysis.signal !== 'wait' && analysis.confidence >= 35) {
-        broadcastAISignal(asset.id, asset.code, analysis.signal, analysis.confidence, livePrice).catch(() => {});
-      }
       
       if (Object.keys(customAmounts).length === 0) {
         const init: Record<string, string> = {};
@@ -204,7 +198,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
                     </div>
                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">التنفيذ الاستراتيجي المباشر</h4>
                   </div>
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">DIRECT SYNC</Badge>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-3 py-1 rounded-full shadow-inner">INTERNAL ENGINE</Badge>
                </div>
 
                <AnimatePresence>
@@ -298,7 +292,7 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
             <div className="flex flex-col items-center gap-4 opacity-30 select-none pt-10">
                <div className="flex items-center gap-2">
                   <ShieldCheck size={12} className="text-[#002d4d]" />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v14.0</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Namix Core Ledger v15.0</p>
                </div>
                <div className="flex gap-2">
                   {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
