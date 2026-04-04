@@ -24,7 +24,7 @@ interface NamixAIContainerProps {
 
 /**
  * @fileOverview حاوية NAMIX AI v16.0 - Pure Engine
- * تم حذف منطق البث لتلغرام لضمان استقلالية المحرك.
+ * تم حذف كافة وظائف البث الخارجي لضمان استقلالية ونقاء المحرك الداخلي.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);

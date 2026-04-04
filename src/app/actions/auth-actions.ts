@@ -6,8 +6,8 @@ import { Resend } from 'resend';
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * @fileOverview NAMIX AUTH ACTIONS v24.0 - Clean Core (No Telegram)
- * تم حذف كافة وظائف تلغرام نهائياً لضمان نقاء المنظومة البرمجية.
+ * @fileOverview NAMIX AUTH ACTIONS v25.0 - Email & Security Protocol
+ * تم اجتثاث كافة وظائف تلغرام نهائياً لضمان نقاء المنظومة البرمجية.
  */
 
 export async function sendOTPEmail(email: string, otp: string) {
