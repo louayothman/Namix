@@ -13,7 +13,6 @@ interface IntelligenceMetricsProps {
 
 /**
  * @fileOverview مصفوفة المقاييس الاستخباراتية v4.0 - Luxury Dynamic Edition
- * تم ترقية التصميم بلمسات زجاجية وخلفيات متدرجة ناعمة تنبض عند التفاعل.
  */
 export function IntelligenceMetrics({ rsi, volatility, momentum }: IntelligenceMetricsProps) {
   const metrics = [
@@ -35,10 +34,8 @@ export function IntelligenceMetrics({ rsi, volatility, momentum }: IntelligenceM
               "border border-transparent hover:border-white/50"
             )}
           >
-            {/* الخلفية المتدرجة الفاخرة */}
             <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-1000", m.bg)} />
 
-            {/* الأيقونة كعلامة مائية خلفية ذكية */}
             <div className={cn(
               "absolute -bottom-3 -left-3 opacity-[0.04] group-hover:opacity-[0.12] transition-all duration-1000 pointer-events-none group-hover:scale-150 group-hover:rotate-12",
               m.color
@@ -48,7 +45,7 @@ export function IntelligenceMetrics({ rsi, volatility, momentum }: IntelligenceM
 
             <div className="relative z-10 space-y-1">
               <div className="flex flex-col items-center">
-                 <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mb-1 opacity-60">{m.label}</p>
+                 <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mb-1 opacity-60 tracking-normal">{m.label}</p>
                  <div className="h-0.5 w-3 bg-gray-100 rounded-full group-hover:w-full group-hover:bg-current transition-all duration-700 mb-1" />
               </div>
               <p className={cn("text-[14px] font-black tabular-nums tracking-tighter", m.color)}>
@@ -56,7 +53,6 @@ export function IntelligenceMetrics({ rsi, volatility, momentum }: IntelligenceM
               </p>
             </div>
             
-            {/* بريق التفاعل النانوي */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                <Sparkles size={8} className={cn(m.color, "animate-pulse")} />
             </div>

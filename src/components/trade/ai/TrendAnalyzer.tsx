@@ -4,7 +4,7 @@
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TrendDirection } from "@/lib/namix-ai-engine";
+import { TrendDirection } from "@/lib/namix-ai-orchestrator";
 
 interface TrendAnalyzerProps {
   trend: TrendDirection;
@@ -12,13 +12,13 @@ interface TrendAnalyzerProps {
 }
 
 export function TrendAnalyzer({ trend, confidence }: TrendAnalyzerProps) {
-  const isBullish = trend === 'bullish';
-  const isBearish = trend === 'bearish';
+  const isBullish = trend === 'Long';
+  const isBearish = trend === 'Short';
 
   return (
     <div className="space-y-6 text-right tracking-normal font-body" dir="rtl">
       <div className="flex items-center justify-between px-2">
-         <div className="space-y-0.5">
+         <div className="space-y-0.5 text-right">
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest tracking-normal">تحليل الاتجاه العام</h4>
             <p className="text-xl font-black text-[#002d4d] tracking-normal">
                {isBullish ? 'صعود استراتيجي' : isBearish ? 'تراجع تصحيحي' : 'تذبذب أفقي'}
