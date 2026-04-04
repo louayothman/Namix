@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { namixAI } from "@/lib/namix-ai";
 import { TradeSignal } from "@/lib/namix-ai-orchestrator";
 import { 
@@ -108,7 +108,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة النبض الاستراتيجي...</p>
           </div>
         ) : result && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 pb-10">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 pb-10">
             
             <MarketPulseHub price={livePrice} turbulence={result.turbulence} />
 
