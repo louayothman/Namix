@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { analyzeMarket, AIAnalysisResult, AICalibration } from "@/lib/namix-ai-engine";
+import { namixAI } from "@/lib/namix-ai";
+import { AIAnalysisResult } from "@/lib/namix-ai-engine";
 import { MarketScanner } from "./MarketScanner";
 import { TrendAnalyzer } from "./TrendAnalyzer";
 import { GuidanceTerminal } from "./GuidanceTerminal";
@@ -23,8 +24,8 @@ interface NamixAIContainerProps {
 }
 
 /**
- * @fileOverview حاوية NAMIX AI v16.0 - Pure Engine
- * تم حذف كافة وظائف البث الخارجي لضمان استقلالية ونقاء المحرك الداخلي.
+ * @fileOverview واجهة NAMIX AI v17.0 - Core Consumer Edition
+ * تم تحديث الحاوية لتكون مستهلكاً لمحرك NamixAI المعزول؛ مما يضمن فصل المنطق التحليلي عن الواجهة.
  */
 export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
@@ -71,22 +72,26 @@ export function NamixAIContainer({ asset, livePrice }: NamixAIContainerProps) {
     if (!asset || !livePrice) return;
 
     const runAnalysis = () => {
-      const calibration: AICalibration = {
+      // معايرة المحرك المركزي قبل التشغيل
+      namixAI.calibrate({
         rsiOversold: calibrationData?.rsiOversold || 35,
         rsiOverbought: calibrationData?.rsiOverbought || 65,
-        confidenceThreshold: 35,
+        confidenceThreshold: calibrationData?.aiConfidenceThreshold || 85,
         volatilityWeight: calibrationData?.volatilityWeight || 8
-      };
+      });
 
-      const analysis = analyzeMarket(asset, livePrice, calibration, durations);
-      setResult(analysis);
-      
-      if (Object.keys(customAmounts).length === 0) {
-        const init: Record<string, string> = {};
-        analysis.suggestions.forEach(s => {
-          init[s.durationLabel] = (globalConfig?.minTradeAmount || 10).toString();
-        });
-        setCustomAmounts(init);
+      // استهلاك المحرك المعزول
+      const analysis = namixAI.analyze(asset, livePrice, durations);
+      if (analysis) {
+        setResult(analysis);
+        
+        if (Object.keys(customAmounts).length === 0) {
+          const init: Record<string, string> = {};
+          analysis.suggestions.forEach(s => {
+            init[s.durationLabel] = (globalConfig?.minTradeAmount || 10).toString();
+          });
+          setCustomAmounts(init);
+        }
       }
       
       if (isAnalyzing) {
