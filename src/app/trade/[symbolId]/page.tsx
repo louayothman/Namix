@@ -204,26 +204,25 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
           </footer>
         </div>
 
-        {/* Drawer Fix: Stable Logical Appearance without Jump */}
         <Drawer open={aiOpen} onOpenChange={setAiOpen}>
           <DrawerPortal>
             <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
-            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] max-h-[85vh] bg-white rounded-t-[56px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
-              <DrawerHeader className="px-8 pt-8 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-6">
+            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] max-h-[82vh] bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+              <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-4">
                 <div className="flex items-center gap-4 text-right">
-                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center">
+                   <div className="h-10 w-10 rounded-xl flex items-center justify-center">
                       <NamixAIIcon />
                    </div>
                    <div className="space-y-0.5">
-                     <DrawerTitle className="text-xl font-black text-[#002d4d] tracking-normal leading-none">تحليل NAMIX AI</DrawerTitle>
+                     <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-normal leading-none">تحليل NAMIX AI</DrawerTitle>
                      <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1 tracking-normal">Sovereign Intelligence Core</p>
                    </div>
                 </div>
-                <button onClick={() => setAiOpen(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90">
-                   <X size={20} />
+                <button onClick={() => setAiOpen(false)} className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90">
+                   <X size={18} />
                 </button>
               </DrawerHeader>
-              <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-none pb-32">
+              <div className="flex-1 overflow-y-auto p-5 md:p-8 scrollbar-none pb-24">
                  <NamixAIContainer asset={asset} livePrice={livePrice} />
               </div>
             </DrawerContent>
