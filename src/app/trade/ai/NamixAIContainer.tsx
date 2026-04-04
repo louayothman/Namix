@@ -15,11 +15,7 @@ import {
   Sparkles,
   ShieldX,
   Info,
-  Ticket,
-  ChevronLeft,
   Radar,
-  Plus,
-  Minus,
   TrendingUp,
   Coins,
   Cpu,
@@ -30,20 +26,21 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
 /**
- * AgentReactorHub - مُفاعِل الوكلاء الصامت (Sovereign Hub)
- * بديل لشريط الحالة القديم، يعرض نبض المزامنة والتقلب بأسلوب نانو.
+ * MarketPulseHub - مفاعل نبض الأسواق (Sovereign Hub)
+ * يعرض نبض السوق عبر 5 نقاط متمددة تمتلئ بحركة سائلة.
  */
-function AgentReactorHub({ turbulence }: { turbulence: number }) {
-  const volLevel = turbulence > 60 ? 3 : turbulence > 30 ? 2 : 1;
+function MarketPulseHub({ turbulence }: { turbulence: number }) {
+  const volLevel = turbulence > 80 ? 5 : turbulence > 60 ? 4 : turbulence > 40 ? 3 : turbulence > 20 ? 2 : 1;
   const volColor = turbulence > 60 ? "bg-red-500" : turbulence > 30 ? "bg-orange-400" : "bg-emerald-500";
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner group">
+    <div className="flex items-center justify-between px-4 py-3 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner group font-body tracking-normal" dir="rtl">
       <div className="flex items-center gap-3">
         <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm relative overflow-hidden">
            <motion.div 
@@ -51,27 +48,45 @@ function AgentReactorHub({ turbulence }: { turbulence: number }) {
              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
              className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(59,130,246,0.1)_180deg,transparent_360deg)]"
            />
-           <Cpu size={14} className="text-blue-500 relative z-10" />
+           <Waves size={14} className="text-blue-500 relative z-10" />
         </div>
         <div className="text-right">
-           <p className="text-[10px] font-black text-[#002d4d] leading-none tracking-normal">مفاعل الوكلاء</p>
-           <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1 tracking-normal">Agent Reactor Active</p>
+           <p className="text-[10px] font-black text-[#002d4d] leading-none">نبض الأسواق</p>
+           <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Market Pulse</p>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
          <div className="flex flex-col items-end">
-            <span className="text-[6px] font-black text-gray-300 uppercase tracking-normal">Volatility</span>
-            <div className="flex gap-0.5 mt-0.5">
-               {[1, 2, 3].map((i) => (
-                 <div key={i} className={cn("h-1 w-2.5 rounded-full transition-all duration-500", i <= volLevel ? volColor : "bg-gray-200")} />
+            <span className="text-[6px] font-black text-gray-300 uppercase">Volatility</span>
+            <div className="flex gap-1 mt-1">
+               {[1, 2, 3, 4, 5].map((i) => (
+                 <div key={i} className="h-1 w-3 rounded-full bg-gray-200 overflow-hidden relative">
+                    <AnimatePresence>
+                      {i <= volLevel && (
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          exit={{ width: 0 }}
+                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          className={cn("absolute inset-0", volColor)}
+                        >
+                           <motion.div 
+                             animate={{ x: ["-100%", "100%"] }}
+                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                             className="absolute inset-0 bg-white/30 skew-x-[-20deg]"
+                           />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                 </div>
                ))}
             </div>
          </div>
          <div className="h-6 w-px bg-gray-200" />
          <div className="flex flex-col items-end">
-            <span className="text-[6px] font-black text-gray-300 uppercase tracking-normal">Live Sync</span>
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mt-0.5 shadow-[0_0_5px_#10b981]" />
+            <span className="text-[6px] font-black text-gray-300 uppercase">Sync</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mt-1 shadow-[0_0_5px_#10b981]" />
          </div>
       </div>
     </div>
@@ -79,23 +94,24 @@ function AgentReactorHub({ turbulence }: { turbulence: number }) {
 }
 
 /**
- * TargetVoucher - صك الأهداف المتناظر (Precision Matrix)
+ * TargetVoucher - صك الأهداف (Precision Matrix)
+ * تم تعريب الواجهة وتطهير النصوص.
  */
 function TargetVoucher({ targets }: { targets: any }) {
   return (
-    <div className="relative p-3 bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
+    <div className="relative p-3 bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden font-body tracking-normal" dir="rtl">
       <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-3 w-3 bg-gray-50 rounded-full border border-gray-100 shadow-inner" />
       <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 bg-gray-50 rounded-full border border-gray-100 shadow-inner" />
       
       <div className="grid grid-cols-3 gap-1.5 relative z-10">
          {[
-           { label: "TP1", val: targets.tp1, color: "text-emerald-600" },
-           { label: "TP2", val: targets.tp2, color: "text-emerald-600" },
-           { label: "TP3", val: targets.tp3, color: "text-[#f9a885]" },
+           { label: "الهدف الأول", val: targets.tp1, color: "text-emerald-600" },
+           { label: "الهدف الثاني", val: targets.tp2, color: "text-emerald-600" },
+           { label: "الهدف الأقصى", val: targets.tp3, color: "text-[#f9a885]" },
          ].map((tp, i) => (
-           <div key={i} className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl bg-gray-50/50 border border-gray-100/50">
-              <span className="text-[6px] font-black text-gray-300 uppercase">TARGET {i+1}</span>
-              <span className={cn("text-[9px] font-black tabular-nums tracking-tighter", tp.color)} dir="ltr">
+           <div key={i} className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl bg-gray-50/50 border border-gray-100/50 group hover:bg-white transition-all">
+              <span className="text-[7px] font-black text-gray-400 uppercase leading-none">{tp.label}</span>
+              <span className={cn("text-[9px] font-black tabular-nums tracking-tighter mt-0.5", tp.color)} dir="ltr">
                 ${tp.val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
            </div>
@@ -174,7 +190,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     hapticFeedback.medium();
     setIsExecuting(true);
     try {
-      const amt = tradeAmount;
+      const amt = Number(tradeAmount);
       const startTime = new Date();
       const endTime = new Date(startTime.getTime() + 60 * 1000); 
       const profitRate = globalConfig?.defaultProfitRate || 80;
@@ -207,13 +223,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   };
 
-  const adjustAmount = (val: number) => {
-    hapticFeedback.light();
-    setTradeAmount(prev => Math.max(10, prev + val));
-  };
+  const maxTrade = globalConfig?.maxTradeAmount || 5000;
+  const minTrade = globalConfig?.minTradeAmount || 10;
 
   return (
-    <div className="w-full space-y-4 animate-in fade-in duration-700 font-body text-right tracking-normal" dir="rtl">
+    <div className="w-full space-y-4 animate-in fade-in duration-700 font-body tracking-normal text-right" dir="rtl">
       <AnimatePresence mode="wait">
         {isAnalyzing ? (
           <div className="py-12 flex flex-col items-center justify-center gap-3">
@@ -221,12 +235,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                 <div className="h-10 w-10 border-2 border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
                 <div className="absolute inset-0 flex items-center justify-center"><Zap size={14} className="text-[#f9a885] animate-pulse" /></div>
              </div>
-             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest tracking-normal">تحليل النبض الاستراتيجي...</p>
+             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">تحليل النبض الاستراتيجي...</p>
           </div>
         ) : result && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             
-            <AgentReactorHub turbulence={result.turbulence} />
+            <MarketPulseHub turbulence={result.turbulence} />
 
             <div className="flex items-center justify-between px-1">
                <div className="flex items-center gap-2.5">
@@ -239,13 +253,13 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                      <Activity size={18} className={cn(result.bias !== 'Neutral' && "animate-pulse")} />
                   </div>
                   <div className="text-right">
-                     <h4 className="text-xs font-black text-[#002d4d] leading-none tracking-normal">
+                     <h4 className="text-xs font-black text-[#002d4d] leading-none">
                         {result.bias === 'Long' ? 'إشارة صعود' : result.bias === 'Short' ? 'إشارة هبوط' : 'حياد لحظي'}
                      </h4>
-                     <p className="text-[6px] font-black text-gray-300 uppercase tracking-widest mt-1 tracking-normal">Intelligence Node</p>
+                     <p className="text-[6px] font-black text-gray-300 uppercase tracking-widest mt-1">Intelligence Node</p>
                   </div>
                </div>
-               <Badge className={cn("px-2.5 py-0.5 rounded-full font-black text-[7px] border-none shadow-sm tracking-normal", result.bias === 'Long' ? "bg-emerald-500 text-white" : result.bias === 'Short' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400")}>
+               <Badge className={cn("px-2.5 py-0.5 rounded-full font-black text-[7px] border-none shadow-sm", result.bias === 'Long' ? "bg-emerald-500 text-white" : result.bias === 'Short' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400")}>
                   {result.bias.toUpperCase()}
                </Badge>
             </div>
@@ -258,31 +272,48 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                )}
             </AnimatePresence>
 
-            <div className="p-3 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner space-y-3">
+            <div className="p-4 bg-gray-50/50 rounded-[24px] border border-gray-100 shadow-inner space-y-4">
                <div className="flex justify-between items-center px-1">
                   <div className="space-y-0.5">
-                     <Label className="text-[7px] font-black text-gray-400 uppercase tracking-widest block tracking-normal">Liquidity Capital</Label>
-                     <span className="text-lg font-black text-[#002d4d] tabular-nums tracking-tighter">${tradeAmount.toFixed(2)}</span>
+                     <Label className="text-[7px] font-black text-gray-400 uppercase tracking-widest block">مبلغ التنفيذ (Liquidity)</Label>
+                     <span className="text-xl font-black text-[#002d4d] tabular-nums tracking-tighter">${Number(tradeAmount).toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-gray-100 shadow-sm">
-                     <button onClick={() => adjustAmount(-10)} className="h-7 w-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90"><Minus size={12} /></button>
-                     <div className="h-3 w-px bg-gray-100" />
-                     <button onClick={() => adjustAmount(10)} className="h-7 w-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-emerald-500 transition-all active:scale-90"><Plus size={12} /></button>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-gray-100 shadow-sm">
+                     <Coins size={10} className="text-emerald-500" />
+                     <span className="text-[8px] font-black text-[#002d4d]">الرصيد: ${dbUser?.totalBalance?.toFixed(2) || '0.00'}</span>
+                  </div>
+               </div>
+
+               <div className="px-2 py-1">
+                  <Slider 
+                    value={[tradeAmount]} 
+                    min={minTrade} 
+                    max={Math.min(maxTrade, dbUser?.totalBalance || maxTrade)} 
+                    step={0.01}
+                    onValueChange={([val]) => {
+                      setTradeAmount(val);
+                      hapticFeedback.light();
+                    }}
+                    className="[&>span]:bg-[#002d4d]"
+                  />
+                  <div className="flex justify-between items-center mt-2 px-1">
+                     <span className="text-[6px] font-bold text-gray-300 tabular-nums">${minTrade}</span>
+                     <span className="text-[6px] font-bold text-gray-300 tabular-nums">${Math.min(maxTrade, dbUser?.totalBalance || maxTrade)}</span>
                   </div>
                </div>
 
                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2 bg-white rounded-[18px] border border-gray-100 flex items-center justify-between">
+                  <div className="p-2 bg-white rounded-[18px] border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
                      <div className="flex items-center gap-1.5">
                         <MapPin size={8} className="text-blue-500" />
-                        <span className="text-[6px] font-black text-gray-400 uppercase tracking-normal">Entry</span>
+                        <span className="text-[6px] font-black text-gray-400 uppercase">سعر الدخول</span>
                      </div>
                      <span className="text-[8px] font-black text-[#002d4d] tabular-nums" dir="ltr">${Number(result.entry_zone.split(' - ')[0]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="p-2 bg-red-50/30 rounded-[18px] border border-red-100 flex items-center justify-between">
+                  <div className="p-2 bg-red-50/30 rounded-[18px] border border-red-100 flex items-center justify-between group hover:shadow-md transition-all">
                      <div className="flex items-center gap-1.5">
                         <ShieldX size={8} className="text-red-500" />
-                        <span className="text-[6px] font-black text-gray-400 uppercase tracking-normal">Invalid</span>
+                        <span className="text-[6px] font-black text-gray-400 uppercase">نقطة الإلغاء</span>
                      </div>
                      <span className="text-[8px] font-black text-red-600 tabular-nums" dir="ltr">${result.invalidated_at.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
@@ -295,19 +326,19 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <div className="flex items-center justify-between">
                      <div className="flex items-center gap-2">
                         <div className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center border border-white/10"><Info size={14} className="text-[#f9a885]" /></div>
-                        <h4 className="text-[10px] font-black tracking-normal">الرؤية الاستراتيجية</h4>
+                        <h4 className="text-[10px] font-black">الأسباب الاستراتيجية</h4>
                      </div>
-                     <Badge variant="outline" className="text-white/30 border-white/5 text-[5px] font-black tracking-widest">SMC CORE</Badge>
+                     <Badge variant="outline" className="text-white/30 border-white/5 text-[5px] font-black tracking-widest">SMC ENGINE</Badge>
                   </div>
                   
-                  <p className="text-[10px] font-bold leading-relaxed text-blue-100/70 tracking-normal">{result.reasoning_summary}</p>
+                  <p className="text-[10px] font-bold leading-relaxed text-blue-100/70">{result.reasoning_summary}</p>
                   
-                  <div className="pt-3 border-t border-white/5 flex flex-row items-center gap-4">
+                  <div className="pt-3 border-t border-white/10 flex flex-row items-center gap-4">
                      <div className="flex items-center gap-2">
                         <ConfidenceRing value={result.confidence} bias={result.bias} />
                         <div className="text-right">
-                           <p className="text-[6px] font-black text-white/30 uppercase tracking-normal">Conf.</p>
-                           <p className="text-[9px] font-black text-white leading-none tracking-normal">تأكيد</p>
+                           <p className="text-[6px] font-black text-white/30 uppercase">Conf.</p>
+                           <p className="text-[9px] font-black text-white leading-none">تأكيد</p>
                         </div>
                      </div>
 
@@ -334,7 +365,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <div className="px-4 py-2 bg-gray-50 rounded-[20px] border border-gray-100 flex items-start gap-2.5">
                <Radar size={10} className="text-blue-400 mt-0.5 shrink-0 animate-pulse" />
-               <p className="text-[8px] font-bold text-gray-400 leading-relaxed tracking-normal">{result.market_summary}</p>
+               <p className="text-[8px] font-bold text-gray-400 leading-relaxed">{result.market_summary}</p>
             </div>
 
           </motion.div>
