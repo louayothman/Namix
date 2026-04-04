@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview NamixAIOrchestrator v5.0 - Institutional Glass Intelligence
  * محرك الذكاء الاصطناعي المؤسساتي المطور لدعم "المختبر الزجاجي العائم".
@@ -50,6 +51,8 @@ export interface TradeSignal {
 export class NamixAIOrchestrator {
   
   private async technicalExpert(data: MarketData) {
+    if (!data.currentPrice) return { bias: 'Neutral' as const, confidence: 50 };
+
     const candles = data.ohlcv;
     const currentPrice = data.currentPrice;
     const last100 = candles.slice(-100);
@@ -99,11 +102,11 @@ export class NamixAIOrchestrator {
       finalBias = 'Neutral';
     }
 
-    const currentPrice = data.currentPrice;
+    const currentPrice = data.currentPrice || 0;
     const atr = data.indicators.atr || currentPrice * 0.005;
     
     // حساب معدل الاضطراب (Turbulence) بناءً على التذبذب والـ RSI
-    const volatilityFactor = Math.min((atr / currentPrice) * 1000, 50);
+    const volatilityFactor = Math.min((atr / (currentPrice || 1)) * 1000, 50);
     const rsiStress = Math.abs(data.indicators.rsi - 50);
     const turbulence = Math.min(volatilityFactor + rsiStress, 100);
 
