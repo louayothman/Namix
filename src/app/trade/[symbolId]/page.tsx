@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, use, Suspense, useMemo } from "react";
@@ -18,7 +17,8 @@ import {
   TrendingDown,
   Layers,
   Radar,
-  BrainCircuit
+  BrainCircuit,
+  X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -135,8 +135,8 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
               <div className="text-right flex flex-col justify-center">
                  <h2 className="text-sm md:text-xl font-black text-[#002d4d] tracking-tight">{asset?.name}</h2>
                  <div className="flex items-center gap-1.5 opacity-30 mt-0.5">
-                    <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                    <span className="text-[7px] font-black uppercase tracking-[0.2em]">Sovereign Node</span>
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    <span className="text-[7px] font-black uppercase tracking-widest">Sovereign Node</span>
                  </div>
               </div>
            </div>
@@ -207,7 +207,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
         <Drawer open={aiOpen} onOpenChange={setAiOpen}>
           <DrawerPortal>
             <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
-            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[90vh] bg-white rounded-t-[56px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+            <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[56px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
               <DrawerHeader className="px-8 pt-8 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-6">
                 <div className="flex items-center gap-4 text-right">
                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center">
@@ -218,6 +218,9 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
                      <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1">Sovereign Intelligence Core</p>
                    </div>
                 </div>
+                <button onClick={() => setAiOpen(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90">
+                   <X size={20} />
+                </button>
               </DrawerHeader>
               <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-none pb-32">
                  <NamixAIContainer asset={asset} livePrice={livePrice} />
