@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
@@ -25,16 +25,15 @@ import {
   Minus, 
   AlertTriangle,
   Radar,
-  Sparkles,
   Waves
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
-import { useMarketStore } from "@/store/use-market-store";
 
 /**
- * @fileOverview NAMIX-AI Sovereign Terminal v106.0 - 1s API Pulse
- * محرك استخباراتي يربط بين مسار API المركزي والتحديث اللحظي كل ثانية.
+ * @fileOverview NAMIX-AI Sovereign Terminal v108.0 - 3s API Pulse
+ * محرك استخباراتي يربط بين مسار API المركزي والتحديث اللحظي كل 3 ثوانٍ.
+ * تم تطهير الواجهة من البطاقات الفرعية لضمان مظهر بيانات نقي ومؤسساتي.
  */
 
 type ReactorStatus = 'calibrating' | 'results';
@@ -44,7 +43,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
   const [dbUser, setDbUser] = useState<any>(null);
   
-  // States for Live Analysis
   const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
@@ -65,7 +63,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  // Calibration Phase
   useEffect(() => {
     if (status === 'calibrating') {
       const timer = setTimeout(() => setStatus('results'), 3500);
@@ -74,7 +71,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   /**
-   * 1s Logic Pulse - جلب الاستنتاج من الـ API كل ثانية
+   * 3s Logic Pulse - جلب الاستنتاج من الـ API كل 3 ثوانٍ
    */
   useEffect(() => {
     if (status !== 'results' || !asset?.binanceSymbol) return;
@@ -84,12 +81,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         const res = await fetch(`/api/namix?symbol=${asset.binanceSymbol}`);
         const data = await res.json();
         setResult(data);
-      } catch (e) {
-        // Silent error to keep UI fluid
-      }
+      } catch (e) {}
     };
 
-    const interval = setInterval(fetchAnalysis, 1000);
+    const interval = setInterval(fetchAnalysis, 3000);
     fetchAnalysis();
     return () => clearInterval(interval);
   }, [status, asset]);
@@ -101,7 +96,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         let fullLabel = 'ثانية';
         if (d.unit === 'minutes') { mult = 60; fullLabel = 'دقيقة'; }
         else if (d.unit === 'hours') { mult = 3600; fullLabel = 'ساعة'; }
-        else if (d.unit === 'days') { mult = 86400; fullLabel = 'يوم'; }
         return { label: `${d.value} ${fullLabel}`, seconds: d.value * mult };
       });
     }
@@ -193,7 +187,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
-            {/* تحليل المؤشرات | Indicator Analysis - Flat Matrix */}
             <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
                <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none group-hover/heatmap:scale-110 transition-transform duration-1000">
                   <Radar size={220} strokeWidth={1} />
@@ -228,7 +221,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* بطاقة المخاطر مع الثقة المدمجة */}
             <div className={cn(
               "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk transition-colors duration-500 bg-white",
               result.risk?.level === 'LOW' ? "border-emerald-100" : "border-red-100"
