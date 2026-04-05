@@ -1,17 +1,14 @@
-
-'use client';
 import axios from "axios";
 
 /**
- * @fileOverview Technical Agent v1.0
- * Analyzes price change percentages from Binance 24hr ticker.
+ * @fileOverview Technical Agent v2.0
+ * يحلل التغير السعري خلال 24 ساعة لتحديد قوة الزخم.
  */
 
 export async function technicalAgent(symbol: string) {
   try {
-    const cleanSymbol = symbol.replace('/', '').toUpperCase();
     const res = await axios.get(
-      `https://api.binance.com/api/v3/ticker/24hr?symbol=${cleanSymbol}`
+      `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`
     );
 
     const change = parseFloat(res.data.priceChangePercent);
@@ -28,6 +25,7 @@ export async function technicalAgent(symbol: string) {
       change,
     };
   } catch (error) {
+    // في حال فشل الاتصال، يعيد نتيجة محايدة لضمان استقرار المنظومة
     return { name: "Technical", score: 0.5, change: 0 };
   }
 }

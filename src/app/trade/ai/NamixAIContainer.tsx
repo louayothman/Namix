@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -75,8 +74,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     setStatus('analyzing');
     
     try {
+      // إرسال طلب للمحلل المركزي عبر المسار الآمن
       const res = await fetch(`/api/namix?symbol=${asset.binanceSymbol || asset.code.replace('/', '')}`);
       const data = await res.json();
+      
+      if (data.error) throw new Error(data.error);
+      
       setResult(data);
       setTimeout(() => setStatus('results'), 2500);
     } catch (e) {
@@ -178,11 +181,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             <MarketPulseHub price={livePrice} turbulence={Math.round((1 - result.score) * 100)} />
             
+            {/* عرض المقاييس بأسلوب آمن (Safe Access) */}
             <IntelligenceMetrics 
               scorecard={{
-                momentum: Math.round(result.agents.tech.score * 100),
-                liquidity: Math.round(result.agents.volume.score * 100),
-                volatility: 85 // Static for now
+                momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
+                liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
+                volatility: 85 
               }} 
             />
 
@@ -190,22 +194,22 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             
             <div className={cn(
               "p-6 rounded-[36px] border shadow-inner flex items-center justify-between",
-              result.risk.level === 'LOW' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
+              result.risk?.level === 'LOW' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
             )}>
                <div className="flex items-center gap-3">
-                  <ShieldAlert className={cn("h-5 w-5", result.risk.level === 'LOW' ? "text-emerald-600" : "text-red-600")} />
+                  <ShieldAlert className={cn("h-5 w-5", result.risk?.level === 'LOW' ? "text-emerald-600" : "text-red-600")} />
                   <div className="text-right">
                      <p className="text-[10px] font-black text-gray-400 uppercase">Risk Evaluation</p>
-                     <p className={cn("text-sm font-black", result.risk.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk.level}</p>
+                     <p className={cn("text-sm font-black", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
                   </div>
                </div>
-               <Badge className={cn("border-none font-black text-[8px] px-3 py-1", result.risk.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
-                  {result.risk.action}
+               <Badge className={cn("border-none font-black text-[8px] px-3 py-1", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
+                  {result.risk?.action || "HOLD"}
                </Badge>
             </div>
 
             <IntelligenceBriefing 
-              reasoning={`استنتاج الوكلاء: ${result.risk.reason}`}
+              reasoning={`استنتاج الوكلاء: ${result.risk?.reason || 'لم يتم تحديد سبب صريح؛ يرجى مراقبة النبض.'}`}
               summary={`تم تحليل الرمز ${result.pair} بنتيجة ثقة ${(result.score * 100).toFixed(1)}%.`}
             />
 
@@ -215,7 +219,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               className={cn(
                 "w-full h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
                 result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600" : 
-                result.decision === 'SELL' ? "bg-red-500 hover:bg-red-600" : "bg-gray-100 text-gray-400"
+                result.decision === 'SELL' ? "bg-red-50 hover:bg-red-600" : "bg-gray-100 text-gray-400"
               )}
             >
               {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (

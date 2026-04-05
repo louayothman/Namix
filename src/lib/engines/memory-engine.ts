@@ -1,9 +1,6 @@
-
-'use client';
-
 /**
- * @fileOverview Memory Engine v1.0
- * Local client-side session memory for learning patterns.
+ * @fileOverview Memory Engine v2.0
+ * محرك الذاكرة النانوية لتعلم أنماط السوق خلال الجلسة الحالية.
  */
 
 let memory: any[] = [];
@@ -14,6 +11,7 @@ export function memoryEngine(entry: any) {
     time: Date.now(),
   });
 
+  // الحفاظ على آخر 1000 سجل فقط لضمان سرعة الأداء
   if (memory.length > 1000) {
     memory.shift();
   }
