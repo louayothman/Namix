@@ -24,16 +24,14 @@ import {
   ShieldCheck, 
   Check, 
   Minus, 
-  AlertTriangle 
+  AlertTriangle,
+  Radar
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
 type ReactorStatus = 'calibrating' | 'analyzing' | 'results';
 
-/**
- * ConfidenceRing - مؤشر الثقة النانوي المدمج بجانب زر التنفيذ
- */
 function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
@@ -86,7 +84,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  // محرك التحديث اللحظي الصامت (5s Pulse)
   const fetchUpdate = async () => {
     if (!asset) return;
     try {
@@ -116,7 +113,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   useEffect(() => {
     if (status === 'results') {
-      updateTimerRef.current = setInterval(fetchUpdate, 5000);
+      // تحديث كل 1 ثانية لحيوية قصوى
+      updateTimerRef.current = setInterval(fetchUpdate, 1000);
     }
     return () => {
       if (updateTimerRef.current) clearInterval(updateTimerRef.current);
@@ -204,16 +202,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                    <Activity size={32} className="text-blue-500 animate-pulse" />
                 </div>
              </div>
-             <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري الاستعلام من النواة الاستخباراتية...</p>
+             <p className="text-sm font-black text-[#002d4d]">جاري الاستعلام من النواة الاستخباراتية...</p>
           </motion.div>
         )}
 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
-            {/* نبض السوق المباشر - مربوط بالويب سوكت */}
             <MarketPulseHub price={livePrice} turbulence={Math.round((1 - (result.score || 0.5)) * 100)} />
             
-            {/* بطاقة الأداء المحدثة كل 5 ثوانٍ */}
             <IntelligenceMetrics 
               scorecard={{
                 momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
@@ -224,32 +220,37 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
-            {/* مصفوفة التدقيق الفني - تتغير لحظياً */}
-            <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-4">
-               <div className="flex items-center gap-2 px-2">
-                  <ShieldCheck size={14} className="text-blue-500" />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">مصفوفة التدقيق الاستخباري</span>
+            {/* تحليل المؤشرات | Indicator Analysis - نانوي ومدمج */}
+            <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
+               {/* خلفية القسم الشفافة الضخمة */}
+               <div className="absolute -bottom-4 -left-4 opacity-[0.02] pointer-events-none transition-transform duration-1000 group-hover/heatmap:scale-110">
+                  <Radar size={180} strokeWidth={1} />
                </div>
-               <div className="grid gap-2.5">
+
+               <div className="flex items-center justify-between px-2 relative z-10">
+                  <div className="text-right">
+                    <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات</h4>
+                    <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mt-1">Indicator Analysis</p>
+                  </div>
+                  <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">NANO SYNC</Badge>
+               </div>
+
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
                   {result.heatmap?.map((item: any, i: number) => (
-                    <div key={i} className="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                       <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "h-7 w-7 rounded-lg flex items-center justify-center shadow-inner",
-                            item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
-                            item.status === 'bearish' ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-400"
-                          )}>
-                             {item.status === 'bullish' ? <Check size={14}/> : item.status === 'bearish' ? <AlertTriangle size={14}/> : <Minus size={14}/>}
-                          </div>
-                          <span className="text-[11px] font-black text-[#002d4d]">{item.label}</span>
-                       </div>
-                       <Badge className={cn(
-                         "font-black text-[8px] border-none px-2 py-0.5 rounded-md",
-                         item.status === 'bullish' ? "bg-emerald-500 text-white" : 
-                         item.status === 'bearish' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400"
+                    <div key={i} className="bg-white p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 border border-gray-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+                       <div className={cn(
+                         "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
+                         item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
+                         item.status === 'bearish' ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-400"
                        )}>
-                          {item.val}
-                       </Badge>
+                          {item.status === 'bullish' ? <Check size={12}/> : item.status === 'bearish' ? <AlertTriangle size={12}/> : <Minus size={12}/>}
+                       </div>
+                       <div className="text-center">
+                          <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1">{item.label.split(' ')[0]}</p>
+                          <span className={cn("text-[9px] font-black tabular-nums", item.status === 'bullish' ? "text-emerald-600" : item.status === 'bearish' ? "text-red-600" : "text-gray-400")}>
+                            {item.val}
+                          </span>
+                       </div>
                     </div>
                   ))}
                </div>
@@ -271,13 +272,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </Badge>
             </div>
 
-            {/* الوكيل الاستنتاجي (Reasoning) */}
             <IntelligenceBriefing 
               reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
               summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة.`}
             />
 
-            {/* قمرة المعايير المدمجة - دائماً متاحة للتعديل */}
             <div className="pt-4 border-t border-gray-100">
                <ParameterConsole 
                  amount={tradeAmount}
@@ -292,7 +291,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             </div>
 
             <div className="pt-2 flex items-center gap-4">
-               {/* حلقة الثقة النانوية بجانب زر التنفيذ */}
                <ConfidenceRing 
                  value={result.score * 100} 
                  colorClass={result.decision === 'BUY' ? "text-emerald-500" : result.decision === 'SELL' ? "text-red-500" : "text-blue-500"} 
@@ -328,7 +326,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               )}>
                  <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center"><CheckCircle2 size={20} /></div>
-                    <p className="text-sm font-black tracking-normal">{feedback.message}</p>
+                    <p className="text-sm font-black">{feedback.message}</p>
                  </div>
                  <button onClick={() => setFeedback(null)}><X size={18} /></button>
               </div>
@@ -338,5 +336,3 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     </div>
   );
 }
-
-    
