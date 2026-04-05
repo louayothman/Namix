@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -16,6 +15,7 @@ import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Zap, Loader2, PlayCircle, Activity } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
+import { cn } from "@/lib/utils";
 
 type ReactorStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
 
@@ -169,7 +169,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
              </div>
              <div className="text-center space-y-1">
                 <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري المعالجة الاستخباراتية</p>
-                <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Calculating yield pathways...</p>
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Calculating yield pathways...</p>
              </div>
           </motion.div>
         )}
