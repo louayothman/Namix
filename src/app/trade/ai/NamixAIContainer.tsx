@@ -12,22 +12,22 @@ import { BiasHeader } from "@/components/trade/ai/BiasHeader";
 import { TargetMatrix } from "@/components/trade/ai/TargetMatrix";
 import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing";
 import { MarketScanner } from "@/components/trade/ai/MarketScanner";
-import { RadialControl } from "@/components/trade/ai/RadialControl";
+import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Zap, Loader2, PlayCircle, Activity } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
-type MفاعلStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
+type ReactorStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
 
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
-  const [status, setStatus] = useState<MفاعلStatus>('calibrating');
+  const [status, setStatus] = useState<ReactorStatus>('calibrating');
   const [dbUser, setDbUser] = useState<any>(null);
   const [result, setResult] = useState<TradeSignal | null>(null);
   
   // التشغيل المعاير
   const [tradeAmount, setTradeAmount] = useState(10.00);
-  const [tradeDuration, setTradeDuration] = useState(60); 
+  const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
@@ -44,7 +44,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  // Phase 1: Calibration (3 seconds)
+  // Phase 1: Calibration Protocol (3 seconds)
   useEffect(() => {
     if (status === 'calibrating') {
       const timer = setTimeout(() => setStatus('configuring'), 3000);
@@ -52,15 +52,36 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
+  // استخراج المدد المحددة من قبل المشرف حصراً
+  const adminDurations = useMemo(() => {
+    if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
+      return globalConfig.tradeDurations.map((d: any) => {
+        let mult = 1;
+        let suffix = 'ث';
+        if (d.unit === 'minutes') { mult = 60; suffix = 'د'; }
+        else if (d.unit === 'hours') { mult = 3600; suffix = 'س'; }
+        return { label: `${d.value}${suffix}`, seconds: d.value * mult };
+      });
+    }
+    return [{ label: '60ث', seconds: 60 }];
+  }, [globalConfig]);
+
+  // تعيين أول مدة متاحة تلقائياً
+  useEffect(() => {
+    if (adminDurations.length > 0 && tradeDuration === 0) {
+      setTradeDuration(adminDurations[0].seconds);
+    }
+  }, [adminDurations, tradeDuration]);
+
   const handleStartAnalysis = async () => {
     hapticFeedback.medium();
     setStatus('analyzing');
     
-    // محاكاة التحليل العميق بناءً على المبلغ والمدة
+    // محاكاة التحليل العميق بناءً على معايير المستخدم
     const analysis = await namixAI.getDeepAnalysis(asset, livePrice);
     if (analysis) {
       setResult(analysis);
-      setTimeout(() => setStatus('results'), 2000);
+      setTimeout(() => setStatus('results'), 2500);
     }
   };
 
@@ -101,73 +122,43 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   };
 
-  const maxTrade = globalConfig?.maxTradeAmount || 5000;
-
   return (
     <div className="w-full space-y-6 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         
-        {/* Step 1: Calibration Animation */}
+        {/* المرحلة 1: بروتوكول معايرة التشغيل */}
         {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="py-10 space-y-8">
+          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="py-10">
              <MarketScanner />
-             <p className="text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Initializing Neural Nodes...</p>
           </motion.div>
         )}
 
-        {/* Step 2: Configuration Console */}
+        {/* المرحلة 2: قُمرة المعايير التكتيكية */}
         {status === 'configuring' && (
           <motion.div key="config" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 py-4">
-             <div className="grid grid-cols-2 gap-8">
-                {/* Left: Liquidity Control */}
-                <div className="space-y-4">
-                   <RadialControl 
-                     label="حجم السيولة" 
-                     subLabel="LIQUIDITY INPUT"
-                     value={tradeAmount} 
-                     min={globalConfig?.minTradeAmount || 10} 
-                     max={Math.min(maxTrade, dbUser?.totalBalance || maxTrade)}
-                     onChange={setTradeAmount}
-                     color="text-[#f9a885]"
-                   />
-                   <div className="text-center">
-                      <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Available Balance</p>
-                      <p className="text-xs font-black text-[#002d4d] tabular-nums">${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                   </div>
-                </div>
-
-                {/* Right: Temporal Control */}
-                <div className="space-y-4">
-                   <RadialControl 
-                     label="مدة العقد" 
-                     subLabel="TEMPORAL DURATION"
-                     value={tradeDuration} 
-                     min={10} 
-                     max={3600} 
-                     unit="ث"
-                     step={1}
-                     onChange={setTradeDuration}
-                     color="text-blue-500"
-                   />
-                   <div className="text-center">
-                      <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Execution window</p>
-                      <p className="text-xs font-black text-[#002d4d] tabular-nums">{tradeDuration} ثانية</p>
-                   </div>
-                </div>
-             </div>
+             <ParameterConsole 
+               amount={tradeAmount}
+               onAmountChange={setAmount => setTradeAmount(setAmount)}
+               duration={tradeDuration}
+               onDurationChange={setDuration => setTradeDuration(setDuration)}
+               durations={adminDurations}
+               balance={dbUser?.totalBalance || 0}
+               minAmount={globalConfig?.minTradeAmount || 10}
+               maxAmount={globalConfig?.maxTradeAmount || 5000}
+             />
 
              <Button 
                onClick={handleStartAnalysis} 
                className="w-full h-20 rounded-[32px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group overflow-hidden relative"
              >
                 <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
-                <span className="relative z-10">بدء تشغيل الوكلاء</span>
+                <span className="relative z-10">إطلاق بروتوكول التحليل</span>
                 <Zap className="mr-3 h-6 w-6 text-[#f9a885] fill-current group-hover:scale-125 transition-transform" />
              </Button>
           </motion.div>
         )}
 
-        {/* Step 3: Analysis in progress */}
+        {/* المرحلة 3: جاري هندسة الصفقة */}
         {status === 'analyzing' && (
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 flex flex-col items-center justify-center gap-6">
              <div className="relative">
@@ -176,11 +167,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                    <Activity size={32} className="text-blue-500 animate-pulse" />
                 </div>
              </div>
-             <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري هندسة الصفقة المعتمدة...</p>
+             <div className="text-center space-y-1">
+                <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري المعالجة الاستخباراتية</p>
+                <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Calculating yield pathways...</p>
+             </div>
           </motion.div>
         )}
 
-        {/* Step 4: Final Results */}
+        {/* المرحلة 4: النتائج النهائية الموجهة */}
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
