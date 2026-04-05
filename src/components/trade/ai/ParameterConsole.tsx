@@ -5,7 +5,7 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Clock, Coins, Sparkles, Zap, ShieldCheck } from "lucide-react";
+import { Wallet, Clock, Coins, ShieldCheck, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -21,8 +21,8 @@ interface ParameterConsoleProps {
 }
 
 /**
- * @fileOverview قُمرة المعايير التكتيكية - Sovereign Parameter Console
- * تم تحسين الأحجام لتناسب الموبايل وإصلاح استيرادات الأيقونات.
+ * @fileOverview قُمرة المعايير التكتيكية v3.0 - Institutional Minimalism (Wing Design)
+ * تقسيم الواجهة إلى جناحين: الأيمن للسيولة والأيسر للزمن مع الوحدات الكاملة.
  */
 export function ParameterConsole({ 
   amount, 
@@ -35,113 +35,103 @@ export function ParameterConsole({
   maxAmount
 }: ParameterConsoleProps) {
   
-  const handleSliderChange = (vals: number[]) => {
-    onAmountChange(vals[0]);
-  };
-
   return (
-    <div className="space-y-6 font-body text-right select-none" dir="rtl">
+    <div className="space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* القسم 1: هندسة السيولة (Liquidity Engineering) */}
-      <section className="space-y-4">
-         <div className="flex items-center justify-between px-3">
-            <div className="flex items-center gap-2.5">
-               <div className="h-7 w-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
-                  <Wallet size={14} />
-               </div>
-               <div className="space-y-0 text-right">
-                  <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">حقن السيولة</h4>
-                  <p className="text-[6px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-0.5">Liquidity Input</p>
-               </div>
-            </div>
-            <div className="flex items-center gap-2 px-2.5 py-1 bg-gray-50 rounded-full border border-gray-100 shadow-sm">
-               <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Available:</span>
-               <span className="text-[9px] font-black text-[#002d4d] tabular-nums">${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-         </div>
+      <div className="flex flex-col md:flex-row gap-6">
+        
+        {/* الجناح الأيمن: هندسة السيولة (Liquidity Wing) */}
+        <section className="flex-1 space-y-4">
+           <div className="flex items-center gap-2 px-3">
+              <div className="h-6 w-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
+                 <Wallet size={12} />
+              </div>
+              <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">حقن السيولة</h4>
+           </div>
 
-         <div className="p-6 bg-white rounded-[40px] border border-gray-100 shadow-[0_15px_40px_-12px_rgba(0,0,0,0.05)] space-y-6 group transition-all hover:shadow-xl">
-            <div className="flex flex-col items-center gap-1.5">
-               <div className="relative inline-flex items-baseline gap-1.5">
-                  <span className="text-xl font-black text-gray-200">$</span>
-                  <input 
-                    type="number" 
-                    value={amount}
-                    step="0.01"
-                    onChange={(e) => onAmountChange(Number(e.target.value))}
-                    className="bg-transparent border-none text-center font-black text-4xl text-[#002d4d] tabular-nums tracking-tighter w-full max-w-[200px] outline-none"
-                  />
-               </div>
-               <div className="h-0.5 w-6 bg-[#f9a885] rounded-full group-hover:w-12 transition-all duration-700" />
-            </div>
+           <div className="p-6 bg-white rounded-[40px] border border-gray-100 shadow-sm space-y-6 transition-all hover:shadow-xl group">
+              <div className="flex flex-col items-center gap-1.5">
+                 <div className="relative inline-flex items-baseline gap-1.5">
+                    <span className="text-xl font-black text-gray-200">$</span>
+                    <input 
+                      type="number" 
+                      value={amount}
+                      step="0.01"
+                      onChange={(e) => onAmountChange(Number(e.target.value))}
+                      className="bg-transparent border-none text-center font-black text-4xl text-[#002d4d] tabular-nums tracking-tighter w-full max-w-[160px] outline-none"
+                    />
+                 </div>
+                 <div className="h-0.5 w-6 bg-[#f9a885] rounded-full group-hover:w-12 transition-all duration-700" />
+              </div>
 
-            <div className="px-2 space-y-3">
-               <Slider 
-                 value={[amount]} 
-                 min={minAmount} 
-                 max={Math.min(maxAmount, balance)} 
-                 step={0.01}
-                 onValueChange={handleSliderChange}
-                 className="[&>span]:bg-[#002d4d] cursor-pointer"
-               />
-               <div className="flex justify-between items-center text-[7px] font-black text-gray-300 uppercase tracking-widest px-1">
-                  <span>Limit: ${maxAmount}</span>
-                  <span>Min: ${minAmount}</span>
-               </div>
-            </div>
-         </div>
-      </section>
+              <div className="px-2 space-y-3">
+                 <Slider 
+                   value={[amount]} 
+                   min={minAmount} 
+                   max={Math.min(maxAmount, balance)} 
+                   step={0.01}
+                   onValueChange={(vals) => onAmountChange(vals[0])}
+                   className="[&>span]:bg-[#002d4d]"
+                 />
+                 <div className="flex justify-between items-center text-[7px] font-black text-gray-300 uppercase tracking-widest px-1">
+                    <span>Balance: ${balance.toFixed(2)}</span>
+                    <span>Min: ${minAmount}</span>
+                 </div>
+              </div>
+           </div>
+        </section>
 
-      {/* القسم 2: نافذة التنفيذ (Temporal Window) */}
-      <section className="space-y-4">
-         <div className="flex items-center justify-between px-3">
-            <div className="flex items-center gap-2.5">
-               <div className="h-7 w-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shadow-inner">
-                  <Clock size={14} />
-               </div>
-               <div className="space-y-0 text-right">
-                  <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">نافذة التنفيذ</h4>
-                  <p className="text-[6px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-0.5">Temporal Window</p>
-               </div>
-            </div>
-            <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[6px] px-2.5 py-0.5 rounded-full shadow-inner tracking-normal uppercase">ADMIN ONLY</Badge>
-         </div>
+        {/* الجناح الأيسر: درجات السلم الزمني (Temporal Ladder) */}
+        <section className="flex-1 space-y-4">
+           <div className="flex items-center gap-2 px-3">
+              <div className="h-6 w-6 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shadow-inner">
+                 <Clock size={12} />
+              </div>
+              <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">نافذة الاستحقاق</h4>
+           </div>
 
-         <div className="bg-gray-50/50 p-1 rounded-[28px] border border-gray-100 shadow-inner">
-            <div className="flex items-center gap-1.5 w-full">
-               {durations.map((d) => (
-                 <button
-                   key={d.seconds}
-                   onClick={() => onDurationChange(d.seconds)}
-                   className={cn(
-                     "flex-1 h-12 rounded-[22px] font-black text-[10px] transition-all duration-500 relative overflow-hidden group/btn",
-                     duration === d.seconds 
-                       ? "bg-[#002d4d] text-[#f9a885] shadow-lg" 
-                       : "bg-white text-gray-400 hover:bg-white hover:text-[#002d4d] shadow-sm border border-gray-50"
-                   )}
-                 >
-                    {duration === d.seconds && (
-                      <motion.div layoutId="active-node" className="absolute inset-0 bg-white/5 skew-x-12 translate-x-4" />
+           <div className="bg-gray-50/50 p-2 rounded-[40px] border border-gray-100 shadow-inner h-full flex flex-col gap-2">
+              {durations.map((d, i) => {
+                const isActive = duration === d.seconds;
+                // محاكاة درجات السلم: الأطول زمنياً تظهر بمساحة أو وزن بصري أكبر
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onDurationChange(d.seconds)}
+                    className={cn(
+                      "w-full h-11 rounded-[22px] px-5 flex items-center justify-between transition-all duration-500 relative overflow-hidden group/item active:scale-[0.98]",
+                      isActive 
+                        ? "bg-[#002d4d] text-[#f9a885] shadow-lg" 
+                        : "bg-white text-gray-400 hover:bg-white/80 border border-gray-50"
                     )}
-                    <span className="relative z-10 tabular-nums">{d.label}</span>
-                    {duration === d.seconds && (
-                      <Zap size={6} className="absolute top-1.5 left-1.5 text-[#f9a885] fill-current animate-pulse" />
+                  >
+                    <span className="text-[10px] font-black tracking-normal z-10">{d.label}</span>
+                    <div className="flex items-center gap-2 z-10">
+                       {isActive && <TrendingUp size={10} className="animate-pulse" />}
+                       <span className={cn("text-[7px] font-black uppercase tracking-widest", isActive ? "text-[#f9a885]/40" : "text-gray-200")}>
+                         Tier {i + 1}
+                       </span>
+                    </div>
+                    {isActive && (
+                      <motion.div layoutId="active-step" className="absolute inset-0 bg-white/5 skew-x-12 translate-x-4" />
                     )}
-                 </button>
-               ))}
-            </div>
-         </div>
-      </section>
+                  </button>
+                );
+              })}
+           </div>
+        </section>
+      </div>
 
-      {/* تذييل المعلومات التكتيكية */}
-      <div className="px-4 flex items-center justify-center gap-5 opacity-30 select-none">
-         <div className="flex items-center gap-1.5">
+      {/* تذييل الميثاق */}
+      <div className="flex items-center justify-center gap-8 opacity-20 select-none pt-2">
+         <div className="flex items-center gap-2">
             <ShieldCheck size={10} className="text-[#002d4d]" />
-            <span className="text-[6px] font-black uppercase tracking-widest">Precision Nodes Active</span>
+            <span className="text-[7px] font-black uppercase tracking-widest">Authorized Console</span>
          </div>
-         <div className="flex items-center gap-1.5">
-            <Sparkles size={10} className="text-[#f9a885]" />
-            <span className="text-[6px] font-black uppercase tracking-widest">Calculated Risk Control</span>
+         <div className="h-1 w-1 rounded-full bg-gray-300" />
+         <div className="flex items-center gap-2">
+            <Coins size={10} className="text-[#002d4d]" />
+            <span className="text-[7px] font-black uppercase tracking-widest">Precision Yield Core</span>
          </div>
       </div>
 

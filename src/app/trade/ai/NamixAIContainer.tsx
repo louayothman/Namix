@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -13,7 +14,7 @@ import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing
 import { MarketScanner } from "@/components/trade/ai/MarketScanner";
 import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Zap, Loader2, PlayCircle, Activity } from "lucide-react";
+import { Zap, Loader2, PlayCircle, Activity } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [dbUser, setDbUser] = useState<any>(null);
   const [result, setResult] = useState<TradeSignal | null>(null);
   
-  // التشغيل المعاير
   const [tradeAmount, setTradeAmount] = useState(10.00);
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -44,29 +44,26 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  // Phase 1: Calibration Protocol (3 seconds)
   useEffect(() => {
     if (status === 'calibrating') {
-      const timer = setTimeout(() => setStatus('configuring'), 3000);
+      const timer = setTimeout(() => setStatus('configuring'), 3500);
       return () => clearTimeout(timer);
     }
   }, [status]);
 
-  // استخراج المدد المحددة من قبل المشرف حصراً
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
       return globalConfig.tradeDurations.map((d: any) => {
         let mult = 1;
-        let suffix = 'ث';
-        if (d.unit === 'minutes') { mult = 60; suffix = 'د'; }
-        else if (d.unit === 'hours') { mult = 3600; suffix = 'س'; }
-        return { label: `${d.value}${suffix}`, seconds: d.value * mult };
+        let fullLabel = 'ثانية';
+        if (d.unit === 'minutes') { mult = 60; fullLabel = 'دقيقة'; }
+        else if (d.unit === 'hours') { mult = 3600; fullLabel = 'ساعة'; }
+        return { label: `${d.value} ${fullLabel}`, seconds: d.value * mult };
       });
     }
-    return [{ label: '60ث', seconds: 60 }];
+    return [{ label: '60 ثانية', seconds: 60 }];
   }, [globalConfig]);
 
-  // تعيين أول مدة متاحة تلقائياً
   useEffect(() => {
     if (adminDurations.length > 0 && tradeDuration === 0) {
       setTradeDuration(adminDurations[0].seconds);
@@ -76,8 +73,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const handleStartAnalysis = async () => {
     hapticFeedback.medium();
     setStatus('analyzing');
-    
-    // محاكاة التحليل العميق بناءً على معايير المستخدم
     const analysis = await namixAI.getDeepAnalysis(asset, livePrice);
     if (analysis) {
       setResult(analysis);
@@ -125,17 +120,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   return (
     <div className="w-full space-y-6 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
-        
-        {/* المرحلة 1: بروتوكول معايرة التشغيل */}
         {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="py-10">
+          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="py-10">
              <MarketScanner />
           </motion.div>
         )}
 
-        {/* المرحلة 2: قُمرة المعايير التكتيكية */}
         {status === 'configuring' && (
-          <motion.div key="config" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 py-4">
+          <motion.div key="config" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 py-2">
              <ParameterConsole 
                amount={tradeAmount}
                onAmountChange={setAmount => setTradeAmount(setAmount)}
@@ -149,16 +141,15 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
              <Button 
                onClick={handleStartAnalysis} 
-               className="w-full h-20 rounded-[32px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl shadow-blue-900/20 active:scale-95 transition-all group overflow-hidden relative"
+               className="w-full h-20 rounded-[32px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-95 transition-all group overflow-hidden relative"
              >
                 <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
                 <span className="relative z-10">إطلاق بروتوكول التحليل</span>
-                <Zap className="mr-3 h-6 w-6 text-[#f9a885] fill-current group-hover:scale-125 transition-transform" />
+                <Zap className="mr-3 h-6 w-6 text-[#f9a885] fill-current" />
              </Button>
           </motion.div>
         )}
 
-        {/* المرحلة 3: جاري هندسة الصفقة */}
         {status === 'analyzing' && (
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 flex flex-col items-center justify-center gap-6">
              <div className="relative">
@@ -167,56 +158,37 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                    <Activity size={32} className="text-blue-500 animate-pulse" />
                 </div>
              </div>
-             <div className="text-center space-y-1">
-                <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري المعالجة الاستخباراتية</p>
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Calculating yield pathways...</p>
-             </div>
+             <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري المعالجة الاستخباراتية...</p>
           </motion.div>
         )}
 
-        {/* المرحلة 4: النتائج النهائية الموجهة */}
         {status === 'results' && result && (
-          <motion.div key="res" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
-            
+          <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             <MarketPulseHub price={livePrice} turbulence={result.turbulence} />
-
             <BiasHeader bias={result.bias} />
-
             {result.bias !== 'Neutral' && (
-              <TargetMatrix 
-                entryZone={result.entry_zone} 
-                targets={result.targets} 
-                invalidatedAt={result.invalidated_at} 
-              />
+              <TargetMatrix entryZone={result.entry_zone} targets={result.targets} invalidatedAt={result.invalidated_at} />
             )}
-
-            <IntelligenceBriefing 
-              reasoning={result.reasoning_summary} 
-              summary={result.market_summary} 
-            />
-
+            <IntelligenceBriefing reasoning={result.reasoning_summary} summary={result.market_summary} />
             <Button 
               onClick={handleTradeExecution}
               disabled={isExecuting || result.bias === 'Neutral'}
               className={cn(
                 "w-full h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
-                result.bias === 'Long' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/20" : 
-                result.bias === 'Short' ? "bg-red-500 hover:bg-red-600 shadow-red-900/20" : 
-                "bg-gray-100 text-gray-400"
+                result.bias === 'Long' ? "bg-emerald-500 hover:bg-emerald-600" : 
+                result.bias === 'Short' ? "bg-red-500 hover:bg-red-600" : "bg-gray-100 text-gray-400"
               )}
             >
               {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
                 <div className="flex items-center gap-3">
                    <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
-                   <PlayCircle className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                   <PlayCircle className="h-6 w-6" />
                 </div>
               )}
             </Button>
-
-            <button onClick={() => setStatus('configuring')} className="w-full text-[8px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors">تعديل المعايير والبدء مجدداً</button>
+            <button onClick={() => setStatus('configuring')} className="w-full text-[8px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors">إعادة الضبط</button>
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   );
