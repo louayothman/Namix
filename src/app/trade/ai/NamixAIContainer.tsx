@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -51,7 +50,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  // بناء المدد مع تصحيح وحدة "اليوم" (Day = 86400s)
+  // بناء المدد مع تصحيح وحدة "اليوم" (Day = 86400s) والوحدات الكاملة
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
       return globalConfig.tradeDurations.map((d: any) => {
