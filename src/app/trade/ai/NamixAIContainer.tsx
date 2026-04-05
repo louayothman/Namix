@@ -35,11 +35,55 @@ import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX-AI Sovereign Console v115.0 - The Unified Intelligence Matrix
- * دمج الأهداف الاستراتيجية والمقاييس في بطاقة واحدة مسطحة مع استعادة النبض السائل والألوان التفاعلية.
+ * @fileOverview NAMIX-AI Sovereign Console v118.0 - Dual Matrix Edition
+ * دمج الأهداف الاستراتيجية والمقاييس في بطاقة واحدة مسطحة.
+ * إعادة بناء المخاطر والثقة إلى قسمين متجاورين مع مؤشر حلقي (Radial) للثقة.
  */
 
 type ReactorStatus = 'calibrating' | 'results';
+
+/**
+ * ConfidenceRing - مؤشر الثقة الحلقي النانوي
+ */
+function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
+  const radius = 32;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+
+  return (
+    <div className="relative h-20 w-20 flex items-center justify-center shrink-0">
+      <svg className="h-full w-full transform -rotate-90">
+        <circle
+          cx="40"
+          cy="40"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="transparent"
+          className="text-gray-100"
+        />
+        <motion.circle
+          cx="40"
+          cy="40"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="5"
+          fill="transparent"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ type: "spring", stiffness: 60, damping: 15 }}
+          strokeLinecap="round"
+          className={colorClass}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+         <span className={cn("text-[14px] font-black tabular-nums leading-none", colorClass.replace('text-', 'text-'))}>%{Math.round(value)}</span>
+         <span className="text-[6px] font-bold text-gray-300 uppercase tracking-tighter mt-0.5">Trust</span>
+      </div>
+    </div>
+  );
+}
 
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
@@ -149,7 +193,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   };
 
   const confidenceScore = result ? Math.round(result.score * 100) : 0;
-  const confidenceColor = confidenceScore >= 70 ? "bg-emerald-500" : confidenceScore >= 45 ? "bg-blue-500" : "bg-red-500";
+  const confidenceColor = confidenceScore >= 70 ? "text-emerald-500" : confidenceScore >= 45 ? "text-blue-500" : "text-red-500";
 
   return (
     <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
@@ -163,10 +207,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
-            {/* 1. نبض الأسواق السائل الملون */}
             <MarketPulseHub price={livePrice || asset.currentPrice} turbulence={confidenceScore} />
             
-            {/* 2. تحليل المؤشرات (صف نانوي واحد) */}
             <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
                <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none group-hover/heatmap:scale-110 transition-transform duration-1000">
                   <Radar size={220} strokeWidth={1} />
@@ -196,7 +238,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* 3. البطاقة السيادية الموحدة (الأهداف + المقاييس) */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
                   <Target size={180} />
@@ -248,61 +289,57 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
-                     <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center">
-                        <span className="text-[8px] font-black text-gray-400 uppercase block mb-1">نطاق التمركز</span>
-                        <p className="text-[11px] font-black text-[#002d4d]">Current Price Zone</p>
+                     <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center space-y-1">
+                        <span className="text-[8px] font-black text-gray-400 uppercase block">نطاق التمركز</span>
+                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums" dir="ltr">
+                          ${(livePrice || asset.currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })} - ${((livePrice || asset.currentPrice) * 1.0005).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </p>
                      </div>
-                     <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center">
-                        <span className="text-[8px] font-black text-red-400 uppercase block mb-1">صمام الأمان</span>
+                     <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
+                        <span className="text-[8px] font-black text-red-400 uppercase block">صمام الأمان</span>
                         <p className="text-[11px] font-black text-red-600 tabular-nums">
-                          ${((livePrice || asset.currentPrice) * (result.invalidated_at || 0.985)).toFixed(2)}
+                          ${((livePrice || asset.currentPrice) * (result.invalidated_at || 0.985)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
                   </div>
                </div>
             </div>
 
-            {/* 4. بطاقة المخاطرة والثقة المدمجة */}
-            <div className={cn(
-              "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk transition-colors duration-500 bg-white",
-              result.risk?.level === 'LOW' ? "border-emerald-100" : "border-red-100"
-            )}>
-               <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none group-hover/risk:rotate-12 transition-transform duration-1000">
-                  <ShieldCheck size={140} />
-               </div>
-
-               <div className="flex items-center justify-between relative z-10 mb-6 px-2">
-                  <div className="flex items-center gap-3">
+            {/* 4. مصفوفة المخاطرة والثقة الثنائية المتطورة */}
+            <div className="grid grid-cols-2 gap-4">
+               {/* جناح المخاطرة */}
+               <div className={cn(
+                 "p-6 rounded-[44px] border shadow-xl relative overflow-hidden transition-all duration-500 bg-white flex flex-col justify-between",
+                 result.risk?.level === 'LOW' ? "border-emerald-100" : "border-red-100"
+               )}>
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
+                     <ShieldCheck size={100} />
+                  </div>
+                  <div className="relative z-10 flex flex-col items-center text-center gap-3">
                      <div className={cn(
                        "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner",
                        result.risk?.level === 'LOW' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
                      )}>
                         <ShieldAlert size={20} />
                      </div>
-                     <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none">Risk Evaluation</p>
-                        <p className={cn("text-sm font-black mt-1", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
+                     <div className="space-y-0.5">
+                        <p className="text-[8px] font-black text-gray-400 uppercase">Risk Level</p>
+                        <p className={cn("text-xs font-black", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>
+                          {result.risk?.level || "UNKNOWN"}
+                        </p>
                      </div>
+                     <Badge className={cn("border-none font-black text-[7px] px-3 py-1 rounded-full shadow-md", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
+                        {result.risk?.action || "HOLD"}
+                     </Badge>
                   </div>
-                  <Badge className={cn("border-none font-black text-[9px] px-4 py-1.5 rounded-xl shadow-lg", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
-                     {result.risk?.action || "HOLD"}
-                  </Badge>
                </div>
 
-               <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-100 shadow-inner">
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest px-1">
-                     <span className="text-gray-400">درجة الثقة الاستراتيجية</span>
-                     <span className={cn("tabular-nums", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
-                     <motion.div 
-                       initial={{ width: 0 }}
-                       animate={{ width: `${confidenceScore}%` }}
-                       transition={{ duration: 0.5, ease: "circOut" }}
-                       className={cn("h-full relative rounded-full", confidenceColor)}
-                     >
-                        <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                     </motion.div>
+               {/* جناح الثقة الحلقي */}
+               <div className="p-6 rounded-[44px] border border-gray-100 shadow-xl bg-white flex flex-col items-center justify-center relative overflow-hidden group/conf">
+                  <div className="absolute inset-0 bg-gray-50/30 opacity-0 group-hover/conf:opacity-100 transition-opacity" />
+                  <div className="relative z-10 space-y-3 flex flex-col items-center">
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Confidence</p>
+                     <ConfidenceRing value={confidenceScore} colorClass={confidenceColor} />
                   </div>
                </div>
             </div>
@@ -310,7 +347,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك السيادي.`} />
 
-            <div className="pt-4 border-t border-gray-100">
+            <div className="pt-4 border-t border-gray-50">
                <ParameterConsole 
                  amount={tradeAmount}
                  onAmountChange={setTradeAmount}
