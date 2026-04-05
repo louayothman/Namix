@@ -64,10 +64,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  /**
-   * بروتوكول المزامنة الاستخباراتي (كل 3 ثوانٍ)
-   * يعتمد كلياً على منطق Namix AI المركزي عبر مسار الـ API المعتمد.
-   */
   useEffect(() => {
     if (status !== 'results' || !asset?.binanceSymbol) return;
 
@@ -142,6 +138,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   };
 
   const confidenceScore = result ? Math.round(result.score * 100) : 0;
+  const currentPrice = livePrice || asset.currentPrice;
 
   return (
     <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
@@ -155,15 +152,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
-            {/* 1. رأس الانحياز الاستراتيجي - المكون العلوي */}
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
 
-            {/* 2. نبض الأسواق اللحظي */}
-            <MarketPulseHub price={livePrice || asset.currentPrice} turbulence={confidenceScore} />
+            <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
-            {/* 3. الصك الاستخباراتي الموحد (المؤشرات + المقاييس + الأهداف) */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
-               {/* خلفيات شبحية ضخمة */}
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
                   <Target size={180} />
                </div>
@@ -171,7 +164,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <Zap size={180} />
                </div>
 
-               {/* تحليل المؤشرات - نانوي مسطح (صف واحد بدون بطاقات) */}
                <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative z-10">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات | Indicator Analysis</h4>
@@ -198,7 +190,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   </div>
                </div>
 
-               {/* مقاييس الاستخبارات - نانوية شبحية */}
                <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
                   {[
                     { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
@@ -215,7 +206,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
 
-               {/* الأهداف الاستراتيجية */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية | Targets</h4>
@@ -232,7 +222,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">{t.label}</span>
                           <div className="flex items-center gap-1">
                              <span className={cn("text-[13px] font-black tabular-nums tracking-tighter", t.color)}>
-                               ${((livePrice || asset.currentPrice) * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                               ${(currentPrice * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                              </span>
                              {t.glow && <Sparkles size={8} className="text-[#f9a885] animate-pulse" />}
                           </div>
@@ -244,30 +234,27 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                      <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center space-y-1">
                         <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
                         <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">
-                          ${(livePrice || asset.currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })} - ${((livePrice || asset.currentPrice) * 1.0005).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${(currentPrice * Math.min(1, result.entry_zone_multiplier)).toLocaleString(undefined, { minimumFractionDigits: 2 })} - ${(currentPrice * Math.max(1, result.entry_zone_multiplier)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
                      <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
                         <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
                         <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">
-                          ${((livePrice || asset.currentPrice) * (result.invalidated_at || 0.985)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${(currentPrice * (result.invalidated_at || 0.985)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
                   </div>
                </div>
             </div>
 
-            {/* 4. مصفوفة المخاطرة والثقة - المكون المعزول الموحد */}
             <RiskConfidenceMatrix 
               riskLevel={result.risk?.level} 
               riskAction={result.risk?.action} 
               confidenceScore={confidenceScore} 
             />
 
-            {/* 5. التبرير المنطقي للاستخبارات */}
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك السيادي.`} />
 
-            {/* 6. قمرة المعايير التشغيلية */}
             <div className="pt-4 border-t border-gray-50">
                <ParameterConsole 
                  amount={tradeAmount}
@@ -281,7 +268,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                />
             </div>
 
-            {/* زر التنفيذ النهائي */}
             <div className="pt-2 flex items-center gap-4">
                <Button 
                  onClick={handleTradeExecution}
@@ -305,7 +291,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         )}
       </AnimatePresence>
 
-      {/* التغذية المرتدة الفورية (Feedbacks) */}
       <AnimatePresence>
          {feedback && (
            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed bottom-10 left-6 right-6 z-[1200]">

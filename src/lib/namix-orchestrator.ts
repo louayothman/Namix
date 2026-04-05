@@ -1,6 +1,6 @@
 /**
- * @fileOverview NAMIX AI Orchestrator v10.0 - Sovereign Intelligence Nexus
- * المحرك المركزي الذي يحول بيانات السوق الحية إلى دراسات ومقترحات احتمالية دقيقة.
+ * @fileOverview NAMIX AI Orchestrator v11.0 - Sovereign Intelligence Nexus
+ * المحرك المركزي المطور لإصدار قرارات (BUY, SELL, HOLD) بناءً على تقاطع البيانات الحقيقية.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -11,37 +11,38 @@ import { memoryEngine } from "./engines/memory-engine";
 export async function runNamix(symbol: string) {
   const cleanSymbol = symbol.replace('/', '').toUpperCase();
 
-  // جلب البيانات الحقيقية من وكلاء التحليل
+  // جلب البيانات الحقيقية من الوكلاء المطورين
   const [tech, volume] = await Promise.all([
     technicalAgent(cleanSymbol),
     volumeAgent(cleanSymbol)
   ]);
 
-  // حساب النتيجة الاحتمالية بناءً على وزن الوكيل الفني ووكيل السيولة
-  const decisionScore = (tech.score * 0.6) + (volume.score * 0.4);
+  // محرك القرار الاحتمالي المرجح
+  const decisionScore = (tech.score * 0.7) + (volume.score * 0.3);
 
   let decision = "HOLD";
-  if (decisionScore > 0.58) decision = "BUY";
-  if (decisionScore < 0.42) decision = "SELL";
+  // عتبات قرار صارمة لضمان المصداقية
+  if (decisionScore > 0.62) decision = "BUY";
+  else if (decisionScore < 0.38) decision = "SELL";
 
-  // تقييم المخاطرة بناءً على سلامة القناة السعرية وكثافة السيولة
+  // تقييم المخاطرة السيادية
   const risk = riskEngine(decision, tech, volume);
   
-  // توليد دراسة منطقية متغيرة لحظياً بناءً على معطيات السوق
+  // توليد دراسة منطقية تعكس الحالة الحقيقية (شراء، بيع، أو انتظار)
   const reasoning = generateStrategicReasoning(decision, decisionScore, tech.change);
 
-  // حساب الأهداف الاستراتيجية (Targets) بناءً على النبض السعري الحالي (محاكاة دقيقة للفيبوناتشي)
+  // حساب الأهداف السعرية التقديرية بناءً على نوع القرار
   const targets = {
-    tp1: decision === "BUY" ? 1.004 : 0.996,
-    tp2: decision === "BUY" ? 1.012 : 0.988,
-    tp3: decision === "BUY" ? 1.025 : 0.975
+    tp1: decision === "BUY" ? 1.005 : 0.995,
+    tp2: decision === "BUY" ? 1.015 : 0.985,
+    tp3: decision === "BUY" ? 1.030 : 0.970
   };
 
-  // توليد خريطة الحرارة للمؤشرات (Heatmap) بناءً على قراءات حقيقية
+  // خريطة الحرارة للمؤشرات الحقيقية
   const heatmap = [
-    { label: "RSI", status: tech.change > 0.1 ? "bullish" : tech.change < -0.1 ? "bearish" : "neutral", val: tech.change.toFixed(2) + "%" },
-    { label: "VOL", status: volume.score > 0.6 ? "bullish" : "neutral", val: (volume.volume / 10).toFixed(0) },
-    { label: "EMA", status: tech.score > 0.52 ? "bullish" : tech.score < 0.48 ? "bearish" : "neutral", val: "Active" },
+    { label: "RSI", status: tech.change > 0.5 ? "bullish" : tech.change < -0.5 ? "bearish" : "neutral", val: tech.change.toFixed(2) + "%" },
+    { label: "VOL", status: volume.score > 0.65 ? "bullish" : "neutral", val: (volume.volume / 10).toFixed(0) },
+    { label: "RANGE", status: tech.score > 0.6 ? "bullish" : tech.score < 0.4 ? "bearish" : "neutral", val: "Active" },
     { label: "SYNC", status: decision !== "HOLD" ? "bullish" : "neutral", val: "Locked" }
   ];
 
@@ -54,7 +55,8 @@ export async function runNamix(symbol: string) {
     risk,
     reasoning,
     targets,
-    invalidated_at: decision === "BUY" ? 0.988 : 1.012, // نقطة الحماية (Stop Loss Logic)
+    entry_zone_multiplier: decision === "BUY" ? 0.9995 : 1.0005,
+    invalidated_at: decision === "BUY" ? 0.985 : 1.015,
     agents: { tech, volume },
     heatmap,
     timestamp: new Date().toISOString()
@@ -68,22 +70,19 @@ function generateStrategicReasoning(decision: string, score: number, change: num
   const buyPhrases = [
     `رصد تدفق سيولة إيجابي يتوافق مع اختراق مستويات الزخم؛ النبض الحالي يدعم مسار نمو وميضي بثقة ${intensity}%.`,
     `تكدس جدران الطلب عند القيعان اللحظية يعزز احتمالية الارتداد الاستراتيجي؛ الوكيل الفني يشير إلى تشبع بيعي مؤقت.`,
-    `الارتباط اللحظي بين السيولة والسعر يدعم مراكز الشراء المفتوحة؛ الهدف القادم يمثل منطقة مقاومة تاريخية.`,
     `تم كسر حاجز المقاومة النانوي بنجاح؛ محرك الزخم يشير إلى استمرارية الصعود بقوة نتيجة ضغط شرائي متزايد.`
   ];
 
   const sellPhrases = [
     `تشبع شرائي حاد عند القمم الحالية؛ بروتوكول الأمان يتوقع تصحيحاً سعرياً لتفريغ الزخم الزائد بنسبة ثقة ${intensity}%.`,
     `ضغط تصريفي مكثف يظهر في سجل الأوامر؛ السيولة تتراجع لدعم مستويات دعم أدنى بشكل تكتيكي ومحسوب.`,
-    `الوكيل الفني يكتشف بوادر انعكاس في الاتجاه؛ ينصح بتأمين المراكز أو اتخاذ وضعية البيع الاحترافية فوراً.`,
-    `فشل في الحفاظ على مستويات الدعم العليا؛ المحرك العصبي يرصد حركة هبوطية استباقية لاختبار مناطق السيولة المنخفضة.`
+    `الوكيل الفني يكتشف بوادر انعكاس في الاتجاه؛ ينصح بتأمين المراكز أو اتخاذ وضعية البيع الاحترافية فوراً.`
   ];
 
   const holdPhrases = [
     `توازن هش بين العرض والطلب؛ الذكاء يفضل التريث حتى اتضاح مسار السيولة القادم بدقة متناهية.`,
     `تذبذب جانبي ناتج عن ضعف حجم التداول؛ بروتوكول الأمان يجمد الإشارات لحماية رأس المال من تقلبات عشوائية.`,
-    `منطقة ترقب استراتيجية؛ المؤشرات الفنية لا تظهر انحيازاً صريحاً في اللحظة الراهنة، يرجى مراقبة النبض القادم.`,
-    `سيولة خاملة بانتظار نبض سعري محفز؛ ينصح بمراقبة اختراق القنوات الحالية من قبل وكلاء التحليل المعتمدين.`
+    `منطقة ترقب استراتيجية؛ المؤشرات الفنية لا تظهر انحيازاً صريحاً في اللحظة الراهنة، يرجى مراقبة النبض القادم.`
   ];
 
   if (decision === 'BUY') return buyPhrases[second % buyPhrases.length];
