@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -7,11 +6,12 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { BiasHeader } from "@/components/trade/ai/BiasHeader";
 import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing";
-import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
-import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { MarketScanner } from "@/components/trade/ai/MarketScanner";
+import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
+import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { 
   Zap, 
   Loader2, 
@@ -25,15 +25,18 @@ import {
   Minus, 
   AlertTriangle,
   Radar,
-  Waves
+  Target,
+  Waves,
+  Coins,
+  TrendingUp,
+  TrendingDown
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX-AI Sovereign Terminal v108.0 - 3s API Pulse
- * محرك استخباراتي يربط بين مسار API المركزي والتحديث اللحظي كل 3 ثوانٍ.
- * تم تطهير الواجهة من البطاقات الفرعية لضمان مظهر بيانات نقي ومؤسساتي.
+ * @fileOverview NAMIX-AI Sovereign Console v110.0 - All-in-One Intelligence Matrix
+ * دمج الأهداف الاستراتيجية والمقاييس في بطاقة واحدة مسطحة مع استعادة النبض السائل.
  */
 
 type ReactorStatus = 'calibrating' | 'results';
@@ -42,7 +45,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const db = useFirestore();
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
   const [dbUser, setDbUser] = useState<any>(null);
-  
   const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
@@ -71,7 +73,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   /**
-   * 3s Logic Pulse - جلب الاستنتاج من الـ API كل 3 ثوانٍ
+   * 3s Response Cycle - جلب التحليل من الـ API
    */
   useEffect(() => {
     if (status !== 'results' || !asset?.binanceSymbol) return;
@@ -110,7 +112,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
-    
     hapticFeedback.medium();
     setIsExecuting(true);
     try {
@@ -154,7 +155,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
       <AnimatePresence mode="wait">
         {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-2">
+          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
              <MarketScanner />
           </motion.div>
         )}
@@ -162,44 +163,18 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
-            <div className="relative flex items-center justify-between px-5 py-3 bg-gray-50/40 rounded-[32px] border border-gray-100 shadow-inner group overflow-hidden">
-               <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none group-hover:scale-125 transition-transform duration-1000">
-                  <Waves size={100} className="text-[#002d4d]" />
-               </div>
-               <div className="relative z-10 space-y-0.5 text-right">
-                  <p className="text-[11px] font-black text-[#002d4d] leading-none">نبض الأسواق</p>
-                  <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Live Pulse</p>
-               </div>
-               <div className="relative z-10 text-left">
-                  <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1">Price Stream</p>
-                  <p className="text-xl font-black text-[#002d4d] tabular-nums tracking-tighter leading-none">
-                    <span className="text-[10px] text-gray-300 ml-0.5">$</span>
-                    {(livePrice || asset.currentPrice)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-               </div>
-            </div>
+            {/* 1. استعادة نبض الأسواق السائل */}
+            <MarketPulseHub price={livePrice || asset.currentPrice} turbulence={confidenceScore} />
             
-            <IntelligenceMetrics scorecard={{
-              momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
-              liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
-              volatility: 85
-            }} />
-
-            <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
-            
+            {/* 2. تحليل المؤشرات (صف نانوي واحد) */}
             <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
                <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none group-hover/heatmap:scale-110 transition-transform duration-1000">
                   <Radar size={220} strokeWidth={1} />
                </div>
-
                <div className="flex items-center justify-between px-2 relative z-10">
-                  <div className="text-right">
-                    <h4 className="text-[10px] font-black text-[#002d4d]">تحليل المؤشرات</h4>
-                    <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mt-1">Indicator Analysis</p>
-                  </div>
+                  <h4 className="text-[10px] font-black text-[#002d4d]">تحليل المؤشرات | Analysis</h4>
                   <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">NANO SYNC</Badge>
                </div>
-
                <div className="flex items-center justify-between gap-4 relative z-10">
                   {result.heatmap?.map((item: any, i: number) => (
                     <div key={i} className="flex-1 flex flex-col items-center justify-center gap-1.5">
@@ -211,7 +186,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           {item.status === 'bullish' ? <Check size={12}/> : item.status === 'bearish' ? <AlertTriangle size={12}/> : <Minus size={12}/>}
                        </div>
                        <div className="text-center">
-                          <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1">{item.label.split(' ')[0]}</p>
+                          <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1">{item.label}</p>
                           <span className={cn("text-[9px] font-black tabular-nums", item.status === 'bullish' ? "text-emerald-600" : item.status === 'bearish' ? "text-red-600" : "text-gray-400")}>
                             {item.val}
                           </span>
@@ -221,6 +196,74 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            {/* 3. البطاقة السيادية المدمجة (الأهداف + المقاييس) */}
+            <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
+               {/* أيقونات شبحية خلفية */}
+               <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
+                  <Target size={180} />
+               </div>
+               <div className="absolute bottom-0 left-0 p-8 opacity-[0.02] rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
+                  <Zap size={180} />
+               </div>
+
+               {/* الجزء العلوي: مقاييس الاستخبارات */}
+               <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
+                  {[
+                    { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
+                    { label: "السيولة", val: `${Math.round((result.agents?.volume?.score || 0.5) * 100)}%`, icon: Target, color: "text-blue-500" },
+                    { label: "الاستقرار", val: "85%", icon: ShieldCheck, color: "text-emerald-500" },
+                    { label: "الارتباط", val: "SYNC", icon: Waves, color: "text-purple-500" }
+                  ].map((m, i) => (
+                    <div key={i} className="flex flex-col items-center gap-1.5">
+                       <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">{m.label}</p>
+                       <p className={cn("text-sm font-black tabular-nums", m.color)}>{m.val}</p>
+                    </div>
+                  ))}
+               </div>
+
+               <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
+
+               {/* الجزء السفلي: الأهداف الاستراتيجية */}
+               <div className="space-y-6 relative z-10 text-right">
+                  <div className="flex items-center justify-between px-2">
+                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">الأهداف الاستراتيجية | Targets</h4>
+                     <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">YIELD OPTIMIZED</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                     {[
+                       { label: "الهدف 1", val: result.targets?.tp1, color: "text-emerald-600" },
+                       { label: "الهدف 2", val: result.targets?.tp2, color: "text-emerald-600" },
+                       { label: "الهدف الأقصى", val: result.targets?.tp3, color: "text-[#f9a885]", glow: true }
+                     ].map((t, i) => (
+                       <div key={i} className="flex flex-col items-center text-center space-y-1.5">
+                          <span className="text-[8px] font-black text-gray-400 uppercase">{t.label}</span>
+                          <div className="flex items-center gap-1">
+                             <span className={cn("text-[13px] font-black tabular-nums tracking-tighter", t.color)}>
+                               ${((livePrice || asset.currentPrice) * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                             </span>
+                             {t.glow && <Sparkles size={8} className="text-[#f9a885] animate-pulse" />}
+                          </div>
+                       </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                     <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center">
+                        <span className="text-[8px] font-black text-gray-400 uppercase block mb-1">نطاق التمركز</span>
+                        <p className="text-[11px] font-black text-[#002d4d]">Current Price Zone</p>
+                     </div>
+                     <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center">
+                        <span className="text-[8px] font-black text-red-400 uppercase block mb-1">صمام الأمان</span>
+                        <p className="text-[11px] font-black text-red-600 tabular-nums">
+                          ${((livePrice || asset.currentPrice) * (result.invalidated_at || 0.985)).toFixed(2)}
+                        </p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* 4. بطاقة المخاطرة والثقة المدمجة */}
             <div className={cn(
               "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk transition-colors duration-500 bg-white",
               result.risk?.level === 'LOW' ? "border-emerald-100" : "border-red-100"
@@ -229,7 +272,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <ShieldCheck size={140} />
                </div>
 
-               <div className="flex items-center justify-between relative z-10 mb-6">
+               <div className="flex items-center justify-between relative z-10 mb-6 px-2">
                   <div className="flex items-center gap-3">
                      <div className={cn(
                        "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner",
@@ -248,7 +291,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
 
                <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-100 shadow-inner">
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest px-1">
                      <span className="text-gray-400">درجة الثقة الاستراتيجية</span>
                      <span className={cn("tabular-nums", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
                   </div>
@@ -265,6 +308,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك السيادي.`} />
 
             <div className="pt-4 border-t border-gray-100">
@@ -285,13 +329,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                  onClick={handleTradeExecution}
                  disabled={isExecuting || result.decision === 'HOLD' || result.risk?.action === 'AVOID TRADE'}
                  className={cn(
-                   "flex-1 h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
-                   result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/40" : 
-                   result.decision === 'SELL' ? "bg-red-500 hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
+                   "flex-1 h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden",
+                   result.decision === 'BUY' ? "hover:bg-emerald-600 shadow-emerald-900/40" : 
+                   result.decision === 'SELL' ? "hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
                  )}
                >
+                 <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
                  {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                   <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-3 relative z-10">
                       <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
                       <PlayCircle className="h-6 w-6" />
                    </div>

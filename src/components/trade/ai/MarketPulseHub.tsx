@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -8,7 +7,6 @@ import { useMemo, useState, useEffect, useRef } from "react";
 
 /**
  * AnimatedDigit - محرك الخانة الرقمية المنزلقة
- * تم تحسين الأداء لضمان حركة رأسية انسيابية للأرقام
  */
 function AnimatedDigit({ digit, colorClass = "text-[#f9a885]" }: { digit: string, colorClass?: string }) {
   const isNumber = !isNaN(parseInt(digit)) && isFinite(Number(digit));
@@ -40,7 +38,6 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
   const [isUp, setIsUp] = useState(true);
   const prevPriceRef = useRef<number | null>(null);
 
-  // مراقبة اتجاه السعر لتغيير لون النبض والأيقونات
   useEffect(() => {
     if (price !== null && prevPriceRef.current !== null) {
       if (price > prevPriceRef.current) setIsUp(true);
@@ -49,10 +46,9 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
     prevPriceRef.current = price;
   }, [price]);
 
-  // توليد مسار سائل مجهري يتغير لونه وتردده
   const liquidPath = useMemo(() => {
-    const points = Array.from({ length: 8 }).map((_, i) => 
-      `${i * 14},${15 + Math.sin(Date.now() / 400 + i) * (3 + turbulence / 10)}`
+    const points = Array.from({ length: 10 }).map((_, i) => 
+      `${i * 12},${15 + Math.sin(Date.now() / 300 + i) * (4 + turbulence / 10)}`
     ).join(' L ');
     return `M 0,20 L ${points}`;
   }, [turbulence, price]);
@@ -62,19 +58,16 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
   return (
     <div className="relative flex items-center justify-between px-5 py-3 bg-gray-50/40 rounded-[32px] border border-gray-100 shadow-inner group font-body tracking-normal overflow-hidden" dir="rtl">
       
-      {/* 1. الأيقونة الشبحية في الخلفية - Sovereign Watermark */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-12">
          <Waves size={100} className="text-[#002d4d]" />
       </div>
 
-      {/* 2. عنوان المكون - Identity Node */}
       <div className="relative z-10 space-y-0.5 text-right">
          <p className="text-[11px] font-black text-[#002d4d] leading-none tracking-normal">نبض الأسواق</p>
          <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest leading-none tracking-normal mt-1">Live Pulse</p>
       </div>
 
-      {/* 3. الرسم البياني السائل المركزي - Extended Liquid Flow */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-8 overflow-hidden pointer-events-none">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-8 overflow-hidden pointer-events-none">
          <svg viewBox="0 0 100 40" className="h-full w-full">
             <motion.path
               d={liquidPath}
@@ -89,23 +82,16 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
          </svg>
       </div>
 
-      {/* 4. العداد السعري الملون مع أيقونة النبض - Dynamic Price Node */}
       <div className="relative z-10 text-left pl-1">
          <div className="flex flex-col items-start">
             <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1 tracking-normal">Price Stream</p>
             <div className="flex items-center gap-1.5" dir="ltr">
-               
-               {/* أيقونة النبض (Chevron) المتحركة بدون عمود */}
                <motion.div 
-                  animate={{ y: isUp ? [2, -2, 2] : [-2, 2, -2] }}
+                  animate={{ y: isUp ? [-2, 2, -2] : [2, -2, 2] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                   className={cn("shrink-0", statusColor)}
                >
-                  {isUp ? (
-                    <ChevronUp size={16} strokeWidth={4} />
-                  ) : (
-                    <ChevronDown size={16} strokeWidth={4} />
-                  )}
+                  {isUp ? <ChevronUp size={16} strokeWidth={4} /> : <ChevronDown size={16} strokeWidth={4} />}
                </motion.div>
 
                <div className="flex items-center text-[16px] font-black tabular-nums tracking-tighter h-[1.2em] leading-none">
@@ -117,7 +103,6 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
             </div>
          </div>
       </div>
-
     </div>
   );
 }
