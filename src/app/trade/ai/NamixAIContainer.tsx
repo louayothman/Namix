@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -32,8 +33,8 @@ import { cn } from "@/lib/utils";
 import { useMarketStore } from "@/store/use-market-store";
 
 /**
- * @fileOverview NAMIX-AI Sovereign Terminal v105.0 - WebSocket Driven
- * محرك استخباراتي يعتمد على الويب-سوكت لتحديث المنطق كل ثانية بدون تحميل زائد.
+ * @fileOverview NAMIX-AI Sovereign Terminal v106.0 - 1s API Pulse
+ * محرك استخباراتي يربط بين مسار API المركزي والتحديث اللحظي كل ثانية.
  */
 
 type ReactorStatus = 'calibrating' | 'results';
@@ -43,16 +44,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
   const [dbUser, setDbUser] = useState<any>(null);
   
-  // States for Local Analysis
+  // States for Live Analysis
   const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-
-  // Sync with Global Market Store (WebSocket Feed)
-  const storeChange = useMarketStore(state => state.dailyChanges[asset?.id] || 0);
-  const storeStats = useMarketStore(state => state.marketStats[asset?.id]);
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
   const { data: globalConfig } = useDoc(globalTradeRef);
@@ -77,76 +74,25 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   /**
-   * Internal Strategic Reasoning Engine (1s Pulse)
-   * يصيغ المنطق داخلياً بناءً على نبض الويب-سوكت دون الحاجة للتحميل.
+   * 1s Logic Pulse - جلب الاستنتاج من الـ API كل ثانية
    */
   useEffect(() => {
-    if (status !== 'results' || !asset) return;
+    if (status !== 'results' || !asset?.binanceSymbol) return;
 
-    const runInternalAnalysis = () => {
-      const price = livePrice || asset.currentPrice;
-      const change = storeChange;
-      const volume = storeStats?.volume || 1500;
-
-      // 1. Technical Scoring (Probabilistic)
-      const techScore = Math.max(0, Math.min(1, 0.5 + (change / 10)));
-      
-      // 2. Volume Scoring (Density)
-      const volScore = Math.max(0.1, Math.min(1, volume / 5000));
-
-      // 3. Decision Score
-      const score = (techScore * 0.6) + (volScore * 0.4);
-      let decision = "HOLD";
-      if (score > 0.58) decision = "BUY";
-      if (score < 0.42) decision = "SELL";
-
-      // 4. Strategic Reasoning Array
-      const second = Math.floor(Date.now() / 1000);
-      const buyPhrases = [
-        "رصد تدفق سيولة إيجابي يتوافق مع اختراق مستويات الزخم اللحظي.",
-        "تكدس جدران الطلب عند القيعان يعزز احتمالية الارتداد الاستراتيجي.",
-        "الوكلاء يرصدون انحرافاً إيجابياً؛ السيولة تتدفق لدعم الصعود."
-      ];
-      const sellPhrases = [
-        "تشبع شرائي حاد عند القمم؛ بروتوكول الأمان يتوقع تصحيحاً وشيكاً.",
-        "ضغط تصريفي مكثف يظهر في سجل الأوامر؛ السيولة تتراجع تكتيكياً.",
-        "المحرك يكتشف بوادر انعكاس؛ ينصح بتأمين المراكز الحالية."
-      ];
-      const holdPhrases = [
-        "توازن هش بين العرض والطلب؛ المحرك يفضل التريث لحماية الأصول.",
-        "تذبذب جانبي ناتج عن ضعف السيولة؛ بروتوكول الأمان يجمد الإشارات.",
-        "منطقة ترقب استراتيجية؛ المؤشرات لا تظهر انحيازاً صريحاً الآن."
-      ];
-
-      const reasoning = decision === 'BUY' ? buyPhrases[second % 3] : 
-                        decision === 'SELL' ? sellPhrases[second % 3] : holdPhrases[second % 3];
-
-      setResult({
-        decision,
-        score,
-        reasoning,
-        scorecard: {
-          momentum: Math.round(techScore * 100),
-          liquidity: Math.round(volScore * 100),
-          volatility: 85
-        },
-        heatmap: [
-          { label: "زخم RSI", status: change > 0.2 ? "bullish" : change < -0.2 ? "bearish" : "neutral", val: change.toFixed(2) + "%" },
-          { label: "سيولة In", status: volScore > 0.6 ? "bullish" : volScore < 0.3 ? "bearish" : "neutral", val: (volume / 10).toFixed(0) },
-          { label: "نبض EMA", status: techScore > 0.5 ? "bullish" : "bearish", val: "Active" },
-          { label: "ثبات القناة", status: Math.abs(change) < 1.5 ? "bullish" : "neutral", val: "Synced" }
-        ],
-        risk: {
-          level: (techScore < 0.4 || volScore < 0.4) ? "HIGH" : "LOW",
-          action: decision === "BUY" && (techScore < 0.4 || volScore < 0.4) ? "AVOID TRADE" : decision
-        }
-      });
+    const fetchAnalysis = async () => {
+      try {
+        const res = await fetch(`/api/namix?symbol=${asset.binanceSymbol}`);
+        const data = await res.json();
+        setResult(data);
+      } catch (e) {
+        // Silent error to keep UI fluid
+      }
     };
 
-    const interval = setInterval(runInternalAnalysis, 1000);
-    runInternalAnalysis();
+    const interval = setInterval(fetchAnalysis, 1000);
+    fetchAnalysis();
     return () => clearInterval(interval);
-  }, [status, asset, livePrice, storeChange, storeStats]);
+  }, [status, asset]);
 
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
@@ -170,11 +116,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
-    if (result.risk?.level === 'DANGEROUS' || result.risk?.action === 'AVOID TRADE') {
-      setFeedback({ type: 'error', message: 'بروتوكول الأمان منع الصفقة: مخاطرة عالية.' });
-      return;
-    }
-
+    
     hapticFeedback.medium();
     setIsExecuting(true);
     try {
@@ -243,7 +185,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
             
-            <IntelligenceMetrics scorecard={result.scorecard} />
+            <IntelligenceMetrics scorecard={{
+              momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
+              liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
+              volatility: 85
+            }} />
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
@@ -309,7 +255,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   </Badge>
                </div>
 
-               <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-50 shadow-inner">
+               <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-100 shadow-inner">
                   <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
                      <span className="text-gray-400">درجة الثقة الاستراتيجية</span>
                      <span className={cn("tabular-nums", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
