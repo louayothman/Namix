@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 type ReactorStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
 
 /**
- * ConfidenceRing - مؤشر الثقة النانوي المدمج
+ * ConfidenceRing - مؤشر الثقة النانوي المدمج بجانب زر التنفيذ
  */
 function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
   const radius = 18;
@@ -46,7 +46,7 @@ function ConfidenceRing({ value, colorClass }: { value: number, colorClass: stri
           cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent"
           strokeDasharray={circumference}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           strokeLinecap="round"
           className={colorClass}
         />
@@ -68,6 +68,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  
+  const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
   const { data: globalConfig } = useDoc(globalTradeRef);
@@ -90,21 +92,31 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  // محرك التحديث التلقائي (Continuous Pulse) بمجرد ظهور النتائج
+  // محرك التحديث اللحظي (5s Pulse) - يعمل بصمت خلف الكواليس لتحديث النتائج والمنطق
+  const fetchUpdate = async () => {
+    if (!asset || status !== 'results') return;
+    try {
+      const symbol = asset.binanceSymbol || asset.code.replace('/', '');
+      const res = await fetch(`/api/namix?symbol=${symbol}`);
+      const data = await res.json();
+      if (!data.error) {
+        setResult(data);
+      }
+    } catch (e) {
+      console.error("Pulse Sync Error", e);
+    }
+  };
+
   useEffect(() => {
-    if (status !== 'results' || !asset) return;
-
-    const fetchUpdate = async () => {
-      try {
-        const symbol = asset.binanceSymbol || asset.code.replace('/', '');
-        const res = await fetch(`/api/namix?symbol=${symbol}`);
-        const data = await res.json();
-        if (!data.error) setResult(data);
-      } catch (e) {}
+    if (status === 'results') {
+      // تحديث فوري عند الدخول في حالة النتائج
+      fetchUpdate();
+      // ضبط النبض كل 5 ثوانٍ كما هو مطلوب
+      updateTimerRef.current = setInterval(fetchUpdate, 5000);
+    }
+    return () => {
+      if (updateTimerRef.current) clearInterval(updateTimerRef.current);
     };
-
-    const interval = setInterval(fetchUpdate, 15000); // تحديث كل 15 ثانية لضمان استقرار Gemini
-    return () => clearInterval(interval);
   }, [status, asset]);
 
   const adminDurations = useMemo(() => {
@@ -237,8 +249,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
+            {/* نبض السوق المباشر - مربوط بالويب سوكت */}
             <MarketPulseHub price={livePrice} turbulence={Math.round((1 - (result.score || 0.5)) * 100)} />
             
+            {/* بطاقة الأداء المحدثة كل 5 ثوانٍ */}
             <IntelligenceMetrics 
               scorecard={{
                 momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
@@ -249,6 +263,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
+            {/* مصفوفة التدقيق الفني - تتغير لحظياً */}
             <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-4">
                <div className="flex items-center gap-2 px-2">
                   <ShieldCheck size={14} className="text-blue-500" />
@@ -295,12 +310,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </Badge>
             </div>
 
+            {/* الوكيل الاستنتاجي (Reasoning) - يتحدث كل 5 ثوانٍ */}
             <IntelligenceBriefing 
               reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
               summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة.`}
             />
 
             <div className="pt-2 flex items-center gap-4">
+               {/* حلقة الثقة النانوية بجانب زر التنفيذ */}
                <ConfidenceRing 
                  value={result.score * 100} 
                  colorClass={result.decision === 'BUY' ? "text-emerald-500" : result.decision === 'SELL' ? "text-red-500" : "text-blue-500"} 
