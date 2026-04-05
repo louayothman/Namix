@@ -17,30 +17,19 @@ import {
   Loader2, 
   PlayCircle, 
   Activity, 
-  ShieldAlert, 
-  CheckCircle2, 
-  X, 
-  ShieldCheck, 
   Check, 
   Minus, 
   AlertTriangle,
-  Radar,
   Target,
   Waves,
   Coins,
-  TrendingUp,
-  TrendingDown,
-  Sparkles
+  Sparkles,
+  Radar,
+  ShieldCheck,
+  X
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
-
-/**
- * @fileOverview NAMIX-AI Sovereign Console v120.0 - Reordered Matrix Edition
- * المكون الأول: رأس الانحياز (Top).
- * عزل المخاطرة والثقة في مكون مستقل ثنائي التموضع (يمين/يسار).
- * تحديث استخباراتي حي كل 3 ثوانٍ.
- */
 
 type ReactorStatus = 'calibrating' | 'results';
 
@@ -76,7 +65,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   /**
-   * 3s Strategic Sync Cycle
+   * بروتوكول المزامنة الاستخباراتي (كل 3 ثوانٍ)
+   * يعتمد كلياً على منطق Namix AI المركزي عبر مسار الـ API المعتمد.
    */
   useEffect(() => {
     if (status !== 'results' || !asset?.binanceSymbol) return;
@@ -181,11 +171,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <Zap size={180} />
                </div>
 
-               {/* تحليل المؤشرات - نانوي مسطح */}
+               {/* تحليل المؤشرات - نانوي مسطح (صف واحد بدون بطاقات) */}
                <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative z-10">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d]">تحليل المؤشرات | Indicators</h4>
-                     <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">NANO SYNC</Badge>
+                     <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات | Indicator Analysis</h4>
+                     <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">FLAT MATRIX</Badge>
                   </div>
                   <div className="flex items-center justify-between gap-4">
                      {result.heatmap?.map((item: any, i: number) => (
@@ -198,8 +188,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                              {item.status === 'bullish' ? <Check size={12}/> : item.status === 'bearish' ? <AlertTriangle size={12}/> : <Minus size={12}/>}
                           </div>
                           <div className="text-center">
-                             <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1">{item.label}</p>
-                             <span className={cn("text-[9px] font-black tabular-nums", item.status === 'bullish' ? "text-emerald-600" : item.status === 'bearish' ? "text-red-600" : "text-gray-400")}>
+                             <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1 tracking-normal">{item.label}</p>
+                             <span className={cn("text-[9px] font-black tabular-nums tracking-normal", item.status === 'bullish' ? "text-emerald-600" : item.status === 'bearish' ? "text-red-600" : "text-gray-400")}>
                                {item.val}
                              </span>
                           </div>
@@ -208,7 +198,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   </div>
                </div>
 
-               {/* مقاييس الاستخبارات */}
+               {/* مقاييس الاستخبارات - نانوية شبحية */}
                <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
                   {[
                     { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
@@ -217,8 +207,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                     { label: "الارتباط", val: "SYNC", icon: Waves, color: "text-purple-500" }
                   ].map((m, i) => (
                     <div key={i} className="flex flex-col items-center gap-1.5">
-                       <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">{m.label}</p>
-                       <p className={cn("text-sm font-black tabular-nums", m.color)}>{m.val}</p>
+                       <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest tracking-normal">{m.label}</p>
+                       <p className={cn("text-sm font-black tabular-nums tracking-normal", m.color)}>{m.val}</p>
                     </div>
                   ))}
                </div>
@@ -228,7 +218,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                {/* الأهداف الاستراتيجية */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">الأهداف الاستراتيجية | Targets</h4>
+                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية | Targets</h4>
                      <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">YIELD OPTIMIZED</Badge>
                   </div>
                   
@@ -239,7 +229,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                        { label: "الهدف الأقصى", val: result.targets?.tp3, color: "text-[#f9a885]", glow: true }
                      ].map((t, i) => (
                        <div key={i} className="flex flex-col items-center text-center space-y-1.5">
-                          <span className="text-[8px] font-black text-gray-400 uppercase">{t.label}</span>
+                          <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">{t.label}</span>
                           <div className="flex items-center gap-1">
                              <span className={cn("text-[13px] font-black tabular-nums tracking-tighter", t.color)}>
                                ${((livePrice || asset.currentPrice) * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -252,14 +242,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
                      <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center space-y-1">
-                        <span className="text-[8px] font-black text-gray-400 uppercase block">نطاق التمركز</span>
-                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums" dir="ltr">
+                        <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
+                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">
                           ${(livePrice || asset.currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })} - ${((livePrice || asset.currentPrice) * 1.0005).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
                      <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
-                        <span className="text-[8px] font-black text-red-400 uppercase block">صمام الأمان</span>
-                        <p className="text-[11px] font-black text-red-600 tabular-nums">
+                        <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
+                        <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">
                           ${((livePrice || asset.currentPrice) * (result.invalidated_at || 0.985)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
@@ -325,7 +315,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               )}>
                  <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center"><CheckCircle2 size={20} /></div>
-                    <p className="text-sm font-black leading-none">{feedback.message}</p>
+                    <p className="text-sm font-black tracking-normal">{feedback.message}</p>
                  </div>
                  <button onClick={() => setFeedback(null)}><X size={18} /></button>
               </div>
