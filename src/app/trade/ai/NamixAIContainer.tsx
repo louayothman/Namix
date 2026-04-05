@@ -12,7 +12,19 @@ import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Loader2, PlayCircle, Activity, ShieldAlert, CheckCircle2, X } from "lucide-react";
+import { 
+  Zap, 
+  Loader2, 
+  PlayCircle, 
+  Activity, 
+  ShieldAlert, 
+  CheckCircle2, 
+  X, 
+  ShieldCheck, 
+  Check, 
+  Minus, 
+  AlertTriangle 
+} from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
@@ -180,7 +192,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
-            <MarketPulseHub price={livePrice} turbulence={Math.round((1 - result.score) * 100)} />
+            <MarketPulseHub price={livePrice} turbulence={Math.round((1 - (result.score || 0.5)) * 100)} />
             
             <IntelligenceMetrics 
               scorecard={{
@@ -192,6 +204,37 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
+            {/* مصفوفة التدقيق الفني (Technical Heatmap) لإثبات "التفكير" */}
+            <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-4">
+               <div className="flex items-center gap-2 px-2">
+                  <ShieldCheck size={14} className="text-blue-500" />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">مصفوفة التدقيق الاستخباري</span>
+               </div>
+               <div className="grid gap-2.5">
+                  {result.heatmap?.map((item: any, i: number) => (
+                    <div key={i} className="bg-white p-4 rounded-[20px] flex items-center justify-between border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                       <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "h-7 w-7 rounded-lg flex items-center justify-center shadow-inner",
+                            item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
+                            item.status === 'bearish' ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-400"
+                          )}>
+                             {item.status === 'bullish' ? <Check size={14}/> : item.status === 'bearish' ? <AlertTriangle size={14}/> : <Minus size={14}/>}
+                          </div>
+                          <span className="text-[11px] font-black text-[#002d4d]">{item.label}</span>
+                       </div>
+                       <Badge className={cn(
+                         "font-black text-[8px] border-none px-2 py-0.5 rounded-md",
+                         item.status === 'bullish' ? "bg-emerald-500 text-white" : 
+                         item.status === 'bearish' ? "bg-red-500 text-white" : "bg-gray-100 text-gray-400"
+                       )}>
+                          {item.val}
+                       </Badge>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
             <div className={cn(
               "p-6 rounded-[36px] border shadow-inner flex items-center justify-between",
               result.risk?.level === 'LOW' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
@@ -210,7 +253,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <IntelligenceBriefing 
               reasoning={`استنتاج الوكلاء: ${result.risk?.reason || 'لم يتم تحديد سبب صريح؛ يرجى مراقبة النبض.'}`}
-              summary={`تم تحليل الرمز ${result.pair} بنتيجة ثقة ${(result.score * 100).toFixed(1)}%.`}
+              summary={`تم تحليل الرمز ${result.pair} بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في توقيت ${new Date(result.timestamp).toLocaleTimeString('ar-EG')}.`}
             />
 
             <Button 
