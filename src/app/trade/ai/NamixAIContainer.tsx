@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -13,6 +12,7 @@ import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Zap, 
   Loader2, 
@@ -25,7 +25,9 @@ import {
   Check, 
   Minus, 
   AlertTriangle,
-  Radar
+  Radar,
+  Sparkles,
+  Target
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
@@ -113,7 +115,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   useEffect(() => {
     if (status === 'results') {
-      // تحديث كل 1 ثانية لحيوية قصوى
       updateTimerRef.current = setInterval(fetchUpdate, 1000);
     }
     return () => {
@@ -185,6 +186,9 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   };
 
+  const confidenceScore = result ? Math.round(result.score * 100) : 0;
+  const confidenceColor = confidenceScore >= 70 ? "bg-emerald-500" : confidenceScore >= 45 ? "bg-blue-500" : "bg-red-500";
+
   return (
     <div className="w-full space-y-6 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
@@ -220,11 +224,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
-            {/* تحليل المؤشرات | Indicator Analysis - نانوي ومدمج */}
+            {/* تحليل المؤشرات | Indicator Analysis - صف واحد نانوي */}
             <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
-               {/* خلفية القسم الشفافة الضخمة */}
-               <div className="absolute -bottom-4 -left-4 opacity-[0.02] pointer-events-none transition-transform duration-1000 group-hover/heatmap:scale-110">
-                  <Radar size={180} strokeWidth={1} />
+               <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none transition-transform duration-1000 group-hover/heatmap:scale-110">
+                  <Radar size={220} strokeWidth={1} />
                </div>
 
                <div className="flex items-center justify-between px-2 relative z-10">
@@ -235,9 +238,9 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">NANO SYNC</Badge>
                </div>
 
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
+               <div className="flex items-center justify-between gap-2 relative z-10">
                   {result.heatmap?.map((item: any, i: number) => (
-                    <div key={i} className="bg-white p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 border border-gray-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+                    <div key={i} className="flex-1 bg-white p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 border border-gray-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
                        <div className={cn(
                          "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
                          item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
@@ -256,25 +259,58 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            {/* بطاقة المخاطر مع مؤشر الثقة الأفقي المدمج */}
             <div className={cn(
-              "p-6 rounded-[36px] border shadow-inner flex items-center justify-between",
-              result.risk?.level === 'LOW' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
+              "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk",
+              result.risk?.level === 'LOW' ? "bg-white border-emerald-100" : "bg-white border-red-100"
             )}>
-               <div className="flex items-center gap-3">
-                  <ShieldAlert className={cn("h-5 w-5", result.risk?.level === 'LOW' ? "text-emerald-600" : "text-red-600")} />
-                  <div className="text-right">
-                     <p className="text-[10px] font-black text-gray-400 uppercase leading-none">Risk Evaluation</p>
-                     <p className={cn("text-sm font-black", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
+               <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none group-hover/risk:rotate-12 transition-transform duration-1000">
+                  <ShieldCheck size={140} />
+               </div>
+
+               <div className="flex items-center justify-between relative z-10 mb-6">
+                  <div className="flex items-center gap-3">
+                     <div className={cn(
+                       "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner",
+                       result.risk?.level === 'LOW' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                     )}>
+                        <ShieldAlert size={20} />
+                     </div>
+                     <div className="text-right">
+                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none">Risk Evaluation</p>
+                        <p className={cn("text-sm font-black mt-1", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
+                     </div>
+                  </div>
+                  <Badge className={cn("border-none font-black text-[9px] px-4 py-1.5 rounded-xl shadow-lg", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
+                     {result.risk?.action || "HOLD"}
+                  </Badge>
+               </div>
+
+               <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-50 shadow-inner">
+                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                     <span className="text-gray-400">درجة الثقة الاستراتيجية</span>
+                     <span className={cn("tabular-nums", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden shadow-inner">
+                     <motion.div 
+                       initial={{ width: 0 }}
+                       animate={{ width: `${confidenceScore}%` }}
+                       transition={{ duration: 1, ease: "circOut" }}
+                       className={cn("h-full relative rounded-full", confidenceColor)}
+                     >
+                        <motion.div 
+                          animate={{ x: ['100%', '-100%'] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        />
+                     </motion.div>
                   </div>
                </div>
-               <Badge className={cn("border-none font-black text-[8px] px-3 py-1", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
-                  {result.risk?.action || "HOLD"}
-               </Badge>
             </div>
 
             <IntelligenceBriefing 
               reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
-              summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة.`}
+              summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة عبر المحرك الداخلي.`}
             />
 
             <div className="pt-4 border-t border-gray-100">
