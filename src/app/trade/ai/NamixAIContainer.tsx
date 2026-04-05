@@ -11,7 +11,6 @@ import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { 
   Zap, 
   Loader2, 
@@ -29,14 +28,15 @@ import {
   Waves,
   Coins,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Sparkles
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX-AI Sovereign Console v110.0 - All-in-One Intelligence Matrix
- * دمج الأهداف الاستراتيجية والمقاييس في بطاقة واحدة مسطحة مع استعادة النبض السائل.
+ * @fileOverview NAMIX-AI Sovereign Console v115.0 - The Unified Intelligence Matrix
+ * دمج الأهداف الاستراتيجية والمقاييس في بطاقة واحدة مسطحة مع استعادة النبض السائل والألوان التفاعلية.
  */
 
 type ReactorStatus = 'calibrating' | 'results';
@@ -73,7 +73,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   /**
-   * 3s Response Cycle - جلب التحليل من الـ API
+   * 3s Strategic Sync Cycle
    */
   useEffect(() => {
     if (status !== 'results' || !asset?.binanceSymbol) return;
@@ -163,7 +163,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
-            {/* 1. استعادة نبض الأسواق السائل */}
+            {/* 1. نبض الأسواق السائل الملون */}
             <MarketPulseHub price={livePrice || asset.currentPrice} turbulence={confidenceScore} />
             
             {/* 2. تحليل المؤشرات (صف نانوي واحد) */}
@@ -196,9 +196,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* 3. البطاقة السيادية المدمجة (الأهداف + المقاييس) */}
+            {/* 3. البطاقة السيادية الموحدة (الأهداف + المقاييس) */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
-               {/* أيقونات شبحية خلفية */}
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
                   <Target size={180} />
                </div>
@@ -206,7 +205,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <Zap size={180} />
                </div>
 
-               {/* الجزء العلوي: مقاييس الاستخبارات */}
+               {/* مقاييس الاستخبارات */}
                <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
                   {[
                     { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
@@ -223,7 +222,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
 
-               {/* الجزء السفلي: الأهداف الاستراتيجية */}
+               {/* الأهداف الاستراتيجية */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest">الأهداف الاستراتيجية | Targets</h4>
