@@ -11,6 +11,7 @@ import { MarketScanner } from "@/components/trade/ai/MarketScanner";
 import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Zap, Loader2, PlayCircle, Activity, ShieldAlert, CheckCircle2, X } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
@@ -74,8 +75,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     setStatus('analyzing');
     
     try {
-      // إرسال طلب للمحلل المركزي عبر المسار الآمن
-      const res = await fetch(`/api/namix?symbol=${asset.binanceSymbol || asset.code.replace('/', '')}`);
+      const symbol = asset.binanceSymbol || asset.code.replace('/', '');
+      const res = await fetch(`/api/namix?symbol=${symbol}`);
       const data = await res.json();
       
       if (data.error) throw new Error(data.error);
@@ -181,7 +182,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             <MarketPulseHub price={livePrice} turbulence={Math.round((1 - result.score) * 100)} />
             
-            {/* عرض المقاييس بأسلوب آمن (Safe Access) */}
             <IntelligenceMetrics 
               scorecard={{
                 momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
@@ -218,8 +218,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               disabled={isExecuting || result.decision === 'HOLD'}
               className={cn(
                 "w-full h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
-                result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600" : 
-                result.decision === 'SELL' ? "bg-red-50 hover:bg-red-600" : "bg-gray-100 text-gray-400"
+                result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/40" : 
+                result.decision === 'SELL' ? "bg-red-50 hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
               )}
             >
               {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (

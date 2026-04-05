@@ -1,8 +1,8 @@
 import axios from "axios";
 
 /**
- * @fileOverview Technical Agent v2.0
- * يحلل التغير السعري خلال 24 ساعة لتحديد قوة الزخم.
+ * @fileOverview Technical Agent v3.0 - Final Structure
+ * يحلل التغير السعري خلال 24 ساعة من Binance API.
  */
 
 export async function technicalAgent(symbol: string) {
@@ -15,9 +15,7 @@ export async function technicalAgent(symbol: string) {
     let score = 0.5;
 
     if (change > 2) score = 0.8;
-    else if (change > 0) score = 0.6;
     else if (change < -2) score = 0.2;
-    else if (change < 0) score = 0.4;
 
     return {
       name: "Technical",
@@ -25,7 +23,6 @@ export async function technicalAgent(symbol: string) {
       change,
     };
   } catch (error) {
-    // في حال فشل الاتصال، يعيد نتيجة محايدة لضمان استقرار المنظومة
     return { name: "Technical", score: 0.5, change: 0 };
   }
 }

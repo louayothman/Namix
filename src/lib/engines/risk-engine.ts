@@ -1,17 +1,15 @@
 /**
- * @fileOverview Risk Engine v2.0
+ * @fileOverview Risk Engine v3.0 - Final Structure
  * صمام الأمان الذي يقيم سلامة الصفقة قبل السماح بالتنفيذ.
  */
 
 export function riskEngine(decision: string, tech: any, volume: any) {
   let risk = "LOW";
 
-  // إذا كان أحد الوكلاء يعطي إشارة ضعف شديدة (أقل من 40%) ترتفع المخاطرة فوراً
   if (tech.score < 0.4 || volume.score < 0.4) {
     risk = "HIGH";
   }
 
-  // بروتوكول منع الشراء عند المخاطرة العالية (DANGEROUS)
   if (decision === "BUY" && risk === "HIGH") {
     return {
       level: "DANGEROUS",
