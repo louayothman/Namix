@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -28,7 +29,7 @@ import {
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
-type ReactorStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
+type ReactorStatus = 'calibrating' | 'analyzing' | 'results';
 
 /**
  * ConfidenceRing - مؤشر الثقة النانوي المدمج بجانب زر التنفيذ
@@ -52,7 +53,7 @@ function ConfidenceRing({ value, colorClass }: { value: number, colorClass: stri
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-         <span className={cn("text-[9px] font-black tabular-nums", colorClass)}>%{value.toFixed(1)}</span>
+         <span className={cn("text-[9px] font-black tabular-nums", colorClass)}>%{value.toFixed(0)}</span>
       </div>
     </div>
   );
@@ -85,22 +86,18 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  useEffect(() => {
-    if (status === 'calibrating') {
-      const timer = setTimeout(() => setStatus('configuring'), 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [status]);
-
-  // محرك التحديث اللحظي (5s Pulse) - يعمل بصمت خلف الكواليس لتحديث النتائج والمنطق
+  // محرك التحديث اللحظي الصامت (5s Pulse)
   const fetchUpdate = async () => {
-    if (!asset || status !== 'results') return;
+    if (!asset) return;
     try {
       const symbol = asset.binanceSymbol || asset.code.replace('/', '');
       const res = await fetch(`/api/namix?symbol=${symbol}`);
       const data = await res.json();
       if (!data.error) {
         setResult(data);
+        if (status === 'calibrating' || status === 'analyzing') {
+          setStatus('results');
+        }
       }
     } catch (e) {
       console.error("Pulse Sync Error", e);
@@ -108,10 +105,17 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   };
 
   useEffect(() => {
+    if (status === 'calibrating') {
+      const timer = setTimeout(() => {
+        setStatus('analyzing');
+        fetchUpdate();
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (status === 'results') {
-      // تحديث فوري عند الدخول في حالة النتائج
-      fetchUpdate();
-      // ضبط النبض كل 5 ثوانٍ كما هو مطلوب
       updateTimerRef.current = setInterval(fetchUpdate, 5000);
     }
     return () => {
@@ -138,25 +142,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       setTradeDuration(adminDurations[0].seconds);
     }
   }, [adminDurations, tradeDuration]);
-
-  const handleStartAnalysis = async () => {
-    hapticFeedback.medium();
-    setStatus('analyzing');
-    
-    try {
-      const symbol = asset.binanceSymbol || asset.code.replace('/', '');
-      const res = await fetch(`/api/namix?symbol=${symbol}`);
-      const data = await res.json();
-      
-      if (data.error) throw new Error(data.error);
-      
-      setResult(data);
-      setTimeout(() => setStatus('results'), 2500);
-    } catch (e) {
-      console.error("Analysis Failed", e);
-      setStatus('configuring');
-    }
-  };
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
@@ -211,30 +196,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           </motion.div>
         )}
 
-        {status === 'configuring' && (
-          <motion.div key="config" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 py-2">
-             <ParameterConsole 
-               amount={tradeAmount}
-               onAmountChange={setAmount => setTradeAmount(setAmount)}
-               duration={tradeDuration}
-               onDurationChange={setDuration => setTradeDuration(setDuration)}
-               durations={adminDurations}
-               balance={dbUser?.totalBalance || 0}
-               minAmount={globalConfig?.minTradeAmount || 10}
-               maxAmount={globalConfig?.maxTradeAmount || 5000}
-             />
-
-             <Button 
-               onClick={handleStartAnalysis} 
-               className="w-full h-20 rounded-[32px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-95 transition-all group overflow-hidden relative"
-             >
-                <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
-                <span className="relative z-10">بدء تشغيل الوكلاء</span>
-                <Zap className="mr-3 h-6 w-6 text-[#f9a885] fill-current" />
-             </Button>
-          </motion.div>
-        )}
-
         {status === 'analyzing' && (
           <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 flex flex-col items-center justify-center gap-6">
              <div className="relative">
@@ -271,7 +232,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
                <div className="grid gap-2.5">
                   {result.heatmap?.map((item: any, i: number) => (
-                    <div key={i} className="bg-white p-4 rounded-[20px] flex items-center justify-between border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                    <div key={i} className="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100 shadow-sm transition-all hover:shadow-md">
                        <div className="flex items-center gap-3">
                           <div className={cn(
                             "h-7 w-7 rounded-lg flex items-center justify-center shadow-inner",
@@ -310,11 +271,25 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </Badge>
             </div>
 
-            {/* الوكيل الاستنتاجي (Reasoning) - يتحدث كل 5 ثوانٍ */}
+            {/* الوكيل الاستنتاجي (Reasoning) */}
             <IntelligenceBriefing 
               reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
               summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة.`}
             />
+
+            {/* قمرة المعايير المدمجة - دائماً متاحة للتعديل */}
+            <div className="pt-4 border-t border-gray-100">
+               <ParameterConsole 
+                 amount={tradeAmount}
+                 onAmountChange={setAmount => setTradeAmount(setAmount)}
+                 duration={tradeDuration}
+                 onDurationChange={setDuration => setTradeDuration(setDuration)}
+                 durations={adminDurations}
+                 balance={dbUser?.totalBalance || 0}
+                 minAmount={globalConfig?.minTradeAmount || 10}
+                 maxAmount={globalConfig?.maxTradeAmount || 5000}
+               />
+            </div>
 
             <div className="pt-2 flex items-center gap-4">
                {/* حلقة الثقة النانوية بجانب زر التنفيذ */}
@@ -340,8 +315,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                  )}
                </Button>
             </div>
-            
-            <button onClick={() => setStatus('configuring')} className="w-full text-[8px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors">إعادة معايرة المعايير</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -365,3 +338,5 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     </div>
   );
 }
+
+    
