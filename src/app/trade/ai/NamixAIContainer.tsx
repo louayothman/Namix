@@ -51,6 +51,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
+  // بناء المدد مع تصحيح وحدة "اليوم" (Day = 86400s)
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -58,7 +59,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         let fullLabel = 'ثانية';
         if (d.unit === 'minutes') { mult = 60; fullLabel = 'دقيقة'; }
         else if (d.unit === 'hours') { mult = 3600; fullLabel = 'ساعة'; }
-        return { label: `${d.value} ${fullLabel}`, seconds: d.value * mult };
+        else if (d.unit === 'days') { mult = 86400; fullLabel = 'يوم'; }
+        
+        return { 
+          label: `${d.value} ${fullLabel}`, 
+          seconds: d.value * mult 
+        };
       });
     }
     return [{ label: '60 ثانية', seconds: 60 }];
@@ -121,7 +127,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     <div className="w-full space-y-6 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="py-10">
+          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="py-2">
              <MarketScanner />
           </motion.div>
         )}
