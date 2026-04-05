@@ -26,13 +26,18 @@ import {
   Sparkles,
   Radar,
   ShieldCheck,
-  X
+  X,
+  MapPin
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
 type ReactorStatus = 'calibrating' | 'results';
 
+/**
+ * @fileOverview NAMIX AI CONTAINER v12.0 - Sovereign Unified Logic
+ * المحرك المركزي لإدارة ذكاء ناميكس؛ يضم دمجاً كاملاً للأهداف والمؤشرات والمخاطر.
+ */
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
@@ -65,11 +70,12 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   }, [status]);
 
   useEffect(() => {
-    if (status !== 'results' || !asset?.binanceSymbol) return;
+    if (status !== 'results' || !asset?.id) return;
 
     const fetchAnalysis = async () => {
       try {
-        const res = await fetch(`/api/namix?symbol=${asset.binanceSymbol}`);
+        const symbolParam = asset.binanceSymbol || asset.code.replace('/', '');
+        const res = await fetch(`/api/namix?symbol=${symbolParam}`);
         const data = await res.json();
         setResult(data);
       } catch (e) {}
@@ -232,15 +238,21 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
                      <div className="p-4 bg-gray-50 rounded-[24px] border border-gray-100 shadow-inner text-center space-y-1">
-                        <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                           <MapPin className="h-3 w-3 text-blue-500" />
+                           <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
+                        </div>
                         <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">
-                          ${(currentPrice * Math.min(1, result.entry_zone_multiplier)).toLocaleString(undefined, { minimumFractionDigits: 2 })} - ${(currentPrice * Math.max(1, result.entry_zone_multiplier)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          {result.entry_zone}
                         </p>
                      </div>
                      <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
-                        <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                           <ShieldCheck className="h-3 w-3 text-red-500" />
+                           <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
+                        </div>
                         <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">
-                          ${(currentPrice * (result.invalidated_at || 0.985)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${result.invalidated_at?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </p>
                      </div>
                   </div>
