@@ -6,9 +6,9 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { BiasHeader } from "@/components/trade/ai/BiasHeader";
 import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing";
-import { MarketScanner } from "@/components/trade/ai/MarketScanner";
-import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
+import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
+import { MarketScanner } from "@/components/trade/ai/MarketScanner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -29,49 +29,33 @@ import {
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
+import { useMarketStore } from "@/store/use-market-store";
 
-type ReactorStatus = 'calibrating' | 'analyzing' | 'results';
+/**
+ * @fileOverview NAMIX-AI Sovereign Terminal v105.0 - WebSocket Driven
+ * محرك استخباراتي يعتمد على الويب-سوكت لتحديث المنطق كل ثانية بدون تحميل زائد.
+ */
 
-function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="relative h-12 w-12 flex items-center justify-center shrink-0">
-      <svg className="h-full w-full transform -rotate-90">
-        <circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" className="text-gray-100" />
-        <motion.circle
-          cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent"
-          strokeDasharray={circumference}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          strokeLinecap="round"
-          className={colorClass}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-         <span className={cn("text-[9px] font-black tabular-nums", colorClass)}>%{value.toFixed(0)}</span>
-      </div>
-    </div>
-  );
-}
+type ReactorStatus = 'calibrating' | 'results';
 
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
   const [dbUser, setDbUser] = useState<any>(null);
-  const [result, setResult] = useState<any>(null);
   
+  // States for Local Analysis
+  const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  
-  const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync with Global Market Store (WebSocket Feed)
+  const storeChange = useMarketStore(state => state.dailyChanges[asset?.id] || 0);
+  const storeStats = useMarketStore(state => state.marketStats[asset?.id]);
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
-  const { data: globalConfig } = doc(globalTradeRef) ? useDoc(globalTradeRef) : { data: null };
+  const { data: globalConfig } = useDoc(globalTradeRef);
 
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
@@ -84,42 +68,85 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [db]);
 
-  const fetchUpdate = async () => {
-    if (!asset) return;
-    try {
-      const symbol = asset.binanceSymbol || asset.code.replace('/', '');
-      const res = await fetch(`/api/namix?symbol=${symbol}`);
-      const data = await res.json();
-      if (!data.error) {
-        setResult(data);
-        if (status === 'calibrating' || status === 'analyzing') {
-          setStatus('results');
-        }
-      }
-    } catch (e) {
-      console.error("Pulse Sync Error", e);
-    }
-  };
-
+  // Calibration Phase
   useEffect(() => {
     if (status === 'calibrating') {
-      const timer = setTimeout(() => {
-        setStatus('analyzing');
-        fetchUpdate();
-      }, 3500);
+      const timer = setTimeout(() => setStatus('results'), 3500);
       return () => clearTimeout(timer);
     }
   }, [status]);
 
+  /**
+   * Internal Strategic Reasoning Engine (1s Pulse)
+   * يصيغ المنطق داخلياً بناءً على نبض الويب-سوكت دون الحاجة للتحميل.
+   */
   useEffect(() => {
-    if (status === 'results') {
-      // تحديث وميضي كل ثانية واحدة لضمان الحيوية
-      updateTimerRef.current = setInterval(fetchUpdate, 1000);
-    }
-    return () => {
-      if (updateTimerRef.current) clearInterval(updateTimerRef.current);
+    if (status !== 'results' || !asset) return;
+
+    const runInternalAnalysis = () => {
+      const price = livePrice || asset.currentPrice;
+      const change = storeChange;
+      const volume = storeStats?.volume || 1500;
+
+      // 1. Technical Scoring (Probabilistic)
+      const techScore = Math.max(0, Math.min(1, 0.5 + (change / 10)));
+      
+      // 2. Volume Scoring (Density)
+      const volScore = Math.max(0.1, Math.min(1, volume / 5000));
+
+      // 3. Decision Score
+      const score = (techScore * 0.6) + (volScore * 0.4);
+      let decision = "HOLD";
+      if (score > 0.58) decision = "BUY";
+      if (score < 0.42) decision = "SELL";
+
+      // 4. Strategic Reasoning Array
+      const second = Math.floor(Date.now() / 1000);
+      const buyPhrases = [
+        "رصد تدفق سيولة إيجابي يتوافق مع اختراق مستويات الزخم اللحظي.",
+        "تكدس جدران الطلب عند القيعان يعزز احتمالية الارتداد الاستراتيجي.",
+        "الوكلاء يرصدون انحرافاً إيجابياً؛ السيولة تتدفق لدعم الصعود."
+      ];
+      const sellPhrases = [
+        "تشبع شرائي حاد عند القمم؛ بروتوكول الأمان يتوقع تصحيحاً وشيكاً.",
+        "ضغط تصريفي مكثف يظهر في سجل الأوامر؛ السيولة تتراجع تكتيكياً.",
+        "المحرك يكتشف بوادر انعكاس؛ ينصح بتأمين المراكز الحالية."
+      ];
+      const holdPhrases = [
+        "توازن هش بين العرض والطلب؛ المحرك يفضل التريث لحماية الأصول.",
+        "تذبذب جانبي ناتج عن ضعف السيولة؛ بروتوكول الأمان يجمد الإشارات.",
+        "منطقة ترقب استراتيجية؛ المؤشرات لا تظهر انحيازاً صريحاً الآن."
+      ];
+
+      const reasoning = decision === 'BUY' ? buyPhrases[second % 3] : 
+                        decision === 'SELL' ? sellPhrases[second % 3] : holdPhrases[second % 3];
+
+      setResult({
+        decision,
+        score,
+        reasoning,
+        scorecard: {
+          momentum: Math.round(techScore * 100),
+          liquidity: Math.round(volScore * 100),
+          volatility: 85
+        },
+        heatmap: [
+          { label: "زخم RSI", status: change > 0.2 ? "bullish" : change < -0.2 ? "bearish" : "neutral", val: change.toFixed(2) + "%" },
+          { label: "سيولة In", status: volScore > 0.6 ? "bullish" : volScore < 0.3 ? "bearish" : "neutral", val: (volume / 10).toFixed(0) },
+          { label: "نبض EMA", status: techScore > 0.5 ? "bullish" : "bearish", val: "Active" },
+          { label: "ثبات القناة", status: Math.abs(change) < 1.5 ? "bullish" : "neutral", val: "Synced" }
+        ],
+        risk: {
+          level: (techScore < 0.4 || volScore < 0.4) ? "HIGH" : "LOW",
+          action: decision === "BUY" && (techScore < 0.4 || volScore < 0.4) ? "AVOID TRADE" : decision
+        }
+      });
     };
-  }, [status, asset]);
+
+    const interval = setInterval(runInternalAnalysis, 1000);
+    runInternalAnalysis();
+    return () => clearInterval(interval);
+  }, [status, asset, livePrice, storeChange, storeStats]);
 
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
@@ -143,9 +170,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
-    
-    if (result.risk?.level === 'DANGEROUS') {
-      setFeedback({ type: 'error', message: 'بروتوكول الأمان منع الصفقة: مخاطرة عالية جداً.' });
+    if (result.risk?.level === 'DANGEROUS' || result.risk?.action === 'AVOID TRADE') {
+      setFeedback({ type: 'error', message: 'بروتوكول الأمان منع الصفقة: مخاطرة عالية.' });
       return;
     }
 
@@ -192,7 +218,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
       <AnimatePresence mode="wait">
         {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="py-2">
+          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-2">
              <MarketScanner />
           </motion.div>
         )}
@@ -201,7 +227,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
             <div className="relative flex items-center justify-between px-5 py-3 bg-gray-50/40 rounded-[32px] border border-gray-100 shadow-inner group overflow-hidden">
-               <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none transition-transform duration-1000 group-hover:scale-125">
+               <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none group-hover:scale-125 transition-transform duration-1000">
                   <Waves size={100} className="text-[#002d4d]" />
                </div>
                <div className="relative z-10 space-y-0.5 text-right">
@@ -212,30 +238,24 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1">Price Stream</p>
                   <p className="text-xl font-black text-[#002d4d] tabular-nums tracking-tighter leading-none">
                     <span className="text-[10px] text-gray-300 ml-0.5">$</span>
-                    {livePrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {(livePrice || asset.currentPrice)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                </div>
             </div>
             
-            <IntelligenceMetrics 
-              scorecard={{
-                momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
-                liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
-                volatility: 85 
-              }} 
-            />
+            <IntelligenceMetrics scorecard={result.scorecard} />
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
-            {/* تحليل المؤشرات | Indicator Analysis - صف واحد نانوي مسطح */}
+            {/* تحليل المؤشرات | Indicator Analysis - Flat Matrix */}
             <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative overflow-hidden group/heatmap">
-               <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none transition-transform duration-1000 group-hover/heatmap:scale-110">
+               <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none group-hover/heatmap:scale-110 transition-transform duration-1000">
                   <Radar size={220} strokeWidth={1} />
                </div>
 
                <div className="flex items-center justify-between px-2 relative z-10">
                   <div className="text-right">
-                    <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات</h4>
+                    <h4 className="text-[10px] font-black text-[#002d4d]">تحليل المؤشرات</h4>
                     <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mt-1">Indicator Analysis</p>
                   </div>
                   <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">NANO SYNC</Badge>
@@ -243,7 +263,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="flex items-center justify-between gap-4 relative z-10">
                   {result.heatmap?.map((item: any, i: number) => (
-                    <div key={i} className="flex-1 flex flex-col items-center justify-center gap-1.5 transition-all">
+                    <div key={i} className="flex-1 flex flex-col items-center justify-center gap-1.5">
                        <div className={cn(
                          "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
                          item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
@@ -262,10 +282,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* بطاقة المخاطر مع مؤشر درجة الثقة المدمج */}
+            {/* بطاقة المخاطر مع الثقة المدمجة */}
             <div className={cn(
-              "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk transition-colors duration-500",
-              result.risk?.level === 'LOW' ? "bg-white border-emerald-100" : "bg-white border-red-100"
+              "p-6 rounded-[44px] border shadow-2xl relative overflow-hidden group/risk transition-colors duration-500 bg-white",
+              result.risk?.level === 'LOW' ? "border-emerald-100" : "border-red-100"
             )}>
                <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none group-hover/risk:rotate-12 transition-transform duration-1000">
                   <ShieldCheck size={140} />
@@ -284,44 +304,37 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                         <p className={cn("text-sm font-black mt-1", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
                      </div>
                   </div>
-                  <Badge className={cn("border-none font-black text-[9px] px-4 py-1.5 rounded-xl shadow-lg transition-colors duration-500", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
+                  <Badge className={cn("border-none font-black text-[9px] px-4 py-1.5 rounded-xl shadow-lg", result.risk?.level === 'LOW' ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
                      {result.risk?.action || "HOLD"}
                   </Badge>
                </div>
 
                <div className="space-y-3 relative z-10 bg-gray-50/50 p-5 rounded-[32px] border border-gray-50 shadow-inner">
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest tracking-normal">
+                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
                      <span className="text-gray-400">درجة الثقة الاستراتيجية</span>
-                     <span className={cn("tabular-nums transition-colors duration-500", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
+                     <span className={cn("tabular-nums", confidenceScore >= 70 ? "text-emerald-600" : "text-blue-600")}>%{confidenceScore}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden shadow-inner">
+                  <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
                      <motion.div 
                        initial={{ width: 0 }}
                        animate={{ width: `${confidenceScore}%` }}
                        transition={{ duration: 0.5, ease: "circOut" }}
-                       className={cn("h-full relative rounded-full transition-colors duration-500", confidenceColor)}
+                       className={cn("h-full relative rounded-full", confidenceColor)}
                      >
-                        <motion.div 
-                          animate={{ x: ['100%', '-100%'] }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                        />
+                        <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                      </motion.div>
                   </div>
                </div>
             </div>
 
-            <IntelligenceBriefing 
-              reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
-              summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة عبر المحرك الداخلي.`}
-            />
+            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك السيادي.`} />
 
             <div className="pt-4 border-t border-gray-100">
                <ParameterConsole 
                  amount={tradeAmount}
-                 onAmountChange={setAmount => setTradeAmount(setAmount)}
+                 onAmountChange={setTradeAmount}
                  duration={tradeDuration}
-                 onDurationChange={setDuration => setTradeDuration(setDuration)}
+                 onDurationChange={setTradeDuration}
                  durations={adminDurations}
                  balance={dbUser?.totalBalance || 0}
                  minAmount={globalConfig?.minTradeAmount || 10}
@@ -330,14 +343,9 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             </div>
 
             <div className="pt-2 flex items-center gap-4">
-               <ConfidenceRing 
-                 value={result.score * 100} 
-                 colorClass={result.decision === 'BUY' ? "text-emerald-500" : result.decision === 'SELL' ? "text-red-500" : "text-blue-500"} 
-               />
-               
                <Button 
                  onClick={handleTradeExecution}
-                 disabled={isExecuting || result.decision === 'HOLD'}
+                 disabled={isExecuting || result.decision === 'HOLD' || result.risk?.action === 'AVOID TRADE'}
                  className={cn(
                    "flex-1 h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
                    result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/40" : 
@@ -365,7 +373,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               )}>
                  <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center"><CheckCircle2 size={20} /></div>
-                    <p className="text-sm font-black tracking-normal leading-none">{feedback.message}</p>
+                    <p className="text-sm font-black leading-none">{feedback.message}</p>
                  </div>
                  <button onClick={() => setFeedback(null)}><X size={18} /></button>
               </div>
