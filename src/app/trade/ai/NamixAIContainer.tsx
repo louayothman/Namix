@@ -30,6 +30,34 @@ import { cn } from "@/lib/utils";
 
 type ReactorStatus = 'calibrating' | 'configuring' | 'analyzing' | 'results';
 
+/**
+ * ConfidenceRing - مؤشر الثقة النانوي المدمج
+ */
+function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+
+  return (
+    <div className="relative h-12 w-12 flex items-center justify-center shrink-0">
+      <svg className="h-full w-full transform -rotate-90">
+        <circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="2.5" fill="transparent" className="text-gray-100" />
+        <motion.circle
+          cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent"
+          strokeDasharray={circumference}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          strokeLinecap="round"
+          className={colorClass}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+         <span className={cn("text-[9px] font-black tabular-nums", colorClass)}>%{value.toFixed(1)}</span>
+      </div>
+    </div>
+  );
+}
+
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
@@ -61,6 +89,23 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       return () => clearTimeout(timer);
     }
   }, [status]);
+
+  // محرك التحديث التلقائي (Continuous Pulse) بمجرد ظهور النتائج
+  useEffect(() => {
+    if (status !== 'results' || !asset) return;
+
+    const fetchUpdate = async () => {
+      try {
+        const symbol = asset.binanceSymbol || asset.code.replace('/', '');
+        const res = await fetch(`/api/namix?symbol=${symbol}`);
+        const data = await res.json();
+        if (!data.error) setResult(data);
+      } catch (e) {}
+    };
+
+    const interval = setInterval(fetchUpdate, 15000); // تحديث كل 15 ثانية لضمان استقرار Gemini
+    return () => clearInterval(interval);
+  }, [status, asset]);
 
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
@@ -186,7 +231,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                    <Activity size={32} className="text-blue-500 animate-pulse" />
                 </div>
              </div>
-             <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري المزامنة مع Orchestrator...</p>
+             <p className="text-sm font-black text-[#002d4d] tracking-normal">جاري الاستعلام من النواة الاستخباراتية...</p>
           </motion.div>
         )}
 
@@ -204,7 +249,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <BiasHeader bias={result.decision === 'BUY' ? 'Long' : result.decision === 'SELL' ? 'Short' : 'Neutral'} />
             
-            {/* مصفوفة التدقيق الفني (Technical Heatmap) لإثبات "التفكير" */}
             <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-4">
                <div className="flex items-center gap-2 px-2">
                   <ShieldCheck size={14} className="text-blue-500" />
@@ -242,7 +286,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                <div className="flex items-center gap-3">
                   <ShieldAlert className={cn("h-5 w-5", result.risk?.level === 'LOW' ? "text-emerald-600" : "text-red-600")} />
                   <div className="text-right">
-                     <p className="text-[10px] font-black text-gray-400 uppercase">Risk Evaluation</p>
+                     <p className="text-[10px] font-black text-gray-400 uppercase leading-none">Risk Evaluation</p>
                      <p className={cn("text-sm font-black", result.risk?.level === 'LOW' ? "text-emerald-700" : "text-red-700")}>{result.risk?.level || "UNKNOWN"}</p>
                   </div>
                </div>
@@ -252,26 +296,34 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             </div>
 
             <IntelligenceBriefing 
-              reasoning={`استنتاج الوكلاء: ${result.risk?.reason || 'لم يتم تحديد سبب صريح؛ يرجى مراقبة النبض.'}`}
-              summary={`تم تحليل الرمز ${result.pair} بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في توقيت ${new Date(result.timestamp).toLocaleTimeString('ar-EG')}.`}
+              reasoning={result.reasoning || "جاري تحديث الاستنتاج المنطقي..."}
+              summary={`تم تحليل الرمز بنتيجة ثقة ${(result.score * 100).toFixed(2)}% في هذه اللحظة.`}
             />
 
-            <Button 
-              onClick={handleTradeExecution}
-              disabled={isExecuting || result.decision === 'HOLD'}
-              className={cn(
-                "w-full h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
-                result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/40" : 
-                result.decision === 'SELL' ? "bg-red-50 hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
-              )}
-            >
-              {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                <div className="flex items-center gap-3">
-                   <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
-                   <PlayCircle className="h-6 w-6" />
-                </div>
-              )}
-            </Button>
+            <div className="pt-2 flex items-center gap-4">
+               <ConfidenceRing 
+                 value={result.score * 100} 
+                 colorClass={result.decision === 'BUY' ? "text-emerald-500" : result.decision === 'SELL' ? "text-red-500" : "text-blue-500"} 
+               />
+               
+               <Button 
+                 onClick={handleTradeExecution}
+                 disabled={isExecuting || result.decision === 'HOLD'}
+                 className={cn(
+                   "flex-1 h-16 rounded-full font-black text-lg shadow-xl active:scale-95 transition-all group",
+                   result.decision === 'BUY' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-900/40" : 
+                   result.decision === 'SELL' ? "bg-red-500 hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
+                 )}
+               >
+                 {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
+                   <div className="flex items-center gap-3">
+                      <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
+                      <PlayCircle className="h-6 w-6" />
+                   </div>
+                 )}
+               </Button>
+            </div>
+            
             <button onClick={() => setStatus('configuring')} className="w-full text-[8px] font-black text-gray-300 uppercase tracking-widest hover:text-[#002d4d] transition-colors">إعادة معايرة المعايير</button>
           </motion.div>
         )}

@@ -1,22 +1,25 @@
 /**
- * @fileOverview NAMIX AI Orchestrator v4.0 - Intelligence & Heatmap Nexus
- * العقل المركزي الذي يجمع نتائج الوكلاء ويصيغ خريطة الحرارة الفنية.
+ * @fileOverview NAMIX AI Orchestrator v6.0 - Intelligence & Generative Nexus
+ * العقل المركزي الذي يجمع نتائج الوكلاء ويستدعي Gemini لصياغة التبرير المنطقي.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
 import { volumeAgent } from "./agents/volume-agent";
 import { riskEngine } from "./engines/risk-engine";
 import { memoryEngine } from "./engines/memory-engine";
+import { ai } from "@/ai/genkit";
+import { googleAI } from "@genkit-ai/google-genai";
 
 export async function runNamix(symbol: string) {
   const cleanSymbol = symbol.replace('/', '').toUpperCase();
 
+  // 1. جلب البيانات من الوكلاء التقنيين
   const [tech, volume] = await Promise.all([
     technicalAgent(cleanSymbol),
     volumeAgent(cleanSymbol)
   ]);
 
-  // حساب النتيجة النهائية بناءً على أوزان استراتيجية
+  // 2. حساب النتيجة الموزونة
   const decisionScore = (tech.score * 0.6) + (volume.score * 0.4);
 
   let decision = "HOLD";
@@ -25,7 +28,26 @@ export async function runNamix(symbol: string) {
 
   const risk = riskEngine(decision, tech, volume);
 
-  // توليد مصفوفة التدقيق الفني (Heatmap Data) لإثبات "التفكير"
+  // 3. الوكيل الاستنتاجي: توليد تبرير منطقي فريد عبر Gemini
+  let reasoning = "جاري تحليل المعطيات...";
+  try {
+    const response = await ai.generate({
+      model: googleAI.model('gemini-2.5-flash'),
+      prompt: `أنت المحلل الاستراتيجي لمنصة NAMIX. حلل البيانات التالية للرمز ${cleanSymbol}:
+      - تغير السعر: ${tech.change}%
+      - سكور الوكيل الفني: ${tech.score}
+      - حجم التداول: ${volume.volume}
+      - القرار المقترح: ${decision}
+      - مستوى المخاطرة: ${risk.level}
+      
+      اكتب تبريراً منطقياً قصيراً جداً (جملة واحدة) بأسلوب مؤسساتي فخم يوضح للمستثمر سبب هذا القرار بناءً على السيولة والزخم.`,
+    });
+    reasoning = response.text;
+  } catch (e) {
+    reasoning = "توافق استراتيجي بين وكلاء الزخم والسيولة عند المستويات الحالية.";
+  }
+
+  // 4. بناء مصفوفة التدقيق
   const heatmap = [
     { 
       label: "قوة الزخم (RSI Context)", 
@@ -60,6 +82,7 @@ export async function runNamix(symbol: string) {
     decision,
     score: decisionScore,
     risk,
+    reasoning,
     agents: { tech, volume },
     heatmap,
     timestamp: new Date().toISOString()
