@@ -1,8 +1,7 @@
 
 /**
- * @fileOverview NamixAIOrchestrator v5.0 - Institutional Glass Intelligence
- * محرك الذكاء الاصطناعي المؤسساتي المطور لدعم "المختبر الزجاجي العائم".
- * تم إضافة منطق "الاضطراب" (Turbulence) ومعايرة الأهداف بناءً على مستويات السيولة.
+ * @fileOverview NamixAIOrchestrator v6.0 - Sovereign Intelligence Nexus
+ * محرك الذكاء الاصطناعي السيادي المطور لدعم التحليل متعدد الأطر وذكاء تدفق الأوامر.
  */
 
 export interface OHLCV {
@@ -29,6 +28,18 @@ export interface MarketData {
     bids: { price: number; amount: number }[];
     asks: { price: number; amount: number }[];
   };
+  // ميزات مضافة حديثاً
+  timeframes: {
+    m1: 'Long' | 'Short' | 'Neutral';
+    m15: 'Long' | 'Short' | 'Neutral';
+    h1: 'Long' | 'Short' | 'Neutral';
+  };
+}
+
+export interface RiskScorecard {
+  momentum: number;   // 0-100
+  liquidity: number;  // 0-100
+  volatility: number; // 0-100
 }
 
 export interface TradeSignal {
@@ -42,7 +53,8 @@ export interface TradeSignal {
   };
   invalidated_at: number;
   confidence: number;
-  turbulence: number; // 0-100 (معدل الاضطراب المتوقع)
+  turbulence: number;
+  scorecard: RiskScorecard;
   reasoning_summary: string;
   market_summary: string;
   timestamp: string;
@@ -50,65 +62,37 @@ export interface TradeSignal {
 
 export class NamixAIOrchestrator {
   
-  private async technicalExpert(data: MarketData) {
-    if (!data.currentPrice) return { bias: 'Neutral' as const, confidence: 50 };
-
-    const candles = data.ohlcv;
-    const currentPrice = data.currentPrice;
-    const last100 = candles.slice(-100);
-    const highs = last100.map(c => c.high);
-    const lows = last100.map(c => c.low);
-    const maxHigh = Math.max(...highs);
-    const minLow = Math.min(...lows);
-    
-    let bias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
-    let confidence = 70;
-
-    if (currentPrice > (maxHigh + minLow) / 2) {
-      bias = 'Long';
-      confidence += 10;
-    } else {
-      bias = 'Short';
-      confidence += 10;
-    }
-
-    const rsi = data.indicators.rsi;
-    if (rsi > 70 && bias === 'Long') confidence -= 20;
-    if (rsi < 30 && bias === 'Short') confidence -= 20;
-
-    return { bias, confidence };
-  }
-
-  private async sentimentExpert(data: MarketData) {
-    const bidsVolume = data.liquidity.bids.reduce((s, b) => s + b.amount, 0);
-    const asksVolume = data.liquidity.asks.reduce((s, a) => s + a.amount, 0);
-    const imbalance = bidsVolume / (asksVolume || 1);
-
-    let bias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
-    if (imbalance > 1.5) bias = 'Long';
-    else if (imbalance < 0.6) bias = 'Short';
-
-    return { bias, confidence: 80 };
+  private calculateOrderFlowImbalance(liquidity: MarketData['liquidity']) {
+    const totalBids = liquidity.bids.reduce((sum, b) => sum + b.amount, 0);
+    const totalAsks = liquidity.asks.reduce((sum, a) => sum + a.amount, 0);
+    return {
+      ratio: totalBids / (totalAsks || 1),
+      strength: Math.min(Math.max((totalBids / (totalBids + totalAsks)) * 100, 0), 100)
+    };
   }
 
   public async analyzeMarket(pair: string, data: MarketData): Promise<TradeSignal> {
-    const [tech, sent] = await Promise.all([
-      this.technicalExpert(data),
-      this.sentimentExpert(data)
-    ]);
+    const imbalance = this.calculateOrderFlowImbalance(data.liquidity);
+    const tf = data.timeframes;
+    
+    // بروتوكول مزامنة الأطر (Nexus-Timeline Sync)
+    // لا يتم اعتماد اتجاه صريح إلا إذا توافق إطاران على الأقل
+    let finalBias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
+    const longSignals = [tf.m1, tf.m15, tf.h1].filter(s => s === 'Long').length;
+    const shortSignals = [tf.m1, tf.m15, tf.h1].filter(s => s === 'Short').length;
 
-    let finalBias = tech.bias;
-    if (tech.bias !== sent.bias && sent.bias !== 'Neutral') {
-      finalBias = 'Neutral';
-    }
+    if (longSignals >= 2 && imbalance.ratio > 1.1) finalBias = 'Long';
+    else if (shortSignals >= 2 && imbalance.ratio < 0.9) finalBias = 'Short';
 
     const currentPrice = data.currentPrice || 0;
     const atr = data.indicators.atr || currentPrice * 0.005;
     
-    // حساب معدل الاضطراب (Turbulence) بناءً على التذبذب والـ RSI
-    const volatilityFactor = Math.min((atr / (currentPrice || 1)) * 1000, 50);
-    const rsiStress = Math.abs(data.indicators.rsi - 50);
-    const turbulence = Math.min(volatilityFactor + rsiStress, 100);
+    // بناء بطاقة أداء المخاطر (Risk Scorecard)
+    const scorecard: RiskScorecard = {
+      momentum: Math.min(Math.max(Math.abs(data.indicators.rsi - 50) * 2, 30), 98),
+      liquidity: Math.round(imbalance.strength),
+      volatility: Math.min(Math.max(100 - (atr / currentPrice * 10000), 20), 95)
+    };
 
     const targets = {
       tp1: finalBias === 'Long' ? currentPrice + (atr * 1.5) : currentPrice - (atr * 1.5),
@@ -116,8 +100,7 @@ export class NamixAIOrchestrator {
       tp3: finalBias === 'Long' ? currentPrice + (atr * 7) : currentPrice - (atr * 7)
     };
 
-    const pulse = Math.sin(Date.now() / 1500) * 4;
-    const baseConfidence = Math.round((tech.confidence + sent.confidence) / 2);
+    const baseConfidence = (scorecard.momentum + scorecard.liquidity + scorecard.volatility) / 3;
 
     return {
       pair,
@@ -125,12 +108,13 @@ export class NamixAIOrchestrator {
       entry_zone: `${currentPrice.toFixed(2)} - ${(currentPrice * (finalBias === 'Long' ? 0.999 : 1.001)).toFixed(2)}`,
       targets,
       invalidated_at: finalBias === 'Long' ? currentPrice - (atr * 2.5) : currentPrice + (atr * 2.5),
-      confidence: Math.min(Math.max(baseConfidence + pulse, 30), 98),
-      turbulence,
+      confidence: Math.min(Math.max(baseConfidence, 30), 98),
+      turbulence: Math.round(100 - scorecard.volatility),
+      scorecard,
       reasoning_summary: finalBias === 'Neutral' 
-        ? "توازن القوى اللحظي يمنع التنفيذ الآمن؛ ننصح بانتظار وضوح الهيكل السعري." 
-        : `تم رصد ${finalBias === 'Long' ? 'تمركز شرائي' : 'ضغط تصريفي'} عند مستويات السيولة الحالية بدعم من مؤشرات الزخم.`,
-      market_summary: turbulence > 60 ? "تحذير: نبض السوق يظهر اضطراباً عالياً؛ حركة سعرية عنيفة متوقعة." : "استقرار نسبي في تدفق الأوامر يدعم استمرارية الاتجاه الحالي.",
+        ? "تشتت الإشارات بين الأطر الزمنية يمنع التنفيذ الآمن؛ محرك السيولة يظهر توازناً هشاً بين العرض والطلب." 
+        : `تم رصد توافق استراتيجي بين الأطر الزمنية مع ${finalBias === 'Long' ? 'تراكم سيولة شرائية' : 'ضغط تصريفي مكثف'} عند مستويات الطلب الحالية.`,
+      market_summary: scorecard.liquidity > 70 ? "ثبات عالي في جدران السيولة يدعم المسار المقترح." : "سيولة متذبذبة؛ يرجى توخي الحذر من الانزلاقات السعرية الخاطفة.",
       timestamp: new Date().toISOString()
     };
   }

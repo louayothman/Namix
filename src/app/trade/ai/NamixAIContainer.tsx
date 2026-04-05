@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -12,6 +13,7 @@ import { TargetMatrix } from "@/components/trade/ai/TargetMatrix";
 import { IntelligenceBriefing } from "@/components/trade/ai/IntelligenceBriefing";
 import { MarketScanner } from "@/components/trade/ai/MarketScanner";
 import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
+import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
 import { Button } from "@/components/ui/button";
 import { Zap, Loader2, PlayCircle, Activity } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
@@ -50,7 +52,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  // بناء المدد مع تصحيح وحدة "اليوم" (Day = 86400s) والوحدات الكاملة
   const adminDurations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -60,10 +61,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         else if (d.unit === 'hours') { mult = 3600; fullLabel = 'ساعة'; }
         else if (d.unit === 'days') { mult = 86400; fullLabel = 'يوم'; }
         
-        return { 
-          label: `${d.value} ${fullLabel}`, 
-          seconds: d.value * mult 
-        };
+        return { label: `${d.value} ${fullLabel}`, seconds: d.value * mult };
       });
     }
     return [{ label: '60 ثانية', seconds: 60 }];
@@ -170,6 +168,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             <MarketPulseHub price={livePrice} turbulence={result.turbulence} />
+            <IntelligenceMetrics scorecard={result.scorecard} />
             <BiasHeader bias={result.bias} />
             {result.bias !== 'Neutral' && (
               <TargetMatrix entryZone={result.entry_zone} targets={result.targets} invalidatedAt={result.invalidated_at} />

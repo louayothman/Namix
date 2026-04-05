@@ -1,8 +1,9 @@
+
 'use client';
 
 /**
- * @fileOverview NAMIX AI CENTRAL SERVICE v5.0
- * واجهة المحرك المركزي التي تمد المنصة ببيانات استخباراتية تفاعلية تعتمد على العقل المؤسساتي.
+ * @fileOverview NAMIX AI CENTRAL SERVICE v6.0
+ * تم تحديث الخدمة لتوفير بيانات الأطر المتعددة وتدفق السيولة لمحرك الاستنتاج.
  */
 
 import { namixOrchestrator, MarketData, TradeSignal, OHLCV } from "./namix-ai-orchestrator";
@@ -19,13 +20,11 @@ export class NamixAI {
     return NamixAI.instance;
   }
 
-  /**
-   * جلب التحليل العميق للأصل المالي بناءً على 1000 شمعة
-   */
   public async getDeepAnalysis(asset: any, livePrice: number | null): Promise<TradeSignal | null> {
     if (!asset || livePrice === null) return null;
 
-    // توليد بيانات تاريخية عميقة (1000 شمعة) لمحاكاة التحليل المؤسساتي
+    const seed = parseInt(asset.id.substring(0, 5), 36);
+    
     const deepHistory: OHLCV[] = Array.from({ length: 1000 }).map((_, i) => {
       const time = Date.now() - (1000 - i) * 60 * 1000;
       const base = livePrice * (0.97 + (i / 1000) * 0.06);
@@ -39,6 +38,10 @@ export class NamixAI {
       };
     });
 
+    // محاكاة توافق الأطر الزمنية بناءً على بذور ثابتة لكل أصل
+    const timeframeBiases: ('Long' | 'Short' | 'Neutral')[] = ['Long', 'Short', 'Neutral'];
+    const tfIndex = (seed + Math.floor(Date.now() / 60000)) % 3;
+
     const currentData: MarketData = {
       pair: asset.code,
       currentPrice: livePrice,
@@ -51,8 +54,13 @@ export class NamixAI {
         atr: livePrice * 0.008
       },
       liquidity: {
-        bids: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 - i * 0.0005), amount: Math.random() * 25 })),
-        asks: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 + i * 0.0005), amount: Math.random() * 25 }))
+        bids: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 - i * 0.0005), amount: 10 + Math.random() * 50 })),
+        asks: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 + i * 0.0005), amount: 10 + Math.random() * 50 }))
+      },
+      timeframes: {
+        m1: timeframeBiases[tfIndex],
+        m15: timeframeBiases[(tfIndex + 1) % 3],
+        h1: timeframeBiases[tfIndex]
       }
     };
 
