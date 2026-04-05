@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Waves } from "lucide-react";
+import { Waves, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useState, useEffect, useRef } from "react";
 
@@ -40,7 +40,7 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
   const [isUp, setIsUp] = useState(true);
   const prevPriceRef = useRef<number | null>(null);
 
-  // مراقبة اتجاه السعر لتغيير لون النبض
+  // مراقبة اتجاه السعر لتغيير لون النبض والأيقونات
   useEffect(() => {
     if (price !== null && prevPriceRef.current !== null) {
       if (price > prevPriceRef.current) setIsUp(true);
@@ -56,6 +56,8 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
     ).join(' L ');
     return `M 0,20 L ${points}`;
   }, [turbulence, price]);
+
+  const statusColor = isUp ? "text-emerald-500" : "text-red-500";
 
   return (
     <div className="relative flex items-center justify-between px-5 py-3 bg-gray-50/40 rounded-[32px] border border-gray-100 shadow-inner group font-body tracking-normal overflow-hidden" dir="rtl">
@@ -87,15 +89,31 @@ export function MarketPulseHub({ price, turbulence }: MarketPulseHubProps) {
          </svg>
       </div>
 
-      {/* 4. العداد السعري البرتقالي - Institutional Price Node */}
+      {/* 4. العداد السعري الملون مع أيقونة النبض - Dynamic Price Node */}
       <div className="relative z-10 text-left pl-1">
          <div className="flex flex-col items-start">
             <p className="text-[7px] font-black text-gray-300 uppercase tracking-widest leading-none mb-1 tracking-normal">Price Stream</p>
-            <div className="flex items-center text-[16px] font-black text-[#f9a885] tabular-nums tracking-tighter h-[1.2em] leading-none" dir="ltr">
-               <span className="text-[10px] mr-0.5 opacity-40 select-none">$</span>
-               {price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split("").map((char, i) => (
-                 <AnimatedDigit key={i} digit={char} />
-               ))}
+            <div className="flex items-center gap-1.5" dir="ltr">
+               
+               {/* أيقونة النبض (Chevron) المتحركة بدون عمود */}
+               <motion.div 
+                  animate={{ y: isUp ? [2, -2, 2] : [-2, 2, -2] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className={cn("shrink-0", statusColor)}
+               >
+                  {isUp ? (
+                    <ChevronUp size={16} strokeWidth={4} />
+                  ) : (
+                    <ChevronDown size={16} strokeWidth={4} />
+                  )}
+               </motion.div>
+
+               <div className="flex items-center text-[16px] font-black tabular-nums tracking-tighter h-[1.2em] leading-none">
+                  <span className={cn("text-[10px] mr-0.5 opacity-40 select-none", statusColor)}>$</span>
+                  {price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split("").map((char, i) => (
+                    <AnimatedDigit key={i} digit={char} colorClass={statusColor} />
+                  ))}
+               </div>
             </div>
          </div>
       </div>
