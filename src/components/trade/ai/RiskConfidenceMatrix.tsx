@@ -2,8 +2,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ShieldAlert, Badge, ShieldCheck } from "lucide-react";
+import { ShieldAlert, ShieldCheck, Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface RiskConfidenceMatrixProps {
   riskLevel: string;
@@ -15,28 +16,28 @@ interface RiskConfidenceMatrixProps {
  * ConfidenceRing - مؤشر الثقة الحلقي النانوي المتفاعل
  */
 function ConfidenceRing({ value, colorClass }: { value: number, colorClass: string }) {
-  const radius = 32;
+  const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="relative h-20 w-20 flex items-center justify-center shrink-0">
+    <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
       <svg className="h-full w-full transform -rotate-90">
         <circle
-          cx="40"
-          cy="40"
+          cx="32"
+          cy="32"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="3"
+          fill="transparent"
+          className="text-gray-50"
+        />
+        <motion.circle
+          cx="32"
+          cy="32"
           r={radius}
           stroke="currentColor"
           strokeWidth="4"
-          fill="transparent"
-          className="text-gray-100"
-        />
-        <motion.circle
-          cx="40"
-          cy="40"
-          r={radius}
-          stroke="currentColor"
-          strokeWidth="5"
           fill="transparent"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
@@ -47,56 +48,70 @@ function ConfidenceRing({ value, colorClass }: { value: number, colorClass: stri
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-         <span className={cn("text-[14px] font-black tabular-nums leading-none", colorClass.replace('text-', 'text-'))}>%{Math.round(value)}</span>
-         <span className="text-[6px] font-bold text-gray-300 uppercase tracking-tighter mt-0.5">Trust</span>
+         <span className={cn("text-[12px] font-black tabular-nums leading-none", colorClass.replace('text-', 'text-'))}>%{Math.round(value)}</span>
       </div>
     </div>
   );
 }
 
 /**
- * @fileOverview مصفوفة المخاطرة والثقة الموحدة v1.0
- * دمج المخاطرة (يمين) والثقة (يسار) في بطاقة واحدة معزولة.
+ * @fileOverview مصفوفة المخاطرة والثقة الموحدة v2.0 - Sovereign Unified Card
+ * دمج المخاطرة والثقة في صك واحد فخم مع أيقونات خلفية شبحية تفاعلية.
  */
 export function RiskConfidenceMatrix({ riskLevel, riskAction, confidenceScore }: RiskConfidenceMatrixProps) {
   const isLowRisk = riskLevel === 'LOW';
   const confidenceColor = confidenceScore >= 70 ? "text-emerald-500" : confidenceScore >= 45 ? "text-blue-500" : "text-red-500";
 
   return (
-    <div className="grid grid-cols-2 gap-4 font-body tracking-normal" dir="rtl">
-       {/* الجناح الأيمن: تقييم المخاطرة */}
-       <div className={cn(
-         "p-6 rounded-[44px] border shadow-xl relative overflow-hidden transition-all duration-500 bg-white flex flex-col items-center justify-center text-center gap-3",
-         isLowRisk ? "border-emerald-100" : "border-red-100"
-       )}>
-          <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
-             <ShieldCheck size={100} />
-          </div>
-          <div className={cn(
-            "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner",
-            isLowRisk ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-          )}>
-             <ShieldAlert size={20} />
-          </div>
-          <div className="space-y-0.5">
-             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Risk Assessment</p>
-             <p className={cn("text-xs font-black", isLowRisk ? "text-emerald-700" : "text-red-700")}>
-               {riskLevel || "ANALYZING"}
-             </p>
-          </div>
-          <Badge className={cn("border-none font-black text-[7px] px-3 py-1 rounded-full shadow-md", isLowRisk ? "bg-emerald-500 text-white" : "bg-red-500 text-white")}>
-             {riskAction || "HOLD"}
-          </Badge>
+    <div className="p-8 rounded-[56px] border border-gray-100 bg-white shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] relative overflow-hidden group/matrix font-body tracking-normal transition-all duration-700 hover:shadow-2xl" dir="rtl">
+       
+       {/* Background Transparent Icons - الذكاء البصري الشبحي */}
+       <div className="absolute top-0 right-0 p-6 opacity-[0.02] -rotate-12 pointer-events-none group-hover/matrix:rotate-0 group-hover/matrix:scale-110 transition-all duration-1000 text-[#002d4d]">
+          <Radar size={160} />
+       </div>
+       <div className="absolute bottom-0 left-0 p-6 opacity-[0.02] rotate-12 pointer-events-none group-hover/matrix:rotate-0 group-hover/matrix:scale-110 transition-all duration-1000 text-blue-600">
+          <ShieldCheck size={160} />
        </div>
 
-       {/* الجناح الأيسر: مؤشر الثقة الحلقي */}
-       <div className="p-6 rounded-[44px] border border-gray-100 shadow-xl bg-white flex flex-col items-center justify-center relative overflow-hidden group/conf">
-          <div className="absolute inset-0 bg-gray-50/30 opacity-0 group-hover/conf:opacity-100 transition-opacity" />
-          <div className="relative z-10 space-y-3 flex flex-col items-center">
-             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Confidence Level</p>
+       <div className="relative z-10 flex flex-row items-center justify-between gap-6">
+          
+          {/* الجناح الأيمن: تقييم المخاطرة */}
+          <div className="flex-1 flex flex-col items-start gap-3">
+             <div className="flex items-center gap-4">
+                <div className={cn(
+                  "h-11 w-11 rounded-[18px] flex items-center justify-center shadow-inner transition-transform group-hover/matrix:scale-110 duration-500",
+                  isLowRisk ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                )}>
+                   <ShieldAlert size={22} />
+                </div>
+                <div className="text-right space-y-0.5">
+                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Risk Assessment</p>
+                   <p className={cn("text-sm font-black tracking-normal", isLowRisk ? "text-emerald-700" : "text-red-700")}>
+                     {riskLevel || "ANALYZING"}
+                   </p>
+                </div>
+             </div>
+             <Badge className={cn(
+               "border-none font-black text-[8px] px-4 py-1 rounded-full shadow-lg transition-all duration-500 tracking-normal", 
+               isLowRisk ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+             )}>
+                {riskAction || "HOLD"}
+             </Badge>
+          </div>
+
+          {/* Separator - فاصل نانوي رقيق */}
+          <div className="h-16 w-px bg-gray-50 shrink-0" />
+
+          {/* الجناح الأيسر: مؤشر الثقة الحلقي */}
+          <div className="flex flex-col items-center gap-2 px-2">
+             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none tracking-normal">Confidence</p>
              <ConfidenceRing value={confidenceScore} colorClass={confidenceColor} />
           </div>
+
        </div>
+
+       {/* خط النبض السفلي */}
+       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-[1px] bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
     </div>
   );
 }
