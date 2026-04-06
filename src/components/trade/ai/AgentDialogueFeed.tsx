@@ -14,10 +14,15 @@ interface Message {
   color: string;
 }
 
+/**
+ * @fileOverview Neural Dialogue Feed v3.0 - WhatsApp Style Integration
+ * نظام محادثة انسيابي يعتمد على التمرير الآلي والدفع للأعلى (Slide-up physics).
+ */
 export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
   const iconMap: Record<string, any> = { Zap, Target, ShieldCheck, Cpu };
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // محرك التمرير الآلي للأسفل (WhatsApp Logic)
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({

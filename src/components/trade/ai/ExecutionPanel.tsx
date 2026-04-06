@@ -1,10 +1,2 @@
-
-"use client";
-
-/**
- * @fileOverview ExecutionPanel - Retired
- * All execution logic and amount control migrated to NamixAIContainer + Operational Console.
- */
-export function ExecutionPanel() {
-  return null;
-}
+/** Retired Component - Logic migrated to Top Hub */
+export const ExecutionPanel = () => null;

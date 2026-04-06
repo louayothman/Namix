@@ -12,6 +12,10 @@ interface IntelligenceMetricsProps {
   };
 }
 
+/**
+ * @fileOverview مصفوفة الاستحقاق المسطحة v2.0
+ * تم تحويل المكون ليكون "مسطحاً" (Flat) ليتم دمجه داخل بطاقات أخرى بسلاسة.
+ */
 export function IntelligenceMetrics({ scorecard }: IntelligenceMetricsProps) {
   const metrics = [
     { label: "الزخم", val: `${scorecard.momentum}%`, icon: Zap, color: "text-orange-500" },
@@ -29,6 +33,7 @@ export function IntelligenceMetrics({ scorecard }: IntelligenceMetricsProps) {
             whileHover={{ backgroundColor: "rgba(255,255,255,0.5)" }}
             className="relative h-20 flex flex-col items-center justify-center gap-1 group overflow-hidden transition-all"
           >
+            {/* Background Icon Bloom */}
             <div className={cn(
               "absolute -bottom-2 -right-2 opacity-[0.02] pointer-events-none transition-all duration-700 group-hover:opacity-[0.06] group-hover:scale-110",
               m.color
@@ -45,6 +50,7 @@ export function IntelligenceMetrics({ scorecard }: IntelligenceMetricsProps) {
               </p>
             </div>
             
+            {/* Tiny Indicator Icon */}
             <div className={cn("relative z-10 opacity-10 group-hover:opacity-100 transition-opacity mt-1", m.color)}>
                <m.icon size={8} strokeWidth={3} />
             </div>

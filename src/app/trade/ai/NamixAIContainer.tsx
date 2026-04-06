@@ -78,6 +78,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         if (data.dialogue) {
           const newMessages: any[] = [];
           data.dialogue.forEach((msg: any) => {
+            // إضافة الرسالة فقط إذا تغيرت قراءة الوكيل فعلياً (WhatsApp Logic)
             if (lastAgentsRef.current[msg.agent] !== msg.message) {
               newMessages.push({ ...msg, id: Date.now() + Math.random() });
               lastAgentsRef.current[msg.agent] = msg.message;
@@ -85,7 +86,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           });
 
           if (newMessages.length > 0) {
-            setChatHistory(prev => [...prev, ...newMessages].slice(-15));
+            setChatHistory(prev => [...prev, ...newMessages].slice(-20));
           }
         }
       } catch (e) {}
@@ -153,10 +154,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
+            {/* بطاقة الأهداف الاستراتيجية الموحدة - تضم مصفوفة الاستحقاقات المسطحة */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 transition-transform duration-1000"><Target size={180} /></div>
 
-               {/* مصفوفة الاستحقاق المدمجة (Flat Design) */}
+               {/* 1. مصفوفة الاستحقاق المدمجة (Flat Metrics) */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
@@ -165,6 +167,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="h-px bg-gray-50 relative z-10" />
 
+               {/* 2. تدفق المستهدفات */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية</h4>
@@ -208,6 +211,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            {/* بطاقة المحادثة المنفصلة (WhatsApp Style) */}
             <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
                <AgentDialogueFeed messages={chatHistory} />
             </div>
