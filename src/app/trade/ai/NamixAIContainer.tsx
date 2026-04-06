@@ -11,6 +11,7 @@ import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
 import { RiskConfidenceMatrix } from "@/components/trade/ai/RiskConfidenceMatrix";
 import { AgentDialogueFeed } from "@/components/trade/ai/AgentDialogueFeed";
+import { IntelligenceMetrics } from "@/components/trade/ai/IntelligenceMetrics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -28,7 +29,8 @@ import {
   Radar,
   ShieldCheck,
   X,
-  MapPin
+  MapPin,
+  MessageSquare
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
@@ -74,6 +76,15 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         const symbolParam = asset.binanceSymbol || asset.code.replace('/', '');
         const res = await fetch(`/api/namix?symbol=${symbolParam}`);
         const data = await res.json();
+        
+        // محرك تدوير ترتيب الوكلاء لضمان الواقعية
+        if (data.dialogue) {
+          const rotation = Math.floor(Date.now() / 3000) % 4;
+          const rotated = [...data.dialogue];
+          for(let i=0; i<rotation; i++) rotated.push(rotated.shift());
+          data.dialogue = rotated;
+        }
+        
         setResult(data);
       } catch (e) {}
     };
@@ -159,59 +170,22 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
+            {/* بطاقة المؤشرات والأهداف الاستراتيجية */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
                   <Target size={180} />
                </div>
-               <div className="absolute bottom-0 left-0 p-8 opacity-[0.02] rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
-                  <Zap size={180} />
-               </div>
 
-               {/* Indicators & Heatmap */}
-               <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative z-10">
-                  <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات | Indicator Analysis</h4>
-                     <Badge className="bg-white text-blue-600 border-gray-100 font-black text-[7px] px-2 py-0.5 rounded-md shadow-sm">FLAT MATRIX</Badge>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                     {result.heatmap?.map((item: any, i: number) => (
-                       <div key={i} className="flex-1 flex flex-col items-center justify-center gap-1.5">
-                          <div className={cn(
-                            "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
-                            item.status === 'bullish' ? "bg-emerald-50 text-emerald-500" : 
-                            item.status === 'bearish' ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-400"
-                          )}>
-                             {item.status === 'bullish' ? <Check size={12}/> : item.status === 'bearish' ? <AlertTriangle size={12}/> : <Minus size={12}/>}
-                          </div>
-                          <div className="text-center">
-                             <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-1 tracking-normal">{item.label}</p>
-                             <span className={cn("text-[9px] font-black tabular-nums tracking-normal", item.status === 'bullish' ? "text-emerald-600" : item.status === 'bearish' ? "text-red-600" : "text-gray-400")}>
-                               {item.val}
-                             </span>
-                          </div>
-                       </div>
-                     ))}
-                  </div>
-               </div>
-
-               {/* Global Metrics */}
-               <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
-                  {[
-                    { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
-                    { label: "السيولة", val: `${Math.round((result.agents?.volume?.score || 0.5) * 100)}%`, icon: Target, color: "text-blue-500" },
-                    { label: "الاستقرار", val: "85%", icon: ShieldCheck, color: "text-emerald-500" },
-                    { label: "الارتباط", val: "SYNC", icon: Waves, color: "text-purple-500" }
-                  ].map((m, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1.5">
-                       <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest tracking-normal">{m.label}</p>
-                       <p className={cn("text-sm font-black tabular-nums tracking-normal", m.color)}>{m.val}</p>
-                    </div>
-                  ))}
-               </div>
+               {/* قراءة المؤشرات الفنية */}
+               <IntelligenceMetrics scorecard={{
+                 momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
+                 liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
+                 volatility: 85
+               }} />
 
                <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
 
-               {/* Strategic Targets */}
+               {/* الأهداف الاستراتيجية */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية | Targets</h4>
@@ -234,11 +208,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           </div>
                        </div>
                     ))}
-                  </div>
-
-                  {/* Neural Dialogue Feed - تموضعه تحت الأهداف مباشرة */}
-                  <div className="pt-4 border-t border-gray-50/50">
-                     <AgentDialogueFeed messages={result.dialogue || []} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
@@ -264,13 +233,21 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            {/* بطاقة المحادثة النبضية المنفصلة - الانزلاق للأعلى */}
+            <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden group/chat">
+               <div className="absolute -bottom-4 -left-4 opacity-[0.02] pointer-events-none group-hover/chat:rotate-12 transition-transform duration-1000">
+                  <MessageSquare size={120} />
+               </div>
+               <AgentDialogueFeed messages={result.dialogue || []} />
+            </div>
+
             <RiskConfidenceMatrix 
               riskLevel={result.risk?.level} 
               riskAction={result.risk?.action} 
               confidenceScore={confidenceScore} 
             />
 
-            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك السيادي.`} />
+            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك الموحد.`} />
 
             <div className="pt-4 border-t border-gray-50">
                <ParameterConsole 
