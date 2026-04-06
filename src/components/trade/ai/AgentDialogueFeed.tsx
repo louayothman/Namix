@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Zap, Target, ShieldCheck, Cpu } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
   id: number;
@@ -14,15 +15,15 @@ interface Message {
 }
 
 /**
- * @fileOverview شريط الحوار النبضي v3.0 - WhatsApp Flow Edition
- * يحاكي تدفق رسائل واتساب؛ حيث تصعد الرسائل الجديدة من الأسفل مع تمرير آلي.
+ * @fileOverview شريط الحوار النبضي v4.0 - WhatsApp Adaptive Stream
+ * محاكي محادثة يحاكي واتساب؛ تتدفق الرسائل من الأسفل وتدفع القديمة للأعلى مع تمرير آلي.
  */
 export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
   const iconMap: Record<string, any> = { Zap, Target, ShieldCheck, Cpu };
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // تمرير آلي للأسفل عند وصول رسالة جديدة
+    // تمرير آلي انسيابي للأسفل عند وصول أي تحديث في الرسائل
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
@@ -33,18 +34,18 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
 
   return (
     <div className="space-y-5 font-body tracking-normal" dir="rtl">
-      {/* Header Badge */}
+      {/* Header Module */}
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">Neural Consensus Feed</span>
+          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">Consensus Stream</span>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">LIVE CHAT</Badge>
+        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">LIVE HUB</Badge>
       </div>
       
       <div 
         ref={scrollRef}
-        className="h-[220px] overflow-y-auto scrollbar-none space-y-4 pr-1"
+        className="h-[240px] overflow-y-auto scrollbar-none space-y-4 pr-1 pl-1"
       >
         <AnimatePresence initial={false}>
           {messages.map((msg) => {
@@ -52,10 +53,10 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
             return (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
-                  duration: 0.5,
+                  duration: 0.6,
                   ease: [0.16, 1, 0.3, 1] 
                 }}
                 className="flex items-start gap-4 text-right group/msg"
@@ -68,10 +69,10 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
                 </div>
                 <div className="flex-1 pt-0.5 border-r border-gray-100 pr-4">
                   <div className="flex items-center gap-2 mb-1">
-                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent} Agent</p>
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent} Analyzer</p>
                      <div className="h-1 w-1 rounded-full bg-emerald-500/40" />
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-2xl rounded-tr-sm border border-gray-100/50">
+                  <div className="p-3 bg-gray-50 rounded-2xl rounded-tr-sm border border-gray-100/50 shadow-sm">
                     <p className="text-[11px] font-bold text-[#002d4d] leading-relaxed">
                       {msg.message}
                     </p>
