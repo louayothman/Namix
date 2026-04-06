@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
@@ -20,13 +20,8 @@ import {
   PlayCircle, 
   Activity, 
   Check, 
-  Minus, 
-  AlertTriangle,
   Target,
-  Waves,
-  Coins,
   Sparkles,
-  Radar,
   ShieldCheck,
   X,
   MapPin,
@@ -46,6 +41,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  
+  // سجل المحادثة التاريخي - يشبه واتساب
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const lastAgentsRef = useRef<Record<string, string>>({});
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
   const { data: globalConfig } = useDoc(globalTradeRef);
@@ -76,16 +75,22 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         const symbolParam = asset.binanceSymbol || asset.code.replace('/', '');
         const res = await fetch(`/api/namix?symbol=${symbolParam}`);
         const data = await res.json();
-        
-        // محرك تدوير ترتيب الوكلاء لضمان الواقعية
-        if (data.dialogue) {
-          const rotation = Math.floor(Date.now() / 3000) % 4;
-          const rotated = [...data.dialogue];
-          for(let i=0; i<rotation; i++) rotated.push(rotated.shift());
-          data.dialogue = rotated;
-        }
-        
         setResult(data);
+
+        // محرك المحادثة الذكي: إضافة الرسائل الجديدة فقط عند تغير القراءة
+        if (data.dialogue) {
+          const newMessages: any[] = [];
+          data.dialogue.forEach((msg: any) => {
+            if (lastAgentsRef.current[msg.agent] !== msg.message) {
+              newMessages.push({ ...msg, id: Date.now() + Math.random() });
+              lastAgentsRef.current[msg.agent] = msg.message;
+            }
+          });
+
+          if (newMessages.length > 0) {
+            setChatHistory(prev => [...prev, ...newMessages].slice(-15)); // الاحتفاظ بآخر 15 رسالة
+          }
+        }
       } catch (e) {}
     };
 
@@ -93,25 +98,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     fetchAnalysis();
     return () => clearInterval(interval);
   }, [status, asset]);
-
-  const adminDurations = useMemo(() => {
-    if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations)) {
-      return globalConfig.tradeDurations.map((d: any) => {
-        let mult = 1;
-        let fullLabel = 'ثانية';
-        if (d.unit === 'minutes') { mult = 60; fullLabel = 'دقيقة'; }
-        else if (d.unit === 'hours') { mult = 3600; fullLabel = 'ساعة'; }
-        return { label: `${d.value} ${fullLabel}`, seconds: d.value * mult };
-      });
-    }
-    return [{ label: '60 ثانية', seconds: 60 }];
-  }, [globalConfig]);
-
-  useEffect(() => {
-    if (adminDurations.length > 0 && tradeDuration === 0) {
-      setTradeDuration(adminDurations[0].seconds);
-    }
-  }, [adminDurations, tradeDuration]);
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
@@ -170,26 +156,24 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
-            {/* بطاقة المؤشرات والأهداف الاستراتيجية */}
-            <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden group/intel">
-               <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 group-hover/intel:scale-110 transition-transform duration-1000">
-                  <Target size={180} />
-               </div>
+            {/* بطاقة الأهداف والمؤشرات (استعادة المكون المفقود) */}
+            <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 transition-transform duration-1000"><Target size={180} /></div>
 
-               {/* قراءة المؤشرات الفنية */}
+               {/* مكون المؤشرات والتحليل الرقمي (المستعاد) */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
                  volatility: 85
                }} />
 
-               <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
+               <div className="h-px bg-gray-50 relative z-10" />
 
                {/* الأهداف الاستراتيجية */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية | Targets</h4>
-                     <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">YIELD OPTIMIZED</Badge>
+                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية</h4>
+                     <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">PROFIT NODES</Badge>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
@@ -216,29 +200,22 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                            <MapPin className="h-3 w-3 text-blue-500" />
                            <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
                         </div>
-                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">
-                          {result.entry_zone}
-                        </p>
+                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">{result.entry_zone}</p>
                      </div>
                      <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
                         <div className="flex items-center justify-center gap-2 mb-1">
                            <ShieldCheck className="h-3 w-3 text-red-500" />
                            <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
                         </div>
-                        <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">
-                          ${result.invalidated_at?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </p>
+                        <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">${result.invalidated_at?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                      </div>
                   </div>
                </div>
             </div>
 
-            {/* بطاقة المحادثة النبضية المنفصلة - الانزلاق للأعلى */}
-            <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden group/chat">
-               <div className="absolute -bottom-4 -left-4 opacity-[0.02] pointer-events-none group-hover/chat:rotate-12 transition-transform duration-1000">
-                  <MessageSquare size={120} />
-               </div>
-               <AgentDialogueFeed messages={result.dialogue || []} />
+            {/* بطاقة المحادثة النبضية المنفصلة (بأسلوب واتساب) */}
+            <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
+               <AgentDialogueFeed messages={chatHistory} />
             </div>
 
             <RiskConfidenceMatrix 
@@ -247,7 +224,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               confidenceScore={confidenceScore} 
             />
 
-            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} في هذه اللحظة عبر المحرك الموحد.`} />
+            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر البروتوكول المعتمد.`} />
 
             <div className="pt-4 border-t border-gray-50">
                <ParameterConsole 
@@ -255,24 +232,23 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                  onAmountChange={setTradeAmount}
                  duration={tradeDuration}
                  onDurationChange={setTradeDuration}
-                 durations={adminDurations}
+                 durations={globalConfig?.tradeDurations || []}
                  balance={dbUser?.totalBalance || 0}
                  minAmount={globalConfig?.minTradeAmount || 10}
                  maxAmount={globalConfig?.maxTradeAmount || 5000}
                />
             </div>
 
-            <div className="pt-2 flex items-center gap-4">
+            <div className="pt-2">
                <Button 
                  onClick={handleTradeExecution}
-                 disabled={isExecuting || result.decision === 'HOLD' || result.risk?.action === 'AVOID TRADE'}
+                 disabled={isExecuting || result.decision === 'HOLD'}
                  className={cn(
-                   "flex-1 h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden",
+                   "w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden",
                    result.decision === 'BUY' ? "hover:bg-emerald-600 shadow-emerald-900/40" : 
                    result.decision === 'SELL' ? "hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
                  )}
                >
-                 <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
                  {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
                    <div className="flex items-center gap-3 relative z-10">
                       <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
