@@ -24,8 +24,7 @@ import {
   Sparkles,
   ShieldCheck,
   X,
-  MapPin,
-  MessageSquare
+  MapPin
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
@@ -42,7 +41,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   
-  // سجل المحادثة التاريخي - يشبه واتساب
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const lastAgentsRef = useRef<Record<string, string>>({});
 
@@ -77,7 +75,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         const data = await res.json();
         setResult(data);
 
-        // محرك المحادثة الذكي: إضافة الرسائل الجديدة فقط عند تغير القراءة
         if (data.dialogue) {
           const newMessages: any[] = [];
           data.dialogue.forEach((msg: any) => {
@@ -88,7 +85,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
           });
 
           if (newMessages.length > 0) {
-            setChatHistory(prev => [...prev, ...newMessages].slice(-15)); // الاحتفاظ بآخر 15 رسالة
+            setChatHistory(prev => [...prev, ...newMessages].slice(-15));
           }
         }
       } catch (e) {}
@@ -129,7 +126,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       });
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       hapticFeedback.success();
-      setFeedback({ type: 'success', message: 'تم تنفيذ بروتوكول AI بنجاح.' });
+      setFeedback({ type: 'success', message: 'تم تنفيذ البروتوكول بنجاح.' });
     } catch (e) {
       hapticFeedback.error();
     } finally {
@@ -156,11 +153,10 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
-            {/* بطاقة الأهداف والمؤشرات */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 transition-transform duration-1000"><Target size={180} /></div>
 
-               {/* مكون المؤشرات والتحليل الرقمي المستعاد */}
+               {/* مصفوفة الاستحقاق المدمجة (Flat Design) */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
@@ -212,7 +208,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* بطاقة المحادثة النبضية المنفصلة (بأسلوب واتساب) */}
             <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
                <AgentDialogueFeed messages={chatHistory} />
             </div>

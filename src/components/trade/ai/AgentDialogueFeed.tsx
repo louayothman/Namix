@@ -14,16 +14,11 @@ interface Message {
   color: string;
 }
 
-/**
- * @fileOverview شريط الحوار النبضي v4.0 - WhatsApp Adaptive Stream
- * محاكي محادثة يحاكي واتساب؛ تتدفق الرسائل من الأسفل وتدفع القديمة للأعلى مع تمرير آلي.
- */
 export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
   const iconMap: Record<string, any> = { Zap, Target, ShieldCheck, Cpu };
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // تمرير آلي انسيابي للأسفل عند وصول أي تحديث في الرسائل
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
@@ -34,32 +29,33 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
 
   return (
     <div className="space-y-5 font-body tracking-normal" dir="rtl">
-      {/* Header Module */}
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">Consensus Stream</span>
+          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">Neural Consensus Feed</span>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">LIVE HUB</Badge>
+        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md uppercase">Live Stream</Badge>
       </div>
       
       <div 
         ref={scrollRef}
-        className="h-[240px] overflow-y-auto scrollbar-none space-y-4 pr-1 pl-1"
+        className="h-[260px] overflow-y-auto scrollbar-none space-y-4 pr-1 pl-1"
       >
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={false} mode="popLayout">
           {messages.map((msg) => {
             const Icon = iconMap[msg.icon] || Cpu;
             return (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                layout
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
-                  duration: 0.6,
-                  ease: [0.16, 1, 0.3, 1] 
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 30
                 }}
-                className="flex items-start gap-4 text-right group/msg"
+                className="flex items-start gap-3 text-right group/msg"
               >
                 <div className={cn(
                   "h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover/msg:scale-110",
@@ -67,12 +63,12 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
                 )}>
                   <Icon size={16} className="text-white" />
                 </div>
-                <div className="flex-1 pt-0.5 border-r border-gray-100 pr-4">
-                  <div className="flex items-center gap-2 mb-1">
-                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent} Analyzer</p>
-                     <div className="h-1 w-1 rounded-full bg-emerald-500/40" />
+                <div className="flex-1 pt-0.5">
+                  <div className="flex items-center gap-2 mb-1 pr-1">
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent} Intelligence</p>
+                     <div className="h-1 w-1 rounded-full bg-blue-500/20" />
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-2xl rounded-tr-sm border border-gray-100/50 shadow-sm">
+                  <div className="p-4 bg-gray-50 rounded-[24px] rounded-tr-sm border border-gray-100/50 shadow-sm relative group-hover/msg:bg-white group-hover/msg:shadow-md transition-all duration-500">
                     <p className="text-[11px] font-bold text-[#002d4d] leading-relaxed">
                       {msg.message}
                     </p>

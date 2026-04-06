@@ -1,18 +1,17 @@
 "use client";
 
-import { Activity, Target, Zap, ShieldCheck, Waves } from "lucide-react";
+import { Target, Zap, ShieldCheck, Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { RiskScorecard } from "@/lib/namix-ai-orchestrator";
 
 interface IntelligenceMetricsProps {
-  scorecard: RiskScorecard;
+  scorecard: {
+    momentum: number;
+    liquidity: number;
+    volatility: number;
+  };
 }
 
-/**
- * @fileOverview بطاقة أداء الاستخبارات المسطحة v7.0 - Flat Matrix Edition
- * تم إزالة كافة البطاقات الفرعية والخلفيات البيضاء لضمان مظهر بيانات نقي وموحد.
- */
 export function IntelligenceMetrics({ scorecard }: IntelligenceMetricsProps) {
   const metrics = [
     { label: "الزخم", val: `${scorecard.momentum}%`, icon: Zap, color: "text-orange-500" },
@@ -22,32 +21,26 @@ export function IntelligenceMetrics({ scorecard }: IntelligenceMetricsProps) {
   ];
 
   return (
-    <div className="bg-gray-50/40 rounded-[48px] border border-gray-100 overflow-hidden shadow-inner font-body tracking-normal" dir="rtl">
+    <div className="bg-gray-50/40 rounded-[32px] border border-gray-100 overflow-hidden shadow-inner font-body tracking-normal" dir="rtl">
       <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100/50">
         {metrics.map((m, i) => (
           <motion.div 
             key={i} 
-            whileHover="hover"
-            className="relative h-20 md:h-24 flex flex-col items-center justify-center gap-1 group overflow-hidden transition-all hover:bg-white/40"
+            whileHover={{ backgroundColor: "rgba(255,255,255,0.5)" }}
+            className="relative h-20 flex flex-col items-center justify-center gap-1 group overflow-hidden transition-all"
           >
-            {/* الأيقونة الخلفية الضخمة والتفاعلية - شفافة جداً */}
-            <motion.div
-              variants={{
-                hover: { scale: 1.2, rotate: 12, opacity: 0.06 }
-              }}
-              className={cn(
-                "absolute -bottom-4 -right-4 opacity-[0.02] pointer-events-none transition-all duration-1000",
-                m.color
-              )}
-            >
-               <m.icon size={80} strokeWidth={1} />
-            </motion.div>
+            <div className={cn(
+              "absolute -bottom-2 -right-2 opacity-[0.02] pointer-events-none transition-all duration-700 group-hover:opacity-[0.06] group-hover:scale-110",
+              m.color
+            )}>
+               <m.icon size={60} strokeWidth={1} />
+            </div>
 
             <div className="relative z-10 text-center space-y-0.5">
               <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest leading-none tracking-normal">
                 {m.label}
               </p>
-              <p className={cn("text-[13px] font-black tabular-nums tracking-tighter leading-none transition-colors duration-500", m.color)}>
+              <p className={cn("text-[12px] font-black tabular-nums tracking-tighter leading-none transition-colors duration-500", m.color)}>
                 {m.val}
               </p>
             </div>
