@@ -10,6 +10,7 @@ import { MarketScanner } from "@/components/trade/ai/MarketScanner";
 import { ParameterConsole } from "@/components/trade/ai/ParameterConsole";
 import { MarketPulseHub } from "@/components/trade/ai/MarketPulseHub";
 import { RiskConfidenceMatrix } from "@/components/trade/ai/RiskConfidenceMatrix";
+import { AgentDialogueFeed } from "@/components/trade/ai/AgentDialogueFeed";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -34,10 +35,6 @@ import { cn } from "@/lib/utils";
 
 type ReactorStatus = 'calibrating' | 'results';
 
-/**
- * @fileOverview NAMIX AI CONTAINER v12.0 - Sovereign Unified Logic
- * المحرك المركزي لإدارة ذكاء ناميكس؛ يضم دمجاً كاملاً للأهداف والمؤشرات والمخاطر.
- */
 export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: number | null }) {
   const db = useFirestore();
   const [status, setStatus] = useState<ReactorStatus>('calibrating');
@@ -170,6 +167,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   <Zap size={180} />
                </div>
 
+               {/* Indicators & Heatmap */}
                <div className="p-6 bg-gray-50/40 rounded-[40px] border border-gray-100 shadow-inner space-y-4 relative z-10">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] tracking-normal">تحليل المؤشرات | Indicator Analysis</h4>
@@ -196,6 +194,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                   </div>
                </div>
 
+               {/* Global Metrics */}
                <div className="grid grid-cols-4 divide-x divide-x-reverse divide-gray-100 relative z-10">
                   {[
                     { label: "الزخم", val: `${Math.round((result.agents?.tech?.score || 0.5) * 100)}%`, icon: Zap, color: "text-orange-500" },
@@ -212,6 +211,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent relative z-10" />
 
+               {/* Strategic Targets */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية | Targets</h4>
@@ -234,6 +234,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           </div>
                        </div>
                     ))}
+                  </div>
+
+                  {/* Neural Dialogue Feed - تموضعه تحت الأهداف مباشرة */}
+                  <div className="pt-4 border-t border-gray-50/50">
+                     <AgentDialogueFeed messages={result.dialogue || []} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
