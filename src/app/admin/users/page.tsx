@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Loader2, Download, Activity, ChevronDown, Globe, Users, Sparkles } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc, updateDoc, increment, deleteDoc } from "firebase/firestore";
