@@ -2,17 +2,27 @@
 'use server';
 
 /**
- * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v1.0
- * بروتوكول جلب الرموز والأسعار اللحظية للأسواق العالمية (أسهم، سلع، فوركس).
+ * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v2.0
+ * Enhanced to support dynamic multi-node API registry.
  */
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-async function getApiKey() {
+async function getActiveApiKey() {
   const { firestore } = initializeFirebase();
   const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
-  return configSnap.exists() ? configSnap.data().finnhubApiKey : null;
+  if (!configSnap.exists()) return null;
+  
+  const data = configSnap.data();
+  // Try new dynamic node structure
+  if (data.nodes && Array.isArray(data.nodes)) {
+    const active = data.nodes.find((n: any) => n.provider === 'finnhub' && n.isActive);
+    if (active) return active.apiKey;
+  }
+  
+  // Legacy fallback
+  return data.finnhubApiKey || null;
 }
 
 /**
@@ -20,8 +30,8 @@ async function getApiKey() {
  */
 export async function searchFinnhubSymbols(query: string) {
   try {
-    const apiKey = await getApiKey();
-    if (!apiKey) return { success: false, error: "مفتاح Finnhub غير متوفر في الإعدادات." };
+    const apiKey = await getActiveApiKey();
+    if (!apiKey) return { success: false, error: "مفتاح Finnhub النشط غير متوفر." };
     if (!query || query.length < 2) return { success: true, symbols: [] };
 
     const response = await fetch(
@@ -50,8 +60,8 @@ export async function searchFinnhubSymbols(query: string) {
  */
 export async function getFinnhubPrice(symbol: string) {
   try {
-    const apiKey = await getApiKey();
-    if (!apiKey) return { success: false, error: "مفتاح API مفقود." };
+    const apiKey = await getActiveApiKey();
+    if (!apiKey) return { success: false, error: "مفتاح API النشط مفقود." };
 
     const response = await fetch(
       `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`,
@@ -60,7 +70,6 @@ export async function getFinnhubPrice(symbol: string) {
 
     const data = await response.json();
 
-    // Finnhub returns 'c' for current price
     if (!data.c) {
       return { success: false, error: "لم يتم العثور على بيانات السعر حالياً." };
     }
@@ -68,10 +77,10 @@ export async function getFinnhubPrice(symbol: string) {
     return {
       success: true,
       price: data.c,
-      changePercent: data.dp, // daily percent change
+      changePercent: data.dp,
       high: data.h,
       low: data.l,
-      volume: 0 // Finnhub quote doesn't always have volume
+      volume: 0 
     };
   } catch (e: any) {
     return { success: false, error: e.message };

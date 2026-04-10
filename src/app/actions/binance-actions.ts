@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview Binance Sovereign Automation Protocol v6.0
- * Enhanced with deep transaction verification and amount extraction.
+ * @fileOverview Binance Sovereign Automation Protocol v7.0
+ * Updated to support dynamic multi-node API connectivity.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -47,6 +47,29 @@ async function binanceSignedRequest(endpoint: string, params: Record<string, str
 }
 
 /**
+ * Finds the currently active Binance Node from the dynamic matrix.
+ */
+async function getActiveBinanceConfig() {
+  const { firestore } = initializeFirebase();
+  const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
+  if (!configSnap.exists()) return null;
+  
+  const data = configSnap.data();
+  // Try to find active node in new structure
+  if (data.nodes && Array.isArray(data.nodes)) {
+    const active = data.nodes.find((n: any) => n.provider === 'binance' && n.isActive);
+    if (active) return { apiKey: active.apiKey, apiSecret: active.apiSecret };
+  }
+  
+  // Fallback to legacy fields if nodes array is empty
+  if (data.binanceApiKey) {
+    return { apiKey: data.binanceApiKey, apiSecret: data.binanceApiSecret };
+  }
+  
+  return null;
+}
+
+/**
  * Fetches the current price for a symbol using Public API.
  */
 export async function getBinanceTickerPrice(symbol: string) {
@@ -63,28 +86,23 @@ export async function getBinanceTickerPrice(symbol: string) {
 
 /**
  * Verifies a deposit by TXID and returns the ACTUAL amount from Binance records.
- * This ignores the user's manual input and trusts the blockchain.
  */
 export async function verifyBinanceDeposit(txid: string, amount?: number, asset: string = "USDT") {
   try {
-    const { firestore } = initializeFirebase();
-    const configSnap = await getDoc(doc(firestore, "system_settings", "binance"));
-    const configData = configSnap.exists() ? configSnap.data() : null;
+    const config = await getActiveBinanceConfig();
     
-    if (!configData || !configData.apiKey || !configData.apiSecret) {
-      return { success: false, error: "بروتوكول الأمان (Binance API) غير مهيأ في الإعدادات." };
+    if (!config || !config.apiKey || !config.apiSecret) {
+      return { success: false, error: "بروتوكول الأمان (Binance Active Node) غير مفعل أو مفقود في الإعدادات." };
     }
 
-    // Fetch deposit history for the specific asset
     const history = await binanceSignedRequest('/sapi/v1/capital/deposit/hisrec', { 
       coin: asset.toUpperCase(),
-      status: "1" // 1 = Success
-    }, configData.apiKey, configData.apiSecret);
+      status: "1" 
+    }, config.apiKey, config.apiSecret);
 
     if (history.code) return { success: false, error: history.msg };
 
     if (Array.isArray(history)) {
-      // Search for the TXID in the recent history
       const match = history.find((d: any) => 
         d.txId.toLowerCase() === txid.trim().toLowerCase()
       );
@@ -103,31 +121,7 @@ export async function verifyBinanceDeposit(txid: string, amount?: number, asset:
       }
     }
 
-    return { success: false, error: "لم يتم العثور على عملية إيداع مطابقة لهذا المعرف (TXID) في سجلات بينانس حتى الآن. يرجى الانتظار بضع دقائق والمحاولة مجدداً." };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-export async function getBinanceExchangeSymbols() {
-  try {
-    const response = await fetch('https://api.binance.com/api/v3/exchangeInfo', {
-      cache: 'no-store'
-    });
-    const data = await response.json();
-    
-    if (!data.symbols) return { success: false, symbols: [] };
-
-    const usdtPairs = data.symbols
-      .filter((s: any) => s.symbol.endsWith('USDT') && s.status === 'TRADING')
-      .map((s: any) => ({
-        symbol: s.symbol,
-        baseAsset: s.baseAsset,
-        quoteAsset: s.quoteAsset,
-        precision: s.baseAssetPrecision
-      }));
-
-    return { success: true, symbols: usdtPairs };
+    return { success: false, error: "لم يتم العثور على عملية إيداع مطابقة لهذا المعرف (TXID). يرجى الانتظار والمحاولة مجدداً." };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -135,18 +129,16 @@ export async function getBinanceExchangeSymbols() {
 
 export async function getBinanceDepositAddress(coin: string, network: string) {
   try {
-    const { firestore } = initializeFirebase();
-    const configSnap = await getDoc(doc(firestore, "system_settings", "binance"));
-    const configData = configSnap.exists() ? configSnap.data() : null;
+    const config = await getActiveBinanceConfig();
     
-    if (!configData || !configData.apiKey || !configData.apiSecret) {
-      return { success: false, error: "بروتوكول الأمان غير مكتمل." };
+    if (!config || !config.apiKey || !config.apiSecret) {
+      return { success: false, error: "بروتوكول الأمان غير مكتمل أو العقدة النشطة غير موجودة." };
     }
 
     const data = await binanceSignedRequest('/sapi/v1/capital/deposit/address', { 
       coin: coin.toUpperCase(), 
       network: network.toUpperCase() 
-    }, configData.apiKey, configData.apiSecret);
+    }, config.apiKey, config.apiSecret);
 
     if (data.code) return { success: false, error: data.msg };
 

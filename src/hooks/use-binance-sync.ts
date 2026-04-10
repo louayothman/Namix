@@ -5,8 +5,9 @@ import { useEffect, useRef } from 'react';
 import { useMarketStore } from '@/store/use-market-store';
 
 /**
- * @fileOverview بروتوكول مزامنة Binance v1.3 - Resilient Connection
- * تم تحسين استقرار الاتصال ومعالجة الأخطاء بصمت لضمان استمرارية النبض السعري.
+ * @fileOverview بروتوكول مزامنة Binance v1.4 - Resilient Connection
+ * Updated to keep logic simple while relying on actions for signed data.
+ * Public ticker data doesn't require keys, so this hook remains public-ready.
  */
 export function useBinanceSync(symbols: any[]) {
   const updatePrice = useMarketStore(state => state.updatePrice);
@@ -17,8 +18,7 @@ export function useBinanceSync(symbols: any[]) {
   useEffect(() => {
     isMounted.current = true;
     
-    // تصفية الرموز التابعة لبينانس فقط والموجود لها رمز تداول
-    const binanceSymbols = symbols?.filter(s => s.priceSource === 'binance' && s.binanceSymbol) || [];
+    const binanceSymbols = symbols?.filter(s => s.priceSource === 'binance' && (s.binanceSymbol || s.code)) || [];
     
     if (binanceSymbols.length === 0) {
       if (wsRef.current) {
@@ -32,7 +32,8 @@ export function useBinanceSync(symbols: any[]) {
     const streams: string[] = [];
 
     binanceSymbols.forEach(s => {
-      const cleanSymbol = s.binanceSymbol.replace('/', '').toUpperCase();
+      const rawCode = s.binanceSymbol || s.code;
+      const cleanSymbol = rawCode.replace('/', '').toUpperCase();
       binanceMap.set(cleanSymbol, s.id);
       streams.push(`${cleanSymbol.toLowerCase()}@ticker`);
     });
@@ -67,9 +68,7 @@ export function useBinanceSync(symbols: any[]) {
                 });
               }
             }
-          } catch (e) {
-            // صامت في حال فشل تحليل رسالة فردية
-          }
+          } catch (e) {}
         };
 
         ws.onclose = () => {

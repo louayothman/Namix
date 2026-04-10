@@ -6,8 +6,8 @@ import { useMarketStore } from '@/store/use-market-store';
 import { getFinnhubPrice } from '@/app/actions/finnhub-actions';
 
 /**
- * @fileOverview بروتوكول مزامنة Finnhub v1.0 - Market Hours Aware
- * يدير التحديث الدوري للأسهم والسلع مع مراعاة إغلاق الأسواق العالمية.
+ * @fileOverview بروتوكول مزامنة Finnhub v1.1 - Multi-Node Aware
+ * يدير التحديث الدوري للأسهم والسلع مع جلب البيانات من العقدة النشطة.
  */
 export function useFinnhubSync(symbols: any[]) {
   const updatePrice = useMarketStore(state => state.updatePrice);
@@ -30,10 +30,8 @@ export function useFinnhubSync(symbols: any[]) {
     const sync = async () => {
       if (!isMounted.current) return;
       
-      if (!isMarketOpen()) {
-        console.log("Global Market is Closed. Finnhub Sync Suspended.");
-        return;
-      }
+      // We still sync even if market is closed to get the last "closed" price
+      // but we could slow down the frequency here if desired.
       
       for (const s of finnhubSymbols) {
         if (!isMounted.current) break;
@@ -53,7 +51,8 @@ export function useFinnhubSync(symbols: any[]) {
     };
 
     sync();
-    timerRef.current = setInterval(sync, 20000); // تحديث كل 20 ثانية للأصول العالمية
+    // Refresh every 20 seconds for global assets
+    timerRef.current = setInterval(sync, 20000);
 
     return () => {
       isMounted.current = false;
