@@ -6,7 +6,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v3.0
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v4.0
  * يدعم توليد وتحديث العناوين مع معالجة أفضل للأخطاء والعملات المتاحة.
  */
 
@@ -40,7 +40,6 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
     }
 
     // طلب إنشاء عنوان دفع جديد من البوابة
-    // ملاحظة: نستخدم الحد الأدنى للمبلغ فقط لإنشاء العنوان
     const response = await axios.post(
       'https://api.nowpayments.io/v1/payment',
       {
@@ -75,13 +74,28 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
 }
 
 /**
- * توليد حزمة المحافظ الأساسية للمستخدم بضغطة واحدة
+ * توليد حزمة المحافظ الأساسية للمستثمر بضغطة واحدة (إصدار النخبة)
  */
 export async function generateBaseUserWallets(userId: string) {
-  const baseCurrencies = ['usdttrc20', 'usdtbsc', 'btc', 'eth'];
+  // قائمة العملات الأكثر طلباً لضمان هوية مالية شاملة
+  const baseCurrencies = [
+    'usdttrc20', // USDT (Tron)
+    'usdtbsc',   // USDT (BSC)
+    'btc',       // Bitcoin
+    'eth',       // Ethereum
+    'ltc',       // Litecoin
+    'sol',       // Solana
+    'trx'        // TRON
+  ];
+  
   const results = [];
   for (const curr of baseCurrencies) {
-    results.push(await getOrCreateUserWallet(userId, curr));
+    try {
+      const res = await getOrCreateUserWallet(userId, curr);
+      results.push({ currency: curr, ...res });
+    } catch (e) {
+      results.push({ currency: curr, success: false });
+    }
   }
   return results;
 }

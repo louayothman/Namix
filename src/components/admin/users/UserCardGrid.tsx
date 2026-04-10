@@ -36,9 +36,9 @@ export function UserCardGrid({
     setSyncingId(userId);
     try {
       await generateBaseUserWallets(userId);
-      toast({ title: "تم توليد المحافظ", description: "المستثمر الآن يمتلك هويات مالية متعددة." });
+      toast({ title: "تم توليد الهوية المالية", description: "المستثمر الآن يمتلك حزمة محافظ مؤتمتة وجاهزة للإيداع." });
     } catch (e) {
-      toast({ variant: "destructive", title: "فشل التوليد" });
+      toast({ variant: "destructive", title: "فشل بروتوكول التوليد" });
     } finally {
       setSyncingId(null);
     }
@@ -52,7 +52,8 @@ export function UserCardGrid({
         const tier = user.tier || getUserTier(user);
         const isVerified = checkVerification(user);
         const isOnline = user.lastActive && (new Date().getTime() - new Date(user.lastActive).getTime() < 300000);
-        const hasWallets = user.assignedWallets && Object.keys(user.assignedWallets).length > 0;
+        const assignedWalletsCount = user.assignedWallets ? Object.keys(user.assignedWallets).length : 0;
+        const hasWallets = assignedWalletsCount > 0;
         
         return (
           <Card key={user.id} className="border-none shadow-sm rounded-[56px] bg-white overflow-hidden group transition-all hover:shadow-2xl hover:-translate-y-2 flex flex-col relative">
@@ -95,32 +96,50 @@ export function UserCardGrid({
 
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-[24px] border border-gray-100">
                  <div className="flex items-center gap-3">
-                    <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center shadow-inner transition-all", hasWallets ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-400")}>
+                    <div className={cn(
+                      "h-8 w-8 rounded-xl flex items-center justify-center shadow-inner transition-all", 
+                      hasWallets ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-400"
+                    )}>
                        {hasWallets ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
                     </div>
                     <div className="text-right">
-                       <p className="text-[9px] font-black text-[#002d4d]">الهوية المالية الآلية</p>
-                       <p className="text-[7px] font-bold text-gray-400 uppercase">{hasWallets ? `${Object.keys(user.assignedWallets).length} Wallets Active` : 'No Wallets Generated'}</p>
+                       <p className="text-[9px] font-black text-[#002d4d]">محافظ المزامنة الآلية</p>
+                       <p className="text-[7px] font-bold text-gray-400 uppercase">
+                         {hasWallets ? `${assignedWalletsCount} Nodes Connected` : 'No Assigned Nodes'}
+                       </p>
                     </div>
                  </div>
-                 {!hasWallets && (
-                   <Button 
-                     onClick={() => handleGenerateWallets(user.id)} 
-                     disabled={syncingId === user.id}
-                     className="h-8 rounded-lg bg-[#002d4d] text-white font-black text-[8px] px-3 active:scale-95"
+                 {syncingId === user.id ? (
+                   <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100">
+                      <Loader2 className="animate-spin size-3 text-blue-500" />
+                      <span className="text-[7px] font-black text-blue-500 uppercase">Syncing...</span>
+                   </div>
+                 ) : (
+                   <button 
+                     onClick={() => handleGenerateWallets(user.id)}
+                     className="text-[8px] font-black text-blue-600 hover:text-[#002d4d] uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                    >
-                      {syncingId === user.id ? <Loader2 className="animate-spin size-3" /> : "توليد المحافظ"}
-                   </Button>
+                      <Zap size={10} className="fill-current" /> {hasWallets ? "تحديث" : "توليد"}
+                   </button>
                  )}
               </div>
             </CardContent>
 
-            <div className="p-6 bg-gray-50/50 border-t border-gray-100 grid grid-cols-5 gap-2">
-              <Link href={`/admin/users/${user.id}`} className="contents"><Button variant="ghost" className="h-12 rounded-2xl bg-white border border-gray-100 text-emerald-600"><UserSearch size={18} /></Button></Link>
-              <Button onClick={() => onEdit(user)} variant="ghost" className="h-12 rounded-2xl bg-white border border-gray-100 text-blue-500"><Edit size={18} /></Button>
-              <Button onClick={() => onAdjustBalance(user)} variant="ghost" className="h-12 rounded-2xl bg-white border border-gray-100 text-orange-500"><Wallet size={18} /></Button>
-              <Button onClick={() => onResetCredentials(user)} variant="ghost" className="h-12 rounded-2xl bg-white border border-gray-100 text-purple-500"><KeyRound size={18} /></Button>
-              <Button onClick={() => onDelete(user)} variant="ghost" className="h-12 rounded-2xl bg-white border border-gray-100 text-red-400"><Trash2 size={18} /></Button>
+            <div className="p-6 bg-gray-50/50 border-t border-gray-100 grid grid-cols-6 gap-2">
+              <Link href={`/admin/users/${user.id}`} className="contents"><Button variant="ghost" title="عرض الملف الكامل" className="h-12 rounded-2xl bg-white border border-gray-100 text-emerald-600"><UserSearch size={18} /></Button></Link>
+              <Button onClick={() => onEdit(user)} variant="ghost" title="تعديل البيانات" className="h-12 rounded-2xl bg-white border border-gray-100 text-blue-500"><Edit size={18} /></Button>
+              <Button onClick={() => onAdjustBalance(user)} variant="ghost" title="تعديل الرصيد يدوياً" className="h-12 rounded-2xl bg-white border border-gray-100 text-orange-500"><Wallet size={18} /></Button>
+              <Button 
+                onClick={() => handleGenerateWallets(user.id)} 
+                variant="ghost" 
+                title="مزامنة وتوليد محافظ NOWPayments"
+                disabled={syncingId === user.id}
+                className="h-12 rounded-2xl bg-white border border-gray-100 text-cyan-600"
+              >
+                {syncingId === user.id ? <Loader2 className="animate-spin size-[18px]" /> : <Cpu size={18} />}
+              </Button>
+              <Button onClick={() => onResetCredentials(user)} variant="ghost" title="تصفير الأمان" className="h-12 rounded-2xl bg-white border border-gray-100 text-purple-500"><KeyRound size={18} /></Button>
+              <Button onClick={() => onDelete(user)} variant="ghost" title="حذف المستثمر" className="h-12 rounded-2xl bg-white border border-gray-100 text-red-400"><Trash2 size={18} /></Button>
             </div>
           </Card>
         );
