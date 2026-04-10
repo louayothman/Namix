@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v5.0 - Historical Data Secured
- * تم إضافة ترميز الرموز (Symbol Encoding) ومعالجة متقدمة لحالات نقص البيانات.
+ * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v6.0 - WebSocket & Rotation Optimized
+ * تم إضافة دعم لجلب التوكنز للمزامنة اللحظية وتحصين طلبات البيانات التاريخية.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -28,6 +28,18 @@ async function getActiveNodes(provider: 'finnhub' | 'binance') {
   }
   
   return [];
+}
+
+/**
+ * جلب قائمة التوكنز النشطة لفتح قنوات الـ WebSocket
+ */
+export async function getFinnhubTokens() {
+  try {
+    const nodes = await getActiveNodes('finnhub');
+    return { success: true, tokens: nodes.map(n => n.apiKey) };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
 }
 
 /**
@@ -67,7 +79,7 @@ export async function searchFinnhubSymbols(query: string) {
 }
 
 /**
- * جلب السعر اللحظي مع دعم التدوير والتبديل الآلي
+ * جلب السعر اللحظي والإحصائيات الأساسية
  */
 export async function getFinnhubPrice(symbol: string) {
   try {
@@ -104,26 +116,28 @@ export async function getFinnhubPrice(symbol: string) {
 }
 
 /**
- * جلب البيانات التاريخية (الشموع) من Finnhub مع دعم التدوير
+ * جلب البيانات التاريخية (الشموع) من Finnhub مع دعم التدوير والترميز
  */
 export async function getFinnhubCandles(symbol: string, resolution: string = '1', from: number, to: number) {
   try {
     const nodes = await getActiveNodes('finnhub');
     if (nodes.length === 0) return { success: false, error: "مفاتيح API مفقودة." };
 
+    // تأمين ترميز الرمز لضمان قبول الرموز المعقدة (مثل الفوركس والذهب)
+    const encodedSymbol = encodeURIComponent(symbol);
+
     for (const node of nodes) {
-      const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${to}&token=${node.apiKey}`;
+      const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodedSymbol}&resolution=${resolution}&from=${from}&to=${to}&token=${node.apiKey}`;
       const response = await fetch(url, { cache: 'no-store' });
 
       if (response.status === 429) continue;
 
       const data = await response.json();
       
-      // إذا كان الرمز غير مدعوم أو لا يوجد بيانات لهذه الفترة
       if (data.s === 'no_data' || !data.t) {
-        // نجرّب دقة أعلى (مثلاً يومية) إذا كانت الدقيقة غير متوفرة
+        // محاولة جلب دقة يومية في حال فشل الدقيقة الواحدة (توفيراً للبيانات)
         if (resolution === '1') {
-           const retryRes = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}&token=${node.apiKey}`, { cache: 'no-store' });
+           const retryRes = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${encodedSymbol}&resolution=D&from=${from}&to=${to}&token=${node.apiKey}`, { cache: 'no-store' });
            const retryData = await retryRes.json();
            if (retryData.s === 'ok') return { success: true, data: formatCandles(retryData) };
         }
