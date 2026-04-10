@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview NAMIX DETERMINISTIC INTERNAL MARKET ENGINE v1.1
  * تم تحديث زر العودة للسعر اللحظي وشريط الأدوات ليتطابق مع الرسم الفني العالمي.
@@ -170,6 +171,7 @@ export function InternalPriceChart({ asset, livePrice }: InternalPriceChartProps
   const [priceY, setPriceY] = useState<number | null>(null);
   const [isUp, setIsUp] = useState(true);
   const [prevPrice, setPrevPrice] = useState<number | null>(null);
+  const [activeTrades, setActiveTrades] = useState<any[]>([]);
 
   const db = useFirestore();
 
@@ -206,7 +208,7 @@ export function InternalPriceChart({ asset, livePrice }: InternalPriceChartProps
     const generateHistory = async () => {
       setIsLoading(true);
       try {
-        const data = generateInternalHistory(asset.id, asset, 5000);
+        const data = generateInternalHistory(asset.id, asset, 1000);
         if (data.length > 0) {
           setHistory(data);
           lastCandleTimeRef.current = data[data.length - 1].time;
@@ -232,7 +234,11 @@ export function InternalPriceChart({ asset, livePrice }: InternalPriceChartProps
     
     return () => { 
       resizeObserver.disconnect(); 
-      if (chartRef.current) { chartRef.current.remove(); chartRef.current = null; }
+      if (chartRef.current) { 
+        chartRef.current.remove(); 
+        chartRef.current = null;
+        mainSeriesRef.current = null;
+      }
     };
   }, [asset?.id]);
 
@@ -251,7 +257,15 @@ export function InternalPriceChart({ asset, livePrice }: InternalPriceChartProps
   const applyStyle = (style: ChartStyle, data?: any[]) => {
     if (!chartRef.current) return;
     const currentData = data || history;
-    if (mainSeriesRef.current) chartRef.current.removeSeries(mainSeriesRef.current);
+    
+    // Safety check for removal
+    if (mainSeriesRef.current) {
+      try {
+        chartRef.current.removeSeries(mainSeriesRef.current);
+      } catch (e) {
+        // Silently catch if series was already disposed
+      }
+    }
     
     const baseOptions = { priceLineVisible: false, lastValueVisible: false, priceFormat: { type: 'price', precision: 4, minMove: 0.0001 } as const };
     let series;
@@ -272,8 +286,10 @@ export function InternalPriceChart({ asset, livePrice }: InternalPriceChartProps
   const refreshIndicators = (data: any[]) => {
     if (!chartRef.current || !data || data.length === 0) return;
     Object.values(indicatorSeriesRef.current).forEach(s => {
-      if (Array.isArray(s)) s.forEach(sub => chartRef.current?.removeSeries(sub));
-      else chartRef.current?.removeSeries(s);
+      try {
+        if (Array.isArray(s)) s.forEach(sub => chartRef.current?.removeSeries(sub));
+        else chartRef.current?.removeSeries(s);
+      } catch (e) {}
     });
     indicatorSeriesRef.current = {};
     const results = calculateIndicators(data);

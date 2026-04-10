@@ -1,6 +1,7 @@
+
 /**
- * @fileOverview محرك الرسم البياني الاحترافي v23.0 - Navigation & Layout Edition
- * تم تحديث زر العودة للسعر اللحظي ليعيد الزوم للحجم الطبيعي بحركة انسيابية، ونقل الأدوات لليسار.
+ * @fileOverview محرك الرسم البياني الاحترافي v23.1 - Source Agnostic Engine
+ * تم تحديث المحرك ليدعم أصول Finnhub عبر توليد تاريخي ذكي في حال فقدان سجلات Binance.
  */
 
 "use client";
@@ -28,6 +29,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { getHistoricalKlines, BinanceKline } from "@/services/binance-service";
+import { generateInternalHistory } from "@/lib/internal-market";
 import { calculateIndicators } from "@/lib/indicators";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
@@ -164,7 +166,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const [currentStyle, setCurrentStyle] = useState<ChartStyle>('candles');
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const indicatorSeriesRef = useRef<Record<string, ISeriesApi<any> | ISeriesApi<any>[]>>({});
-  const [history, setHistory] = useState<BinanceKline[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isChartReady, setIsChartReady] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -176,7 +178,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const db = useFirestore();
 
   const fetchMoreHistory = useCallback(async () => {
-    if (isFetchingMore || !history.length || !asset) return;
+    if (isFetchingMore || !history.length || !asset || !asset.binanceSymbol) return;
     
     setIsFetchingMore(true);
     try {
@@ -231,7 +233,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     volumeSeriesRef.current = volumeSeries;
 
     chart.timeScale().subscribeVisibleLogicalRangeChange((range: LogicalRange | null) => {
-      if (range && range.from < 50) {
+      if (range && range.from < 50 && asset.binanceSymbol) {
         fetchMoreHistory();
       }
     });
@@ -239,7 +241,14 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     const initFetch = async () => {
       setIsLoading(true);
       try {
-        const data = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440);
+        let data: any[] = [];
+        if (asset.priceSource === 'binance' && asset.binanceSymbol) {
+          data = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440);
+        } else {
+          // Fallback generator for Finnhub or missing Binance symbols
+          data = generateInternalHistory(asset.id, asset, 1000);
+        }
+
         if (data.length > 0) {
           setHistory(data);
           lastCandleTimeRef.current = data[data.length - 1].time;
@@ -265,7 +274,11 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     
     return () => { 
       resizeObserver.disconnect(); 
-      if (chartRef.current) { chartRef.current.remove(); chartRef.current = null; }
+      if (chartRef.current) { 
+        chartRef.current.remove(); 
+        chartRef.current = null;
+        mainSeriesRef.current = null;
+      }
     };
   }, [asset?.id]);
 
@@ -302,7 +315,12 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const applyStyle = (style: ChartStyle, data?: any[]) => {
     if (!chartRef.current) return;
     const currentData = data || history;
-    if (mainSeriesRef.current) chartRef.current.removeSeries(mainSeriesRef.current);
+    
+    if (mainSeriesRef.current) {
+      try {
+        chartRef.current.removeSeries(mainSeriesRef.current);
+      } catch (e) {}
+    }
     
     const baseOptions = { priceLineVisible: false, lastValueVisible: false, priceFormat: { type: 'price', precision: 4, minMove: 0.0001 } as const };
     let series;
@@ -323,8 +341,10 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const refreshIndicators = (data: any[]) => {
     if (!chartRef.current || !data || data.length === 0) return;
     Object.values(indicatorSeriesRef.current).forEach(s => {
-      if (Array.isArray(s)) s.forEach(sub => chartRef.current?.removeSeries(sub));
-      else chartRef.current?.removeSeries(s);
+      try {
+        if (Array.isArray(s)) s.forEach(sub => chartRef.current?.removeSeries(sub));
+        else chartRef.current?.removeSeries(s);
+      } catch (e) {}
     });
     indicatorSeriesRef.current = {};
     const results = calculateIndicators(data);
@@ -380,16 +400,9 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     setPrevPrice(livePrice);
   }, [livePrice, currentStyle]);
 
-  /**
-   * handleScrollToRealTime
-   * يعيد حجم الشموع للوضع الطبيعي ويتحرك للسعر الحالي بانسيابية
-   */
   const handleScrollToRealTime = () => {
     if (chartRef.current) {
-      // 1. إعادة الحجم الطبيعي للشموع (Reset Zoom)
       chartRef.current.timeScale().applyOptions({ barSpacing: 12 });
-      
-      // 2. التحرك للسعر الحالي بحركة انسيابية تامة
       chartRef.current.timeScale().scrollToPosition(0, true);
     }
   };
@@ -430,7 +443,6 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
         )}
       </div>
 
-      {/* شريط أدوات الرسم البياني - تم نقله لأقصى اليسار */}
       <div className="absolute top-4 left-4 z-[100] flex justify-start pointer-events-none">
         <div className="flex flex-col items-start gap-3">
           <div className="flex items-center gap-2 pointer-events-auto">

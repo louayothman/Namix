@@ -222,10 +222,10 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           <section className="flex-1 relative bg-white overflow-hidden">
              <Suspense fallback={<TerminalLoader />}>
-               {asset.priceSource === 'binance' ? (
-                 <PriceChart asset={asset} livePrice={livePrice || asset.currentPrice} />
-               ) : (
+               {asset.priceSource === 'internal' ? (
                  <InternalPriceChart asset={asset} livePrice={livePrice || asset.currentPrice} />
+               ) : (
+                 <PriceChart asset={asset} livePrice={livePrice || asset.currentPrice} />
                )}
              </Suspense>
           </section>
