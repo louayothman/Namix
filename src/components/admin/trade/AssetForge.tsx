@@ -2,80 +2,71 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Plus, 
   Cpu, 
   Zap, 
   Loader2, 
   Search, 
   Target, 
   Sparkles,
-  Edit2,
   ShieldCheck,
   Globe,
   TrendingUp,
   TrendingDown,
   Activity,
-  AlertTriangle,
-  Info,
-  Layers,
-  Coins
+  Plus,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Database
 } from "lucide-react";
-import { useFirestore } from "@/firebase";
-import { doc, setDoc, updateDoc, collection } from "firebase/firestore";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { searchFinnhubSymbols } from "@/app/actions/finnhub-actions";
-import { CRYPTO_ICONS_MAP, CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
+import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview مفاعل الأصول v15.0 - Deterministic ID Edition
- * تم تحديث المحرك ليعتمد رمز التداول (Code) كـ ID ثابت بدلاً من العشوائي.
+ * @fileOverview مفاعل صهر الأصول المدمج v20.0
+ * تم إلغاء النوافذ المنبثقة وتحويل الإضافة لنموذج مدمج مع محرك بحث عالمي موحد.
  */
 
-interface AssetForgeProps {
-  initialData?: any;
-  mode?: "add" | "edit";
-}
-
-export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
-  const [open, setOpen] = useState(false);
+export function AssetForge() {
+  const db = useFirestore();
+  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [marketSymbols, setMarketSymbols] = useState<any[]>([]);
-  const [source, setSource] = useState<'internal' | 'binance' | 'finnhub'>(initialData?.priceSource || 'internal');
+  const [source, setSource] = useState<'internal' | 'binance' | 'finnhub'>('internal');
   const [searchTerm, setSearchTerm] = useState("");
   
+  const connectivityRef = useMemoFirebase(() => doc(db, "system_settings", "connectivity"), [db]);
+  const { data: remoteConnectivity } = useDoc(connectivityRef);
+
   const [formData, setFormData] = useState({
-    name: initialData?.name || "",
-    code: initialData?.code || "",
-    type: initialData?.type || "Equity",
-    priceSource: initialData?.priceSource || "internal",
-    binanceSymbol: initialData?.binanceSymbol || "",
-    externalTicker: initialData?.externalTicker || "", 
-    minPrice: initialData?.minPrice || 100,
-    maxPrice: initialData?.maxPrice || 1000,
-    volatility: initialData?.volatility || 5,
-    trendBias: initialData?.trendBias || "neutral",
-    icon: initialData?.icon || "COINS",
-    assistantRefreshTicks: initialData?.assistantRefreshTicks || 5
+    name: "",
+    code: "",
+    type: "Equity",
+    priceSource: "internal",
+    binanceSymbol: "",
+    externalTicker: "", 
+    minPrice: 100,
+    maxPrice: 1000,
+    volatility: 5,
+    trendBias: "neutral",
+    icon: "COINS",
   });
 
-  const db = useFirestore();
-
+  // محرك البحث العالمي الموحد
   const handleGlobalSearch = async () => {
     if (searchTerm.length < 2) return;
     setSyncLoading(true);
@@ -83,11 +74,15 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     try {
       if (source === 'finnhub') {
         const res = await searchFinnhubSymbols(searchTerm);
-        if (res?.success) {
-          setMarketSymbols(res.symbols || []);
-        } else {
-          toast({ variant: "destructive", title: "فشل البحث", description: res?.error });
-        }
+        if (res?.success) setMarketSymbols(res.symbols || []);
+        else toast({ variant: "destructive", title: "فشل البحث من Finnhub", description: res?.error });
+      } else if (source === 'binance') {
+        // محاكاة جلب أزواج بينانس النشطة (يمكن استبداله بـ exchangeInfo لاحقاً)
+        const mockBinance = [
+          { symbol: `${searchTerm.toUpperCase()}USDT`, name: searchTerm.toUpperCase(), type: 'Crypto' },
+          { symbol: `${searchTerm.toUpperCase()}BTC`, name: searchTerm.toUpperCase(), type: 'Crypto' }
+        ];
+        setMarketSymbols(mockBinance);
       }
     } catch (e) {
       console.error(e);
@@ -100,39 +95,33 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     const asset = marketSymbols.find(s => s.symbol === sym);
     if (!asset) return;
 
-    if (source === 'finnhub') {
-      let autoIcon = 'STOCK';
-      const upperName = (asset.name || "").toUpperCase();
-      const upperSym = (asset.symbol || "").toUpperCase();
+    let autoIcon = 'COINS';
+    const upperName = (asset.name || "").toUpperCase();
+    const upperSym = (asset.symbol || "").toUpperCase();
 
-      if (upperSym.includes('XAU') || upperName.includes('GOLD')) autoIcon = 'GOLD';
-      else if (upperSym.includes('WTI') || upperName.includes('OIL') || upperSym.includes('BRN')) autoIcon = 'OIL';
-      else if (upperSym === 'AAPL') autoIcon = 'APPLE';
-      else if (upperSym === 'GOOGL' || upperSym === 'GOOG') autoIcon = 'GOOGLE';
-      else if (upperSym === 'MSFT') autoIcon = 'MICROSOFT';
-      else if (upperSym === 'TSLA') autoIcon = 'TESLA';
-      else if (upperSym === 'NVDA') autoIcon = 'NVIDIA';
-      else if (upperSym === 'AMZN') autoIcon = 'AMAZON';
-      else if (asset.type === 'Forex') autoIcon = 'FOREX';
+    // ذكاء اختيار الأيقونة الآلي
+    if (upperSym.includes('XAU') || upperName.includes('GOLD')) autoIcon = 'GOLD';
+    else if (upperSym.includes('WTI') || upperName.includes('OIL') || upperSym.includes('BRN')) autoIcon = 'OIL';
+    else if (upperSym === 'AAPL') autoIcon = 'APPLE';
+    else if (upperSym === 'GOOGL') autoIcon = 'GOOGLE';
+    else if (upperSym === 'TSLA') autoIcon = 'TSLA';
+    else if (asset.type === 'Crypto' || source === 'binance') autoIcon = upperSym.replace('USDT', '');
 
-      setFormData({
-        ...formData,
-        name: asset.name || asset.symbol,
-        code: asset.symbol,
-        type: asset.type || 'Equity',
-        externalTicker: asset.symbol,
-        priceSource: 'finnhub',
-        icon: autoIcon
-      });
-    }
+    setFormData({
+      ...formData,
+      name: asset.name || asset.symbol,
+      code: source === 'binance' ? `${asset.name}/USDT` : asset.symbol,
+      type: asset.type || (source === 'binance' ? 'Crypto' : 'Equity'),
+      externalTicker: asset.symbol,
+      binanceSymbol: source === 'binance' ? asset.symbol : "",
+      priceSource: source,
+      icon: autoIcon
+    });
+    
+    toast({ title: "تم جرد بيانات الرمز", description: "تم ملء النموذج آلياً بناءً على اختيارك." });
   };
 
-  const filteredSymbols = useMemo(() => {
-    if (source === 'finnhub') return marketSymbols;
-    return [];
-  }, [marketSymbols, source]);
-
-  const handleAction = async () => {
+  const handleCreate = async () => {
     if (!formData.name || !formData.code) {
       toast({ variant: "destructive", title: "بيانات ناقصة" });
       return;
@@ -140,29 +129,24 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
 
     setLoading(true);
     try {
+      const docId = formData.code.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
       const payload = {
         ...formData,
         priceSource: source,
-        currentPrice: (source !== 'internal') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
-        isActive: initialData?.isActive ?? true,
+        id: docId,
+        currentPrice: 0,
+        isActive: true,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      if (mode === 'add') {
-        // استخدام الـ Code كـ ID فريد بدلاً من العشوائي
-        const docId = formData.code.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
-        await setDoc(doc(db, "trading_symbols", docId), { 
-          ...payload, 
-          id: docId,
-          createdAt: new Date().toISOString() 
-        });
-        toast({ title: "تم إطلاق الرمز بنجاح" });
-      } else {
-        await updateDoc(doc(db, "trading_symbols", initialData.id), payload);
-        toast({ title: "تم تحديث بيانات الرمز" });
-      }
-
-      setOpen(false);
+      await setDoc(doc(db, "trading_symbols", docId), payload);
+      
+      toast({ title: "تم تفعيل الأصل بنجاح" });
+      setFormData({ name: "", code: "", type: "Equity", priceSource: "internal", binanceSymbol: "", externalTicker: "", minPrice: 100, maxPrice: 1000, volatility: 5, trendBias: "neutral", icon: "COINS" });
+      setSearchTerm("");
+      setMarketSymbols([]);
+      setIsOpen(false);
     } catch (e) {
       toast({ variant: "destructive", title: "خطأ في القاعدة" });
     } finally {
@@ -171,166 +155,210 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   };
 
   return (
-    <>
-      {mode === 'add' ? (
-        <Button onClick={() => setOpen(true)} className="rounded-full h-14 md:h-16 px-10 bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-2xl active:scale-95 group transition-all">
-          <Plus className="ml-2 h-5 w-5 text-[#f9a885] group-hover:rotate-90 transition-transform" /> إدراج أصل مالي جديد
-        </Button>
-      ) : (
-        <Button onClick={() => setOpen(true)} variant="ghost" size="sm" className="h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-[10px]">
-          <Edit2 className="ml-2 h-4 w-4" /> تعديل البيانات
-        </Button>
-      )}
+    <div className="space-y-6">
+      <Card className="rounded-[48px] border-none shadow-xl bg-white overflow-hidden group transition-all">
+        <CardHeader className="bg-[#002d4d] p-8 text-white relative flex flex-row items-center justify-between border-b border-white/5">
+           <div className="absolute top-0 right-0 p-4 opacity-[0.03] -rotate-12 pointer-events-none transition-transform group-hover:rotate-0 duration-1000">
+              <Database size={120} />
+           </div>
+           
+           <div className="flex items-center gap-5 relative z-10">
+              <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner group-hover:rotate-12 transition-transform">
+                 <Zap className="h-7 w-7 text-[#f9a885]" />
+              </div>
+              <div className="text-right">
+                 <CardTitle className="text-xl font-black">مفاعل صهر الأصول</CardTitle>
+                 <p className="text-[9px] font-bold text-blue-200/40 uppercase tracking-widest mt-1">Multi-API Asset Forge v2.0</p>
+              </div>
+           </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[520px] overflow-hidden font-body text-right flex flex-col max-h-[90vh] z-[1100]" dir="rtl">
-          <div className="bg-[#002d4d] p-8 md:p-10 text-white relative shrink-0 text-center border-b border-white/5">
-             <div className="absolute top-0 right-0 p-4 opacity-[0.03] -rotate-12 pointer-events-none"><Target className="h-40 w-40" /></div>
-             <div className="flex items-center gap-6 relative z-10">
-                <div className="h-16 w-16 rounded-[28px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
-                   <Zap className="h-8 w-8 text-[#f9a885]" />
-                </div>
-                <div className="space-y-0.5">
-                   <DialogTitle className="text-2xl font-black">هندسة الأصول العالمية</DialogTitle>
-                   <p className="text-[9px] font-bold text-blue-200/40 uppercase tracking-widest mt-1">Multi-Market Asset Forge</p>
-                </div>
-             </div>
-          </div>
+           <Button 
+             variant="ghost" 
+             onClick={() => setIsOpen(!isOpen)}
+             className="rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-[10px] px-6 h-10 border border-white/10"
+           >
+              {isOpen ? (
+                <div className="flex items-center gap-2">إخفاء المفاعل <ChevronUp size={14} /></div>
+              ) : (
+                <div className="flex items-center gap-2">توسيع محرك الإضافة <ChevronDown size={14} /></div>
+              )}
+           </Button>
+        </CardHeader>
 
-          <div className="flex-1 overflow-y-auto p-8 md:p-10 space-y-10 bg-white scrollbar-none">
-             
-             <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner space-y-6">
-                <div className="flex items-center justify-between">
-                   <h4 className="font-black text-sm text-[#002d4d] flex items-center gap-3">
-                      <Cpu className="h-4 w-4 text-orange-500" /> بروتوكول تزويد السعر
-                   </h4>
-                   <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-gray-100">
-                      <button onClick={() => setSource('internal')} className={cn("px-4 h-8 rounded-xl font-black text-[8px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-md" : "text-gray-400")}>داخلي</button>
-                      <button onClick={() => setSource('binance')} className={cn("px-4 h-8 rounded-xl font-black text-[8px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-md" : "text-gray-400")}>بينانس</button>
-                      <button onClick={() => setSource('finnhub')} className={cn("px-4 h-8 rounded-xl font-black text-[8px] transition-all", source === 'finnhub' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>Finnhub</button>
-                   </div>
-                </div>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.5, ease: "circOut" }}
+            >
+              <CardContent className="p-10 space-y-10 border-t border-gray-50">
+                 
+                 {/* SOURCE & SEARCH HUB */}
+                 <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                       <div className="space-y-1 text-right">
+                          <h4 className="font-black text-sm text-[#002d4d] flex items-center gap-3 justify-end">
+                             بروتوكول التزويد النشط
+                             <Cpu className="h-4 w-4 text-orange-500" />
+                          </h4>
+                          <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Select Operational Node</p>
+                       </div>
+                       <div className="flex items-center gap-2 p-1.5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                          <button onClick={() => setSource('internal')} className={cn("px-6 h-10 rounded-xl font-black text-[9px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-lg" : "text-gray-400 hover:bg-gray-50")}>داخلي</button>
+                          <button onClick={() => setSource('binance')} className={cn("px-6 h-10 rounded-xl font-black text-[9px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-lg" : "text-gray-400 hover:bg-gray-50")}>بينانس</button>
+                          <button onClick={() => setSource('finnhub')} className={cn("px-6 h-10 rounded-xl font-black text-[9px] transition-all", source === 'finnhub' ? "bg-blue-50 text-blue-600 shadow-lg" : "text-gray-400 hover:bg-gray-50")}>Finnhub</button>
+                       </div>
+                    </div>
 
-                {(source === 'finnhub') && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
-                     <div className="relative">
-                        <Input 
-                          placeholder="ابحث عن رمز (Gold, Apple, EURUSD)..." 
-                          value={searchTerm}
-                          onChange={e => setSearchTerm(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && handleGlobalSearch()}
-                          className="h-11 rounded-xl bg-white border-none font-black text-xs pr-10 shadow-sm"
-                        />
-                        <button onClick={handleGlobalSearch} className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center active:scale-90 transition-all">
-                           <Search size={14} />
-                        </button>
-                     </div>
-                     
-                     <div className="space-y-2">
-                        <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">النتائج المتوفرة من Finnhub</Label>
-                        <Select onValueChange={handleSelectMarketSymbol}>
-                           <SelectTrigger className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm">
-                              <SelectValue placeholder={syncLoading ? "جاري البحث..." : "اختر من القائمة..."} />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper">
-                              <ScrollArea className="h-[250px]">
-                                 {syncLoading ? (
-                                   <div className="p-10 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-blue-500" /></div>
-                                 ) : filteredSymbols.map((s, idx) => (
-                                   <SelectItem key={`${s.symbol}-${idx}`} value={s.symbol} className="font-bold text-right py-3">
-                                      <div className="flex items-center justify-between gap-4">
-                                         <div className="flex flex-col items-start text-right">
-                                            <span className="text-xs">{s.symbol}</span>
-                                            <span className="text-[8px] text-gray-400 font-bold uppercase">{s.name || s.type}</span>
-                                         </div>
-                                      </div>
-                                   </SelectItem>
-                                 ))}
-                              </ScrollArea>
-                           </SelectContent>
-                        </Select>
-                     </div>
-                  </div>
-                )}
-             </div>
+                    {source !== 'internal' && (
+                      <div className="grid gap-6 md:grid-cols-2 animate-in fade-in zoom-in-95">
+                         <div className="space-y-2 text-right">
+                            <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">ابحث عن الرمز في {source}</Label>
+                            <div className="relative">
+                               <Input 
+                                 placeholder="مثلاً: Gold, Tesla, BTC, EURUSD..." 
+                                 value={searchTerm}
+                                 onChange={e => setSearchTerm(e.target.value)}
+                                 onKeyDown={e => e.key === 'Enter' && handleGlobalSearch()}
+                                 className="h-14 rounded-2xl bg-white border-none font-black text-xs pr-12 shadow-sm text-right"
+                               />
+                               <button onClick={handleGlobalSearch} className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 text-blue-500 active:scale-90 transition-all">
+                                  <Search size={18} />
+                               </button>
+                            </div>
+                         </div>
 
-             <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="space-y-2">
-                      <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">اسم العرض</Label>
-                      <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 shadow-inner text-right" placeholder="مثال: Gold / USD" />
-                   </div>
-                   <div className="space-y-2">
-                      <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">كود الواجهة</Label>
-                      <Input value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 text-left shadow-inner" dir="ltr" placeholder="XAUUSD" />
-                   </div>
-                </div>
+                         <div className="space-y-2 text-right">
+                            <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">النتائج المتوفرة</Label>
+                            <Select onValueChange={handleSelectMarketSymbol}>
+                               <SelectTrigger className="h-14 rounded-2xl bg-white border-none font-black text-xs shadow-sm px-6">
+                                  <SelectValue placeholder={syncLoading ? "جاري المسح..." : "اختر الرمز المراد صهره..."} />
+                               </SelectTrigger>
+                               <SelectContent className="rounded-[32px] border-none shadow-2xl z-[1200]">
+                                  <ScrollArea className="h-[250px]">
+                                     {syncLoading ? (
+                                       <div className="p-10 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-blue-500" /></div>
+                                     ) : marketSymbols.length > 0 ? marketSymbols.map((s, idx) => (
+                                       <SelectItem key={`${s.symbol}-${idx}`} value={s.symbol} className="font-bold text-right py-3 pr-8">
+                                          <div className="flex flex-col items-start">
+                                             <span className="text-xs">{s.symbol}</span>
+                                             <span className="text-[8px] text-gray-400 font-bold uppercase">{s.name}</span>
+                                          </div>
+                                       </SelectItem>
+                                     )) : (
+                                       <div className="p-10 text-center text-gray-300 text-[10px] font-bold">ابدأ البحث لعرض النتائج</div>
+                                     )}
+                                  </ScrollArea>
+                               </SelectContent>
+                            </Select>
+                         </div>
+                      </div>
+                    )}
+                 </div>
 
-                <div className="space-y-4">
-                   <Label className="text-[10px] font-black text-[#002d4d] pr-4 uppercase tracking-widest">أيقونة الأصل المعتمدة</Label>
-                   <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
-                      <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black px-6 shadow-inner outline-none">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-3xl border-none shadow-2xl z-[1200]">
-                         <ScrollArea className="h-[300px]">
-                            {ICON_OPTIONS.map(opt => (
-                              <SelectItem key={opt.id} value={opt.id} className="font-bold py-3">
-                                 <div className="flex items-center gap-4">
-                                   <CryptoIcon name={opt.id} size={24} />
-                                   <span className="text-xs">{opt.label}</span>
-                                 </div>
-                              </SelectItem>
-                            ))}
-                         </ScrollArea>
-                      </SelectContent>
-                   </Select>
-                </div>
+                 {/* ASSET DATA FORM */}
+                 <div className="grid gap-10 lg:grid-cols-12">
+                    <div className="lg:col-span-7 space-y-8">
+                       <div className="grid grid-cols-2 gap-6">
+                          <div className="space-y-2 text-right">
+                             <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم الأصل</Label>
+                             <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner text-right" placeholder="Gold / USD" />
+                          </div>
+                          <div className="space-y-2 text-right">
+                             <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">كود التداول</Label>
+                             <Input value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 text-left shadow-inner" dir="ltr" placeholder="XAUUSD" />
+                          </div>
+                       </div>
 
-                {source === 'internal' && (
-                  <div className="p-6 bg-blue-50/30 rounded-[32px] border border-blue-100/50 space-y-6 animate-in zoom-in-95">
-                     <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                           <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">أقل سعر ($)</Label>
-                           <Input type="number" value={formData.minPrice} onChange={e => setFormData({...formData, minPrice: Number(e.target.value)})} className="h-11 rounded-xl bg-white border-none font-black text-center shadow-sm" />
-                        </div>
-                        <div className="space-y-2">
-                           <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">أعلى سعر ($)</Label>
-                           <Input type="number" value={formData.maxPrice} onChange={e => setFormData({...formData, maxPrice: Number(e.target.value)})} className="h-11 rounded-xl bg-white border-none font-black text-center shadow-sm" />
-                        </div>
-                     </div>
-                     <div className="space-y-3">
-                        <Label className="text-[9px] font-black text-blue-900 uppercase pr-4 text-center block">الانحياز الاستراتيجي</Label>
-                        <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-blue-100 shadow-inner">
-                           {[
-                             { id: 'up', label: 'صاعد', icon: TrendingUp, color: 'text-emerald-600', active: 'bg-emerald-500 text-white' },
-                             { id: 'neutral', label: 'متذبذب', icon: Activity, color: 'text-gray-400', active: 'bg-gray-400 text-white' },
-                             { id: 'down', label: 'هابط', icon: TrendingDown, color: 'text-red-600', active: 'bg-red-500 text-white' }
-                           ].map(opt => (
-                             <button key={opt.id} onClick={() => setFormData({...formData, trendBias: opt.id})} className={cn("flex-1 flex flex-col items-center py-2 rounded-xl transition-all duration-300 gap-1", formData.trendBias === opt.id ? opt.active : "text-gray-300 hover:bg-gray-50")}>
-                                <opt.icon size={14} />
-                                <span className="text-[8px] font-black">{opt.label}</span>
-                             </button>
-                           ))}
-                        </div>
-                     </div>
-                  </div>
-                )}
-             </div>
-          </div>
+                       <div className="space-y-2 text-right">
+                          <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">أيقونة الهوية</Label>
+                          <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
+                             <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner">
+                                <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent className="rounded-[32px] border-none shadow-2xl">
+                                <ScrollArea className="h-[300px]">
+                                   {ICON_OPTIONS.map(opt => (
+                                     <SelectItem key={opt.id} value={opt.id} className="font-bold py-3">
+                                        <div className="flex items-center gap-4">
+                                          <CryptoIcon name={opt.id} size={24} />
+                                          <span className="text-xs">{opt.label}</span>
+                                        </div>
+                                     </SelectItem>
+                                   ))}
+                                </ScrollArea>
+                             </SelectContent>
+                          </Select>
+                       </div>
 
-          <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 shrink-0">
-             <Button onClick={handleAction} disabled={loading} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-[0.98] group transition-all">
-                {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                  <div className="flex items-center gap-4">
-                    <span>{mode === 'add' ? 'تفعيل الأصل في المحرك' : 'حفظ التعديلات المعتمدة'}</span>
-                    <ShieldCheck className="h-5 w-5 text-[#f9a885] group-hover:rotate-12 transition-transform" />
-                  </div>
-                )}
-             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+                       {source === 'internal' && (
+                         <div className="p-8 bg-blue-50/30 rounded-[40px] border border-blue-100/50 space-y-8 animate-in zoom-in-95">
+                            <div className="grid grid-cols-2 gap-6">
+                               <div className="space-y-2">
+                                  <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">أدنى سعر تقديري ($)</Label>
+                                  <Input type="number" value={formData.minPrice} onChange={e => setFormData({...formData, minPrice: Number(e.target.value)})} className="h-12 rounded-xl bg-white border-none font-black text-center shadow-sm" />
+                               </div>
+                               <div className="space-y-2">
+                                  <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">أعلى سعر تقديري ($)</Label>
+                                  <Input type="number" value={formData.maxPrice} onChange={e => setFormData({...formData, maxPrice: Number(e.target.value)})} className="h-12 rounded-xl bg-white border-none font-black text-center shadow-sm" />
+                               </div>
+                            </div>
+                            <div className="space-y-3">
+                               <Label className="text-[9px] font-black text-blue-900 uppercase pr-4 text-center block">منحنى الاتجاه اللحظي</Label>
+                               <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-blue-100 shadow-inner">
+                                  {[
+                                    { id: 'up', label: 'صاعد', icon: TrendingUp, active: 'bg-emerald-500 text-white shadow-lg' },
+                                    { id: 'neutral', label: 'متذبذب', icon: Activity, active: 'bg-gray-400 text-white shadow-lg' },
+                                    { id: 'down', label: 'هابط', icon: TrendingDown, active: 'bg-red-500 text-white shadow-lg' }
+                                  ].map(opt => (
+                                    <button key={opt.id} onClick={() => setFormData({...formData, trendBias: opt.id})} className={cn("flex-1 flex flex-col items-center py-2.5 rounded-xl transition-all duration-500 gap-1", formData.trendBias === opt.id ? opt.active : "text-gray-300 hover:bg-gray-50")}>
+                                       <opt.icon size={16} />
+                                       <span className="text-[8px] font-black">{opt.label}</span>
+                                    </button>
+                                  ))}
+                               </div>
+                            </div>
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="lg:col-span-5 flex flex-col justify-between gap-8">
+                       <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
+                          <div className="flex items-center gap-3 text-[#002d4d]">
+                             <ShieldCheck size={20} />
+                             <h4 className="font-black text-sm">ميثاق التنشيط</h4>
+                          </div>
+                          <p className="text-[11px] font-bold text-gray-400 leading-[2.2] text-right">
+                            سيتم إدراج هذا الأصل فوراً في كافة واجهات المستخدم وبدء محاكاة النبض السعري بناءً على المصدر المختار. تأكد من دقة رمز التداول لضمان نجاح عملية المزامنة الدولية.
+                          </p>
+                          <div className="h-px bg-gray-200" />
+                          <div className="flex items-center justify-between px-2">
+                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Asset Integrity Status</span>
+                             <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full">READY</Badge>
+                          </div>
+                       </div>
+
+                       <Button 
+                         onClick={handleCreate} 
+                         disabled={loading || !formData.name} 
+                         className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl transition-all active:scale-[0.98] group"
+                       >
+                          {loading ? <Loader2 className="animate-spin h-8 w-8" /> : (
+                            <div className="flex items-center gap-4">
+                               <span>إطلاق الأصل في المحرك اللحظي</span>
+                               <Sparkles className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+                            </div>
+                          )}
+                       </Button>
+                    </div>
+                 </div>
+              </CardContent>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
+    </div>
   );
 }
