@@ -60,12 +60,12 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX UNIFIED ICON ARSENAL v24.0 - Pure Unique Map
- * تم تطهير المكتبة من كافة المفاتيح المكررة وتثبيت الهوية البصرية الموحدة.
+ * @fileOverview NAMIX UNIFIED ICON ARSENAL v25.0
+ * تم دمج ICON_OPTIONS وتطهير المفاتيح المكررة لضمان استقرار العرض الإداري.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
-  // --- Colored Crypto Assets (Iconify) ---
+  // --- Colored Crypto Assets ---
   BTC: "cryptocurrency:btc",
   ETH: "cryptocurrency:eth",
   USDT: "cryptocurrency:usdt",
@@ -81,7 +81,7 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   BNB: "cryptocurrency:bnb",
   USDC: "cryptocurrency:usdc",
   
-  // --- Global Stock Logos (Iconify) ---
+  // --- Global Stock Logos ---
   APPLE: "logos:apple",
   GOOGLE: "logos:google-icon",
   MICROSOFT: "logos:microsoft-icon",
@@ -91,15 +91,13 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   META: "logos:meta-icon",
   NETFLIX: "logos:netflix-icon",
   
-  // --- Commodities & Markets (Lucide) ---
+  // --- Core System Icons ---
   GOLD: Gem,
   OIL: Droplets,
   STOCK: Building2,
   FOREX: Globe,
   INDEX: BarChart3,
   BITCOIN: Bitcoin,
-  
-  // --- Core System Icons (Lucide) ---
   COINS: Coins,
   ZAP: Zap,
   GLOBE: Globe,
@@ -151,6 +149,29 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   DROPLETS: Droplets,
   BUILDING2: Building2
 };
+
+export const ICON_OPTIONS = [
+  { id: 'USDT', label: 'Tether (USDT)' },
+  { id: 'BTC', label: 'Bitcoin (BTC)' },
+  { id: 'ETH', label: 'Ethereum (ETH)' },
+  { id: 'SOL', label: 'Solana (SOL)' },
+  { id: 'TRX', label: 'Tron (TRX)' },
+  { id: 'BNB', label: 'Binance Coin (BNB)' },
+  { id: 'GOLD', label: 'Gold / Metals' },
+  { id: 'OIL', label: 'Crude Oil' },
+  { id: 'STOCK', label: 'Global Stock' },
+  { id: 'FOREX', label: 'Currency Pair' },
+  { id: 'APPLE', label: 'Apple Inc.' },
+  { id: 'TESLA', label: 'Tesla Motors' },
+  { id: 'GOOGLE', label: 'Google / Alphabet' },
+  { id: 'AMAZON', label: 'Amazon.com' },
+  { id: 'META', label: 'Meta / Facebook' },
+  { id: 'ZAP', label: 'Instant Asset' },
+  { id: 'ACTIVITY', label: 'Live Node' },
+  { id: 'TARGET', label: 'Growth Target' },
+  { id: 'SHIELDCHECK', label: 'Secured Asset' },
+  { id: 'GLOBE', label: 'World Market' }
+];
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
