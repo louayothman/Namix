@@ -1,67 +1,11 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useMarketStore } from '@/store/use-market-store';
-import { getAlphaVantagePrice } from '@/app/actions/alphavantage-actions';
-
 /**
- * @fileOverview بروتوكول مزامنة Alpha Vantage v1.3 - Market Hours Aware
- * يدير التحديث الدوري مع مراعاة إغلاق الأسواق العالمية في عطلات نهاية الأسبوع.
+ * @fileOverview ALPHA SYNC NODE - Retired
+ * This hook has been decommissioned.
  */
 export function useAlphaSync(symbols: any[]) {
-  const updatePrice = useMarketStore(state => state.updatePrice);
-  const timerRef = useRef<any>(null);
-  const isMounted = useRef(true);
-
-  const isMarketOpen = () => {
-    const now = new Date();
-    const day = now.getUTCDay(); // 6 = السبت, 0 = الأحد
-    if (day === 6 || day === 0) return false;
-    return true;
-  };
-
-  useEffect(() => {
-    isMounted.current = true;
-    const alphaSymbols = symbols?.filter(s => s.priceSource === 'alphavantage') || [];
-    
-    if (alphaSymbols.length === 0) return;
-
-    const sync = async () => {
-      if (!isMounted.current) return;
-      
-      // التوقف عن المزامنة إذا كان السوق العالمي مغلقاً (عطلة نهاية الأسبوع)
-      if (!isMarketOpen()) {
-        console.log("Alpha Vantage Market is Closed (Weekend). Sync Suspended.");
-        return;
-      }
-      
-      for (const s of alphaSymbols) {
-        if (!isMounted.current) break;
-        try {
-          const res = await getAlphaVantagePrice(s.externalTicker || s.code);
-          if (res.success && res.price !== undefined) {
-            updatePrice(s.id, res.price, res.changePercent || 0, {
-              high: res.high || res.price,
-              low: res.low || res.price,
-              volume: res.volume || 0
-            });
-          }
-        } catch (e) {
-          console.error(`Alpha Sync Error for ${s.code}:`, e);
-        }
-      }
-    };
-
-    sync();
-    timerRef.current = setInterval(sync, 30000); // تحديث كل 30 ثانية للأصول العالمية
-
-    return () => {
-      isMounted.current = false;
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [symbols, updatePrice]);
+  // Retired Logic
+  return null;
 }

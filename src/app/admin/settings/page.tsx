@@ -41,8 +41,7 @@ export default function AdminSettingsPage() {
   const [connectivityData, setConnectivityData] = useState<any>({ 
     binanceApiKey: "", 
     binanceApiSecret: "", 
-    finnhubApiKey: "",
-    alphaVantageApiKey: ""
+    finnhubApiKey: ""
   });
 
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
@@ -207,34 +206,12 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="h-px bg-gray-100" />
-
-                {/* Alpha Vantage Integration */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center">
-                       <TrendingUp className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Alpha Vantage</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Alpha Vantage API Key</Label>
-                    <Input 
-                      value={connectivityData.alphaVantageApiKey || ""} 
-                      onChange={e => setConnectivityData({...connectivityData, alphaVantageApiKey: e.target.value})}
-                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner text-left"
-                      dir="ltr"
-                      placeholder="أدخل مفتاح Alpha Vantage..."
-                    />
-                  </div>
-                </div>
-
                 <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100 flex items-start gap-5">
                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                    </div>
                    <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار. استخدام Finnhub و Alpha Vantage يوفر تغطية شاملة للاسهم العالمية والذهب والنفط.
+                     استخدام Finnhub يوفر تغطية شاملة للاسهم العالمية والذهب والنفط. تأكد من أن مفتاح الـ API صالح لضمان استمرار تدفق البيانات.
                    </p>
                 </div>
 
@@ -251,7 +228,6 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        {/* ... Rest of the sections remain unchanged ... */}
         {activeSection === 'onboarding' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
             <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
@@ -401,7 +377,7 @@ export default function AdminSettingsPage() {
         )}
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-30">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em] tracking-none">Namix System v5.0.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v5.0.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-200" />

@@ -60,8 +60,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX UNIFIED ICON ARSENAL v23.0 - Zero Duplicate Edition
- * تم تطهير المكتبة من المفاتيح المكررة وتوحيدها لتصبح UPPERCASE لضمان دقة الاستدعاء.
+ * @fileOverview NAMIX UNIFIED ICON ARSENAL v24.0 - Pure Unique Map
+ * تم تطهير المكتبة من كافة المفاتيح المكررة وتثبيت الهوية البصرية الموحدة.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
