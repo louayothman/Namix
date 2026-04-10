@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -31,8 +32,8 @@ import { useMarketSync } from "@/hooks/use-market-sync";
 import { Button } from "@/components/ui/button";
 
 /**
- * @fileOverview بوابة الأسواق الحية v15.2 - Refined Command Layout
- * تم نقل أزرار التحكم لليسار وتحديث نصوص التحميل وتطهير التذييل.
+ * @fileOverview بوابة الأسواق الحية v16.0 - Minimalist Command Edition
+ * تم تحديث مسمى المفضلة وتطهير الأيقونات والأزرار من الخلفيات الفردية.
  */
 export default function TradeWatchlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,7 +109,7 @@ export default function TradeWatchlistPage() {
            <motion.div 
              initial={{ scale: 0.8, opacity: 0 }}
              animate={{ scale: 1, opacity: 1 }}
-             className="flex flex-col items-center gap-10 max-w-md text-center"
+             className="flex flex-col items-center gap-10 max-md:max-w-md text-center"
            >
               <div className="relative">
                  <div className="h-32 w-32 bg-gray-50 rounded-[48px] flex items-center justify-center shadow-inner border border-gray-100">
@@ -143,7 +144,7 @@ export default function TradeWatchlistPage() {
     <Shell hideMobileNav>
       <div className="max-w-[1400px] mx-auto space-y-10 px-4 md:px-8 lg:px-10 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Responsive Strategy Header - Blocks opposite to each other */}
+        {/* Responsive Strategy Header */}
         <div className="flex flex-row items-center justify-between gap-8 px-2">
            {/* RIGHT: Markets Title */}
            <div className="text-right space-y-1">
@@ -154,12 +155,12 @@ export default function TradeWatchlistPage() {
               </div>
            </div>
 
-           {/* LEFT: Command Matrix (Search, Sort, Back) */}
-           <div className="flex items-center gap-2 bg-gray-50/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner">
-              <div className="flex items-center gap-2">
+           {/* LEFT: Command Matrix (Simplified - Transparent Buttons) */}
+           <div className="flex items-center gap-2 bg-gray-100/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner">
+              <div className="flex items-center gap-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="h-10 px-4 rounded-xl flex items-center gap-2 shadow-sm border border-gray-100 bg-white text-gray-400 hover:text-[#002d4d] transition-all active:scale-95 outline-none">
+                    <button className="h-10 px-4 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] transition-all active:scale-95 outline-none">
                       <ArrowUpDown size={16} />
                       <span className="text-[10px] font-black hidden sm:inline-block">تصفية</span>
                     </button>
@@ -184,8 +185,8 @@ export default function TradeWatchlistPage() {
                 <button 
                   onClick={() => setIsSearchOpen(!isSearchOpen)} 
                   className={cn(
-                    "h-10 w-10 rounded-xl flex items-center justify-center transition-all active:scale-95 border",
-                    isSearchOpen ? "bg-[#002d4d] text-[#f9a885] border-transparent shadow-lg" : "bg-white text-gray-400 border-gray-100 shadow-sm"
+                    "h-10 w-10 rounded-xl flex items-center justify-center transition-all active:scale-95",
+                    isSearchOpen ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400"
                   )}
                 >
                   {isSearchOpen ? <X size={18}/> : <Search size={18}/>}
@@ -194,7 +195,7 @@ export default function TradeWatchlistPage() {
 
               <button 
                 onClick={() => router.back()} 
-                className="h-10 w-10 rounded-xl flex items-center justify-center border border-gray-100 bg-white text-gray-400 hover:bg-gray-50 transition-all active:scale-95"
+                className="h-10 w-10 rounded-xl flex items-center justify-center text-gray-400 hover:text-[#002d4d] transition-all active:scale-95"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -228,15 +229,15 @@ export default function TradeWatchlistPage() {
           )}
         </AnimatePresence>
 
-        {/* Elite Favorites Section */}
+        {/* Favorite Markets Section */}
         {favorites.length > 0 && !searchQuery && (
           <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
              <div className="flex items-center gap-4 px-4">
-                <div className="h-8 w-8 rounded-xl bg-orange-50 text-orange-400 flex items-center justify-center shadow-inner">
-                   <Star size={16} fill="currentColor" />
+                <div className="text-orange-400 flex items-center justify-center">
+                   <Star size={20} fill="currentColor" className="animate-pulse" />
                 </div>
                 <div className="text-right">
-                   <h2 className="text-lg font-black text-[#002d4d] leading-none">المحفظة النخبوية</h2>
+                   <h2 className="text-lg font-black text-[#002d4d] leading-none">الأسواق المفضلة</h2>
                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Sovereign Watchlist</p>
                 </div>
              </div>
@@ -248,8 +249,8 @@ export default function TradeWatchlistPage() {
         <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
            <div className="flex items-center justify-between px-4">
               <div className="flex items-center gap-4">
-                 <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shadow-inner">
-                    <Activity size={16} />
+                 <div className="text-blue-500 flex items-center justify-center">
+                    <Activity size={20} />
                  </div>
                  <div className="text-right">
                     <h2 className="text-lg font-black text-[#002d4d] leading-none">الأسواق المباشرة</h2>
@@ -257,7 +258,7 @@ export default function TradeWatchlistPage() {
                  </div>
               </div>
               <div className="flex items-center gap-3">
-                 <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner tracking-widest">
+                 <Badge className="bg-gray-100/50 text-gray-400 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner tracking-widest">
                     {filteredSymbols.length} NODES
                  </Badge>
               </div>
@@ -280,7 +281,7 @@ export default function TradeWatchlistPage() {
            </div>
         </section>
 
-        {/* System Branding Footer - Clean Edition */}
+        {/* System Branding Footer */}
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
            <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure</p>
            <div className="flex gap-3">
