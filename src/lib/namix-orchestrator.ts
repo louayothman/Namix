@@ -1,6 +1,6 @@
 /**
- * @fileOverview NAMIX AI Orchestrator v17.0 - Duration-Aware Intelligence
- * محرك استنتاجي مطور يربط التوصيات بالمدة الزمنية ونبض السوق اللحظي.
+ * @fileOverview NAMIX AI Orchestrator v18.0 - Reactive Nano-Analysis
+ * محرك استنتاجي مطور يحلل آخر 10 شمعات فقط لضمان سرعة تغير المقترحات.
  * تم تطهير كافة المصطلحات من كلمة "سيادة".
  */
 
@@ -12,35 +12,37 @@ import { memoryEngine } from "./engines/memory-engine";
 export async function runNamix(symbol: string, duration?: number) {
   const cleanSymbol = symbol.replace('/', '').toUpperCase();
 
+  // جلب البيانات النانوية (آخر 10 دقائق)
   const [tech, volume] = await Promise.all([
     technicalAgent(cleanSymbol),
     volumeAgent(cleanSymbol)
   ]);
 
+  // دمج السكور الفني وسكور السيولة (الوزن الأكبر للحركة الفنية اللحظية)
   const rangeFactor = tech.score; 
-  const decisionScore = (rangeFactor * 0.6) + (volume.score * 0.4);
+  const decisionScore = (rangeFactor * 0.7) + (volume.score * 0.3);
 
   let decision = "HOLD";
-  if (decisionScore > 0.65) decision = "BUY";
-  else if (decisionScore < 0.35) decision = "SELL";
+  if (decisionScore > 0.58) decision = "BUY";
+  else if (decisionScore < 0.42) decision = "SELL";
 
   const risk = riskEngine(decision, tech, volume);
   
-  // توليد الحوار الاستنتاجي بناءً على المعطيات والدقة الزمنية
+  // توليد الحوار بناءً على النبض اللحظي (آخر 10 شمعات)
   const dialogue = generateVastAgentDialogue(decision, tech, volume, decisionScore, duration);
   const reasoning = generateVastReasoning(decision, tech, volume, duration);
 
   const currentPrice = tech.last;
   const volatility = tech.high - tech.low;
-  const atrProxy = volatility * 0.15;
+  const atrProxy = volatility * 0.2; // استخدام تذبذب آخر 10 شمعات
 
   const targets = {
-    tp1: decision === "BUY" ? 1 + (atrProxy / currentPrice * 0.5) : 1 - (atrProxy / currentPrice * 0.5),
-    tp2: decision === "BUY" ? 1 + (atrProxy / currentPrice * 1.2) : 1 - (atrProxy / currentPrice * 1.2),
-    tp3: decision === "BUY" ? 1 + (atrProxy / currentPrice * 2.5) : 1 - (atrProxy / currentPrice * 2.5)
+    tp1: decision === "BUY" ? 1 + (atrProxy / currentPrice * 0.4) : 1 - (atrProxy / currentPrice * 0.4),
+    tp2: decision === "BUY" ? 1 + (atrProxy / currentPrice * 0.9) : 1 - (atrProxy / currentPrice * 0.9),
+    tp3: decision === "BUY" ? 1 + (atrProxy / currentPrice * 1.8) : 1 - (atrProxy / currentPrice * 1.8)
   };
 
-  const entry_zone_multiplier = decision === "BUY" ? 0.9992 : 1.0008;
+  const entry_zone_multiplier = decision === "BUY" ? 0.9995 : 1.0005;
   const entryMin = currentPrice * Math.min(1, entry_zone_multiplier);
   const entryMax = currentPrice * Math.max(1, entry_zone_multiplier);
 
@@ -55,7 +57,7 @@ export async function runNamix(symbol: string, duration?: number) {
     dialogue,
     targets,
     entry_zone: `${entryMin.toLocaleString(undefined, {minimumFractionDigits: 2})} - ${entryMax.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
-    invalidated_at: decision === "BUY" ? currentPrice - (atrProxy * 1.5) : currentPrice + (atrProxy * 1.5),
+    invalidated_at: decision === "BUY" ? currentPrice - (atrProxy * 1.2) : currentPrice + (atrProxy * 1.2),
     agents: { tech, volume },
     timestamp: new Date().toISOString()
   };
@@ -65,69 +67,68 @@ function generateVastAgentDialogue(decision: string, tech: any, volume: any, sco
   const isBuy = decision === "BUY";
   const isSell = decision === "SELL";
   const confidence = Math.round(score * 100);
-  const rsi = Math.round(tech.score * 100);
   const durLabel = duration ? (duration < 60 ? `${duration}ث` : `${Math.floor(duration/60)}د`) : "الحالية";
 
   const alphaPool = {
     BUY: [
-      `رصدتُ انحرافاً إيجابياً في نافذة الـ ${durLabel}؛ السعر يستعد للاختراق.`,
-      `الثقة عند %${confidence} تدعم الصعود الوميضي خلال الـ ${durLabel} القادمة.`,
-      `الوكيل الفني يرصد ارتداداً من القاع على إطار الـ ${durLabel}.`,
-      `مستوى RSI الحالي (${rsi}) في نافذة الـ ${durLabel} يشير لفرصة شراء مثالية.`
+      `النبض اللحظي لآخر 10 شمعات يظهر انفجاراً في الطلب؛ السعر يتجاوز المقاومة.`,
+      `رصدتُ انحرافاً إيجابياً وميضياً في إطار الـ ${durLabel}؛ القوة الشرائية تسيطر.`,
+      `تحليل الشموع الأخيرة يؤكد ارتداداً حاداً من منطقة الدعم في نافذة الـ ${durLabel}.`,
+      `الثقة عند %${confidence} تدعم سيناريو الاختراق الصاعد خلال الـ ${durLabel} القادمة.`
     ],
     SELL: [
-      `الزخم يضعف في إطار الـ ${durLabel}؛ ترقب تصحيحاً وشيكاً من القمة.`,
-      `إشارة التشبع تلوح في أفق الـ ${durLabel}؛ ضغط العرض يتزايد.`,
-      `رصدتُ كسرًا لخط الاتجاه في نافذة الـ ${durLabel}؛ الحذر مطلوب.`,
-      `مستوى RSI (${rsi}) خلال الـ ${durLabel} وصل لمنطقة خطر؛ ينصح بالبيع.`
+      `آخر 10 دقائق تظهر تراجعاً حاداً في الزخم؛ البائعون يضغطون بقوة الآن.`,
+      `إشارة هبوط تلوح في أفق الـ ${durLabel}؛ الشموع الأخيرة أغلقت تحت المتوسط.`,
+      `رصدتُ انكساراً لخط الاتجاه اللحظي في نافذة الـ ${durLabel}؛ الحذر مطلوب.`,
+      `التحليل المجهري يشير لتشبع شرائي عند القمة الحالية في إطار الـ ${durLabel}.`
     ],
     HOLD: [
-      `الزخم مستقر في الـ ${durLabel}؛ لا توجد إشارات حركية واضحة.`,
-      `النظام يراقب مناطق التذبذب في الـ ${durLabel} بانتظار تأكيد الاتجاه.`,
-      `مستوى RSI (${rsi}) في منطقة توازن تكتيكي على إطار الـ ${durLabel}.`,
-      `تداخل الإشارات في نافذة الـ ${durLabel} يمنع إصدار قرار قاطع.`
+      `تذبذب ضيق جداً في آخر 10 شمعات؛ لا يوجد انحياز واضح للاتجاه.`,
+      `النظام يراقب مناطق التوازن في الـ ${durLabel}؛ نبض السوق مستقر حالياً.`,
+      `تساوي القوى بين العرض والطلب في نافذة الـ ${durLabel} يمنع المخاطرة.`,
+      `تداخل إشارات الوكلاء في الشموع الأخيرة؛ ننتظر تأكيد الحركة القادمة.`
     ]
   };
 
   const betaPool = {
     BUY: [
-      `أؤكد ذلك؛ جدران طلب ضخمة تتراكم لدعم عقد الـ ${durLabel}.`,
-      `حجم التداول في نافذة الـ ${durLabel} يعكس دخول حيتان حقيقي.`,
-      `رصدنا فجوة سيولة صاعدة تدعم تنفيذ صفقة الـ ${durLabel}.`,
-      `تدفق السيولة إيجابي بنسبة ملحوظة؛ الطريق مفتوح خلال الـ ${durLabel}.`
+      `أؤكد ذلك؛ السيولة تتدفق بكثافة في الدقائق الأخيرة لدعم عقد الـ ${durLabel}.`,
+      `حجم التداول في آخر 10 شمعات يعكس دخول حيتان حقيقي لاقتناص القاع.`,
+      `رصدنا فجوة سيولة صاعدة في سجل الأوامر تدعم تنفيذ صفقة الـ ${durLabel}.`,
+      `تدفق الأموال إيجابي بنسبة ملحوظة؛ الطريق مفتوح للأعلى في الـ ${durLabel}.`
     ],
     SELL: [
-      `انسحاب للسيولة في الـ ${durLabel}؛ العرض يسيطر على الموقف.`,
-      `حجم التداول يعكس سيولة هشّة في نافذة الـ ${durLabel} الحالية.`,
-      `أوامر البيع تتراكم بكثافة فوق السعر في إطار الـ ${durLabel}.`,
-      `تدفق السيولة السلبي يشير إلى تخارج رؤوس أموال في الـ ${durLabel}.`
+      `انسحاب سريع للسيولة في الـ 10 دقائق الأخيرة؛ العرض يسيطر على الموقف.`,
+      `حجم التداول يعكس ضعفاً هيكلياً في منطقة الطلب خلال نافذة الـ ${durLabel}.`,
+      `أوامر البيع تتراكم بكثافة فوق السعر في الشموع الأخيرة للـ ${durLabel}.`,
+      `تدفق السيولة السلبي يشير إلى تخارج رؤوس أموال ذكية في الـ ${durLabel}.`
     ],
     HOLD: [
-      `السيولة متوازنة في الـ ${durLabel}؛ حجم التداول لا يدعم الحركة.`,
-      `محرك السيولة يظهر توازناً هشاً في نافذة الـ ${durLabel}.`,
-      `السوق يفتقر للسيولة المؤسساتية اللازمة في إطار الـ ${durLabel}.`,
-      `أوامر البيع والشراء متكافئة تماماً في دورة الـ ${durLabel} الحالية.`
+      `السيولة متوازنة تماماً في آخر 10 دقائق؛ حجم التداول غير كافٍ للحركة.`,
+      `محرك السيولة يظهر توازناً هشاً في نافذة الـ ${durLabel} الحالية.`,
+      `السوق يفتقر للزخم المؤسساتي اللازم في إطار الـ ${durLabel}؛ التريث أفضل.`,
+      `أوامر البيع والشراء متكافئة نانوياً في دورة الـ ${durLabel} الحالية.`
     ]
   };
 
   const deltaPool = {
     BUY: [
-      `عتبة المخاطرة آمنة لتنفيذ عقد الـ ${durLabel}.`,
-      `الوكيل الأمني يؤكد استقرار البروتوكول في نافذة الـ ${durLabel}.`,
-      `معدل التذبذب الحالي يدعم تشغيل المفاعل لمدة ${durLabel}.`,
-      `البيئة التشغيلية مستقرة تماماً وجاهزة لتنفيذ الـ ${durLabel}.`
+      `عتبة المخاطرة اللحظية آمنة جداً لتنفيذ عقد الـ ${durLabel}.`,
+      `الوكيل الأمني يؤكد استقرار البروتوكول بناءً على نبض الشموع الأخيرة.`,
+      `معدل التذبذب في آخر 10 دقائق يدعم تشغيل المفاعل للمدة ${durLabel}.`,
+      `البيئة التشغيلية مستقرة تماماً وجاهزة لتنفيذ بروتوكول الـ ${durLabel}.`
     ],
     SELL: [
-      `مخاطرة التراجع مرتفعة في الـ ${durLabel}؛ تأمين المراكز أذكى قرار.`,
-      `الوكيل الأمني يرصد تلاعبات عند قمة الـ ${durLabel} الحالية.`,
-      `نظام الإنذار المبكر يرصد بوادر انهيار خلال الـ ${durLabel}.`,
-      `المخاطرة في نافذة الـ ${durLabel} غير مجدية استثمارياً.`
+      `مخاطرة التراجع اللحظي مرتفعة جداً؛ تأمين المراكز هو القرار الأذكى.`,
+      `الوكيل الأمني يرصد تلاعبات سعرية عند قمة الـ ${durLabel} الحالية.`,
+      `نظام الإنذار المبكر يرصد بوادر انهيار سعري خلال نافذة الـ ${durLabel}.`,
+      `المخاطرة في تنفيذ شراء حالياً غير مجدية استثمارياً في الـ ${durLabel}.`
     ],
     HOLD: [
-      `المخاطرة متذبذبة في الـ ${durLabel}؛ يفضل الانتظار لتجنب الانزلاق.`,
-      `نظام الأمان في وضع الترقب لقرار الـ ${durLabel}؛ لم يتم المنح.`,
+      `المخاطرة متذبذبة في آخر 10 شمعات؛ يفضل الانتظار لتجنب الانزلاق.`,
+      `نظام الأمان في وضع الترقب لقرار الـ ${durLabel}؛ لم يتم المنح بعد.`,
       `المخاطرة متوازنة مع العائد في الـ ${durLabel}؛ لا يوجد امتياز تنافسي.`,
-      `انتظار استقرار السيولة هو أضمن وسيلة لحماية عقد الـ ${durLabel}.`
+      `انتظار استقرار السيولة هو أضمن وسيلة لحماية رأس مال الـ ${durLabel}.`
     ]
   };
 
@@ -147,21 +148,21 @@ function generateVastReasoning(decision: string, tech: any, volume: any, duratio
   const durLabel = duration ? (duration < 60 ? `${duration}ث` : `${Math.floor(duration/60)}د`) : "الحالية";
   
   const buyPhrases = [
-    `تم رصد اختراق استراتيجي لمستويات المقاومة في نافذة الـ ${durLabel} بدعم من تدفق سيولة مؤسساتي.`,
-    `تكدس طلبات الشراء عند القيعان الحالية للـ ${durLabel} يشير إلى تكوين قاعدة دعم صلبة.`,
-    `الوكيل الفني يكتشف انحرافاً إيجابياً يعزز احتمالية الصعود الوميضي في إطار الـ ${durLabel}.`,
+    `تحليل آخر 10 شمعات يظهر اختراقاً استراتيجياً للمقاومة في نافذة الـ ${durLabel}.`,
+    `تكدس طلبات الشراء اللحظية عند القيعان يشير إلى تكوين قاعدة دعم صلبة للـ ${durLabel}.`,
+    `الوكيل الفني يكتشف انحرافاً إيجابياً في الدقائق الأخيرة يعزز صعود الـ ${durLabel}.`,
     `تم كسر حاجز العرض النانوي؛ محرك السيولة يشير إلى سيطرة كاملة للمشترين في الـ ${durLabel}.`
   ];
   const sellPhrases = [
-    `تم رصد تشبع شرائي حاد عند القمم؛ بروتوكول الأمان يتوقع تصحيحاً خلال الـ ${durLabel}.`,
-    `ضغط تصريفي مكثف يظهر في سجل الأوامر لدعم مستويات أدنى تكتيكياً في الـ ${durLabel}.`,
-    `الوكيل الفني يكتشف بوادر انعكاس؛ ينصح بتأمين مراكز الـ ${durLabel} أو البيع.`,
-    `فشل السعر في اختراق المقاومة التاريخية للـ ${durLabel} يشير إلى ضعف القوة الشرائية.`
+    `آخر 10 دقائق تظهر تشبعاً شرائياً حاداً؛ بروتوكول الأمان يتوقع تصحيحاً في الـ ${durLabel}.`,
+    `ضغط تصريفي مكثف يظهر في الشموع الأخيرة لدعم مستويات أدنى تكتيكياً في الـ ${durLabel}.`,
+    `الوكيل الفني يكتشف بوادر انعكاس هابط؛ ينصح بتأمين مراكز الـ ${durLabel} فوراً.`,
+    `فشل السعر في الحفاظ على قمة آخر 10 دقائق يشير لضعف القوة الشرائية في الـ ${durLabel}.`
   ];
   const holdPhrases = [
-    `توازن هش بين العرض والطلب في نافذة الـ ${durLabel}؛ المحرك يفضل التريث.`,
-    `تذبذب جانبي ناتج عن ضعف حجم التداول في الـ ${durLabel}؛ البروتوكول الموحد يجمد الإشارات.`,
-    `منطقة ترقب استراتيجية؛ المؤشرات الفنية لا تظهر انحيازاً صريحاً في الـ ${durLabel}.`,
+    `توازن هش في آخر 10 شمعات بين العرض والطلب؛ المحرك يفضل التريث في الـ ${durLabel}.`,
+    `تذبذب جانبي ناتج عن ضعف السيولة اللحظية؛ البروتوكول الموحد يجمد الإشارات للـ ${durLabel}.`,
+    `منطقة ترقب نانوية؛ المؤشرات الفنية لا تظهر انحيازاً صريحاً في الـ 10 دقائق الأخيرة.`,
     `السوق في حالة 'انتظار' لحركة قيادية تؤكد مسار الـ ${durLabel} القادم.`
   ];
 

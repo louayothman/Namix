@@ -2,8 +2,8 @@
 'use client';
 
 /**
- * @fileOverview NAMIX AI CENTRAL SERVICE v6.0
- * تم تحديث الخدمة لتوفير بيانات الأطر المتعددة وتدفق السيولة لمحرك الاستنتاج.
+ * @fileOverview NAMIX AI CENTRAL SERVICE v7.0
+ * تم تعديل الخدمة لتعمل بذكاء "نانوي" يعتمد على آخر 10 شمعات فقط لضمان الحيوية.
  */
 
 import { namixOrchestrator, MarketData, TradeSignal, OHLCV } from "./namix-ai-orchestrator";
@@ -25,37 +25,37 @@ export class NamixAI {
 
     const seed = parseInt(asset.id.substring(0, 5), 36);
     
-    const deepHistory: OHLCV[] = Array.from({ length: 1000 }).map((_, i) => {
-      const time = Date.now() - (1000 - i) * 60 * 1000;
-      const base = livePrice * (0.97 + (i / 1000) * 0.06);
+    // محاكاة آخر 10 شمعات فقط للتحليل النانوي السريع
+    const nanoHistory: OHLCV[] = Array.from({ length: 10 }).map((_, i) => {
+      const time = Date.now() - (10 - i) * 60 * 1000;
+      const base = livePrice * (0.998 + (i / 1000) * 0.004);
       return {
         time,
         open: base,
-        close: base + (Math.random() - 0.5) * (livePrice * 0.003),
-        high: base + (livePrice * 0.004),
-        low: base - (livePrice * 0.004),
-        volume: 150000
+        close: base + (Math.random() - 0.5) * (livePrice * 0.001),
+        high: base + (livePrice * 0.002),
+        low: base - (livePrice * 0.002),
+        volume: 50000
       };
     });
 
-    // محاكاة توافق الأطر الزمنية بناءً على بذور ثابتة لكل أصل
     const timeframeBiases: ('Long' | 'Short' | 'Neutral')[] = ['Long', 'Short', 'Neutral'];
-    const tfIndex = (seed + Math.floor(Date.now() / 60000)) % 3;
+    const tfIndex = (seed + Math.floor(Date.now() / 15000)) % 3;
 
     const currentData: MarketData = {
       pair: asset.code,
       currentPrice: livePrice,
-      ohlcv: deepHistory,
+      ohlcv: nanoHistory,
       indicators: {
-        rsi: 40 + Math.random() * 20,
+        rsi: 30 + Math.random() * 40,
         macd: { value: 0, signal: 0, hist: 0 },
-        bb: { upper: livePrice * 1.03, middle: livePrice, lower: livePrice * 0.97 },
-        ema: { ema7: livePrice, ema25: livePrice * 0.98, ema100: livePrice * 0.96 },
-        atr: livePrice * 0.008
+        bb: { upper: livePrice * 1.01, middle: livePrice, lower: livePrice * 0.99 },
+        ema: { ema7: livePrice, ema25: livePrice * 0.995, ema100: livePrice * 0.99 },
+        atr: livePrice * 0.002
       },
       liquidity: {
-        bids: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 - i * 0.0005), amount: 10 + Math.random() * 50 })),
-        asks: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 + i * 0.0005), amount: 10 + Math.random() * 50 }))
+        bids: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 - i * 0.0002), amount: 5 + Math.random() * 20 })),
+        asks: Array.from({ length: 10 }).map((_, i) => ({ price: livePrice * (1 + i * 0.0002), amount: 5 + Math.random() * 20 }))
       },
       timeframes: {
         m1: timeframeBiases[tfIndex],
