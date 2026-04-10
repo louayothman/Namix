@@ -25,7 +25,8 @@ import {
   Sparkles,
   ShieldCheck,
   X,
-  MapPin
+  MapPin,
+  CheckCircle2
 } from "lucide-react";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
@@ -38,7 +39,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [dbUser, setDbUser] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
-  const [tradeDuration, setTradeDuration] = useState<number>(60); 
+  const [tradeDuration, setTradeDuration] = useState<number>(0); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   
@@ -99,7 +100,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
   // محرك جلب المدد الزمنية مع نظام Fallback يضمن عدم فراغ الواجهة
   const durations = useMemo(() => {
-    // 1. محاولة الجلب من الإعدادات العالمية
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations) && globalConfig.tradeDurations.length > 0) {
       return globalConfig.tradeDurations.map((d: any) => {
         let mult = 1;
@@ -109,7 +109,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         return { label: `${d.value}${suffix}`, seconds: d.value * mult };
       });
     }
-    // 2. بروتوكول Fallback: توفير مدد قياسية في حال الفراغ
     return [
       { label: '60ث', seconds: 60 },
       { label: '3د', seconds: 180 },
@@ -118,7 +117,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     ];
   }, [globalConfig]);
 
-  // مزامنة المدة المختارة مع أول خيار متاح
   useEffect(() => {
     if (durations.length > 0 && tradeDuration === 0) {
       setTradeDuration(durations[0].seconds);
@@ -182,7 +180,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110"><Target size={180} /></div>
 
-               {/* مكون المؤشرات (Flat Design) داخل بطاقة الأهداف */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
@@ -247,7 +244,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر البروتوكول المعتمد.`} />
 
-            {/* قُمرة الأوامر الموحدة */}
             <ParameterConsole 
               amount={tradeAmount}
               onAmountChange={setTradeAmount}
