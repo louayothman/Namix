@@ -54,13 +54,14 @@ import {
   Radar,
   Droplets,
   Building2,
-  Apple
+  Apple,
+  Bitcoin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX FINANCIAL ICONS v19.0 - Sovereign Unified Arsenal
- * تم إصلاح خريطة الأيقونات لضمان ظهور العملات الرقمية الملونة بجانب الأسهم والسلع.
+ * NAMIX FINANCIAL ICONS v20.0 - Sovereign Unified Arsenal
+ * تم توحيد المفاتيح لتكون UPPERCASE لضمان دقة الاستدعاء ومنع تكرار الأيقونة الافتراضية.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -102,20 +103,64 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   FOREX: Globe,
   INDEX: BarChart3,
   APPLE_STK: Apple,
+  BITCOIN: Bitcoin,
   
-  // --- Core System Icons (Lucide) ---
-  Coins, Zap, Globe, Activity, Target, Diamond, Landmark, Wallet, CreditCard, 
-  ShieldCheck, TrendingUp, Gem, Award, Shield, CircleDollarSign, Banknote, 
-  Flame, Rocket, Cpu, Layers, Box, Hexagon, Star, Sparkles, RefreshCcw, 
-  Scale, Gavel, History, LineChart, BarChart3, PieChart, Waves, Lock, 
-  Eye, Scan, Fingerprint, TrendingDown, Briefcase, Gift, Timer, 
-  Navigation, KeyRound, FileText, UserCheck, Search, CheckCircle2, 
-  AlertTriangle, Radar, Droplets, Building2
+  // --- Core System Icons (Lucide - Mapped to UPPERCASE) ---
+  COINS: Coins,
+  ZAP: Zap,
+  GLOBE: Globe,
+  ACTIVITY: Activity,
+  TARGET: Target,
+  DIAMOND: Diamond,
+  LANDMARK: Landmark,
+  WALLET: Wallet,
+  CREDITCARD: CreditCard,
+  SHIELDCHECK: ShieldCheck,
+  TRENDINGUP: TrendingUp,
+  GEM: Gem,
+  AWARD: Award,
+  SHIELD: Shield,
+  CIRCLEDOLLARSIGN: CircleDollarSign,
+  BANKNOTE: Banknote,
+  FLAME: Flame,
+  ROCKET: Rocket,
+  CPU: Cpu,
+  LAYERS: Layers,
+  BOX: Box,
+  HEXAGON: Hexagon,
+  STAR: Star,
+  SPARKLES: Sparkles,
+  REFRESHCCW: RefreshCcw,
+  SCALE: Scale,
+  GAVEL: Gavel,
+  HISTORY: History,
+  LINECHART: LineChart,
+  BARCHART3: BarChart3,
+  PIECHART: PieChart,
+  WAVES: Waves,
+  LOCK: Lock,
+  EYE: Eye,
+  SCAN: Scan,
+  FINGERPRINT: Fingerprint,
+  TRENDINGDOWN: TrendingDown,
+  BRIEFCASE: Briefcase,
+  GIFT: Gift,
+  TIMER: Timer,
+  NAVIGATION: Navigation,
+  KEYROUND: KeyRound,
+  FILETEXT: FileText,
+  USERCHECK: UserCheck,
+  SEARCH: Search,
+  CHECKCIRCLE2: CheckCircle2,
+  ALERTRIANGLE: AlertTriangle,
+  RADAR: Radar,
+  DROPLETS: Droplets,
+  BUILDING2: Building2
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = name.toUpperCase();
-  const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.Coins;
+  const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.COINS;
   
   if (typeof iconData === 'string') {
     return (

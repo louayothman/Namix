@@ -35,6 +35,7 @@ import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getBinanceExchangeSymbols } from "@/app/actions/binance-actions";
 import { getTwelveDataSymbols } from "@/app/actions/twelvedata-actions";
+import { searchAlphaVantageSymbols } from "@/app/actions/alphavantage-actions";
 import { CRYPTO_ICONS_MAP, CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -50,7 +51,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [marketSymbols, setMarketSymbols] = useState<any[]>([]);
-  const [source, setSource] = useState<'internal' | 'binance' | 'twelvedata'>(initialData?.priceSource || 'internal');
+  const [source, setSource] = useState<'internal' | 'binance' | 'twelvedata' | 'alphavantage'>(initialData?.priceSource || 'internal');
   const [searchTerm, setSearchTerm] = useState("");
   
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     maxPrice: initialData?.maxPrice || 1000,
     volatility: initialData?.volatility || 5,
     trendBias: initialData?.trendBias || "neutral",
-    icon: initialData?.icon || "Coins",
+    icon: initialData?.icon || "COINS",
     assistantRefreshTicks: initialData?.assistantRefreshTicks || 5
   });
 
@@ -82,14 +83,33 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       let res;
       if (source === 'binance') {
         res = await getBinanceExchangeSymbols();
-      } else {
+      } else if (source === 'twelvedata') {
         res = await getTwelveDataSymbols();
+      } else {
+        return; // Alpha uses search-on-demand
       }
 
       if (res.success && res.symbols) {
         setMarketSymbols(res.symbols);
       } else if (res.error) {
         toast({ variant: "destructive", title: "خطأ في المزامنة", description: res.error });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleAlphaSearch = async () => {
+    if (searchTerm.length < 2) return;
+    setSyncLoading(true);
+    try {
+      const res = await searchAlphaVantageSymbols(searchTerm);
+      if (res.success) {
+        setMarketSymbols(res.symbols || []);
+      } else {
+        toast({ variant: "destructive", title: "فشل البحث", description: res.error });
       }
     } catch (e) {
       console.error(e);
@@ -111,10 +131,9 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         code: `${asset.baseAsset}/${asset.quoteAsset}`,
         binanceSymbol: asset.symbol,
         priceSource: 'binance',
-        icon: hasIcon ? possibleIcon : 'Coins'
+        icon: hasIcon ? possibleIcon : 'COINS'
       });
-    } else {
-      // Twelve Data Auto-fill Logic
+    } else if (source === 'twelvedata' || source === 'alphavantage') {
       let autoIcon = 'STOCK';
       const upperName = (asset.name || "").toUpperCase();
       const upperSym = (asset.symbol || "").toUpperCase();
@@ -127,7 +146,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       else if (upperSym === 'TSLA') autoIcon = 'TESLA';
       else if (upperSym === 'NVDA') autoIcon = 'NVIDIA';
       else if (upperSym === 'AMZN') autoIcon = 'AMAZON';
-      else if (asset.type === 'Forex') autoIcon = 'FOREX';
+      else if (asset.type === 'Forex' || (asset.type && asset.type.includes('Equity') === false)) autoIcon = 'FOREX';
       else if (asset.type === 'Index') autoIcon = 'INDEX';
 
       setFormData({
@@ -135,18 +154,19 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         name: asset.name || asset.symbol,
         code: asset.symbol,
         externalTicker: asset.symbol,
-        priceSource: 'twelvedata',
+        priceSource: source,
         icon: autoIcon
       });
     }
   };
 
   const filteredSymbols = useMemo(() => {
+    if (source === 'alphavantage') return marketSymbols;
     if (!searchTerm) return marketSymbols.slice(0, 50);
     return marketSymbols
       .filter(s => s.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
       .slice(0, 50);
-  }, [marketSymbols, searchTerm]);
+  }, [marketSymbols, searchTerm, source]);
 
   const handleAction = async () => {
     if (!formData.name || !formData.code) {
@@ -159,7 +179,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       const payload = {
         ...formData,
         priceSource: source,
-        currentPrice: (source === 'binance' || source === 'twelvedata') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
+        currentPrice: (source === 'binance' || source === 'twelvedata' || source === 'alphavantage') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
         isActive: initialData?.isActive ?? true,
         updatedAt: new Date().toISOString()
       };
@@ -214,27 +234,35 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                    <h4 className="font-black text-sm text-[#002d4d] flex items-center gap-3">
                       <Cpu className="h-4 w-4 text-orange-500" /> بروتوكول تزويد السعر
                    </h4>
-                   <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-gray-100">
-                      <button onClick={() => setSource('internal')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-md" : "text-gray-400")}>داخلي</button>
-                      <button onClick={() => setSource('binance')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-md" : "text-gray-400")}>بينانس</button>
-                      <button onClick={() => setSource('twelvedata')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>12Data</button>
+                   <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-gray-100">
+                      <button onClick={() => setSource('internal')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-md" : "text-gray-400")}>داخلي</button>
+                      <button onClick={() => setSource('binance')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-md" : "text-gray-400")}>بينانس</button>
+                      <button onClick={() => setSource('twelvedata')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>12Data</button>
+                      <button onClick={() => setSource('alphavantage')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'alphavantage' ? "bg-emerald-50 text-emerald-600 shadow-md" : "text-gray-400")}>Alpha</button>
                    </div>
                 </div>
 
-                {(source === 'binance' || source === 'twelvedata') && (
+                {(source !== 'internal') && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
                      <div className="relative">
                         <Input 
                           placeholder="ابحث عن رمز (BTC, Gold, Apple)..." 
                           value={searchTerm}
                           onChange={e => setSearchTerm(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && source === 'alphavantage' && handleAlphaSearch()}
                           className="h-11 rounded-xl bg-white border-none font-black text-xs pr-10 shadow-sm"
                         />
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
+                        {source === 'alphavantage' ? (
+                          <button onClick={handleAlphaSearch} className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center active:scale-90 transition-all">
+                             <Search size={14} />
+                          </button>
+                        ) : (
+                          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
+                        )}
                      </div>
                      
                      <div className="space-y-2">
-                        <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">النتائج المتوفرة من {source === 'binance' ? 'Binance' : 'Twelve Data'}</Label>
+                        <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">النتائج المتوفرة من {source.toUpperCase()}</Label>
                         <Select onValueChange={handleSelectMarketSymbol}>
                            <SelectTrigger className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm">
                               <SelectValue placeholder={syncLoading ? "جاري مزامنة القائمة..." : "اختر من القائمة المنسدلة..."} />
@@ -258,15 +286,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                            </SelectContent>
                         </Select>
                      </div>
-
-                     {source === 'twelvedata' && (
-                       <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
-                          <AlertTriangle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                          <p className="text-[9px] font-bold text-orange-800 leading-relaxed">
-                            ملاحظة: اشتراك Twelve Data المجاني يقتصر على بعض الأسواق والأسهم؛ إذا لم يظهر السعر في المحطة، فقد يكون الرمز غير متاح في خطتك الحالية.
-                          </p>
-                       </div>
-                     )}
                   </div>
                 )}
              </div>

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu, Globe, Zap, BarChart3 } from "lucide-react";
+import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu, Globe, Zap, BarChart3, TrendingUp } from "lucide-react";
 
 // Modular Components
 import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
@@ -38,7 +38,7 @@ export default function AdminSettingsPage() {
   // --- Real-time Data Refs ---
   const connectivityRef = useMemoFirebase(() => doc(db, "system_settings", "connectivity"), [db]);
   const { data: remoteConnectivity } = useDoc(connectivityRef);
-  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", twelveDataApiKey: "" });
+  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", twelveDataApiKey: "", alphaVantageApiKey: "" });
 
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: remoteLanding } = useDoc(landingRef);
@@ -80,8 +80,12 @@ export default function AdminSettingsPage() {
   const { data: remoteLegal } = useDoc(legalRef);
   const [legalData, setLegalData] = useState<any>({});
 
+  const academyRef = useMemoFirebase(() => doc(db, "system_settings", "academy"), [db]);
+  const { data: remoteAcademy } = useDoc(academyRef);
+  const [academyData, setAcademyData] = useState<any>({ lessons: [] });
+
   useEffect(() => {
-    if (remoteConnectivity) setConnectivityData(remoteConnectivity);
+    if (remoteConnectivity) setConnectivityData({ ...connectivityData, ...remoteConnectivity });
     if (remoteLanding) setLandingData(remoteLanding);
     if (remoteOnboarding) setOnboardingData(remoteOnboarding);
     if (remoteInsurance) setInsuranceData(remoteInsurance);
@@ -92,7 +96,8 @@ export default function AdminSettingsPage() {
     if (remoteMarketing) setMarketingData(remoteMarketing);
     if (remotePartnership) setPartnershipData(remotePartnership);
     if (remoteLegal) setLegalData(remoteLegal);
-  }, [remoteConnectivity, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal]);
+    if (remoteAcademy) setAcademyData(remoteAcademy);
+  }, [remoteConnectivity, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal, remoteAcademy]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -145,7 +150,9 @@ export default function AdminSettingsPage() {
                 {/* Binance Integration */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 px-2">
-                    <Cpu className="h-5 w-5 text-orange-500" />
+                    <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                       <Cpu className="h-5 w-5 text-orange-500" />
+                    </div>
                     <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Binance (العملات الرقمية)</h3>
                   </div>
                   <div className="grid gap-6 md:grid-cols-2">
@@ -176,8 +183,10 @@ export default function AdminSettingsPage() {
                 {/* Twelve Data Integration */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 px-2">
-                    <BarChart3 className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Twelve Data (الذهب، النفط، الأسهم)</h3>
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                       <BarChart3 className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Twelve Data (المؤشرات العالمية)</h3>
                   </div>
                   <div className="space-y-3">
                     <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Twelve Data API Key</Label>
@@ -185,7 +194,28 @@ export default function AdminSettingsPage() {
                       value={connectivityData.twelveDataApiKey || ""} 
                       onChange={e => setConnectivityData({...connectivityData, twelveDataApiKey: e.target.value})}
                       className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
-                      placeholder="أدخل مفتاح Twelve Data للمؤشرات العالمية..."
+                      placeholder="أدخل مفتاح Twelve Data..."
+                    />
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Alpha Vantage Integration */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                       <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Alpha Vantage (الأسهم والسلع)</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Alpha Vantage API Key</Label>
+                    <Input 
+                      value={connectivityData.alphaVantageApiKey || ""} 
+                      onChange={e => setConnectivityData({...connectivityData, alphaVantageApiKey: e.target.value})}
+                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
+                      placeholder="أدخل مفتاح Alpha Vantage..."
                     />
                   </div>
                 </div>
@@ -195,14 +225,14 @@ export default function AdminSettingsPage() {
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                    </div>
                    <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-                     تعدد قنوات الاتصال يسمح للمنصة بجلب أسعار أصول متنوعة لحظياً. تأكد من تفعيل صلاحيات "Read Only" لمفاتيح الـ API لضمان أقصى درجات الأمان والامتثال.
+                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار لأي نوع من الأصول. يفضل توزيع الأصول بين المزودين لتقليل حد الطلبات (Rate Limits).
                    </p>
                 </div>
 
                 <Button onClick={() => handleSaveDoc(connectivityRef, connectivityData, "توصيلات الأسواق")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl transition-all active:scale-95 group">
                   {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
                     <div className="flex items-center gap-3">
-                      <span>تثبيت بروتوكولات المزامنة العالمية</span>
+                      <span>تثبيت بروتوكولات المزامنة الشاملة</span>
                       <Sparkles className="h-5 w-5 text-[#f9a885]" />
                     </div>
                   )}
@@ -343,8 +373,11 @@ export default function AdminSettingsPage() {
           <ContentSection 
             data={legalData} 
             onChange={setLegalData} 
-            onSave={() => handleSaveDoc(legalRef, legalData, "قاعدة المعرفة")}
-            saving={saving}
+            academyData={academyData}
+            onAcademyChange={setAcademyData}
+            onSave={() => handleSaveDoc(legalRef, legalData, "قاعدة المعرفة")} 
+            onAcademySave={() => handleSaveDoc(academyRef, academyData, "الأكاديمية")}
+            saving={saving} 
           />
         )}
 
