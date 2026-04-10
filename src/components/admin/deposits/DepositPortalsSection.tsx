@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -29,7 +28,8 @@ import {
   Wallet,
   Settings2,
   Globe,
-  Radio
+  Radio,
+  Info
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -210,7 +210,6 @@ export function DepositPortalsSection() {
                     className="data-[state=checked]:bg-emerald-500"
                   />
                   
-                  {/* يسمح بإضافة بوابات فقط إذا كان القسم يدوي */}
                   {category.type === 'manual' && (
                     <Button variant="ghost" size="icon" onClick={() => { setActiveCatId(category.id); setIsAddPortalOpen(true); }} className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 shadow-sm" title="إضافة بوابة يدوية لهذا القسم">
                       <Plus className="h-5 w-5" />
