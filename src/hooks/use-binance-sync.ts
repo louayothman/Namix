@@ -5,8 +5,8 @@ import { useEffect, useRef } from 'react';
 import { useMarketStore } from '@/store/use-market-store';
 
 /**
- * @fileOverview بروتوكول مزامنة Binance v1.0
- * يدير الاتصال المباشر عبر WebSockets لجلب أسعار الكريبتو اللحظية.
+ * @fileOverview بروتوكول مزامنة Binance v1.2
+ * يدير الاتصال المباشر عبر WebSockets لجلب أسعار الكريبتو اللحظية وتحديث المستودع المركزي.
  */
 export function useBinanceSync(symbols: any[]) {
   const updatePrice = useMarketStore(state => state.updatePrice);
@@ -15,7 +15,7 @@ export function useBinanceSync(symbols: any[]) {
 
   useEffect(() => {
     isMounted.current = true;
-    const binanceSymbols = symbols.filter(s => s.priceSource === 'binance' && s.binanceSymbol);
+    const binanceSymbols = symbols?.filter(s => s.priceSource === 'binance' && s.binanceSymbol) || [];
     
     if (binanceSymbols.length === 0) return;
 
@@ -30,8 +30,11 @@ export function useBinanceSync(symbols: any[]) {
 
     const connect = () => {
       if (!isMounted.current) return;
-      if (wsRef.current) wsRef.current.close();
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
 
+      // الاتصال بمحرك البث الموحد من بينانس
       const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams.join('/')}`);
       
       ws.onmessage = (event) => {
@@ -49,11 +52,20 @@ export function useBinanceSync(symbols: any[]) {
               });
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("Binance Stream Parse Error:", e);
+        }
       };
 
       ws.onclose = () => {
-        if (isMounted.current) setTimeout(connect, 3000);
+        if (isMounted.current) {
+          setTimeout(connect, 5000);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("Binance WebSocket Error:", err);
+        ws.close();
       };
 
       wsRef.current = ws;
@@ -63,7 +75,10 @@ export function useBinanceSync(symbols: any[]) {
 
     return () => {
       isMounted.current = false;
-      if (wsRef.current) wsRef.current.close();
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [symbols, updatePrice]);
 }

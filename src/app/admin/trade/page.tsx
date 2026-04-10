@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,6 +19,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useMarketSync } from "@/hooks/use-market-sync";
 
 // Modular Reactors
 import { GlobalMarketControls } from "@/components/admin/trade/GlobalMarketControls";
@@ -44,6 +46,9 @@ export default function NamixTradingAdminPage() {
 
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), orderBy("createdAt", "desc")), [db]);
   const { data: symbols, isLoading: loadingSymbols } = useCollection(symbolsQuery);
+
+  // تفعيل محرك المزامنة العالمي لجلب الأسعار لحظياً في لوحة الإدارة
+  useMarketSync(symbols || []);
 
   useEffect(() => {
     if (remoteGlobal) setGlobalData(remoteGlobal);
@@ -126,7 +131,7 @@ export default function NamixTradingAdminPage() {
              <div className="flex items-center justify-between px-4">
                 <div className="flex items-center gap-4">
                    <div className="h-12 w-12 rounded-[22px] bg-red-50 text-red-600 flex items-center justify-center shadow-inner"><ShieldAlert className="h-6 w-6" /></div>
-                   <h2 className="text-2xl font-black text-[#002d4d]">مركز المخاطر <span className="text-[10px] font-bold text-gray-300 uppercase mr-2">Security Shield</span></h2>
+                   <h2 className="text-2xl font-black text-[#002d4d]">مركز المخاطر <span className="text-[10px] font-bold text-red-300 uppercase mr-2">Security Shield</span></h2>
                 </div>
                 <div className="h-1 w-20 bg-gradient-to-l from-red-100 to-transparent rounded-full" />
              </div>
