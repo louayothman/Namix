@@ -6,8 +6,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v4.0
- * يدعم توليد وتحديث العناوين مع معالجة أفضل للأخطاء والعملات المتاحة.
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v5.0
+ * يدعم توليد حزمة شاملة من المحافظ (15+ عملة) لضمان هوية مالية متكاملة للمستثمر.
  */
 
 async function getNPConfig() {
@@ -34,12 +34,10 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
     const userData = userSnap.data();
     const assignedWallets = userData.assignedWallets || {};
 
-    // إذا كان العنوان موجوداً مسبقاً لهذه العملة تحديداً، أرجعه فوراً
     if (assignedWallets[currencyId]) {
       return { success: true, address: assignedWallets[currencyId] };
     }
 
-    // طلب إنشاء عنوان دفع جديد من البوابة
     const response = await axios.post(
       'https://api.nowpayments.io/v1/payment',
       {
@@ -59,7 +57,6 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
 
     const address = response.data.pay_address;
     
-    // حفظ العنوان في مصفوفة محافظ المستخدم
     await updateDoc(userRef, {
       [`assignedWallets.${currencyId}`]: address,
       updatedAt: new Date().toISOString()
@@ -74,18 +71,26 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
 }
 
 /**
- * توليد حزمة المحافظ الأساسية للمستثمر بضغطة واحدة (إصدار النخبة)
+ * توليد حزمة المحافظ السيادية الشاملة (15 عملة رئيسية)
  */
 export async function generateBaseUserWallets(userId: string) {
-  // قائمة العملات الأكثر طلباً لضمان هوية مالية شاملة
+  // قائمة موسعة تشمل أشهر العملات والشبكات لضمان تغطية كاملة
   const baseCurrencies = [
     'usdttrc20', // USDT (Tron)
     'usdtbsc',   // USDT (BSC)
+    'usdteth',   // USDT (Ethereum)
     'btc',       // Bitcoin
     'eth',       // Ethereum
-    'ltc',       // Litecoin
     'sol',       // Solana
-    'trx'        // TRON
+    'trx',       // TRON
+    'ltc',       // Litecoin
+    'doge',      // Dogecoin
+    'shib',      // Shiba Inu
+    'matic',     // Polygon
+    'bnbbsc',    // BNB (BSC)
+    'xrp',       // Ripple
+    'ada',       // Cardano
+    'dot'        // Polkadot
   ];
   
   const results = [];

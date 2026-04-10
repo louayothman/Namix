@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -32,9 +33,19 @@ type Step = "select_category" | "select_portal" | "select_automated_asset" | "ex
 const NOWPAYMENTS_ASSETS = [
   { id: 'usdttrc20', name: 'USDT', network: 'TRC20', icon: 'USDT' },
   { id: 'usdtbsc', name: 'USDT', network: 'BEP20 (BSC)', icon: 'BNB' },
+  { id: 'usdteth', name: 'USDT', network: 'ERC20 (ETH)', icon: 'ETH' },
   { id: 'btc', name: 'Bitcoin', network: 'BTC', icon: 'BTC' },
   { id: 'eth', name: 'Ethereum', network: 'ERC20', icon: 'ETH' },
+  { id: 'sol', name: 'Solana', network: 'SOL', icon: 'SOL' },
+  { id: 'trx', name: 'TRON', network: 'TRC20', icon: 'TRX' },
   { id: 'ltc', name: 'Litecoin', network: 'LTC', icon: 'LTC' },
+  { id: 'doge', name: 'Dogecoin', network: 'DOGE', icon: 'DOGE' },
+  { id: 'shib', name: 'Shiba Inu', network: 'ERC20/BSC', icon: 'SHIB' },
+  { id: 'matic', name: 'Polygon', network: 'POLYGON', icon: 'MATIC' },
+  { id: 'bnbbsc', name: 'Binance Coin', network: 'BEP20 (BSC)', icon: 'BNB' },
+  { id: 'xrp', name: 'Ripple', network: 'XRP', icon: 'XRP' },
+  { id: 'ada', name: 'Cardano', network: 'ADA', icon: 'ADA' },
+  { id: 'dot', name: 'Polkadot', network: 'DOT', icon: 'DOT' },
 ];
 
 export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
@@ -191,7 +202,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           <div className="flex-1 overflow-y-auto px-5 py-6 scrollbar-none">
             {loadingCats || loading ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-4">
-                 <Loader2 className="h-8 w-8 animate-spin text-[#002d4d]" />
+                 <div className="h-10 w-10 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Initializing Secure Protocol...</p>
               </div>
             ) : (
@@ -239,7 +250,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                 {step === "select_automated_asset" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">اختر العملة والشبكة <Network size={16} className="text-blue-500" /></h3>
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-3 pb-10">
                       {(selectedCategory?.type === 'nowpayments' ? NOWPAYMENTS_ASSETS : BINANCE_SUPPORTED_ASSETS).map((asset: any) => (
                         <button 
                           key={asset.id || asset.coin} 
