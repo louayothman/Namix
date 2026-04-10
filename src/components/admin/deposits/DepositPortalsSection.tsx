@@ -38,7 +38,7 @@ import {
   Activity
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
-import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "firebase/firestore";
 import { useMemoFirebase } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -56,8 +56,8 @@ import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview مركز هندسة بوابات الإيداع الشمولية v7.0
- * تم إصلاح خطأ استيراد الأيقونات وإلغاء الـ Dialogs لصالح واجهة مفاعلات مدمجة.
+ * @fileOverview مركز هندسة بوابات الإيداع الشمولية v8.0 - Sovereign ID Protocol
+ * تم تحديث آلية منح الـ ID لتتبع النمط depositXX لضمان هوية برمجية منظمة لكل قسم.
  */
 
 export function DepositPortalsSection() {
@@ -79,16 +79,22 @@ export function DepositPortalsSection() {
     if (!newCat.name.trim()) return;
     setCreating(true);
     try {
-      await addDoc(collection(db, "deposit_methods"), { 
+      // توليد معرف سيادي: deposit + رقمين عشوائيين
+      const randomNum = Math.floor(Math.random() * 90 + 10); // يولد رقماً بين 10 و 99
+      const customId = `deposit${randomNum}`;
+      
+      // استخدام setDoc لمنح المعرف المخصص للوثيقة
+      await setDoc(doc(db, "deposit_methods", customId), { 
         name: newCat.name, 
         description: newCat.description,
         type: newCat.type,
         isActive: true,
         portals: [] 
       });
+
       setNewCat({ name: "", description: "", type: "manual" });
       setIsCreatorOpen(false);
-      toast({ title: "تم تأسيس القسم بنجاح" });
+      toast({ title: "تم تأسيس القسم بنجاح", description: `المعرف الممنوح: ${customId}` });
     } catch (e) { 
       toast({ variant: "destructive", title: "خطأ في القاعدة" }); 
     } finally {
@@ -222,12 +228,7 @@ export function DepositPortalsSection() {
                                   )}>
                                     {category.type?.toUpperCase()}
                                   </Badge>
-                                  {category.isActive && (
-                                    <div className="flex items-center gap-1 opacity-40">
-                                       <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                                       <span className="text-[7px] font-black text-gray-400 uppercase">Operational</span>
-                                    </div>
-                                  )}
+                                  <span className="text-[8px] font-bold text-gray-300 uppercase tracking-tighter">ID: {category.id}</span>
                                </div>
                             </div>
                          </div>
@@ -333,7 +334,7 @@ function CategoryEditor({ category, onBack }: { category: any, onBack: () => voi
             </div>
             <div className="space-y-1">
                <h2 className="text-3xl font-black text-[#002d4d]">تعديل القسم: {category.name}</h2>
-               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sovereign Editor Console</p>
+               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sovereign Editor Console • ID: {category.id}</p>
             </div>
          </div>
          <Button onClick={onBack} variant="ghost" className="h-14 px-8 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] gap-3 group transition-all">
@@ -482,7 +483,7 @@ function CategoryEditor({ category, onBack }: { category: any, onBack: () => voi
 
       {/* Sovereign Signature */}
       <div className="flex flex-col items-center gap-4 pt-10 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Category Governance Node v7.0</p>
+         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Category Governance Node v8.0</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
          </div>
