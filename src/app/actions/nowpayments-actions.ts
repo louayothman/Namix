@@ -6,8 +6,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v2.0
- * يدعم توليد عناوين فريدة لمختلف العملات والشبكات (USDT-TRC20, USDT-BSC, BTC, ETH).
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v3.0
+ * يدعم توليد وتحديث العناوين مع معالجة أفضل للأخطاء والعملات المتاحة.
  */
 
 async function getNPConfig() {
@@ -40,13 +40,14 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
     }
 
     // طلب إنشاء عنوان دفع جديد من البوابة
+    // ملاحظة: نستخدم الحد الأدنى للمبلغ فقط لإنشاء العنوان
     const response = await axios.post(
       'https://api.nowpayments.io/v1/payment',
       {
-        price_amount: 10, 
+        price_amount: 1, 
         price_currency: 'usd',
         pay_currency: currencyId,
-        order_id: `DEP_${userId}_${currencyId}_${Date.now()}`,
+        order_id: `ADDR_GEN_${userId}_${currencyId}`,
         ipn_callback_url: `https://${process.env.NEXT_PUBLIC_DOMAIN}/api/webhooks/nowpayments`
       },
       {
@@ -67,8 +68,9 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
 
     return { success: true, address };
   } catch (e: any) {
-    console.error("NOWPayments Multi-Sync Error:", e.response?.data || e.message);
-    return { success: false, error: e.message };
+    const errorMsg = e.response?.data?.message || e.message;
+    console.error("NOWPayments Sync Error:", errorMsg);
+    return { success: false, error: errorMsg };
   }
 }
 

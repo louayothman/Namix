@@ -11,27 +11,42 @@ import { useFirestore, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { 
   Copy, Check, ChevronRight, Loader2, CheckCircle2, Zap, ShieldCheck, 
-  Sparkles, ArrowUpCircle, Info, Cpu, Wallet, Coins, ListFilter, Hash 
+  Sparkles, ArrowUpCircle, Info, Cpu, Wallet, ListFilter, Hash,
+  AlertCircle,
+  Network
 } from "lucide-react";
 import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
-import { verifyBinanceDeposit } from "@/app/actions/binance-actions";
+import { getBinanceDepositAddress } from "@/app/actions/binance-actions";
+import { BINANCE_SUPPORTED_ASSETS } from "@/lib/binance-constants";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DepositSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "select_category" | "select_portal" | "execution" | "verifying" | "success";
+type Step = "select_category" | "select_portal" | "select_automated_asset" | "execution" | "success";
+
+const NOWPAYMENTS_ASSETS = [
+  { id: 'usdttrc20', name: 'USDT', network: 'TRC20', icon: 'USDT' },
+  { id: 'usdtbsc', name: 'USDT', network: 'BEP20 (BSC)', icon: 'BNB' },
+  { id: 'btc', name: 'Bitcoin', network: 'BTC', icon: 'BTC' },
+  { id: 'eth', name: 'Ethereum', network: 'ERC20', icon: 'ETH' },
+  { id: 'ltc', name: 'Litecoin', network: 'LTC', icon: 'LTC' },
+];
 
 export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
   const [step, setStep] = useState<Step>("select_category");
   const [loading, setLoading] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState("");
   const [selectedPortalId, setSelectedPortalId] = useState("");
+  const [selectedAutoAsset, setSelectedAutoAsset] = useState<any>(null);
+  
   const [walletAddress, setWalletAddress] = useState("");
+  const [instructions, setInstructions] = useState("");
   const [copied, setCopied] = useState(false);
   const [dbUser, setDbUser] = useState<any>(null);
   const [txid, setTxid] = useState("");
@@ -45,7 +60,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
   const selectedCategory = useMemo(() => categories?.find(c => c.id === selectedCatId), [categories, selectedCatId]);
   
-  // البوابات النشطة: يتم تصفيتها فقط للأقسام اليدوية
   const activePortals = useMemo(() => {
     if (selectedCategory?.type !== 'manual') return [];
     return selectedCategory?.portals?.filter((p: any) => p.isActive) || [];
@@ -64,42 +78,66 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
     }
   }, [open, db]);
 
-  // محرك التوجيه اللحظي بناءً على نوع القسم
-  useEffect(() => {
-    if (step === "select_portal" && selectedCategory && selectedCategory.type !== 'manual') {
-      // إذا كان القسم آلياً، سنقوم برمجياً في الخطوات القادمة بطلب العناوين مباشرة
-      // حالياً، ننتقل لواجهة الأتمتة الافتراضية
-      handleAutomatedSync(selectedCategory.type);
-    }
-  }, [step, selectedCategory]);
-
-  const handleAutomatedSync = async (type: string) => {
-    setLoading(true);
-    // سيتم تطوير منطق جلب العناوين الآلي هنا في الخطوات القادمة بناءً على طلبك
-    // حالياً نقوم فقط بالتحضير للهيكل
-    setTimeout(() => {
-      setLoading(false);
-      // مثال: التوجه لواجهة التنفيذ مع تمويه بسيط
-    }, 1000);
-  };
-
-  const handlePortalSelect = async (portal: any) => {
+  const handlePortalSelect = (portal: any) => {
     setSelectedPortalId(portal.id);
     setWalletAddress(portal.walletAddress);
+    setInstructions(portal.instructions);
     setStep("execution");
   };
 
-  const handleManualSubmit = async () => {
-    if (!txid || !amount || !dbUser) return;
+  const handleAutoAssetSelect = async (asset: any) => {
+    if (!dbUser || !selectedCategory) return;
+    setLoading(true);
+    setError(null);
+    setSelectedAutoAsset(asset);
+
+    try {
+      if (selectedCategory.type === 'nowpayments') {
+        const res = await getOrCreateUserWallet(dbUser.id, asset.id);
+        if (res.success) {
+          setWalletAddress(res.address);
+          setInstructions(`هذا العنوان هو هويتك المالية الدائمة في ناميكس لهذه العملة. يرجى التحويل عبر شبكة ${asset.network} حصراً. سيقوم النظام برصد الحوالة وحقن الرصيد آلياً دون الحاجة لإرسال TXID.`);
+          setStep("execution");
+        } else {
+          setError(res.error);
+        }
+      } else if (selectedCategory.type === 'binance') {
+        // في وضع بينانس، نجلب العنوان الخاص بحساب المشرف
+        const res = await getBinanceDepositAddress(asset.coin, asset.networks[0].code);
+        if (res.success) {
+          setWalletAddress(res.address);
+          setInstructions(`يرجى تحويل المبلغ لعنوان المشرف الموضح أعلاه عبر شبكة ${asset.networks[0].label}. بعد التحويل، يجب إدخال الـ TXID ليقوم النظام بالتحقق الفوري منه.`);
+          setStep("execution");
+        } else {
+          setError(res.error);
+        }
+      }
+    } catch (e: any) {
+      setError("فشل الاتصال ببروتوكول المزامنة.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!amount || !dbUser) return;
+    // في وضع NOWPayments لا نشترط TXID لأن الأتمتة تعتمد على الـ IPN
+    if (selectedCategory?.type !== 'nowpayments' && !txid) return;
+
     setLoading(true);
     try {
+      const methodName = selectedCategory?.type === 'manual' 
+        ? `${selectedCategory?.name} - ${selectedPortal?.name}`
+        : `${selectedCategory?.name} (${selectedAutoAsset?.name || selectedAutoAsset?.coin})`;
+
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id,
         userName: dbUser.displayName,
         amount: Number(amount),
-        methodName: `${selectedCategory?.name} - ${selectedPortal?.name}`,
-        transactionId: txid,
+        methodName,
+        transactionId: txid || "AUTO_SYNC_PENDING",
         status: "pending",
+        isAutoAudited: selectedCategory?.type !== 'manual',
         createdAt: new Date().toISOString()
       });
       setStep("success");
@@ -123,7 +161,9 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
       setStep("select_category");
       setSelectedCatId("");
       setSelectedPortalId("");
+      setSelectedAutoAsset(null);
       setWalletAddress("");
+      setInstructions("");
       setTxid("");
       setAmount("");
       setError(null);
@@ -134,7 +174,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerPortal>
         <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]" />
-        <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] outline-none flex flex-col bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] font-body" dir="rtl">
+        <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] outline-none flex flex-col bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] font-body" dir="rtl">
           
           <DrawerHeader className="px-6 pt-4 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-2">
             <div className="flex items-center gap-3 text-right">
@@ -145,7 +185,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                </div>
             </div>
             {step !== "select_category" && step !== "success" && (
-              <button onClick={() => setStep(step === "execution" ? "select_portal" : "select_category")} className="rounded-full h-7 px-3 bg-gray-50 text-gray-400 font-black text-[8px] border border-gray-100 active:scale-95 flex items-center gap-1.5">
+              <button onClick={() => setStep(step === "execution" && selectedCategory?.type !== 'manual' ? "select_automated_asset" : step === "select_automated_asset" ? "select_category" : "select_category")} className="rounded-full h-7 px-3 bg-gray-50 text-gray-400 font-black text-[8px] border border-gray-100 active:scale-95 flex items-center gap-1.5">
                 <ChevronRight size={12} /> رجوع
               </button>
             )}
@@ -155,16 +195,18 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             {loadingCats || loading ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-4">
                  <Loader2 className="h-8 w-8 animate-spin text-[#002d4d]" />
-                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Initializing Secure Node...</p>
+                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Initializing Secure Protocol...</p>
               </div>
             ) : (
               <div className="space-y-6">
+                
+                {/* الخطوة 1: اختيار الفئة */}
                 {step === "select_category" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">حدد فئة الشحن <ListFilter size={16} className="text-[#f9a885]" /></h3>
                     <div className="grid grid-cols-2 gap-3">
                       {categories?.map((cat) => (
-                        <button key={cat.id} onClick={() => { setSelectedCatId(cat.id); setStep("select_portal"); }} className="p-6 rounded-[40px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-3 active:scale-[0.98] relative overflow-hidden group">
+                        <button key={cat.id} onClick={() => { setSelectedCatId(cat.id); setStep(cat.type === 'manual' ? "select_portal" : "select_automated_asset"); }} className="p-6 rounded-[40px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-3 active:scale-[0.98] relative overflow-hidden group">
                           <div className="h-12 w-12 rounded-[20px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
                             {cat.type === 'manual' ? <Wallet size={24}/> : cat.type === 'nowpayments' ? <Zap size={24} className="text-purple-500 fill-current"/> : <Cpu size={24}/>}
                           </div>
@@ -184,6 +226,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
                 )}
 
+                {/* الخطوة 2 (يدوي): اختيار البوابة */}
                 {step === "select_portal" && selectedCategory?.type === 'manual' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">اختر بوابة الاستلام <Zap size={16} className="text-blue-500" /></h3>
@@ -198,31 +241,48 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
                 )}
 
-                {/* واجهة المزامنة الآلية (سيتم ملؤها لاحقاً بناءً على API المختار) */}
-                {step === "select_portal" && selectedCategory?.type !== 'manual' && (
-                  <div className="py-20 text-center space-y-6 animate-in zoom-in-95 duration-700">
-                     <div className="h-20 w-20 rounded-[32px] bg-blue-50 flex items-center justify-center mx-auto shadow-inner">
-                        <Loader2 size={32} className="text-blue-600 animate-spin" />
-                     </div>
-                     <div className="space-y-2">
-                        <h4 className="text-lg font-black text-[#002d4d]">جاري مزامنة بروتوكول {selectedCategory?.type?.toUpperCase()}</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Awaiting Direct API Feed...</p>
-                     </div>
+                {/* الخطوة 2 (آلي): اختيار العملة والشبكة */}
+                {step === "select_automated_asset" && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500">
+                    <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">اختر العملة والشبكة <Network size={16} className="text-blue-500" /></h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {(selectedCategory?.type === 'nowpayments' ? NOWPAYMENTS_ASSETS : BINANCE_SUPPORTED_ASSETS).map((asset: any) => (
+                        <button 
+                          key={asset.id || asset.coin} 
+                          onClick={() => handleAutoAssetSelect(asset)} 
+                          className="p-5 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center justify-between group active:scale-[0.99]"
+                        >
+                          <div className="flex items-center gap-4">
+                             <div className="h-12 w-12 rounded-[18px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
+                                <CryptoIcon name={asset.icon} size={24} />
+                             </div>
+                             <div className="text-right">
+                                <p className="font-black text-sm text-[#002d4d]">{asset.name || asset.coin}</p>
+                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{asset.network || asset.networks?.[0].label}</p>
+                             </div>
+                          </div>
+                          <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {step === "execution" && selectedPortal && (
+                {/* الخطوة 3: التنفيذ */}
+                {step === "execution" && (
                   <div className="space-y-8 animate-in zoom-in-95 duration-500 text-right">
                     <div className="p-6 bg-blue-50/40 rounded-[40px] border border-blue-100/50 space-y-3">
-                       <div className="flex items-center gap-2 text-blue-600"><Info size={16} /><h4 className="text-xs font-black">تعليمات الاستلام المعتمدة:</h4></div>
-                       <p className="text-[11px] font-bold leading-loose text-blue-800/70">{selectedPortal.instructions}</p>
+                       <div className="flex items-center gap-2 text-blue-600"><Info size={16} /><h4 className="text-xs font-black">تعليمات البروتوكول:</h4></div>
+                       <p className="text-[11px] font-bold leading-loose text-blue-800/70">{instructions}</p>
                     </div>
 
                     <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-4">
                        <div className="space-y-2">
-                          <Label className="text-[9px] font-black text-gray-400 uppercase pr-2 tracking-widest">Portal Deposit Address</Label>
+                          <Label className="text-[9px] font-black text-gray-400 uppercase pr-2 tracking-widest">
+                            {selectedCategory?.type === 'nowpayments' ? 'عنوان محفظتك الشخصي' : 'عنوان استلام المشرف'}
+                          </Label>
                           <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-3">
-                             <div className="flex-1 font-mono text-[11px] font-black text-[#002d4d] break-all text-left" dir="ltr">{walletAddress}</div>
+                             <div className="flex-1 font-mono text-[11px] font-black text-[#002d4d] break-all text-left leading-relaxed" dir="ltr">{walletAddress}</div>
                              <Button onClick={handleCopy} className="h-12 w-12 rounded-2xl bg-[#002d4d] text-[#f9a885] shadow-xl shrink-0 active:scale-90 transition-all">{copied ? <Check size={20}/> : <Copy size={20}/>}</Button>
                           </div>
                        </div>
@@ -230,12 +290,25 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
                     <div className="space-y-6">
                        <div className="space-y-4">
-                          <div className="space-y-1.5"><Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">المبلغ المودع ($)</Label><Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-2xl text-emerald-600 shadow-inner" placeholder="0.00" /></div>
-                          <div className="space-y-1.5"><Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">معرف العملية (TXID)</Label><Input value={txid} onChange={e => setTxid(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-[10px] font-black px-8 text-center shadow-inner" placeholder="أدخل رقم التحويل هنا..." /></div>
+                          <div className="space-y-1.5">
+                             <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">المبلغ المودع ($)</Label>
+                             <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-2xl text-emerald-600 shadow-inner" placeholder="0.00" />
+                          </div>
+                          
+                          {selectedCategory?.type !== 'nowpayments' && (
+                            <div className="space-y-1.5 animate-in fade-in">
+                               <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">معرف العملية (TXID)</Label>
+                               <Input value={txid} onChange={e => setTxid(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-[10px] font-black px-8 text-center shadow-inner" placeholder="أدخل رقم التحويل هنا..." />
+                            </div>
+                          )}
                        </div>
-                       {error && <p className="text-red-500 text-[10px] font-bold text-center animate-pulse">{error}</p>}
-                       <Button onClick={handleManualSubmit} disabled={loading || !amount || !txid} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 group transition-all">
-                          {loading ? <Loader2 className="animate-spin h-6 w-6" /> : "إرسال طلب التدقيق السيادي"}
+                       
+                       {error && <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex items-center gap-3 text-red-600"><AlertCircle size={16}/><p className="text-[10px] font-bold">{error}</p></div>}
+                       
+                       <Button onClick={handleSubmit} disabled={loading || !amount || (selectedCategory?.type !== 'nowpayments' && !txid)} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 group transition-all">
+                          {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
+                            selectedCategory?.type === 'nowpayments' ? "إتمام وتأكيد الدفع اللحظي" : "إرسال طلب التدقيق السيادي"
+                          )}
                        </Button>
                     </div>
                   </div>
@@ -243,8 +316,17 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
                 {step === "success" && (
                   <div className="space-y-8 animate-in zoom-in-95 duration-700 text-center py-10">
-                    <div className="h-24 w-24 bg-emerald-50 rounded-[40px] flex items-center justify-center mx-auto border border-emerald-100"><CheckCircle2 className="h-12 w-12 text-emerald-500" /></div>
-                    <div className="space-y-2"><h3 className="text-2xl font-black text-[#002d4d]">تم الاستلام بنجاح</h3><p className="text-gray-400 font-bold text-xs px-8 leading-relaxed">لقد تم استلام طلبك. سيقوم فريق التدقيق بمراجعة العملية وتحديث رصيدك خلال دقائق.</p></div>
+                    <div className="h-24 w-24 bg-emerald-50 rounded-[40px] flex items-center justify-center mx-auto border border-emerald-100 shadow-inner">
+                       <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+                    </div>
+                    <div className="space-y-2">
+                       <h3 className="text-2xl font-black text-[#002d4d]">تم الاستلام بنجاح</h3>
+                       <p className="text-gray-400 font-bold text-xs px-8 leading-relaxed">
+                         {selectedCategory?.type === 'nowpayments' 
+                           ? "سيتم حقن الرصيد آلياً في محفظتك بمجرد تأكيد الحوالة على الشبكة." 
+                           : "لقد تم استلام طلبك. سيقوم فريق التدقيق بمراجعة العملية وتحديث رصيدك خلال دقائق."}
+                       </p>
+                    </div>
                     <Button onClick={handleClose} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black shadow-xl">العودة للرئيسية</Button>
                   </div>
                 )}
