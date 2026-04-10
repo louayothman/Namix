@@ -39,7 +39,7 @@
       "properties": {
         "binanceApiKey": { "type": "string" },
         "binanceApiSecret": { "type": "string" },
-        "twelveDataApiKey": { "type": "string" },
+        "finnhubApiKey": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
@@ -60,7 +60,7 @@
         "path": "/system_settings/connectivity",
         "definition": {
           "entityName": "MarketConnectivity",
-          "description": "Global API connectivity settings for Binance and Twelve Data."
+          "description": "Global API connectivity settings for Binance and Finnhub."
         }
       }
     ]

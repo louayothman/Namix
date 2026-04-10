@@ -30,13 +30,13 @@ import {
   Activity,
   AlertTriangle,
   Info,
-  Layers
+  Layers,
+  Coins
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getBinanceExchangeSymbols } from "@/app/actions/binance-actions";
-import { getTwelveDataSymbols } from "@/app/actions/twelvedata-actions";
-import { searchAlphaVantageSymbols } from "@/app/actions/alphavantage-actions";
+import { searchFinnhubSymbols } from "@/app/actions/finnhub-actions";
 import { CRYPTO_ICONS_MAP, CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -52,7 +52,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [marketSymbols, setMarketSymbols] = useState<any[]>([]);
-  const [source, setSource] = useState<'internal' | 'binance' | 'twelvedata' | 'alphavantage'>(initialData?.priceSource || 'internal');
+  const [source, setSource] = useState<'internal' | 'binance' | 'finnhub'>(initialData?.priceSource || 'internal');
   const [searchTerm, setSearchTerm] = useState("");
   
   const [formData, setFormData] = useState({
@@ -73,24 +73,16 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const db = useFirestore();
 
   useEffect(() => {
-    if (open && (source === 'binance' || source === 'twelvedata')) {
-      fetchMarketData();
+    if (open && source === 'binance') {
+      fetchBinanceData();
     }
   }, [open, source]);
 
-  const fetchMarketData = async () => {
+  const fetchBinanceData = async () => {
     setSyncLoading(true);
     setMarketSymbols([]);
     try {
-      let res;
-      if (source === 'binance') {
-        res = await getBinanceExchangeSymbols();
-      } else if (source === 'twelvedata') {
-        res = await getTwelveDataSymbols();
-      } else {
-        return; 
-      }
-
+      const res = await getBinanceExchangeSymbols();
       if (res.success && res.symbols) {
         setMarketSymbols(res.symbols);
       } else if (res.error) {
@@ -103,11 +95,11 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     }
   };
 
-  const handleAlphaSearch = async () => {
+  const handleFinnhubSearch = async () => {
     if (searchTerm.length < 2) return;
     setSyncLoading(true);
     try {
-      const res = await searchAlphaVantageSymbols(searchTerm);
+      const res = await searchFinnhubSymbols(searchTerm);
       if (res.success) {
         setMarketSymbols(res.symbols || []);
       } else {
@@ -136,7 +128,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         priceSource: 'binance',
         icon: hasIcon ? possibleIcon : 'COINS'
       });
-    } else if (source === 'twelvedata' || source === 'alphavantage') {
+    } else if (source === 'finnhub') {
       let autoIcon = 'STOCK';
       const upperName = (asset.name || "").toUpperCase();
       const upperSym = (asset.symbol || "").toUpperCase();
@@ -149,8 +141,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       else if (upperSym === 'TSLA') autoIcon = 'TESLA';
       else if (upperSym === 'NVDA') autoIcon = 'NVIDIA';
       else if (upperSym === 'AMZN') autoIcon = 'AMAZON';
-      else if (asset.type === 'Forex' || (asset.type && asset.type.includes('Equity') === false)) autoIcon = 'FOREX';
-      else if (asset.type === 'Index') autoIcon = 'INDEX';
+      else if (asset.type === 'Forex') autoIcon = 'FOREX';
 
       setFormData({
         ...formData,
@@ -158,14 +149,14 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         code: asset.symbol,
         type: asset.type || 'Equity',
         externalTicker: asset.symbol,
-        priceSource: source,
+        priceSource: 'finnhub',
         icon: autoIcon
       });
     }
   };
 
   const filteredSymbols = useMemo(() => {
-    if (source === 'alphavantage') return marketSymbols;
+    if (source === 'finnhub') return marketSymbols;
     if (!searchTerm) return marketSymbols.slice(0, 50);
     return marketSymbols
       .filter(s => s.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
@@ -183,7 +174,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       const payload = {
         ...formData,
         priceSource: source,
-        currentPrice: (source === 'binance' || source === 'twelvedata' || source === 'alphavantage') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
+        currentPrice: (source === 'binance' || source === 'finnhub') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
         isActive: initialData?.isActive ?? true,
         updatedAt: new Date().toISOString()
       };
@@ -241,8 +232,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                    <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-gray-100">
                       <button onClick={() => setSource('internal')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-md" : "text-gray-400")}>داخلي</button>
                       <button onClick={() => setSource('binance')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-md" : "text-gray-400")}>بينانس</button>
-                      <button onClick={() => setSource('twelvedata')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>12Data</button>
-                      <button onClick={() => setSource('alphavantage')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'alphavantage' ? "bg-emerald-50 text-emerald-600 shadow-md" : "text-gray-400")}>Alpha</button>
+                      <button onClick={() => setSource('finnhub')} className={cn("px-3 h-8 rounded-xl font-black text-[8px] transition-all", source === 'finnhub' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>Finnhub</button>
                    </div>
                 </div>
 
@@ -253,11 +243,11 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                           placeholder="ابحث عن رمز (BTC, Gold, Apple)..." 
                           value={searchTerm}
                           onChange={e => setSearchTerm(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && source === 'alphavantage' && handleAlphaSearch()}
+                          onKeyDown={e => e.key === 'Enter' && source === 'finnhub' && handleFinnhubSearch()}
                           className="h-11 rounded-xl bg-white border-none font-black text-xs pr-10 shadow-sm"
                         />
-                        {source === 'alphavantage' ? (
-                          <button onClick={handleAlphaSearch} className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center active:scale-90 transition-all">
+                        {source === 'finnhub' ? (
+                          <button onClick={handleFinnhubSearch} className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center active:scale-90 transition-all">
                              <Search size={14} />
                           </button>
                         ) : (
@@ -282,7 +272,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                                             <span className="text-xs">{s.symbol}</span>
                                             <span className="text-[8px] text-gray-400 font-bold uppercase">{s.name || s.type}</span>
                                          </div>
-                                         {s.exchange && <Badge className="bg-gray-50 text-gray-400 text-[7px]">{s.exchange}</Badge>}
                                       </div>
                                    </SelectItem>
                                  ))}

@@ -44,8 +44,8 @@ interface MarketInventoryProps {
 }
 
 /**
- * @fileOverview جرد الأسواق المبوب v102.0 - Multi-Source Edition
- * تم تصنيف الأصول تحت قطاعات تكتيكية لتسهيل الإشراف المباشر.
+ * @fileOverview جرد الأسواق المبوب v103.0 - Finnhub Integrated
+ * تم تحديث الأيقونات والمصادر لدعم Finnhub بدلاً من Alpha و TwelveData.
  */
 export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
   const db = useFirestore();
@@ -82,13 +82,13 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
     symbols.forEach(s => {
       if (s.priceSource === 'internal') groups.internal.items.push(s);
       else if (s.priceSource === 'binance') groups.crypto.items.push(s);
-      else {
+      else if (s.priceSource === 'finnhub') {
         const type = (s.type || "").toLowerCase();
-        if (type.includes('equity') || type.includes('stock')) groups.equity.items.push(s);
-        else if (type.includes('commodity') || type.includes('physical')) groups.commodity.items.push(s);
+        if (type.includes('equity') || type.includes('stock') || type.includes('common')) groups.equity.items.push(s);
+        else if (type.includes('commodity') || s.icon === 'GOLD' || s.icon === 'OIL') groups.commodity.items.push(s);
         else if (type.includes('forex')) groups.forex.items.push(s);
         else groups.other.items.push(s);
-      }
+      } else groups.other.items.push(s);
     });
 
     return Object.entries(groups).filter(([_, g]) => g.items.length > 0);
@@ -150,8 +150,8 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
                         <Badge className={cn(
                           "border-none font-black text-[7px] px-2.5 py-1 rounded-lg flex items-center gap-1",
                           sym.priceSource === 'binance' ? "bg-orange-50 text-orange-600" :
-                          sym.priceSource === 'alphavantage' ? "bg-emerald-50 text-emerald-600" :
-                          sym.priceSource === 'twelvedata' ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-400"
+                          sym.priceSource === 'finnhub' ? "bg-blue-50 text-blue-600" :
+                          "bg-gray-100 text-gray-400"
                         )}>
                            <Cpu size={10} /> {sym.priceSource?.toUpperCase()}
                         </Badge>

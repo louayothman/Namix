@@ -38,7 +38,7 @@ export default function AdminSettingsPage() {
   // --- Real-time Data Refs ---
   const connectivityRef = useMemoFirebase(() => doc(db, "system_settings", "connectivity"), [db]);
   const { data: remoteConnectivity } = useDoc(connectivityRef);
-  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", twelveDataApiKey: "", alphaVantageApiKey: "" });
+  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", finnhubApiKey: "" });
 
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: remoteLanding } = useDoc(landingRef);
@@ -180,42 +180,21 @@ export default function AdminSettingsPage() {
 
                 <div className="h-px bg-gray-100" />
 
-                {/* Twelve Data Integration */}
+                {/* Finnhub Integration */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 px-2">
                     <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
                        <BarChart3 className="h-5 w-5 text-blue-600" />
                     </div>
-                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Twelve Data (المؤشرات العالمية)</h3>
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Finnhub (الأسهم والسلع والفوركس)</h3>
                   </div>
                   <div className="space-y-3">
-                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Twelve Data API Key</Label>
+                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Finnhub API Key</Label>
                     <Input 
-                      value={connectivityData.twelveDataApiKey || ""} 
-                      onChange={e => setConnectivityData({...connectivityData, twelveDataApiKey: e.target.value})}
+                      value={connectivityData.finnhubApiKey || ""} 
+                      onChange={e => setConnectivityData({...connectivityData, finnhubApiKey: e.target.value})}
                       className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
-                      placeholder="أدخل مفتاح Twelve Data..."
-                    />
-                  </div>
-                </div>
-
-                <div className="h-px bg-gray-100" />
-
-                {/* Alpha Vantage Integration */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                       <TrendingUp className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Alpha Vantage (الأسهم والسلع)</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Alpha Vantage API Key</Label>
-                    <Input 
-                      value={connectivityData.alphaVantageApiKey || ""} 
-                      onChange={e => setConnectivityData({...connectivityData, alphaVantageApiKey: e.target.value})}
-                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
-                      placeholder="أدخل مفتاح Alpha Vantage..."
+                      placeholder="أدخل مفتاح Finnhub..."
                     />
                   </div>
                 </div>
@@ -225,7 +204,7 @@ export default function AdminSettingsPage() {
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                    </div>
                    <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار لأي نوع من الأصول. يفضل توزيع الأصول بين المزودين لتقليل حد الطلبات (Rate Limits).
+                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار لأي نوع من الأصول. استخدام Finnhub يوفر حدود طلبات أوسع للاسهم العالمية والذهب.
                    </p>
                 </div>
 
@@ -233,7 +212,7 @@ export default function AdminSettingsPage() {
                   {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
                     <div className="flex items-center gap-3">
                       <span>تثبيت بروتوكولات المزامنة الشاملة</span>
-                      <Sparkles className="h-5 w-5 text-[#f9a885]" />
+                      <Sparkles className="h-5 w-5 text-[#f9a885] rotate-12" />
                     </div>
                   )}
                 </Button>
