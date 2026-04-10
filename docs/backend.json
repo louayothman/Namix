@@ -32,15 +32,14 @@
       },
       "required": ["id", "email", "role"]
     },
-    "TelegramSettings": {
-      "title": "TelegramSettings",
+    "MarketConnectivity": {
+      "title": "MarketConnectivity",
       "type": "object",
-      "description": "Configuration for the Namix Telegram Bot integration.",
+      "description": "Configuration for external financial data providers.",
       "properties": {
-        "botToken": { "type": "string" },
-        "botUsername": { "type": "string", "description": "The bot's username without @" },
-        "webhookUrl": { "type": "string" },
-        "isActive": { "type": "boolean" },
+        "binanceApiKey": { "type": "string" },
+        "binanceApiSecret": { "type": "string" },
+        "twelveDataApiKey": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
@@ -58,10 +57,10 @@
         }
       },
       {
-        "path": "/system_settings/telegram",
+        "path": "/system_settings/connectivity",
         "definition": {
-          "entityName": "TelegramSettings",
-          "description": "Telegram Bot API configuration."
+          "entityName": "MarketConnectivity",
+          "description": "Global API connectivity settings for Binance and Twelve Data."
         }
       }
     ]

@@ -28,7 +28,9 @@ import {
   History,
   TrendingUp,
   TrendingDown,
-  Activity
+  Activity,
+  BarChart3,
+  Globe
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
@@ -48,13 +50,14 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const [loading, setLoading] = useState(false);
   const [binanceLoading, setBinanceLoading] = useState(false);
   const [binanceSymbols, setBinanceSymbols] = useState<any[]>([]);
-  const [source, setSource] = useState<'internal' | 'binance'>(initialData?.priceSource || 'internal');
+  const [source, setSource] = useState<'internal' | 'binance' | 'twelvedata'>(initialData?.priceSource || 'internal');
   
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     code: initialData?.code || "",
     priceSource: initialData?.priceSource || "internal",
     binanceSymbol: initialData?.binanceSymbol || "",
+    externalTicker: initialData?.externalTicker || "", // For Twelve Data
     minPrice: initialData?.minPrice || 100,
     maxPrice: initialData?.maxPrice || 1000,
     volatility: initialData?.volatility || 5,
@@ -77,8 +80,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       const res = await getBinanceExchangeSymbols();
       if (res.success && res.symbols) {
         setBinanceSymbols(res.symbols);
-      } else {
-        toast({ variant: "destructive", title: "فشل جلب الرموز", description: "تأكد من اتصال الإنترنت وحاول مجدداً." });
       }
     } catch (e) {
       console.error(e);
@@ -106,7 +107,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
 
   const handleAction = async () => {
     if (!formData.name || !formData.code) {
-      toast({ variant: "destructive", title: "بيانات ناقصة", description: "يرجى تعبئة الاسم والكود." });
+      toast({ variant: "destructive", title: "بيانات ناقصة" });
       return;
     }
 
@@ -115,7 +116,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       const payload = {
         ...formData,
         priceSource: source,
-        currentPrice: source === 'binance' ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
+        currentPrice: (source === 'binance' || source === 'twelvedata') ? (initialData?.currentPrice || 0) : (Number(formData.minPrice) + Number(formData.maxPrice)) / 2,
         isActive: initialData?.isActive ?? true,
         updatedAt: new Date().toISOString()
       };
@@ -123,8 +124,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       let symbolId = initialData?.id;
 
       if (mode === 'add') {
-        const docRef = await addDoc(collection(db, "trading_symbols"), { ...payload, createdAt: new Date().toISOString() });
-        symbolId = docRef.id;
+        await addDoc(collection(db, "trading_symbols"), { ...payload, createdAt: new Date().toISOString() });
         toast({ title: "تم إطلاق الرمز بنجاح" });
       } else {
         await updateDoc(doc(db, "trading_symbols", symbolId), payload);
@@ -133,7 +133,6 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
 
       setOpen(false);
     } catch (e) {
-      console.error(e);
       toast({ variant: "destructive", title: "خطأ في القاعدة" });
     } finally {
       setLoading(false);
@@ -144,7 +143,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     <>
       {mode === 'add' ? (
         <Button onClick={() => setOpen(true)} className="rounded-full h-14 md:h-16 px-10 bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-2xl active:scale-95 group transition-all">
-          <Plus className="ml-2 h-5 w-5 text-[#f9a885] group-hover:rotate-90 transition-transform" /> إدراج رمز سوق جديد
+          <Plus className="ml-2 h-5 w-5 text-[#f9a885] group-hover:rotate-90 transition-transform" /> إدراج أصل مالي جديد
         </Button>
       ) : (
         <Button onClick={() => setOpen(true)} variant="ghost" size="sm" className="h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-[10px]">
@@ -161,10 +160,8 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                    <Zap className="h-8 w-8 text-[#f9a885]" />
                 </div>
                 <div className="space-y-0.5">
-                   <DialogTitle className="text-2xl font-black">
-                     {mode === 'add' ? 'هندسة رمز تداول' : 'تحديث الأصل'}
-                     <span className="text-[10px] font-bold text-blue-200/40 uppercase mr-3">Asset Forge</span>
-                   </DialogTitle>
+                   <DialogTitle className="text-2xl font-black">هندسة الأصول العالمية</DialogTitle>
+                   <p className="text-[9px] font-bold text-blue-200/40 uppercase tracking-widest mt-1">Multi-Market Asset Forge</p>
                 </div>
              </div>
           </div>
@@ -177,42 +174,44 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                       <Cpu className="h-4 w-4 text-orange-500" /> بروتوكول تزويد السعر
                    </h4>
                    <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-gray-100">
-                      <button onClick={() => setSource('internal')} className={cn("px-6 h-9 rounded-xl font-black text-[10px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white" : "text-gray-400")}>داخلي</button>
-                      <button onClick={() => setSource('binance')} className={cn("px-6 h-9 rounded-xl font-black text-[10px] transition-all", source === 'binance' ? "bg-orange-50 text-white" : "text-gray-400")}>بينانس</button>
+                      <button onClick={() => setSource('internal')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white" : "text-gray-400")}>داخلي</button>
+                      <button onClick={() => setSource('binance')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600" : "text-gray-400")}>بينانس</button>
+                      <button onClick={() => setSource('twelvedata')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600" : "text-gray-400")}>12Data</button>
                    </div>
                 </div>
 
                 {source === 'binance' && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                     <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">قائمة رموز بينانس الحية</Label>
-                     <div className="relative">
-                        <Select value={formData.binanceSymbol} onValueChange={handleSelectBinanceSymbol}>
-                           <SelectTrigger className="h-14 rounded-2xl bg-white border-none font-black text-orange-600 px-10 shadow-sm outline-none">
-                              <SelectValue placeholder={binanceLoading ? "جاري الجرد من السيرفر..." : "ابحث عن رمز..."} />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper" sideOffset={5}>
-                              <ScrollArea className="h-[280px]">
-                                {binanceSymbols.length === 0 && !binanceLoading ? (
-                                  <div className="p-10 text-center space-y-4">
-                                     <AlertCircle className="h-8 w-8 text-gray-200 mx-auto" />
-                                     <p className="text-[10px] font-bold text-gray-400">فشل جلب القائمة. يرجى المحاولة لاحقاً.</p>
-                                     <Button size="sm" variant="outline" onClick={fetchBinanceData} className="h-8 text-[9px] font-black">إعادة المحاولة</Button>
-                                  </div>
-                                ) : (
-                                  binanceSymbols.map(s => (
-                                    <SelectItem key={s.symbol} value={s.symbol} className="font-bold py-3 text-right cursor-pointer">
-                                       <div className="flex items-center justify-between w-full min-w-[280px]">
-                                          <span className="text-[9px] text-gray-400">{s.baseAsset} Pair</span>
-                                          <span className="font-black text-[#002d4d]" dir="ltr">{s.symbol}</span>
-                                       </div>
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </ScrollArea>
-                           </SelectContent>
-                        </Select>
-                        {binanceLoading ? <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-200 animate-spin" /> : <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-100" />}
+                     <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">قائمة رموز بينانس</Label>
+                     <Select value={formData.binanceSymbol} onValueChange={handleSelectBinanceSymbol}>
+                        <SelectTrigger className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm">
+                           <SelectValue placeholder="اختر رمز الكريبتو..." />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper">
+                           <ScrollArea className="h-[250px]">
+                              {binanceSymbols.map(s => (
+                                <SelectItem key={s.symbol} value={s.symbol} className="font-bold text-right">{s.symbol}</SelectItem>
+                              ))}
+                           </ScrollArea>
+                        </SelectContent>
+                     </Select>
+                  </div>
+                )}
+
+                {source === 'twelvedata' && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
+                     <div className="flex items-center gap-2 pr-2 text-blue-600">
+                        <Globe size={14} />
+                        <Label className="text-[9px] font-black uppercase">الرمز العالمي (Twelve Data Ticker)</Label>
                      </div>
+                     <Input 
+                       value={formData.externalTicker} 
+                       onChange={e => setFormData({...formData, externalTicker: e.target.value.toUpperCase()})}
+                       className="h-12 rounded-xl bg-white border-none font-black text-blue-600 text-center shadow-sm"
+                       placeholder="مثال: XAU/USD أو AAPL"
+                       dir="ltr"
+                     />
+                     <p className="text-[8px] text-gray-400 font-bold pr-2">تأكد من مطابقة الرمز لمعايير Twelve Data (الذهب: XAU/USD، النفط: WTI/USD، آبل: AAPL).</p>
                   </div>
                 )}
              </div>
@@ -221,50 +220,37 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div className="space-y-2">
                       <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">اسم العرض</Label>
-                      <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 shadow-inner" placeholder="مثال: Bitcoin / USDT" />
+                      <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 shadow-inner" placeholder="مثال: Gold / USD" />
                    </div>
                    <div className="space-y-2">
-                      <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">كود الرمز</Label>
-                      <Input value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 text-left shadow-inner" dir="ltr" placeholder="BTC/USDT" />
+                      <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">كود الواجهة</Label>
+                      <Input value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className="h-12 rounded-xl bg-gray-50 border-none font-black px-6 text-left shadow-inner" dir="ltr" placeholder="XAUUSD" />
                    </div>
                 </div>
 
                 <div className="space-y-4">
-                   <Label className="text-[10px] font-black text-[#002d4d] pr-4 uppercase tracking-widest">أيقونة الأصل (ترسانة ناميكس الكاملة)</Label>
-                   <div className="p-4 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner">
-                      <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
-                         <SelectTrigger className="h-14 rounded-2xl bg-white border-none font-black px-6 shadow-sm outline-none">
-                           <SelectValue />
-                         </SelectTrigger>
-                         <SelectContent className="rounded-3xl border-none shadow-2xl z-[1200] min-w-[300px]" position="popper">
-                            <ScrollArea className="h-[400px] p-2">
-                              <div className="grid grid-cols-1 gap-1">
-                                {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
-                                  <SelectItem key={iconId} value={iconId} className="font-bold py-3 rounded-xl cursor-pointer hover:bg-gray-50">
-                                     <div className="flex items-center gap-4 justify-start w-full pr-2">
-                                       <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center shadow-inner shrink-0">
-                                         <CryptoIcon name={iconId} size={24} />
-                                       </div>
-                                       <div className="flex flex-col items-start leading-none">
-                                          <span className="text-[11px] font-black text-[#002d4d] uppercase tracking-tighter">{iconId}</span>
-                                          <span className="text-[7px] font-black text-gray-300 uppercase tracking-widest mt-1">Unique Asset Node</span>
-                                       </div>
-                                     </div>
-                                  </SelectItem>
-                                ))}
-                              </div>
-                            </ScrollArea>
-                         </SelectContent>
-                      </Select>
-                   </div>
+                   <Label className="text-[10px] font-black text-[#002d4d] pr-4 uppercase tracking-widest">أيقونة الأصل المعتمدة</Label>
+                   <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
+                      <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black px-6 shadow-inner outline-none">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-3xl border-none shadow-2xl z-[1200]">
+                         <ScrollArea className="h-[300px]">
+                            {Object.keys(CRYPTO_ICONS_MAP).map(iconId => (
+                              <SelectItem key={iconId} value={iconId} className="font-bold py-3">
+                                 <div className="flex items-center gap-4">
+                                   <CryptoIcon name={iconId} size={24} />
+                                   <span className="text-xs">{iconId}</span>
+                                 </div>
+                              </SelectItem>
+                            ))}
+                         </ScrollArea>
+                      </SelectContent>
+                   </Select>
                 </div>
 
                 {source === 'internal' && (
                   <div className="p-6 bg-blue-50/30 rounded-[32px] border border-blue-100/50 space-y-6 animate-in zoom-in-95">
-                     <div className="flex items-center gap-2 text-blue-600 mb-2">
-                        <History className="h-4 w-4" />
-                        <span className="text-[10px] font-black uppercase">بروتوكول هندسة الماضي</span>
-                     </div>
                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                            <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">أقل سعر ($)</Label>
@@ -275,32 +261,19 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                            <Input type="number" value={formData.maxPrice} onChange={e => setFormData({...formData, maxPrice: Number(e.target.value)})} className="h-11 rounded-xl bg-white border-none font-black text-center shadow-sm" />
                         </div>
                      </div>
-                     <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                           <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">التذبذب (1-10)</Label>
-                           <Input type="number" value={formData.volatility} onChange={e => setFormData({...formData, volatility: Number(e.target.value)})} className="h-11 rounded-xl bg-white border-none font-black text-center shadow-sm" />
-                        </div>
-                        <div className="space-y-3">
-                           <Label className="text-[9px] font-black text-blue-900 uppercase pr-4">الانحياز الاستراتيجي</Label>
-                           <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-blue-100 shadow-inner">
-                              {[
-                                { id: 'up', label: 'صاعد', icon: TrendingUp, color: 'text-emerald-600', active: 'bg-emerald-500 text-white' },
-                                { id: 'neutral', label: 'متذبذب', icon: Activity, color: 'text-gray-400', active: 'bg-gray-400 text-white' },
-                                { id: 'down', label: 'هابط', icon: TrendingDown, color: 'text-red-600', active: 'bg-red-500 text-white' }
-                              ].map(opt => (
-                                <button
-                                  key={opt.id}
-                                  onClick={() => setFormData({...formData, trendBias: opt.id})}
-                                  className={cn(
-                                    "flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition-all duration-300 gap-1",
-                                    formData.trendBias === opt.id ? opt.active : "text-gray-300 hover:bg-gray-50"
-                                  )}
-                                >
-                                   <opt.icon size={14} />
-                                   <span className="text-[8px] font-black">{opt.label}</span>
-                                </button>
-                              ))}
-                           </div>
+                     <div className="space-y-3">
+                        <Label className="text-[9px] font-black text-blue-900 uppercase pr-4 text-center block">الانحياز الاستراتيجي</Label>
+                        <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-blue-100 shadow-inner">
+                           {[
+                             { id: 'up', label: 'صاعد', icon: TrendingUp, color: 'text-emerald-600', active: 'bg-emerald-500 text-white' },
+                             { id: 'neutral', label: 'متذبذب', icon: Activity, color: 'text-gray-400', active: 'bg-gray-400 text-white' },
+                             { id: 'down', label: 'هابط', icon: TrendingDown, color: 'text-red-600', active: 'bg-red-500 text-white' }
+                           ].map(opt => (
+                             <button key={opt.id} onClick={() => setFormData({...formData, trendBias: opt.id})} className={cn("flex-1 flex flex-col items-center py-2 rounded-xl transition-all duration-300 gap-1", formData.trendBias === opt.id ? opt.active : "text-gray-300 hover:bg-gray-50")}>
+                                <opt.icon size={14} />
+                                <span className="text-[8px] font-black">{opt.label}</span>
+                             </button>
+                           ))}
                         </div>
                      </div>
                   </div>
@@ -312,7 +285,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
              <Button onClick={handleAction} disabled={loading} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-[0.98] group transition-all">
                 {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
                   <div className="flex items-center gap-4">
-                    <span>{mode === 'add' ? 'إطلاق الرمز في المحرك' : 'حفظ التحديثات المعتمدة'}</span>
+                    <span>{mode === 'add' ? 'تفعيل الأصل في المحرك' : 'حفظ التعديلات المعتمدة'}</span>
                     <ShieldCheck className="h-5 w-5 text-[#f9a885] group-hover:rotate-12 transition-transform" />
                   </div>
                 )}

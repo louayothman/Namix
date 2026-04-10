@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu } from "lucide-react";
+import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Cpu, Globe, Zap, BarChart3 } from "lucide-react";
 
 // Modular Components
 import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
@@ -28,7 +28,7 @@ import { ContentSection } from "@/components/admin/settings/ContentSection";
 import { LegalSection } from "@/components/admin/settings/LegalSection";
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'binance' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'deposit_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'connectivity' | 'landing_page';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -36,9 +36,9 @@ export default function AdminSettingsPage() {
   const db = useFirestore();
 
   // --- Real-time Data Refs ---
-  const binanceRef = useMemoFirebase(() => doc(db, "system_settings", "binance"), [db]);
-  const { data: remoteBinance } = useDoc(binanceRef);
-  const [binanceData, setBinanceData] = useState<any>({ apiKey: "", apiSecret: "" });
+  const connectivityRef = useMemoFirebase(() => doc(db, "system_settings", "connectivity"), [db]);
+  const { data: remoteConnectivity } = useDoc(connectivityRef);
+  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", twelveDataApiKey: "" });
 
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: remoteLanding } = useDoc(landingRef);
@@ -46,7 +46,7 @@ export default function AdminSettingsPage() {
 
   const onboardingRef = useMemoFirebase(() => doc(db, "system_settings", "onboarding"), [db]);
   const { data: remoteOnboarding } = useDoc(onboardingRef);
-  const [onboardingData, setOnboardingOnboardingData] = useState<any>({});
+  const [onboardingData, setOnboardingData] = useState<any>({});
 
   const insuranceRef = useMemoFirebase(() => doc(db, "system_settings", "insurance"), [db]);
   const { data: remoteInsurance } = useDoc(insuranceRef);
@@ -81,9 +81,9 @@ export default function AdminSettingsPage() {
   const [legalData, setLegalData] = useState<any>({});
 
   useEffect(() => {
-    if (remoteBinance) setBinanceData(remoteBinance);
+    if (remoteConnectivity) setConnectivityData(remoteConnectivity);
     if (remoteLanding) setLandingData(remoteLanding);
-    if (remoteOnboarding) setOnboardingOnboardingData(remoteOnboarding);
+    if (remoteOnboarding) setOnboardingData(remoteOnboarding);
     if (remoteInsurance) setInsuranceData(remoteInsurance);
     if (remoteRules) setRulesData(remoteRules);
     if (remoteVaultBonus) setVaultBonusData(remoteVaultBonus);
@@ -92,7 +92,7 @@ export default function AdminSettingsPage() {
     if (remoteMarketing) setMarketingData(remoteMarketing);
     if (remotePartnership) setPartnershipData(remotePartnership);
     if (remoteLegal) setLegalData(remoteLegal);
-  }, [remoteBinance, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, partnershipRef, remoteLegal]);
+  }, [remoteConnectivity, remoteLanding, remoteOnboarding, remoteInsurance, remoteRules, remoteTiers, remoteMarketing, remoteVoucher, remoteVaultBonus, remotePartnership, remoteLegal]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -128,37 +128,64 @@ export default function AdminSettingsPage() {
           />
         )}
 
-        {activeSection === 'binance' && (
+        {activeSection === 'connectivity' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
             <Card className="rounded-[48px] border-none shadow-xl overflow-hidden">
-              <CardHeader className="bg-blue-600 p-10 border-b border-white/10 text-white relative">
-                <div className="absolute top-0 right-0 p-8 opacity-10"><Cpu className="h-32 w-32" /></div>
+              <CardHeader className="bg-[#002d4d] p-10 border-b border-white/10 text-white relative">
+                <div className="absolute top-0 right-0 p-8 opacity-10"><Globe className="h-32 w-32" /></div>
                 <CardTitle className="text-2xl font-black flex items-center gap-4 relative z-10">
                   <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
-                    <Cpu className="h-8 w-8 text-[#f9a885]" />
+                    <Zap className="h-8 w-8 text-[#f9a885]" />
                   </div>
-                  إدارة بروتوكول Binance API
+                  مركز مزامنة الأسواق العالمية
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-10 space-y-10">
-                <div className="grid gap-8">
-                  <div className="space-y-3">
-                    <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">Binance API Key</Label>
-                    <Input 
-                      value={binanceData.apiKey || ""} 
-                      onChange={e => setBinanceData({...binanceData, apiKey: e.target.value})}
-                      className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
-                      placeholder="أدخل مفتاح الـ API..."
-                    />
+              <CardContent className="p-10 space-y-12">
+                
+                {/* Binance Integration */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <Cpu className="h-5 w-5 text-orange-500" />
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Binance (العملات الرقمية)</h3>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-3">
+                      <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Binance API Key</Label>
+                      <Input 
+                        value={connectivityData.binanceApiKey || ""} 
+                        onChange={e => setConnectivityData({...connectivityData, binanceApiKey: e.target.value})}
+                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner"
+                        placeholder="أدخل مفتاح بينانس..."
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Binance API Secret</Label>
+                      <Input 
+                        type="password"
+                        value={connectivityData.binanceApiSecret || ""} 
+                        onChange={e => setConnectivityData({...connectivityData, binanceApiSecret: e.target.value})}
+                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner"
+                        placeholder="••••••••••••••••"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Twelve Data Integration */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Twelve Data (الذهب، النفط، الأسهم)</h3>
                   </div>
                   <div className="space-y-3">
-                    <Label className="font-black text-[11px] text-gray-400 uppercase tracking-widest pr-4">Binance API Secret</Label>
+                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Twelve Data API Key</Label>
                     <Input 
-                      type="password"
-                      value={binanceData.apiSecret || ""} 
-                      onChange={e => setBinanceData({...binanceData, apiSecret: e.target.value})}
-                      className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
-                      placeholder="••••••••••••••••••••••••"
+                      value={connectivityData.twelveDataApiKey || ""} 
+                      onChange={e => setConnectivityData({...connectivityData, twelveDataApiKey: e.target.value})}
+                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
+                      placeholder="أدخل مفتاح Twelve Data للمؤشرات العالمية..."
                     />
                   </div>
                 </div>
@@ -168,15 +195,15 @@ export default function AdminSettingsPage() {
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                    </div>
                    <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-                     تستخدم هذه المفاتيح لتأمين الاتصال بمحفظة الإيداعات الخاصة بك للتحقق من وصول المبالغ لحظياً. تأكد من منح صلاحيات "Read Only" و "Deposit History" فقط لهذه المفاتيح في بينانس.
+                     تعدد قنوات الاتصال يسمح للمنصة بجلب أسعار أصول متنوعة لحظياً. تأكد من تفعيل صلاحيات "Read Only" لمفاتيح الـ API لضمان أقصى درجات الأمان والامتثال.
                    </p>
                 </div>
 
-                <Button onClick={() => handleSaveDoc(binanceRef, binanceData, "إعدادات بينانس")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl transition-all active:scale-95 group">
+                <Button onClick={() => handleSaveDoc(connectivityRef, connectivityData, "توصيلات الأسواق")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl transition-all active:scale-95 group">
                   {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
                     <div className="flex items-center gap-3">
-                      <span>تثبيت مفاتيح الوصول السيادية</span>
-                      <Cpu className="h-5 w-5 text-[#f9a885]" />
+                      <span>تثبيت بروتوكولات المزامنة العالمية</span>
+                      <Sparkles className="h-5 w-5 text-[#f9a885]" />
                     </div>
                   )}
                 </Button>
@@ -202,10 +229,9 @@ export default function AdminSettingsPage() {
                   <Input 
                     type="number" 
                     value={onboardingData.trialCreditAmount ?? ""} 
-                    onChange={e => setOnboardingOnboardingData({...onboardingData, trialCreditAmount: Number(e.target.value)})}
+                    onChange={e => setOnboardingData({...onboardingData, trialCreditAmount: Number(e.target.value)})}
                     className="h-16 rounded-[24px] bg-gray-50 border-none font-black text-center text-3xl text-blue-600 shadow-inner"
                   />
-                  <p className="text-[10px] font-bold text-gray-400 text-right pr-4">يُمنح هذا الرصيد لمرة واحدة فقط عند تسجيل الحساب لأول مرة.</p>
                 </div>
                 <Button onClick={() => handleSaveDoc(onboardingRef, onboardingData, "رصيد الترحيب")} disabled={saving} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black">
                   {saving ? <Loader2 className="animate-spin h-5 w-5" /> : "اعتماد إعدادات الترحيب"}
@@ -232,7 +258,7 @@ export default function AdminSettingsPage() {
                     <Label className="font-black text-base text-[#002d4d]">عرض العداد الحي للمستثمرين</Label>
                     <p className="text-[10px] font-bold text-gray-400">تفعيل هذه الميزة يزيد من موثوقية المنصة للمستخدمين الجدد.</p>
                   </div>
-                  <Switch checked={!!insuranceData.isFundVisible} onCheckedChange={val => setInsuranceData({...insuranceData, iIsFundVisible: val})} />
+                  <Switch checked={!!insuranceData.isFundVisible} onCheckedChange={val => setInsuranceData({...insuranceData, isFundVisible: val})} />
                 </div>
                 <div className="space-y-4">
                   <Label className="text-[11px] font-black text-gray-400 uppercase tracking-widest pr-4">حجم صندوق الحماية الفعلي ($)</Label>
@@ -331,9 +357,8 @@ export default function AdminSettingsPage() {
           />
         )}
 
-        {/* Branding Footer */}
         <div className="flex flex-col items-center gap-4 pt-10 opacity-30">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em] tracking-none">Namix Core System v4.8.2</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em] tracking-none">Namix System v5.0.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-200" />
