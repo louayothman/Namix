@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -67,38 +66,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  useEffect(() => {
-    if (status !== 'results' || !asset?.id) return;
-
-    const fetchAnalysis = async () => {
-      try {
-        const symbolParam = asset.binanceSymbol || asset.code.replace('/', '');
-        const res = await fetch(`/api/namix?symbol=${symbolParam}`);
-        const data = await res.json();
-        setResult(data);
-
-        if (data.dialogue) {
-          const newMessages: any[] = [];
-          data.dialogue.forEach((msg: any) => {
-            if (lastAgentsRef.current[msg.agent] !== msg.message) {
-              newMessages.push({ ...msg, id: Date.now() + Math.random() });
-              lastAgentsRef.current[msg.agent] = msg.message;
-            }
-          });
-
-          if (newMessages.length > 0) {
-            setChatHistory(prev => [...prev, ...newMessages].slice(-20));
-          }
-        }
-      } catch (e) {}
-    };
-
-    const interval = setInterval(fetchAnalysis, 3000);
-    fetchAnalysis();
-    return () => clearInterval(interval);
-  }, [status, asset]);
-
-  // محرك جلب المدد الزمنية مع نظام Fallback يضمن عدم فراغ الواجهة
+  // محرك جلب المدد الزمنية مع نظام Fallback
   const durations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations) && globalConfig.tradeDurations.length > 0) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -122,6 +90,39 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       setTradeDuration(durations[0].seconds);
     }
   }, [durations, tradeDuration]);
+
+  // محرك التحليل الحساس للمدة ونبض السوق
+  useEffect(() => {
+    if (status !== 'results' || !asset?.id || tradeDuration === 0) return;
+
+    const fetchAnalysis = async () => {
+      try {
+        const symbolParam = asset.binanceSymbol || asset.code.replace('/', '');
+        const res = await fetch(`/api/namix?symbol=${symbolParam}&duration=${tradeDuration}`);
+        const data = await res.json();
+        setResult(data);
+
+        if (data.dialogue) {
+          const newMessages: any[] = [];
+          data.dialogue.forEach((msg: any) => {
+            // إضافة الرسالة فقط إذا كانت القراءة الفنية للوكيل قد تغيرت فعلياً
+            if (lastAgentsRef.current[msg.agent] !== msg.message) {
+              newMessages.push({ ...msg, id: Date.now() + Math.random() });
+              lastAgentsRef.current[msg.agent] = msg.message;
+            }
+          });
+
+          if (newMessages.length > 0) {
+            setChatHistory(prev => [...prev, ...newMessages].slice(-20));
+          }
+        }
+      } catch (e) {}
+    };
+
+    const interval = setInterval(fetchAnalysis, 3000);
+    fetchAnalysis();
+    return () => clearInterval(interval);
+  }, [status, asset, tradeDuration]); // التحديث الفوري عند تغيير المدة الزمنية
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
@@ -176,7 +177,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
-            {/* بطاقة الأهداف مع المؤشرات المسطحة المدمجة */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110"><Target size={180} /></div>
 
@@ -231,7 +231,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* بطاقة المحادثة المنفصلة بأسلوب واتساب */}
             <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
                <AgentDialogueFeed messages={chatHistory} />
             </div>
