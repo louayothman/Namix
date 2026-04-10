@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -66,7 +67,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  // محرك جلب المدد الزمنية مع نظام Fallback
+  // محرك جلب المدد الزمنية مع نظام Fallback وتصحيح وحدات القياس الكبرى (أيام/أشهر)
   const durations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations) && globalConfig.tradeDurations.length > 0) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -74,6 +75,8 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         let suffix = 'ث';
         if (d.unit === 'minutes') { mult = 60; suffix = 'د'; }
         else if (d.unit === 'hours') { mult = 3600; suffix = 'س'; }
+        else if (d.unit === 'days') { mult = 86400; suffix = 'ي'; }
+        else if (d.unit === 'months') { mult = 2592000; suffix = 'ش'; }
         return { label: `${d.value}${suffix}`, seconds: d.value * mult };
       });
     }
