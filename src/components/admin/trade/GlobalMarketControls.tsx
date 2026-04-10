@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Timer, Briefcase, Zap, ShieldCheck, Loader2, Activity, Target, Plus, Trash2 } from "lucide-react";
+import { Globe, Timer, Briefcase, Zap, ShieldCheck, Loader2, Activity, Target, Plus, Trash2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GlobalMarketControlsProps {
@@ -21,12 +21,10 @@ const UNIT_OPTIONS = [
   { id: 'seconds', label: 'ثانية' },
   { id: 'minutes', label: 'دقيقة' },
   { id: 'hours', label: 'ساعة' },
-  { id: 'days', label: 'يوم' },
-  { id: 'months', label: 'شهر' }
+  { id: 'days', label: 'يوم' }
 ];
 
 export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalMarketControlsProps) {
-  
   const tradeDurations = data.tradeDurations || [];
 
   const addDurationOption = () => {
@@ -49,12 +47,12 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
     <div className="grid gap-8 lg:grid-cols-12 text-right" dir="rtl">
       <div className="lg:col-span-8 space-y-8">
         <Card className="rounded-[48px] border-none shadow-xl bg-white overflow-hidden group">
-          <CardHeader className="bg-blue-50/20 p-8 border-b border-gray-50">
-            <CardTitle className="text-xl font-black flex items-center gap-4 text-blue-700">
-              <div className="h-12 w-12 rounded-2xl bg-white shadow-inner flex items-center justify-center group-hover:rotate-12 transition-transform">
-                <Globe className="h-6 w-6" />
+          <CardHeader className="bg-[#002d4d] p-8 border-b border-white/5 text-white">
+            <CardTitle className="text-xl font-black flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner group-hover:rotate-12 transition-transform">
+                <Globe className="h-6 w-6 text-[#f9a885]" />
               </div>
-              الضبط العالمي الموحد <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mr-2">Market Core</span>
+              الضبط العالمي الموحد لغرفة التداول
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-10">
@@ -77,7 +75,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                     </Button>
                   </div>
 
-                  <div className="grid gap-3">
+                  <div className="grid gap-3 max-h-[240px] overflow-y-auto scrollbar-none pr-1">
                     {tradeDurations.map((opt: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner group/opt animate-in fade-in slide-in-from-top-1">
                          <Input 
@@ -122,7 +120,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                     <Input type="number" value={data.defaultProfitRate || 80} onChange={e => onChange({...data, defaultProfitRate: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-2xl text-emerald-600 shadow-inner" />
                     <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-200 text-lg">%</span>
                   </div>
-                  <p className="text-[9px] text-gray-400 font-bold pr-2 leading-relaxed">يتم تطبيق هذه النسبة على كافة عقود التداول المفتوحة فورياً.</p>
+                  <p className="text-[9px] text-gray-400 font-bold pr-2 leading-relaxed">يتم تطبيق هذه النسبة على كافة عقود التداول المفتوحة فورياً بكافة الأسواق.</p>
                </div>
             </div>
 
@@ -130,21 +128,26 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                <div className="space-y-3">
                   <div className="flex items-center gap-3 pr-2">
                      <Briefcase className="h-4 w-4 text-blue-600" />
-                     <Label className="font-black text-[#002d4d] text-sm">أدنى دخول ($)</Label>
+                     <Label className="font-black text-[#002d4d] text-sm">أدنى مبلغ دخول ($)</Label>
                   </div>
                   <Input type="number" value={data.minTradeAmount || 10} onChange={e => onChange({...data, minTradeAmount: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl shadow-inner" />
                </div>
                <div className="space-y-3">
                   <div className="flex items-center gap-3 pr-2">
                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                     <Label className="font-black text-[#002d4d] text-sm">أقصى دخول ($)</Label>
+                     <Label className="font-black text-[#002d4d] text-sm">أقصى مبلغ دخول ($)</Label>
                   </div>
                   <Input type="number" value={data.maxTradeAmount || 5000} onChange={e => onChange({...data, maxTradeAmount: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl shadow-inner" />
                </div>
             </div>
 
-            <Button onClick={onSave} disabled={saving} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-xl shadow-2xl transition-all active:scale-[0.98]">
-               {saving ? <Loader2 className="animate-spin h-6 w-6" /> : "تثبيت الضوابط المحدثة"}
+            <Button onClick={onSave} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl transition-all active:scale-[0.98] group">
+               {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
+                 <div className="flex items-center gap-3">
+                    <span>تثبيت الضوابط العالمية</span>
+                    <Sparkles className="h-5 w-5 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+                 </div>
+               )}
             </Button>
           </CardContent>
         </Card>
@@ -157,17 +160,16 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shadow-inner"><Target className="h-7 w-7 text-[#f9a885]" /></div>
                <div className="space-y-2">
                   <h4 className="text-xl font-black">حوكمة النبض</h4>
-                  <p className="text-[12px] font-bold text-blue-100/60 leading-[2.2]">تؤثر هذه الضوابط على كافة العمليات اللحظية؛ ضمان التوازن بين العائد المرتفع واستقرار السيولة هو أولوية هذا النظام.</p>
+                  <p className="text-[12px] font-bold text-blue-100/60 leading-[2.2]">تؤثر هذه الضوابط على كافة العمليات اللحظية؛ ضمان التوازن بين العائد المرتفع واستقرار السيولة هو أولوية هذا المفاعل.</p>
                </div>
             </div>
          </div>
 
          <div className="p-8 bg-gray-50 rounded-[48px] border border-gray-100 space-y-6 shadow-inner">
-            <h4 className="font-black text-[11px] text-[#002d4d] uppercase tracking-widest px-2">تنشيط المكونات</h4>
+            <h4 className="font-black text-[11px] text-[#002d4d] uppercase tracking-widest px-2">تنشيط المكونات الذكية</h4>
             <div className="space-y-3">
                {[
                  { label: 'الذكاء الاصطناعي (NAMIX AI)', id: 'aiEnabled', color: 'bg-blue-500' },
-                 { label: 'محرك التحليل الفني', id: 'chartsEnabled', color: 'bg-emerald-500' }
                ].map(opt => (
                  <div key={opt.id} className="flex items-center justify-between p-5 bg-white rounded-3xl border border-gray-100 shadow-sm">
                     <span className="text-[10px] font-black text-[#002d4d]">{opt.label}</span>
@@ -175,6 +177,7 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
                  </div>
                ))}
             </div>
+            <p className="text-[9px] text-gray-400 font-bold px-4 text-center">تعطيل الذكاء الاصطناعي سيخفي مؤشراته من واجهة المستخدم لجميع الأصول.</p>
          </div>
       </div>
     </div>

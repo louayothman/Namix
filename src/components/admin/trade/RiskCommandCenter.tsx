@@ -3,12 +3,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { ShieldAlert, Zap, Target, Loader2, Sparkles, Activity, ShieldCheck, HeartPulse, BrainCircuit } from "lucide-react";
+import { ShieldAlert, Loader2, Sparkles, Activity, ShieldCheck, HeartPulse, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RiskCommandCenterProps {
@@ -28,61 +25,49 @@ export function RiskCommandCenter({ data, onChange, onSave, saving }: RiskComman
               <div className="h-12 w-12 rounded-2xl bg-white shadow-inner flex items-center justify-center">
                 <ShieldAlert className="h-6 w-6" />
               </div>
-              بروتوكول حماية المستثمر وإدارة المخاطر <span className="text-[10px] font-bold text-red-300 uppercase tracking-widest mr-2">Risk Matrix</span>
+              بروتوكول حماية المستثمر وتأمين الصفقات
             </CardTitle>
           </CardHeader>
           <CardContent className="p-12 space-y-12">
             
-            <div className="grid gap-10 md:grid-cols-2">
-               <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
-                  <div className="flex items-center justify-between">
-                     <Label className="font-black text-[#002d4d] text-base uppercase">وقف الخسارة اليومي (Daily Stop)</Label>
-                     <Switch checked={!!data.dailyLossLimitEnabled} onCheckedChange={val => onChange({...data, dailyLossLimitEnabled: val})} className="data-[state=checked]:bg-red-500" />
+            <div className="p-10 bg-gray-50 rounded-[48px] border border-gray-100 shadow-inner space-y-10">
+               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="flex items-center gap-5">
+                     <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm text-[#002d4d]">
+                        <Fingerprint size={32} />
+                     </div>
+                     <div className="text-right">
+                        <h4 className="text-lg font-black text-[#002d4d]">تأمين التداول بـ PIN الخزنة</h4>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Sovereign Vault Verification</p>
+                     </div>
                   </div>
-                  <div className="relative">
-                    <Input type="number" value={data.maxDailyLossPercent || 15} onChange={e => onChange({...data, maxDailyLossPercent: Number(e.target.value)})} className="h-16 rounded-[28px] bg-white border-none font-black text-center text-3xl text-red-600 shadow-md" />
-                    <span className="absolute left-8 top-1/2 -translate-y-1/2 font-black text-gray-200 text-xl">%</span>
-                  </div>
-               </div>
-
-               <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
-                  <div className="flex items-center justify-between">
-                     <Label className="font-black text-[#002d4d] text-base uppercase">تجميد الخسارة المتتالية</Label>
-                     <Switch checked={!!data.consecutiveLossFreezeEnabled} onCheckedChange={val => onChange({...data, consecutiveLossFreezeEnabled: val})} className="data-[state=checked]:bg-red-500" />
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-[9px] font-black text-gray-400 uppercase pr-4">أقصى عدد صفقات خاسرة متتابعة</p>
-                    <Input type="number" value={data.maxConsecutiveLosses || 3} onChange={e => onChange({...data, maxConsecutiveLosses: Number(e.target.value)})} className="h-14 rounded-2xl bg-white border-none font-black text-center text-2xl shadow-md" />
-                  </div>
-               </div>
-            </div>
-
-            <div className="p-10 bg-blue-50/30 rounded-[48px] border border-blue-100/50 space-y-10">
-               <div className="flex items-center justify-between">
-                  <h4 className="font-black text-base text-blue-900 flex items-center gap-3">
-                    <BrainCircuit className="h-5 w-5" /> عتبة ثقة NAMIX AI
-                  </h4>
-                  <Badge className="bg-blue-600 text-white border-none font-black text-[9px] px-4 py-1.5 rounded-full shadow-lg">INTELLIGENCE OVERRIDE</Badge>
-               </div>
-               <div className="space-y-8 px-4">
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-400">
-                     <span>حساسية التنفيذ الآلي</span>
-                     <span className="text-blue-600 tabular-nums">%{data.aiConfidenceThreshold || 92} Confidence</span>
-                  </div>
-                  <Slider 
-                    value={[data.aiConfidenceThreshold || 92]} 
-                    min={70} 
-                    max={100} 
-                    step={1} 
-                    onValueChange={([val]) => onChange({...data, aiConfidenceThreshold: val})}
-                    className="[&>span]:bg-blue-600"
+                  <Switch 
+                    checked={!!data.requirePinToTrade} 
+                    onCheckedChange={val => onChange({...data, requirePinToTrade: val})} 
+                    className="data-[state=checked]:bg-[#002d4d] scale-125 shadow-lg" 
                   />
-                  <p className="text-[10px] font-bold text-blue-800/60 leading-relaxed text-center">كلما ارتفعت النسبة، زادت صرامة الذكاء الاصطناعي في تقديم إشارات الشراء/البيع لضمان أعلى معدلات النجاح.</p>
+               </div>
+
+               <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100 flex items-start gap-6">
+                  <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                     <ShieldCheck className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="space-y-1.5 pt-1">
+                     <p className="text-xs font-black text-[#002d4d]">بروتوكول التحقق الثنائي</p>
+                     <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed text-right">
+                        عند تفعيل هذا الخيار، سيُطلب من المستثمر إدخال رمز PIN الخزنة الخاص به قبل كل عملية تنفيذ صفقة، مما يمنع التداول غير المصرح به أو الناتج عن خطأ بشري.
+                     </p>
+                  </div>
                </div>
             </div>
 
-            <Button onClick={onSave} disabled={saving} className="w-full h-20 rounded-full bg-[#002d4d] text-white font-black text-xl shadow-2xl transition-all hover:bg-[#001d33]">
-               {saving ? <Loader2 className="animate-spin h-8 w-8" /> : "اعتماد ميثاق الحماية والذكاء"}
+            <Button onClick={onSave} disabled={saving} className="w-full h-20 rounded-full bg-[#002d4d] text-white font-black text-xl shadow-2xl transition-all active:scale-[0.98] group">
+               {saving ? <Loader2 className="animate-spin h-8 w-8" /> : (
+                 <div className="flex items-center gap-4">
+                   <span>حفظ وتفعيل ميثاق الحماية</span>
+                   <ShieldCheck className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+                 </div>
+               )}
             </Button>
           </CardContent>
         </Card>
@@ -94,28 +79,8 @@ export function RiskCommandCenter({ data, onChange, onSave, saving }: RiskComman
             <div className="relative z-10 space-y-6">
                <div className="h-16 w-16 rounded-[24px] bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-xl shadow-inner"><ShieldAlert className="h-8 w-8 text-[#f9a885]" /></div>
                <div className="space-y-2">
-                  <h4 className="text-2xl font-black">حوكمة المخاطر</h4>
-                  <p className="text-[13px] font-bold text-red-50 leading-[2.2]">تعمل هذه الضوابط كصمامات أمان ذكية؛ عند تفعيل "وقف الخسارة"، سيقوم النظام بتعطيل أزرار التداول للمستثمر فور وصول خسائره للحد المحدد لضمان استقرار مركزه المالي.</p>
-               </div>
-            </div>
-         </div>
-
-         <div className="p-10 bg-white border border-gray-100 rounded-[48px] shadow-sm space-y-8">
-            <div className="flex items-center gap-3 px-2">
-               <Target className="h-5 w-5 text-emerald-500" />
-               <h4 className="font-black text-sm text-[#002d4d]">أتمتة التشغيل المعتمد</h4>
-            </div>
-            <div className="space-y-6">
-               <div className="flex items-center justify-between p-5 bg-gray-50 rounded-3xl">
-                  <span className="text-[10px] font-black text-gray-400 uppercase">تأمين بـ PIN</span>
-                  <Switch checked={!!data.requirePinToTrade} onCheckedChange={val => onChange({...data, requirePinToTrade: val})} className="data-[state=checked]:bg-[#002d4d] scale-75" />
-               </div>
-               <div className="p-6 bg-emerald-50 rounded-[32px] border border-emerald-100 space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    <span className="text-[10px] font-black text-emerald-800">حماية السيولة</span>
-                  </div>
-                  <p className="text-[10px] text-emerald-600/60 font-bold leading-relaxed">كافة عمليات التداول تخضع لبروتوكول حماية الأصول لضمان استدامة رأس مال المستثمر.</p>
+                  <h4 className="text-2xl font-black">الأمان السيادي</h4>
+                  <p className="text-[13px] font-bold text-red-50 leading-[2.2]">تعمل هذه الضوابط كخط دفاع أول لحماية أصول المستثمرين؛ الالتزام بالتحقق الثنائي هو المعيار الذهبي في منصة ناميكس.</p>
                </div>
             </div>
          </div>
