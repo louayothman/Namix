@@ -14,7 +14,8 @@ import {
   Globe,
   Coins,
   Layers,
-  TrendingDown
+  TrendingDown,
+  Edit3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
@@ -23,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
-import { AssetForge } from "./AssetForge";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import {
   AlertDialog,
@@ -37,16 +37,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useMarketStore } from "@/store/use-market-store";
+import Link from "next/link";
 
 interface MarketInventoryProps {
   symbols: any[];
   isLoading: boolean;
 }
 
-/**
- * @fileOverview جرد الأسواق المبوب v104.0 - Corrected Icons
- * تم إصلاح خطأ Layers المفقود وتطهير الواجهة من تكرار الأيقونات.
- */
 export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
   const db = useFirestore();
   const prices = useMarketStore(state => state.prices);
@@ -98,7 +95,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
     return (
       <div className="py-40 text-center flex flex-col items-center gap-4">
          <Loader2 className="h-12 w-12 animate-spin text-gray-200" />
-         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Inventory Nodes Syncing...</p>
+         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري جرد الأسواق...</p>
       </div>
     );
   }
@@ -144,27 +141,6 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
                      <Switch checked={!!sym.isActive} onCheckedChange={() => handleToggleStatus(sym.id, sym.isActive)} className="data-[state=checked]:bg-emerald-500" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 relative z-10">
-                     <div className="p-5 bg-gray-50 rounded-[32px] space-y-1.5 shadow-inner border border-gray-100">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">مصدر السعر</p>
-                        <Badge className={cn(
-                          "border-none font-black text-[7px] px-2.5 py-1 rounded-lg flex items-center gap-1",
-                          sym.priceSource === 'binance' ? "bg-orange-50 text-orange-600" :
-                          sym.priceSource === 'finnhub' ? "bg-blue-50 text-blue-600" :
-                          "bg-gray-100 text-gray-400"
-                        )}>
-                           <Cpu size={10} /> {sym.priceSource?.toUpperCase()}
-                        </Badge>
-                     </div>
-                     <div className="p-5 bg-gray-50 rounded-[32px] space-y-1.5 shadow-inner border border-gray-100">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">تغير 24س</p>
-                        <div className={cn("flex items-center gap-1 font-black text-[10px]", isUp ? "text-emerald-600" : "text-red-500")}>
-                           {isUp ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
-                           <span className="tabular-nums">%{Math.abs(change).toFixed(2)}</span>
-                        </div>
-                     </div>
-                  </div>
-
                   <div className="p-6 bg-white border border-gray-100 rounded-[32px] flex items-center justify-between relative z-10 shadow-sm">
                      <div className="text-right">
                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">السعر اللحظي</p>
@@ -181,9 +157,13 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
                   </div>
 
                   <div className="flex items-center gap-3 relative z-10 pt-4 border-t border-gray-50">
-                     <AssetForge initialData={sym} mode="edit" />
-                     <Button onClick={() => setDeleteConfirmId(sym.id)} variant="ghost" className="flex-1 h-10 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 font-black text-[10px]">
-                        <Trash2 className="ml-2 h-4 w-4" /> حذف الرمز
+                     <Link href={`/admin/trade/markets/${sym.id}`} className="flex-1">
+                        <Button variant="ghost" className="w-full h-11 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 font-black text-[10px]">
+                           <Edit3 className="ml-2 h-4 w-4" /> تعديل وتخصيص
+                        </Button>
+                     </Link>
+                     <Button onClick={() => setDeleteConfirmId(sym.id)} variant="ghost" size="icon" className="h-11 w-11 rounded-xl bg-red-50 text-red-400 hover:bg-red-100">
+                        <Trash2 className="h-4 w-4" />
                      </Button>
                   </div>
                 </div>
@@ -193,27 +173,14 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
         </section>
       ))}
       
-      {symbols.length === 0 && (
-        <div className="col-span-full py-40 text-center opacity-20 flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-[64px]">
-           <Activity className="h-20 w-20 text-[#002d4d]" />
-           <p className="text-xs font-black uppercase tracking-[0.5em]">لا توجد أصول مدرجة في الجرد حالياً</p>
-        </div>
-      )}
-
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent className="rounded-[48px] border-none shadow-2xl p-10 max-w-[420px] font-body text-right" dir="rtl">
           <AlertDialogHeader className="items-center gap-6">
             <div className="h-20 w-20 rounded-[32px] bg-red-50 text-red-500 flex items-center justify-center animate-bounce shadow-inner">
               <AlertTriangle className="h-10 w-10" />
             </div>
-            <div className="space-y-2 text-center">
-              <AlertDialogTitle className="text-2xl font-black text-[#002d4d]">تحذير حذف سيادي</AlertDialogTitle>
-              <div className="flex items-center justify-center gap-2 text-red-400 font-black text-[9px] uppercase tracking-[0.3em]">
-                <ShieldAlert className="h-3 w-3" />
-                Asset Termination Protocol
-              </div>
-            </div>
-            <AlertDialogDescription className="text-[13px] font-bold text-gray-500 leading-[2.2] px-2 text-center">
+            <AlertDialogTitle className="text-2xl font-black text-[#002d4d]">حذف أصل مالي</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px] font-bold text-gray-500 leading-[2.2] text-center">
               أنت على وشك حذف هذا الأصل المالي نهائياً من محرك التداول. هل أنت متأكد؟
             </AlertDialogDescription>
           </AlertDialogHeader>

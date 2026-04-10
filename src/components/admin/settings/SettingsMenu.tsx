@@ -18,7 +18,6 @@ interface MenuItem {
 export function SettingsMenu({ onSelect }: { onSelect: (id: string) => void }) {
   const menuItems: MenuItem[] = [
     { id: 'landing_page', title: "صفحة الهبوط", desc: "تعديل النصوص الترحيبية وروابط التواصل", icon: Layout, color: "text-blue-600", bg: "bg-blue-50" },
-    { id: 'connectivity', title: "توصيلات الأسواق", desc: "ربط Binance و Twelve Data للأتمتة", icon: Zap, color: "text-orange-500", bg: "bg-orange-50" },
     { id: 'onboarding', title: "رصيد الترحيب", desc: "إدارة الحوافز النقدية للمستثمرين الجدد", icon: UserPlus, color: "text-blue-600", bg: "bg-blue-50" },
     { id: 'insurance', title: "صندوق التأمين", desc: "حوكمة وحماية رؤوس أموال المنصة", icon: ShieldCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
     { id: 'withdraw_logic', title: "قوانين السحب", desc: "إدارة قيود وفترات انتظار سحب الأموال", icon: Clock, color: "text-orange-500", bg: "bg-orange-50" },

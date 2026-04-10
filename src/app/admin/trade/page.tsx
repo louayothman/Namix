@@ -1,168 +1,126 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import { Shell } from "@/components/layout/Shell";
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, setDoc, collection, query, orderBy } from "firebase/firestore";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
+  BrainCircuit, 
   Globe, 
-  ShieldAlert,
-  LayoutGrid,
+  Zap, 
+  Cpu, 
+  ChevronLeft, 
+  Sparkles, 
   Activity,
-  Zap,
-  ShieldCheck,
-  Target,
-  Sparkles,
-  HeartPulse,
-  BrainCircuit,
-  BarChart3
+  ArrowRight
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useMarketSync } from "@/hooks/use-market-sync";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-// Modular Reactors
-import { GlobalMarketControls } from "@/components/admin/trade/GlobalMarketControls";
-import { AssetForge } from "@/components/admin/trade/AssetForge";
-import { RiskCommandCenter } from "@/components/admin/trade/RiskCommandCenter";
-import { MarketInventory } from "@/components/admin/trade/MarketInventory";
-import { AIIntelligenceControls } from "@/components/admin/trade/AIIntelligenceControls";
+/**
+ * @fileOverview NAMIX TRADING COMMAND HUB v12.0
+ * قُمرة القيادة الرئيسية التي تفتح بوابات التحكم في المفاعلات المستقلة.
+ */
 
-export default function NamixTradingAdminPage() {
-  const [saving, setSaving] = useState(false);
-  const db = useFirestore();
+const NAV_CARDS = [
+  { 
+    id: 'ai', 
+    title: "ضبط NAMIX AI", 
+    desc: "معايرة المحركات العصبية وعتبات الثقة الاستخباراتية للمتداولين.", 
+    icon: BrainCircuit, 
+    color: "text-blue-600", 
+    bg: "bg-blue-50", 
+    href: "/admin/trade/ai" 
+  },
+  { 
+    id: 'markets', 
+    title: "ضبط الأسواق العالمية", 
+    desc: "إدارة قائمة الأصول، المزامنة، والمدد الزمنية المخصصة لكل سوق.", 
+    icon: Globe, 
+    color: "text-[#f9a885]", 
+    bg: "bg-orange-50", 
+    href: "/admin/trade/markets" 
+  },
+  { 
+    id: 'api', 
+    title: "ضبط بروتوكولات API", 
+    desc: "إدارة مفاتيح الربط الدولية وتسمية المصادر المعتمدة للمزامنة.", 
+    icon: Cpu, 
+    color: "text-purple-600", 
+    bg: "bg-purple-50", 
+    href: "/admin/trade/api" 
+  },
+  { 
+    id: 'config', 
+    title: "ضبط تداول ناميكس", 
+    desc: "التحكم في حالة البوابة، حدود مبالغ الدخول، والسياسات العالمية.", 
+    icon: Zap, 
+    color: "text-emerald-600", 
+    bg: "bg-emerald-50", 
+    href: "/admin/trade/config" 
+  },
+];
 
-  const globalRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
-  const { data: remoteGlobal } = useDoc(globalRef);
-  const [globalData, setGlobalData] = useState<any>({});
-
-  const riskRef = useMemoFirebase(() => doc(db, "system_settings", "trading_risk"), [db]);
-  const { data: remoteRisk } = useDoc(riskRef);
-  const [riskData, setRiskData] = useState<any>({});
-
-  const aiRef = useMemoFirebase(() => doc(db, "system_settings", "trading_ai"), [db]);
-  const { data: remoteAI } = useDoc(aiRef);
-  const [aiData, setAIData] = useState<any>({});
-
-  const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), orderBy("createdAt", "desc")), [db]);
-  const { data: symbols, isLoading: loadingSymbols } = useCollection(symbolsQuery);
-
-  // تفعيل محرك المزامنة العالمي لجلب الأسعار لحظياً في لوحة الإدارة
-  useMarketSync(symbols || []);
-
-  useEffect(() => {
-    if (remoteGlobal) setGlobalData(remoteGlobal);
-    if (remoteRisk) setRiskData(remoteRisk);
-    if (remoteAI) setAIData(remoteAI);
-  }, [remoteGlobal, remoteRisk, remoteAI]);
-
-  const handleSaveDoc = async (ref: any, data: any) => {
-    setSaving(true);
-    try {
-      await setDoc(ref, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
-    }
-  };
-
+export default function NamixTradingAdminHub() {
   return (
     <Shell isAdmin>
       <div className="max-w-6xl mx-auto space-y-12 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
         
-        {/* Golden Ratio Header - Bilingual Sync */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-gray-100 pb-10">
+        {/* Hub Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-gray-100 pb-10">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-[0.4em] justify-start">
               <div className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" />
-              Sovereign Trading Infrastructure <span className="opacity-30 mx-2">•</span> البنية التحتية للتداول
+              Sovereign Trading Command <span className="opacity-30 mx-2">•</span> قمرة قيادة التداول
             </div>
-            <h1 className="text-3xl font-black text-[#002d4d] tracking-tight">
-              ناميكس للتداول
-              <span className="text-[10px] font-bold text-gray-300 uppercase mr-3">Trading Hub Console</span>
-            </h1>
+            <h1 className="text-3xl font-black text-[#002d4d] tracking-tight">مركز عمليات ناميكس</h1>
             <p className="text-muted-foreground font-bold text-[10px] flex items-center gap-2">
-               <Sparkles className="h-3.5 w-3.5 text-[#f9a885]" /> قمرة التحكم السيادية لإدارة نبض الأسواق والمخاطر لحظياً.
+               <Sparkles className="h-3.5 w-3.5 text-[#f9a885]" /> اختر المفاعل المراد التحكم فيه لضبط بنية التداول اللحظي.
             </p>
           </div>
-          <AssetForge />
         </div>
 
-        {/* Fluid Command Chain */}
-        <div className="space-y-24">
-          
-          {/* Reactor 01: Global Core */}
-          <section className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="flex items-center justify-between px-4">
-                <div className="flex items-center gap-4">
-                   <div className="h-12 w-12 rounded-[22px] bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner"><Globe className="h-6 w-6" /></div>
-                   <h2 className="text-2xl font-black text-[#002d4d]">الضبط العالمي <span className="text-[10px] font-bold text-gray-300 uppercase mr-2">Global Protocol</span></h2>
+        {/* Dynamic Navigation Grid */}
+        <div className="grid gap-6 md:grid-cols-2 animate-in fade-in zoom-in-95 duration-700">
+          {NAV_CARDS.map((card, i) => (
+            <Link key={card.id} href={card.href} className="block group outline-none">
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="p-8 bg-white rounded-[56px] border border-gray-50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col gap-8 relative overflow-hidden"
+              >
+                {/* Background Ghost Icon */}
+                <div className={cn(
+                  "absolute -top-10 -left-10 p-10 opacity-[0.02] group-hover:rotate-12 transition-transform duration-1000",
+                  card.color
+                )}>
+                   <card.icon className="h-40 w-40" />
                 </div>
-                <div className="h-1 w-20 bg-gradient-to-l from-blue-100 to-transparent rounded-full" />
-             </div>
-             <GlobalMarketControls 
-               data={globalData} 
-               onChange={setGlobalData} 
-               onSave={() => handleSaveDoc(globalRef, globalData)}
-               saving={saving}
-             />
-          </section>
 
-          {/* Reactor 02: AI Intelligence Calibration */}
-          <section className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-             <div className="flex items-center justify-between px-4">
-                <div className="flex items-center gap-4">
-                   <div className="h-12 w-12 rounded-[22px] bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner"><BrainCircuit className="h-6 w-6" /></div>
-                   <h2 className="text-2xl font-black text-[#002d4d]">معايرة الذكاء <span className="text-[10px] font-bold text-gray-300 uppercase mr-2">AI Neural Tuning</span></h2>
+                <div className="flex items-center justify-between relative z-10">
+                   <div className={cn(
+                     "h-16 w-16 rounded-[24px] flex items-center justify-center shadow-inner transition-transform group-hover:scale-110",
+                     card.bg, card.color
+                   )}>
+                      <card.icon className="h-8 w-8" />
+                   </div>
+                   <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shadow-sm">
+                      <ArrowRight className="h-5 w-5 rotate-180" />
+                   </div>
                 </div>
-                <div className="h-1 w-20 bg-gradient-to-l from-blue-100 to-transparent rounded-full" />
-             </div>
-             <AIIntelligenceControls 
-               data={aiData} 
-               onChange={setAIData} 
-               onSave={() => handleSaveDoc(aiRef, aiData)}
-               saving={saving}
-             />
-          </section>
 
-          {/* Reactor 03: Risk Matrix */}
-          <section className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-             <div className="flex items-center justify-between px-4">
-                <div className="flex items-center gap-4">
-                   <div className="h-12 w-12 rounded-[22px] bg-red-50 text-red-600 flex items-center justify-center shadow-inner"><ShieldAlert className="h-6 w-6" /></div>
-                   <h2 className="text-2xl font-black text-[#002d4d]">مركز المخاطر <span className="text-[10px] font-bold text-red-300 uppercase mr-2">Security Shield</span></h2>
+                <div className="space-y-2 relative z-10">
+                   <h3 className="text-2xl font-black text-[#002d4d]">{card.title}</h3>
+                   <p className="text-[13px] text-gray-400 font-bold leading-relaxed">{card.desc}</p>
                 </div>
-                <div className="h-1 w-20 bg-gradient-to-l from-red-100 to-transparent rounded-full" />
-             </div>
-             <RiskCommandCenter 
-               data={riskData} 
-               onChange={setRiskData} 
-               onSave={() => handleSaveDoc(riskRef, riskData)}
-               saving={saving}
-             />
-          </section>
-
-          {/* Reactor 04: Market Inventory */}
-          <section className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-             <div className="flex items-center justify-between px-4">
-                <div className="flex items-center gap-4">
-                   <div className="h-12 w-12 rounded-[22px] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner"><LayoutGrid className="h-6 w-6" /></div>
-                   <h2 className="text-2xl font-black text-[#002d4d]">جرد الأسواق <span className="text-[10px] font-bold text-gray-300 uppercase mr-2">Inventory Pulse</span></h2>
-                </div>
-                <div className="flex items-center gap-3">
-                   <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[9px] px-5 py-1.5 rounded-full shadow-lg">{symbols?.length || 0} أصل نشط</Badge>
-                   <div className="h-1 w-20 bg-gradient-to-l from-emerald-100 to-transparent rounded-full" />
-                </div>
-             </div>
-             <MarketInventory symbols={symbols || []} isLoading={loadingSymbols} />
-          </section>
-
+              </motion.div>
+            </Link>
+          ))}
         </div>
 
         {/* Sovereign Footer */}
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] tracking-none">Namix Sovereign Engine v11.0.4</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Operational Infrastructure Hub v12.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
