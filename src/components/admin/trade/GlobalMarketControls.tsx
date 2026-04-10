@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Timer, Briefcase, Zap, ShieldCheck, Loader2, Activity, Target, Plus, Trash2, Sparkles } from "lucide-react";
+import { Globe, Timer, Briefcase, Zap, ShieldCheck, Loader2, Activity, Target, Plus, Trash2, Sparkles, Power } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GlobalMarketControlsProps {
@@ -142,9 +142,9 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
             </div>
 
             <Button onClick={onSave} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl transition-all active:scale-[0.98] group">
-               {saving ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                 <div className="flex items-center gap-3">
-                    <span>تثبيت الضوابط العالمية</span>
+               {saving ? <Loader2 className="animate-spin h-8 w-8" /> : (
+                 <div className="flex items-center gap-4">
+                    <span>حفظ ومعايرة الضوابط العالمية</span>
                     <Sparkles className="h-5 w-5 text-[#f9a885] group-hover:rotate-12 transition-transform" />
                  </div>
                )}
@@ -169,15 +169,19 @@ export function GlobalMarketControls({ data, onChange, onSave, saving }: GlobalM
             <h4 className="font-black text-[11px] text-[#002d4d] uppercase tracking-widest px-2">تنشيط المكونات الذكية</h4>
             <div className="space-y-3">
                {[
-                 { label: 'الذكاء الاصطناعي (NAMIX AI)', id: 'aiEnabled', color: 'bg-blue-500' },
+                 { label: 'تنشيط بوابة التداول للمستثمرين', id: 'isTradingEnabled', color: 'bg-emerald-500', icon: Power },
+                 { label: 'الذكاء الاصطناعي (NAMIX AI)', id: 'aiEnabled', color: 'bg-blue-500', icon: Cpu },
                ].map(opt => (
                  <div key={opt.id} className="flex items-center justify-between p-5 bg-white rounded-3xl border border-gray-100 shadow-sm">
-                    <span className="text-[10px] font-black text-[#002d4d]">{opt.label}</span>
+                    <div className="flex items-center gap-3">
+                       <opt.icon size={14} className={cn(data[opt.id] ? "text-blue-500" : "text-gray-300")} />
+                       <span className="text-[10px] font-black text-[#002d4d]">{opt.label}</span>
+                    </div>
                     <Switch checked={!!data[opt.id]} onCheckedChange={val => onChange({...data, [opt.id]: val})} className={cn("data-[state=checked]:"+opt.color)} />
                  </div>
                ))}
             </div>
-            <p className="text-[9px] text-gray-400 font-bold px-4 text-center">تعطيل الذكاء الاصطناعي سيخفي مؤشراته من واجهة المستخدم لجميع الأصول.</p>
+            <p className="text-[9px] text-gray-400 font-bold px-4 text-center">تعطيل البوابة سيمنع كافة المستخدمين من التداول حتى إشعار آخر.</p>
          </div>
       </div>
     </div>

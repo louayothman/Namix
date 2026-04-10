@@ -4,7 +4,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, where, doc, onSnapshot } from "firebase/firestore";
 import { 
   Search, 
@@ -15,7 +15,9 @@ import {
   ChevronLeft,
   ShieldCheck,
   Zap,
-  ArrowUpDown
+  ArrowUpDown,
+  Hourglass,
+  AlertCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { WatchlistHero } from "@/components/trade/watchlist/WatchlistHero";
@@ -25,6 +27,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useMarketStore } from "@/store/use-market-store";
 import { useMarketSync } from "@/hooks/use-market-sync";
+import { Button } from "@/components/ui/button";
 
 export default function TradeWatchlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,16 +48,19 @@ export default function TradeWatchlistPage() {
     }
   }, [db]);
 
+  const globalConfigRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
+  const { data: globalConfig, isLoading: loadingConfig } = useDoc(globalConfigRef);
+
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
   const { data: rawSymbols, isLoading: loadingSymbols } = useCollection(symbolsQuery);
   useMarketSync(rawSymbols || []);
 
   useEffect(() => {
-    if (!loadingSymbols) {
+    if (!loadingSymbols && !loadingConfig) {
       if (!rawSymbols || rawSymbols.length === 0) setIsCalibrating(false);
       else if (Object.keys(prices).length > 0) { setTimeout(() => setIsCalibrating(false), 800); }
     }
-  }, [loadingSymbols, rawSymbols, prices]);
+  }, [loadingSymbols, loadingConfig, rawSymbols, prices]);
 
   const filteredSymbols = useMemo(() => {
     if (!rawSymbols) return [];
@@ -69,12 +75,51 @@ export default function TradeWatchlistPage() {
     return rawSymbols.filter(s => dbUser.favoriteSymbols.includes(s.id));
   }, [rawSymbols, dbUser?.favoriteSymbols]);
 
-  if (loadingSymbols || isCalibrating) {
+  if (loadingSymbols || loadingConfig || isCalibrating) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-white space-y-10 font-body">
          <div className="relative"><div className="h-28 w-28 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" /><div className="absolute inset-0 flex items-center justify-center"><ShieldCheck className="h-10 w-10 text-[#002d4d] animate-pulse" /></div></div>
          <div className="text-center space-y-3"><h4 className="text-2xl font-black text-[#002d4d]">معايرة الأسواق الحية...</h4><p className="text-[10px] text-gray-400 font-bold">جاري جلب نبض الأسعار في الخلفية لضمان عرض لحظي موثق.</p></div>
       </div>
+    );
+  }
+
+  // بروتوكول توقف الخدمة التكتيكي
+  if (globalConfig?.isTradingEnabled === false) {
+    return (
+      <Shell hideMobileNav>
+        <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-white font-body" dir="rtl">
+           <motion.div 
+             initial={{ scale: 0.8, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             className="flex flex-col items-center gap-10 max-w-md text-center"
+           >
+              <div className="relative">
+                 <div className="h-32 w-32 bg-gray-50 rounded-[48px] flex items-center justify-center shadow-inner border border-gray-100">
+                    <Hourglass size={64} className="text-blue-600 animate-pulse" />
+                 </div>
+                 <div className="absolute -top-4 -right-4 h-12 w-12 bg-[#002d4d] rounded-2xl flex items-center justify-center shadow-xl">
+                    <AlertCircle size={24} className="text-[#f9a885]" />
+                 </div>
+              </div>
+
+              <div className="space-y-4">
+                 <h2 className="text-3xl font-black text-[#002d4d] tracking-tight">الخدمة متوقفة مؤقتاً</h2>
+                 <p className="text-gray-500 font-bold leading-loose">
+                    نعتذر، بوابة الأسواق الحية تخضع حالياً لعملية صيانة وتحديث دورية لتعزيز الأداء وضمان دقة البيانات. سنعود للعمل في أقرب وقت ممكن.
+                 </p>
+              </div>
+
+              <div className="grid gap-4 w-full">
+                 <Button onClick={() => router.push("/home")} className="h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
+                 <div className="flex items-center justify-center gap-3 opacity-30 mt-4">
+                    <ShieldCheck size={14} className="text-emerald-500" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">System Maintenance Protocol Active</p>
+                 </div>
+              </div>
+           </motion.div>
+        </div>
+      </Shell>
     );
   }
 

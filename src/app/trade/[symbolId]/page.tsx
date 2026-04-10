@@ -19,7 +19,9 @@ import {
   Layers,
   Radar,
   BrainCircuit,
-  X
+  X,
+  Hourglass,
+  AlertCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerPortal, DrawerOverlay } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 const PriceChart = dynamic(() => import("@/components/trade/terminal/PriceChart").then(m => ({ default: m.PriceChart })), { ssr: false });
 const InternalPriceChart = dynamic(() => import("@/components/trade/terminal/InternalPriceChart").then(m => ({ default: m.InternalPriceChart })), { ssr: false });
@@ -86,7 +89,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
   useMarketSync(asset ? [asset] : []);
 
   const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
-  const { data: globalConfig } = useDoc(globalTradeRef);
+  const { data: globalConfig, isLoading: loadingConfig } = useDoc(globalTradeRef);
 
   const riskRef = useMemoFirebase(() => doc(db, "system_settings", "trading_risk"), [db]);
   const { data: riskConfig } = useDoc(riskRef);
@@ -118,7 +121,36 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
     } catch (e) { console.error(e); }
   };
 
-  if (isLoading || !asset) return <TerminalLoader />;
+  if (isLoading || loadingConfig || !asset) return <TerminalLoader />;
+
+  // بروتوكول توقف الخدمة التكتيكي للمحطات
+  if (globalConfig?.isTradingEnabled === false) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-white font-body" dir="rtl">
+         <motion.div 
+           initial={{ scale: 0.8, opacity: 0 }}
+           animate={{ scale: 1, opacity: 1 }}
+           className="flex flex-col items-center gap-8 max-w-sm text-center"
+         >
+            <div className="relative">
+               <div className="h-24 w-24 bg-gray-50 rounded-[32px] flex items-center justify-center shadow-inner border border-gray-100">
+                  <Hourglass size={48} className="text-blue-600 animate-pulse" />
+               </div>
+               <div className="absolute -top-2 -right-2 h-8 w-8 bg-[#002d4d] rounded-xl flex items-center justify-center shadow-xl">
+                  <AlertCircle size={16} className="text-[#f9a885]" />
+               </div>
+            </div>
+            <div className="space-y-3">
+               <h2 className="text-2xl font-black text-[#002d4d]">المحطة قيد الصيانة</h2>
+               <p className="text-[11px] font-bold text-gray-400 leading-relaxed">
+                  نأسف، تم تعليق عمليات التداول اللحظي مؤقتاً لتحديث خوارزميات المزامنة السعرية.
+               </p>
+            </div>
+            <Button onClick={() => router.push("/trade")} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-sm shadow-xl active:scale-95">العودة للأسواق</Button>
+         </motion.div>
+      </div>
+    );
+  }
 
   return (
     <Shell hideMobileNav>
