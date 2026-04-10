@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useFirestore, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { 
-  Copy, Check, ChevronRight, Loader2, CheckCircle2, Zap, ShieldCheck, 
+  Copy, Check, ChevronRight, ChevronLeft, Loader2, CheckCircle2, Zap, ShieldCheck, 
   Sparkles, ArrowUpCircle, Info, Cpu, Wallet, ListFilter, Hash,
   AlertCircle,
   Network
@@ -102,7 +101,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           setError(res.error);
         }
       } else if (selectedCategory.type === 'binance') {
-        // في وضع بينانس، نجلب العنوان الخاص بحساب المشرف
         const res = await getBinanceDepositAddress(asset.coin, asset.networks[0].code);
         if (res.success) {
           setWalletAddress(res.address);
@@ -121,7 +119,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
   const handleSubmit = async () => {
     if (!amount || !dbUser) return;
-    // في وضع NOWPayments لا نشترط TXID لأن الأتمتة تعتمد على الـ IPN
     if (selectedCategory?.type !== 'nowpayments' && !txid) return;
 
     setLoading(true);
@@ -200,7 +197,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             ) : (
               <div className="space-y-6">
                 
-                {/* الخطوة 1: اختيار الفئة */}
                 {step === "select_category" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">حدد فئة الشحن <ListFilter size={16} className="text-[#f9a885]" /></h3>
@@ -226,7 +222,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
                 )}
 
-                {/* الخطوة 2 (يدوي): اختيار البوابة */}
                 {step === "select_portal" && selectedCategory?.type === 'manual' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">اختر بوابة الاستلام <Zap size={16} className="text-blue-500" /></h3>
@@ -241,7 +236,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
                 )}
 
-                {/* الخطوة 2 (آلي): اختيار العملة والشبكة */}
                 {step === "select_automated_asset" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-500">
                     <h3 className="text-sm font-black text-[#002d4d] flex items-center gap-2 justify-end px-2">اختر العملة والشبكة <Network size={16} className="text-blue-500" /></h3>
@@ -268,7 +262,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                   </div>
                 )}
 
-                {/* الخطوة 3: التنفيذ */}
                 {step === "execution" && (
                   <div className="space-y-8 animate-in zoom-in-95 duration-500 text-right">
                     <div className="p-6 bg-blue-50/40 rounded-[40px] border border-blue-100/50 space-y-3">
@@ -283,7 +276,9 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                           </Label>
                           <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-3">
                              <div className="flex-1 font-mono text-[11px] font-black text-[#002d4d] break-all text-left leading-relaxed" dir="ltr">{walletAddress}</div>
-                             <Button onClick={handleCopy} className="h-12 w-12 rounded-2xl bg-[#002d4d] text-[#f9a885] shadow-xl shrink-0 active:scale-90 transition-all">{copied ? <Check size={20}/> : <Copy size={20}/>}</Button>
+                             <button onClick={handleCopy} className="h-12 w-12 rounded-2xl bg-[#002d4d] text-[#f9a885] shadow-xl shrink-0 active:scale-90 transition-all flex items-center justify-center">
+                               {copied ? <Check size={20}/> : <Copy size={20}/>}
+                             </button>
                           </div>
                        </div>
                     </div>
