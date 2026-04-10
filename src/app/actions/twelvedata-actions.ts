@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v1.0
- * محرك جلب الرموز العالمية للأصول التقليدية (ذهب، نفط، أسهم).
+ * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v2.0
+ * محرك جلب الرموز العالمية مع معالجة متقدمة للأخطاء والمحدودية.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -18,15 +18,30 @@ export async function getTwelveDataSymbols() {
     const apiKey = configData?.twelveDataApiKey;
 
     if (!apiKey) {
-      return { success: false, error: "مفتاح API الخاص بـ Twelve Data غير متوفر في الإعدادات." };
+      return { success: false, error: "مفتاح API الخاص بـ Twelve Data غير متوفر في الإعدادات الإدارية." };
     }
 
-    // جلب قائمة الأصول المتاحة (نركز على الأسهم والعملات الأجنبية والمؤشرات)
-    // ملاحظة: Twelve Data لديه عدة نقاط نهاية، سنستخدم /symbols للحصول على القائمة الكاملة
+    // جلب قائمة الأصول مع معالجة النصوص قبل التحويل لـ JSON
     const response = await fetch(`https://api.twelvedata.com/symbols?apikey=${apiKey}`);
-    const data = await response.json();
+    
+    if (response.status === 429) {
+      return { success: false, error: "لقد تجاوزت حد الطلبات المسموح به لخطة Twelve Data الحالية (8 طلبات/دقيقة)." };
+    }
+
+    const text = await response.text();
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      return { success: false, error: "استجابة غير صالحة من خوادم Twelve Data. يرجى التأكد من صلاحية مفتاح الـ API." };
+    }
     
     if (data.status === 'error') {
+      // معالجة الأخطاء المحددة من المزود (مثل عدم توفر اشتراك لأسواق معينة)
+      if (data.code === 403) {
+        return { success: false, error: "مفتاح الـ API الخاص بك لا يملك صلاحية الوصول لهذه البيانات (يتطلب اشتراكاً مدفوعاً)." };
+      }
       return { success: false, error: data.message };
     }
 
@@ -34,11 +49,12 @@ export async function getTwelveDataSymbols() {
       return { success: false, symbols: [] };
     }
 
-    // تصفية الرموز لضمان جودة البيانات (التركيز على الأصول العالمية الشائعة)
+    // تصفية الرموز وتحديدها بـ 2000 رمز لضمان سرعة الواجهة
     const filtered = data.data
       .filter((s: any) => 
         ['Common Stock', 'Physical', 'Index', 'Forex'].includes(s.type)
       )
+      .slice(0, 2000)
       .map((s: any) => ({
         symbol: s.symbol,
         name: s.name,
@@ -49,6 +65,6 @@ export async function getTwelveDataSymbols() {
 
     return { success: true, symbols: filtered };
   } catch (e: any) {
-    return { success: false, error: e.message };
+    return { success: false, error: "حدث خطأ غير متوقع في بروتوكول المزامنة: " + e.message };
   }
 }

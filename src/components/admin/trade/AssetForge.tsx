@@ -27,10 +27,8 @@ import {
   Globe,
   TrendingUp,
   Activity,
-  TrendingDown,
-  Building2,
-  Droplets,
-  Gem
+  AlertTriangle,
+  Info
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
@@ -195,7 +193,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[520px] overflow-hidden font-body text-right flex flex-col max-h-[90vh] z-[1100]" dir="rtl">
-          <div className="bg-[#002d4d] p-8 md:p-10 text-white relative shrink-0">
+          <div className="bg-[#002d4d] p-8 md:p-10 text-white relative shrink-0 text-center border-b border-white/5">
              <div className="absolute top-0 right-0 p-8 opacity-[0.03] -rotate-12 pointer-events-none"><Target className="h-40 w-40" /></div>
              <div className="flex items-center gap-6 relative z-10">
                 <div className="h-16 w-16 rounded-[28px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
@@ -259,6 +257,15 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                            </SelectContent>
                         </Select>
                      </div>
+
+                     {source === 'twelvedata' && (
+                       <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-3">
+                          <AlertTriangle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                          <p className="text-[9px] font-bold text-orange-800 leading-relaxed">
+                            ملاحظة: اشتراك Twelve Data المجاني يقتصر على بعض الأسواق والأسهم؛ إذا لم يظهر السعر في المحطة، فقد يكون الرمز غير متاح في خطتك الحالية.
+                          </p>
+                       </div>
+                     )}
                   </div>
                 )}
              </div>

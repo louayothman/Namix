@@ -59,8 +59,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX FINANCIAL ICONS v18.0 - Master Asset Arsenal
- * تم دمج العملات الرقمية الملونة مع شعارات الشركات العالمية والسلع في خريطة واحدة.
+ * NAMIX FINANCIAL ICONS v19.0 - Sovereign Unified Arsenal
+ * تم إصلاح خريطة الأيقونات لضمان ظهور العملات الرقمية الملونة بجانب الأسهم والسلع.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -101,6 +101,7 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   STOCK: Building2,
   FOREX: Globe,
   INDEX: BarChart3,
+  APPLE_STK: Apple,
   
   // --- Core System Icons (Lucide) ---
   Coins, Zap, Globe, Activity, Target, Diamond, Landmark, Wallet, CreditCard, 
