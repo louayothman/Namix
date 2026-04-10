@@ -14,6 +14,7 @@ import {
   Trash2, 
   ChevronDown, 
   ChevronUp, 
+  ChevronLeft,
   Layers, 
   Cpu,
   ShieldCheck,
@@ -409,7 +410,7 @@ export function DepositPortalsSection() {
                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">أيقونة الواجهة</Label>
                   <Select value={newPortal.icon} onValueChange={val => setNewPortal({...newPortal, icon: val})}>
-                     <SelectTrigger className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-xs px-8 shadow-inner">
+                     <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black text-xs px-8 shadow-inner">
                        <SelectValue />
                      </SelectTrigger>
                      <SelectContent className="rounded-2xl border-none shadow-2xl">
