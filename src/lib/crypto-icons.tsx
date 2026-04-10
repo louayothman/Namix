@@ -60,8 +60,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX UNIFIED ICON ARSENAL v22.0 - Case-Insensitive Fix
- * تم توحيد كافة المفاتيح لتصبح UPPERCASE لضمان دقة الاستدعاء البرمجي ومنع الخلل البصري المتكرر.
+ * @fileOverview NAMIX UNIFIED ICON ARSENAL v23.0 - Zero Duplicate Edition
+ * تم تطهير المكتبة من المفاتيح المكررة وتوحيدها لتصبح UPPERCASE لضمان دقة الاستدعاء.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -80,11 +80,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   XRP: "cryptocurrency:xrp",
   BNB: "cryptocurrency:bnb",
   USDC: "cryptocurrency:usdc",
-  SHIB: "cryptocurrency:shib",
-  AVAX: "cryptocurrency:avax",
-  NEAR: "cryptocurrency:near",
-  UNI: "cryptocurrency:uni",
-  ATOM: "cryptocurrency:atom",
   
   // --- Global Stock Logos (Iconify) ---
   APPLE: "logos:apple",
@@ -96,16 +91,15 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   META: "logos:meta-icon",
   NETFLIX: "logos:netflix-icon",
   
-  // --- Commodities & Traditional Markets (Lucide) ---
+  // --- Commodities & Markets (Lucide) ---
   GOLD: Gem,
   OIL: Droplets,
   STOCK: Building2,
   FOREX: Globe,
   INDEX: BarChart3,
-  APPLE_STK: Apple,
   BITCOIN: Bitcoin,
   
-  // --- Core System Icons (Lucide - Strictly UPPERCASE) ---
+  // --- Core System Icons (Lucide) ---
   COINS: Coins,
   ZAP: Zap,
   GLOBE: Globe,
@@ -159,7 +153,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
-  // بروتوكول التوحيد: تحويل كافة المفاتيح لأحرف كبيرة لضمان المطابقة
   const iconKey = (name || "").toUpperCase();
   const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.COINS;
   

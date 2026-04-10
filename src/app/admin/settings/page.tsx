@@ -38,7 +38,12 @@ export default function AdminSettingsPage() {
   // --- Real-time Data Refs ---
   const connectivityRef = useMemoFirebase(() => doc(db, "system_settings", "connectivity"), [db]);
   const { data: remoteConnectivity } = useDoc(connectivityRef);
-  const [connectivityData, setConnectivityData] = useState<any>({ binanceApiKey: "", binanceApiSecret: "", finnhubApiKey: "" });
+  const [connectivityData, setConnectivityData] = useState<any>({ 
+    binanceApiKey: "", 
+    binanceApiSecret: "", 
+    finnhubApiKey: "",
+    alphaVantageApiKey: ""
+  });
 
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: remoteLanding } = useDoc(landingRef);
@@ -113,7 +118,7 @@ export default function AdminSettingsPage() {
 
   return (
     <Shell isAdmin>
-      <div className="max-w-6xl mx-auto space-y-10 px-6 pt-10 pb-24 font-body">
+      <div className="max-w-6xl mx-auto space-y-10 px-6 pt-10 pb-24 font-body text-right" dir="rtl">
         
         <SettingsHeader 
           activeSection={activeSection} 
@@ -135,7 +140,7 @@ export default function AdminSettingsPage() {
 
         {activeSection === 'connectivity' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
-            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden">
+            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
               <CardHeader className="bg-[#002d4d] p-10 border-b border-white/10 text-white relative">
                 <div className="absolute top-0 right-0 p-8 opacity-10"><Globe className="h-32 w-32" /></div>
                 <CardTitle className="text-2xl font-black flex items-center gap-4 relative z-10">
@@ -161,7 +166,8 @@ export default function AdminSettingsPage() {
                       <Input 
                         value={connectivityData.binanceApiKey || ""} 
                         onChange={e => setConnectivityData({...connectivityData, binanceApiKey: e.target.value})}
-                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner"
+                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner text-left"
+                        dir="ltr"
                         placeholder="أدخل مفتاح بينانس..."
                       />
                     </div>
@@ -171,7 +177,8 @@ export default function AdminSettingsPage() {
                         type="password"
                         value={connectivityData.binanceApiSecret || ""} 
                         onChange={e => setConnectivityData({...connectivityData, binanceApiSecret: e.target.value})}
-                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner"
+                        className="h-12 rounded-xl bg-gray-50 border-none font-mono text-xs px-6 shadow-inner text-left"
+                        dir="ltr"
                         placeholder="••••••••••••••••"
                       />
                     </div>
@@ -186,15 +193,38 @@ export default function AdminSettingsPage() {
                     <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
                        <BarChart3 className="h-5 w-5 text-blue-600" />
                     </div>
-                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Finnhub (الأسهم والسلع والفوركس)</h3>
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Finnhub.io</h3>
                   </div>
                   <div className="space-y-3">
                     <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Finnhub API Key</Label>
                     <Input 
                       value={connectivityData.finnhubApiKey || ""} 
                       onChange={e => setConnectivityData({...connectivityData, finnhubApiKey: e.target.value})}
-                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner"
+                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner text-left"
+                      dir="ltr"
                       placeholder="أدخل مفتاح Finnhub..."
+                    />
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Alpha Vantage Integration */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                       <TrendingUp className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <h3 className="font-black text-lg text-[#002d4d]">بروتوكول Alpha Vantage</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="font-black text-[11px] text-gray-400 uppercase pr-4">Alpha Vantage API Key</Label>
+                    <Input 
+                      value={connectivityData.alphaVantageApiKey || ""} 
+                      onChange={e => setConnectivityData({...connectivityData, alphaVantageApiKey: e.target.value})}
+                      className="h-14 rounded-xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner text-left"
+                      dir="ltr"
+                      placeholder="أدخل مفتاح Alpha Vantage..."
                     />
                   </div>
                 </div>
@@ -204,7 +234,7 @@ export default function AdminSettingsPage() {
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                    </div>
                    <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed pt-1">
-                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار لأي نوع من الأصول. استخدام Finnhub يوفر حدود طلبات أوسع للاسهم العالمية والذهب.
+                     تعدد قنوات المزامنة يضمن للمنصة الحصول على أدق الأسعار. استخدام Finnhub و Alpha Vantage يوفر تغطية شاملة للاسهم العالمية والذهب والنفط.
                    </p>
                 </div>
 
@@ -221,9 +251,10 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
+        {/* ... Rest of the sections remain unchanged ... */}
         {activeSection === 'onboarding' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
-            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden">
+            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
               <CardHeader className="bg-blue-50/50 p-10 border-b border-gray-50">
                 <CardTitle className="text-xl font-black text-[#002d4d] flex items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-inner">
@@ -252,7 +283,7 @@ export default function AdminSettingsPage() {
 
         {activeSection === 'insurance' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
-            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden">
+            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
               <CardHeader className="bg-emerald-50/50 p-10 border-b border-gray-100">
                 <CardTitle className="text-xl font-black text-emerald-700 flex items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-inner">
