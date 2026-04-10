@@ -32,6 +32,10 @@ interface ParameterConsoleProps {
   decision: 'BUY' | 'SELL' | 'HOLD';
 }
 
+/**
+ * @fileOverview قُمرة التنفيذ الموحدة v10.0 - Unified Sovereign Hub
+ * دمج المبلغ، المدة، وزر التنفيذ في بطاقة واحدة فخمة تتفاعل مع نبض التحليل.
+ */
 export function ParameterConsole({ 
   amount, 
   onAmountChange, 
@@ -57,9 +61,9 @@ export function ParameterConsole({
 
   return (
     <div className="p-1 font-body select-none" dir="rtl">
-      <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] overflow-hidden flex flex-col group">
+      <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] overflow-hidden flex flex-col group transition-all duration-700 hover:shadow-2xl">
         
-        {/* Section 1: Amount Control */}
+        {/* Section 1: Amount Control - الدقة الرقمية */}
         <div className="p-8 space-y-5">
           <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
@@ -102,16 +106,16 @@ export function ParameterConsole({
           </div>
         </div>
 
-        {/* Section 2: Duration Selector */}
+        {/* Section 2: Duration Selector - نافذة التنفيذ */}
         <div className="px-8 pb-8 space-y-4">
            <div className="flex items-center gap-2 px-2">
               <Clock size={14} className="text-blue-500" />
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-normal">نافذة التنفيذ</span>
            </div>
            <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-[22px] border border-gray-100 shadow-inner overflow-x-auto scrollbar-none">
-              {durations.slice(0, 4).map((d) => (
+              {durations.slice(0, 6).map((d, idx) => (
                 <button
-                  key={d.label}
+                  key={`${d.label}-${idx}`}
                   onClick={() => onDurationChange(d.seconds)}
                   className={cn(
                     "flex-1 h-10 rounded-xl font-black text-[10px] transition-all duration-500 tabular-nums border",
@@ -126,7 +130,7 @@ export function ParameterConsole({
            </div>
         </div>
 
-        {/* Section 3: Execution Button - Integrated Bottom */}
+        {/* Section 3: Execution Button - القاعدة الذكية */}
         <div className="p-4 bg-gray-50/50 border-t border-gray-50">
            <Button
              onClick={onExecute}
@@ -152,7 +156,7 @@ export function ParameterConsole({
                    className="flex items-center gap-3"
                  >
                     {isHold ? (
-                      <span className="opacity-60">بانتظار الإشارة...</span>
+                      <span className="opacity-60">بانتظار الإشارة الاستباقية...</span>
                     ) : (
                       <>
                         <span>تأكيد بروتوكول {isBuy ? 'الشراء' : 'البيع'}</span>
@@ -173,7 +177,7 @@ export function ParameterConsole({
            </Button>
         </div>
 
-        {/* Bottom Metadata */}
+        {/* Bottom Metadata - الختم الموثق */}
         <div className="py-3 bg-[#002d4d] flex items-center justify-center gap-4 opacity-90">
            <div className="flex items-center gap-1.5">
               <ShieldCheck size={10} className="text-emerald-400" />
@@ -182,7 +186,7 @@ export function ParameterConsole({
            <div className="h-3 w-px bg-white/10" />
            <div className="flex items-center gap-1.5">
               <Zap size={10} className="text-[#f9a885]" />
-              <p className="text-[7px] font-black text-blue-100/40 uppercase tracking-widest">Instant Flux</p>
+              <p className="text-[7px] font-black text-blue-100/40 uppercase tracking-widest">Instant Activation</p>
            </div>
         </div>
       </div>

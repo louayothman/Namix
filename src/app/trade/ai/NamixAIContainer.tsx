@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
@@ -38,7 +38,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const [dbUser, setDbUser] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   const [tradeAmount, setTradeAmount] = useState(10.00);
-  const [tradeDuration, setTradeDuration] = useState<number>(0); 
+  const [tradeDuration, setTradeDuration] = useState<number>(60); 
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   
@@ -97,6 +97,34 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     return () => clearInterval(interval);
   }, [status, asset]);
 
+  // محرك جلب المدد الزمنية مع نظام Fallback يضمن عدم فراغ الواجهة
+  const durations = useMemo(() => {
+    // 1. محاولة الجلب من الإعدادات العالمية
+    if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations) && globalConfig.tradeDurations.length > 0) {
+      return globalConfig.tradeDurations.map((d: any) => {
+        let mult = 1;
+        let suffix = 'ث';
+        if (d.unit === 'minutes') { mult = 60; suffix = 'د'; }
+        else if (d.unit === 'hours') { mult = 3600; suffix = 'س'; }
+        return { label: `${d.value}${suffix}`, seconds: d.value * mult };
+      });
+    }
+    // 2. بروتوكول Fallback: توفير مدد قياسية في حال الفراغ
+    return [
+      { label: '60ث', seconds: 60 },
+      { label: '3د', seconds: 180 },
+      { label: '5د', seconds: 300 },
+      { label: '15د', seconds: 900 }
+    ];
+  }, [globalConfig]);
+
+  // مزامنة المدة المختارة مع أول خيار متاح
+  useEffect(() => {
+    if (durations.length > 0 && tradeDuration === 0) {
+      setTradeDuration(durations[0].seconds);
+    }
+  }, [durations, tradeDuration]);
+
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
     hapticFeedback.medium();
@@ -138,15 +166,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   const confidenceScore = result ? Math.round(result.score * 100) : 0;
   const currentPrice = livePrice || asset.currentPrice;
 
+  if (status === 'calibrating') return <MarketScanner />;
+
   return (
     <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
       <AnimatePresence mode="wait">
-        {status === 'calibrating' && (
-          <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-             <MarketScanner />
-          </motion.div>
-        )}
-
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
             
@@ -154,9 +178,11 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
+            {/* بطاقة الأهداف مع المؤشرات المسطحة المدمجة */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 transition-transform duration-1000"><Target size={180} /></div>
+               <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110"><Target size={180} /></div>
 
+               {/* مكون المؤشرات (Flat Design) داخل بطاقة الأهداف */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
@@ -208,6 +234,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
+            {/* بطاقة المحادثة المنفصلة بأسلوب واتساب */}
             <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
                <AgentDialogueFeed messages={chatHistory} />
             </div>
@@ -220,13 +247,13 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر البروتوكول المعتمد.`} />
 
-            {/* Parameter Console Integrated with Execution Button */}
+            {/* قُمرة الأوامر الموحدة */}
             <ParameterConsole 
               amount={tradeAmount}
               onAmountChange={setTradeAmount}
               duration={tradeDuration}
               onDurationChange={setTradeDuration}
-              durations={globalConfig?.tradeDurations || []}
+              durations={durations}
               balance={dbUser?.totalBalance || 0}
               minAmount={globalConfig?.minTradeAmount || 10}
               maxAmount={globalConfig?.maxTradeAmount || 5000}
