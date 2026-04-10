@@ -29,7 +29,8 @@ import {
   TrendingDown,
   Activity,
   AlertTriangle,
-  Info
+  Info,
+  Layers
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
@@ -57,6 +58,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     code: initialData?.code || "",
+    type: initialData?.type || "Equity",
     priceSource: initialData?.priceSource || "internal",
     binanceSymbol: initialData?.binanceSymbol || "",
     externalTicker: initialData?.externalTicker || "", 
@@ -86,7 +88,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       } else if (source === 'twelvedata') {
         res = await getTwelveDataSymbols();
       } else {
-        return; // Alpha uses search-on-demand
+        return; 
       }
 
       if (res.success && res.symbols) {
@@ -129,6 +131,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         ...formData,
         name: `${asset.baseAsset} / ${asset.quoteAsset}`,
         code: `${asset.baseAsset}/${asset.quoteAsset}`,
+        type: 'Crypto',
         binanceSymbol: asset.symbol,
         priceSource: 'binance',
         icon: hasIcon ? possibleIcon : 'COINS'
@@ -153,6 +156,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         ...formData,
         name: asset.name || asset.symbol,
         code: asset.symbol,
+        type: asset.type || 'Equity',
         externalTicker: asset.symbol,
         priceSource: source,
         icon: autoIcon
