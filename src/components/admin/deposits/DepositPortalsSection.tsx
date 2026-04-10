@@ -24,7 +24,10 @@ import {
   X,
   ClipboardPaste,
   Type,
-  ListFilter
+  ListFilter,
+  Zap,
+  Wallet,
+  Settings2
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -42,10 +45,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getBinanceDepositAddress } from "@/app/actions/binance-actions";
-import { BINANCE_SUPPORTED_ASSETS } from "@/lib/binance-constants";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+/**
+ * @fileOverview مركز هندسة بوابات الإيداع الشامل v5.0
+ * يدعم الآن ثلاثة أنماط للتشغيل: (يدوي، أتمتة NOWPayments، أتمتة Binance).
+ */
 
 export function DepositPortalsSection() {
   const db = useFirestore();
@@ -54,7 +60,6 @@ export function DepositPortalsSection() {
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
-  const [syncingAddress, setSyncingAddress] = useState(false);
 
   const [portalToDelete, setPortalToDelete] = useState<{ catId: string, portal: any } | null>(null);
   const [catToDeleteId, setCatToDeleteId] = useState<string | null>(null);
@@ -64,9 +69,10 @@ export function DepositPortalsSection() {
     walletAddress: "",
     instructions: "",
     icon: "USDT",
-    isBinanceLinked: false,
-    asset: "USDT",
-    network: "TRX"
+    automationType: "none" as "none" | "binance" | "nowpayments",
+    nowPaymentsCurrency: "usdttrc20",
+    binanceAsset: "USDT",
+    binanceNetwork: "TRX"
   });
 
   const categoriesQuery = useMemoFirebase(() => collection(db, "deposit_methods"), [db]);
@@ -96,69 +102,41 @@ export function DepositPortalsSection() {
         instructions: newPortal.instructions,
         icon: newPortal.icon,
         isActive: true,
-        isBinanceLinked: newPortal.isBinanceLinked,
-        asset: newPortal.asset,
-        network: newPortal.network,
-        fields: [{ label: "معرف العملية (TXID)", placeholder: "أدخل رقم العملية هنا...", type: "text", isTxid: true, hasPasteButton: true }]
+        automationType: newPortal.automationType,
+        nowPaymentsCurrency: newPortal.nowPaymentsCurrency,
+        binanceAsset: newPortal.binanceAsset,
+        binanceNetwork: newPortal.binanceNetwork,
+        fields: newPortal.automationType === 'nowpayments' ? [] : [{ 
+          label: "معرف العملية (TXID)", 
+          placeholder: "أدخل رقم العملية هنا...", 
+          type: "text", 
+          isTxid: true, 
+          hasPasteButton: true 
+        }]
       };
       await updateDoc(doc(db, "deposit_methods", activeCatId), {
         portals: arrayUnion(portalData)
       });
-      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "USDT", isBinanceLinked: false, asset: "USDT", network: "TRX" });
+      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "USDT", automationType: "none", nowPaymentsCurrency: "usdttrc20", binanceAsset: "USDT", binanceNetwork: "TRX" });
       setIsAddPortalOpen(false);
       toast({ title: "تمت إضافة البوابة للقسم" });
     } catch (e) { toast({ variant: "destructive", title: "فشل الإرسال" }); }
   };
 
-  const handleSelectBinanceAsset = async (assetCoin: string) => {
-    const asset = BINANCE_SUPPORTED_ASSETS.find(a => a.coin === assetCoin);
-    if (!asset) return;
-
-    const defaultNet = asset.networks[0];
-    setNewPortal(prev => ({
-      ...prev,
-      asset: asset.coin,
-      icon: asset.icon,
-      network: defaultNet.code,
-      name: `${asset.coin} (${defaultNet.label}) - Automated`,
-      instructions: `يرجى إرسال عملة ${asset.coin} إلى العنوان الموضح أعلاه باستخدام شبكة ${defaultNet.label} حصراً. بعد اكتمال التحويل، قم بنسخ معرف العملية (TXID) ولصقه في الحقل المخصص أدناه للتوثيق الآلي.`
-    }));
-
-    await syncAddress(asset.coin, defaultNet.code);
-  };
-
-  const syncAddress = async (coin: string, net: string) => {
-    setSyncingAddress(true);
-    try {
-      const res = await getBinanceDepositAddress(coin, net);
-      if (res.success) {
-        setNewPortal(prev => ({ ...prev, walletAddress: res.address }));
-        toast({ title: "تم جلب عنوان الإيداع من بينانس" });
-      } else {
-        toast({ variant: "destructive", title: "تعذر جلب العنوان", description: res.error });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "خطأ في المزامنة" });
-    } finally {
-      setSyncingAddress(false);
-    }
-  };
-
-  const handleToggleBinance = async (catId: string, portalId: string, val: boolean) => {
-    const cat = categories?.find(c => c.id === catId);
-    if (!cat) return;
-    const updatedPortals = cat.portals.map((p: any) => p.id === portalId ? { ...p, isBinanceLinked: val } : p);
-    await updateDoc(doc(db, "deposit_methods", catId), { portals: updatedPortals });
-    toast({ title: val ? "تم ربط البوابة ببينانس" : "تم إلغاء ربط بينانس" });
-  };
-
-  const handleTogglePortal = async (catId: string, portal: any, newVal: boolean) => {
+  const handleTogglePortal = async (catId: string, portalId: string, newVal: boolean) => {
     try {
       const cat = categories?.find(c => c.id === catId);
       if (!cat) return;
-      const updatedPortals = cat.portals.map((p: any) => p.id === portal.id ? { ...p, isActive: newVal } : p);
+      const updatedPortals = cat.portals.map((p: any) => p.id === portalId ? { ...p, isActive: newVal } : p);
       await updateDoc(doc(db, "deposit_methods", catId), { portals: updatedPortals });
     } catch (e) {}
+  };
+
+  const updatePortalConfig = async (catId: string, portalId: string, field: string, val: any) => {
+    const cat = categories?.find(c => c.id === catId);
+    if (!cat) return;
+    const updatedPortals = cat.portals.map((p: any) => p.id === portalId ? { ...p, [field]: val } : p);
+    await updateDoc(doc(db, "deposit_methods", catId), { portals: updatedPortals });
   };
 
   const confirmRemovePortal = async () => {
@@ -187,13 +165,6 @@ export function DepositPortalsSection() {
     }
   };
 
-  const updatePortalFields = async (catId: string, portalId: string, updatedFields: any[]) => {
-    const cat = categories?.find(c => c.id === catId);
-    if (!cat) return;
-    const updatedPortals = cat.portals.map((p: any) => p.id === portalId ? { ...p, fields: updatedFields } : p);
-    await updateDoc(doc(db, "deposit_methods", catId), { portals: updatedPortals });
-  };
-
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-left-6 duration-700 font-body text-right">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
@@ -202,9 +173,9 @@ export function DepositPortalsSection() {
               <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
                 <Layers className="h-6 w-6" />
               </div>
-              هندسة أقسام وبوابات الإيداع
+              هندسة أقسام وبوابات الإيداع الشاملة
            </h2>
-           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Inflow Categorization Protocol</p>
+           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sovereign Inflow Architecture</p>
          </div>
          <Button onClick={() => setIsAddCatOpen(true)} className="rounded-full h-14 px-8 bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 group">
            <Plus className="ml-2 h-5 w-5 text-[#f9a885] group-hover:rotate-90 transition-transform" /> إنشاء قسم إيداع جديد
@@ -215,7 +186,7 @@ export function DepositPortalsSection() {
         {categories?.map(category => (
           <Card key={category.id} className="border-none shadow-sm rounded-[48px] bg-white overflow-hidden group">
             <CardContent className="p-0">
-              <div className="p-8 flex items-center justify-between bg-gray-50/50 border-b border-gray-100">
+              <div className="p-8 flex items-center justify-between bg-gray-50/50 border-b border-gray-100" dir="rtl">
                 <div className="flex items-center gap-5">
                   <div className="h-14 w-14 rounded-[22px] bg-white shadow-sm flex items-center justify-center text-[#002d4d]">
                     <CryptoIcon name="Wallet" size={28} />
@@ -250,7 +221,7 @@ export function DepositPortalsSection() {
               </div>
 
               {expandedCat === category.id && (
-                <div className="p-8 space-y-6 animate-in slide-in-from-top-2 duration-500">
+                <div className="p-8 space-y-6 animate-in slide-in-from-top-2 duration-500" dir="rtl">
                   {category.portals?.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2">
                       {category.portals.map((portal: any) => (
@@ -260,12 +231,21 @@ export function DepositPortalsSection() {
                               <div className="h-12 w-12 rounded-[18px] bg-white flex items-center justify-center shadow-sm">
                                 <CryptoIcon name={portal.icon} size={24} />
                               </div>
-                              <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
+                              <div className="text-right">
+                                <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
+                                <Badge className={cn(
+                                  "text-[7px] font-black border-none px-2 py-0.5 rounded-md",
+                                  portal.automationType === 'nowpayments' ? "bg-purple-100 text-purple-600" :
+                                  portal.automationType === 'binance' ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
+                                )}>
+                                  {portal.automationType?.toUpperCase() || 'MANUAL'}
+                                </Badge>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch 
                                 checked={!!portal.isActive} 
-                                onCheckedChange={(val) => handleTogglePortal(category.id, portal, val)}
+                                onCheckedChange={(val) => handleTogglePortal(category.id, portal.id, val)}
                                 className="data-[state=checked]:bg-emerald-500 scale-75"
                               />
                               <button onClick={() => setPortalToDelete({ catId: category.id, portal })} className="h-8 w-8 rounded-lg bg-white text-red-400 flex items-center justify-center hover:bg-red-50 shadow-sm opacity-0 group-hover/portal:opacity-100 transition-opacity">
@@ -274,27 +254,92 @@ export function DepositPortalsSection() {
                             </div>
                           </div>
 
-                          <div className="space-y-4">
-                            <div className="space-y-1.5 text-right">
-                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">اسم البوابة المعتمد</Label>
-                              <Input 
-                                value={portal.name} 
-                                onChange={async (e) => {
-                                  const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, name: e.target.value } : p);
-                                  await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                }}
-                                className="h-11 rounded-xl bg-white border-none font-black text-sm px-8 shadow-sm text-right" 
-                              />
+                          <div className="space-y-6">
+                            <div className="grid gap-4">
+                               <div className="space-y-1.5 text-right">
+                                  <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">اسم البوابة</Label>
+                                  <Input 
+                                    value={portal.name} 
+                                    onChange={(e) => updatePortalConfig(category.id, portal.id, 'name', e.target.value)}
+                                    className="h-11 rounded-xl bg-white border-none font-black text-sm px-8 shadow-sm text-right" 
+                                  />
+                               </div>
+
+                               <div className="space-y-1.5 text-right">
+                                  <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">نمط التشغيل (Automation Mode)</Label>
+                                  <Select 
+                                    value={portal.automationType || "none"} 
+                                    onValueChange={(val) => updatePortalConfig(category.id, portal.id, 'automationType', val)}
+                                  >
+                                    <SelectTrigger className="h-11 rounded-xl bg-[#002d4d] text-white border-none font-black text-xs px-6 shadow-xl">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                       <SelectItem value="none" className="font-bold text-right py-2.5">يدوي (تحكم المشرف)</SelectItem>
+                                       <SelectItem value="nowpayments" className="font-bold text-right py-2.5">آلي (NOWPayments)</SelectItem>
+                                       <SelectItem value="binance" className="font-bold text-right py-2.5">شبه آلي (Binance Verify)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                               </div>
                             </div>
 
+                            {/* NOWPayments Settings */}
+                            {portal.automationType === 'nowpayments' && (
+                              <div className="p-6 bg-purple-50 rounded-3xl border border-purple-100 space-y-4 animate-in zoom-in-95">
+                                 <div className="flex items-center gap-3 text-purple-600">
+                                    <Zap size={16} className="fill-current" />
+                                    <span className="text-[10px] font-black uppercase">إعدادات NOWPayments</span>
+                                 </div>
+                                 <div className="space-y-1.5">
+                                    <Label className="text-[8px] font-black text-purple-400 pr-2">Currency ID (e.g. usdttrc20)</Label>
+                                    <Input 
+                                      value={portal.nowPaymentsCurrency || ""} 
+                                      onChange={(e) => updatePortalConfig(category.id, portal.id, 'nowPaymentsCurrency', e.target.value.toLowerCase())}
+                                      className="h-9 rounded-xl bg-white border-none font-black text-[10px] px-4 shadow-sm"
+                                      placeholder="usdttrc20"
+                                    />
+                                 </div>
+                              </div>
+                            )}
+
+                            {/* Binance Settings */}
+                            {portal.automationType === 'binance' && (
+                              <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 space-y-4 animate-in zoom-in-95">
+                                 <div className="flex items-center gap-3 text-orange-600">
+                                    <Cpu size={16} />
+                                    <span className="text-[10px] font-black uppercase">إعدادات Binance SAPI</span>
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                       <Label className="text-[8px] font-black text-orange-400">Asset</Label>
+                                       <Input value={portal.binanceAsset || ""} onChange={e => updatePortalConfig(category.id, portal.id, 'binanceAsset', e.target.value.toUpperCase())} className="h-9 rounded-xl bg-white border-none font-black text-[10px]" placeholder="USDT" />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <Label className="text-[8px] font-black text-orange-400">Network</Label>
+                                       <Input value={portal.binanceNetwork || ""} onChange={e => updatePortalConfig(category.id, portal.id, 'binanceNetwork', e.target.value.toUpperCase())} className="h-9 rounded-xl bg-white border-none font-black text-[10px]" placeholder="TRX" />
+                                    </div>
+                                 </div>
+                              </div>
+                            )}
+
+                            {/* Wallet Address (Only if NOT nowpayments) */}
+                            {portal.automationType !== 'nowpayments' && (
+                              <div className="space-y-1.5 text-right">
+                                <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">عنوان محفظة الاستلام (ثابت)</Label>
+                                <Input 
+                                  value={portal.walletAddress} 
+                                  onChange={(e) => updatePortalConfig(category.id, portal.id, 'walletAddress', e.target.value)}
+                                  className="h-11 rounded-xl bg-white border-none font-mono text-[10px] font-black px-4 shadow-sm text-left" 
+                                  dir="ltr"
+                                />
+                              </div>
+                            )}
+
                             <div className="space-y-1.5 text-right">
-                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">أيقونة الواجهة</Label>
+                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">أيقونة الواجهة</Label>
                               <Select 
                                 value={portal.icon || "USDT"} 
-                                onValueChange={async (val) => {
-                                  const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, icon: val } : p);
-                                  await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                }}
+                                onValueChange={(val) => updatePortalConfig(category.id, portal.id, 'icon', val)}
                               >
                                 <SelectTrigger className="h-11 rounded-xl bg-white border-none font-black text-xs px-4 shadow-sm text-right">
                                   <SelectValue />
@@ -312,127 +357,13 @@ export function DepositPortalsSection() {
                               </Select>
                             </div>
 
-                            <div className="p-4 bg-white/60 rounded-2xl border border-blue-100 flex flex-col gap-4 shadow-sm">
-                               <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                     <div className="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
-                                        <Cpu className="h-4 w-4" />
-                                     </div>
-                                     <div className="text-right">
-                                        <p className="text-[10px] font-black text-[#002d4d]">أتمتة بينانس (Auto-Audit)</p>
-                                        <p className="text-[8px] text-gray-400 font-bold">ربط البوابة بمحرك تدقيق بينانس</p>
-                                     </div>
-                                  </div>
-                                  <Switch 
-                                    checked={!!portal.isBinanceLinked}
-                                    onCheckedChange={(val) => handleToggleBinance(category.id, portal.id, val)}
-                                    className="data-[state=checked]:bg-blue-600 scale-75"
-                                  />
-                               </div>
-
-                               {portal.isBinanceLinked && (
-                                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-blue-50 animate-in fade-in slide-in-from-top-1">
-                                    <div className="space-y-1 text-right">
-                                       <Label className="text-[8px] font-black text-gray-400 pr-2">Asset (e.g. USDT)</Label>
-                                       <Input 
-                                         value={portal.asset || "USDT"} 
-                                         onChange={async (e) => {
-                                           const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, asset: e.target.value.toUpperCase() } : p);
-                                           await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                         }}
-                                         className="h-8 rounded-lg bg-white border-none font-black text-[10px] px-3 shadow-inner text-left" dir="ltr"
-                                       />
-                                    </div>
-                                    <div className="space-y-1 text-right">
-                                       <Label className="text-[8px] font-black text-gray-400 pr-2">Network (e.g. TRX)</Label>
-                                       <Input 
-                                         value={portal.network || "TRX"} 
-                                         onChange={async (e) => {
-                                           const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, network: e.target.value.toUpperCase() } : p);
-                                           await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                         }}
-                                         className="h-8 rounded-lg bg-white border-none font-black text-[10px] px-3 shadow-inner text-left" dir="ltr"
-                                       />
-                                    </div>
-                                 </div>
-                               )}
-                            </div>
-
                             <div className="space-y-1.5 text-right">
-                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">Portal Address</Label>
-                              <Input 
-                                value={portal.walletAddress} 
-                                onChange={async (e) => {
-                                  const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, walletAddress: e.target.value } : p);
-                                  await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                }}
-                                className="h-11 rounded-xl bg-white border-none font-mono text-[10px] font-black px-4 shadow-sm text-left" 
-                                dir="ltr"
-                              />
-                            </div>
-                            <div className="space-y-1.5 text-right">
-                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">User Instructions</Label>
+                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">تعليمات وتوجيهات المستثمر</Label>
                               <Textarea 
                                 value={portal.instructions} 
-                                onChange={async (e) => {
-                                  const updated = category.portals.map((p: any) => p.id === portal.id ? { ...p, instructions: e.target.value } : p);
-                                  await updateDoc(doc(db, "deposit_methods", category.id), { portals: updated });
-                                }}
-                                className="min-h-[80px] rounded-[20px] bg-white border-none font-bold text-[10px] p-4 leading-relaxed text-right" 
+                                onChange={(e) => updatePortalConfig(category.id, portal.id, 'instructions', e.target.value)}
+                                className="min-h-[80px] rounded-[20px] bg-white border-none font-bold text-[10px] p-4 leading-relaxed text-right scrollbar-none shadow-inner" 
                               />
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-200 space-y-4">
-                               <div className="flex items-center justify-between px-2">
-                                  <div className="flex items-center gap-2">
-                                     <Layers className="h-3 w-3 text-blue-500" />
-                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">متطلبات بيانات المستثمر</span>
-                                  </div>
-                                  <Button variant="ghost" size="sm" className="h-8 rounded-xl bg-blue-50 text-blue-600 text-[8px] font-black px-3" onClick={() => {
-                                     const updatedFields = [...(portal.fields || []), { label: "بيان جديد", placeholder: "...", type: "text", isTxid: false, hasPasteButton: false }];
-                                     updatePortalFields(category.id, portal.id, updatedFields);
-                                  }}>
-                                     <Plus className="h-3 w-3 ml-1" /> إضافة حقل مطلوب
-                                  </Button>
-                               </div>
-
-                               <div className="space-y-3">
-                                  {portal.fields?.map((f: any, fIdx: number) => (
-                                    <div key={fIdx} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                                       <div className="flex items-center gap-3">
-                                          <div className="flex-1 text-right">
-                                             <Input 
-                                               value={f.label} 
-                                               onChange={(e) => {
-                                                  const fields = [...portal.fields]; fields[fIdx].label = e.target.value;
-                                                  updatePortalFields(category.id, portal.id, fields);
-                                               }}
-                                               className="h-8 rounded-lg border-none bg-gray-50 font-black text-[10px] px-3 shadow-inner text-right" 
-                                               placeholder="اسم الحقل (مثال: TXID)"
-                                             />
-                                          </div>
-                                          <Select value={f.type} onValueChange={(val) => {
-                                             const fields = [...portal.fields]; fields[fIdx].type = val;
-                                             updatePortalFields(category.id, portal.id, fields);
-                                          }}>
-                                             <SelectTrigger className="h-8 w-28 rounded-lg border-none bg-gray-50 text-[9px] font-black shadow-inner">
-                                                <SelectValue />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                <SelectItem value="text" className="text-[10px] font-bold">نصي</SelectItem>
-                                                <SelectItem value="select" className="text-[10px] font-bold">خيارات</SelectItem>
-                                             </SelectContent>
-                                          </Select>
-                                          <button onClick={() => {
-                                             const fields = portal.fields.filter((_: any, i: number) => i !== fIdx);
-                                             updatePortalFields(category.id, portal.id, fields);
-                                          }} className="text-red-400 hover:text-red-600 transition-colors">
-                                             <Trash2 size={14} />
-                                          </button>
-                                       </div>
-                                    </div>
-                                  ))}
-                               </div>
                             </div>
                           </div>
                         </div>
@@ -494,7 +425,7 @@ export function DepositPortalsSection() {
           </DialogHeader>
           <div className="space-y-6 py-6 text-right">
             <div className="space-y-2">
-               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم القسم</Label>
+               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم القسم (مثلاً: عملات رقمية)</Label>
                <Input placeholder="أدخل اسم القسم..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center" />
             </div>
           </div>
@@ -521,9 +452,23 @@ export function DepositPortalsSection() {
                </div>
 
                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">نمط التشغيل</Label>
+                  <Select value={newPortal.automationType} onValueChange={(val: any) => setNewPortal({...newPortal, automationType: val})}>
+                     <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-none font-black text-xs px-6 shadow-inner text-right">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent className="rounded-2xl border-none shadow-2xl">
+                        <SelectItem value="none" className="font-bold text-right py-2.5">يدوي (تحكم المشرف)</SelectItem>
+                        <SelectItem value="nowpayments" className="font-bold text-right py-2.5">آلي (NOWPayments)</SelectItem>
+                        <SelectItem value="binance" className="font-bold text-right py-2.5">شبه آلي (Binance Verify)</SelectItem>
+                     </SelectContent>
+                  </Select>
+               </div>
+
+               <div className="space-y-2">
                   <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">أيقونة الواجهة</Label>
                   <Select value={newPortal.icon} onValueChange={val => setNewPortal({...newPortal, icon: val})}>
-                     <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-none font-black text-xs px-6 shadow-inner text-right">
+                     <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-none font-black text-xs px-6 shadow-inner">
                        <SelectValue />
                      </SelectTrigger>
                      <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -539,15 +484,17 @@ export function DepositPortalsSection() {
                   </Select>
                </div>
 
-               <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">عنوان الإيداع المرجعي</Label>
-                  <Input 
-                    value={newPortal.walletAddress} 
-                    onChange={e => setNewPortal({...newPortal, walletAddress: e.target.value})} 
-                    className="h-14 rounded-[24px] bg-gray-50 border-none font-mono text-xs font-black px-8 shadow-inner text-left" 
-                    dir="ltr"
-                  />
-               </div>
+               {newPortal.automationType !== 'nowpayments' && (
+                 <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">عنوان الإيداع / رقم الحساب</Label>
+                    <Input 
+                      value={newPortal.walletAddress} 
+                      onChange={e => setNewPortal({...newPortal, walletAddress: e.target.value})} 
+                      className="h-14 rounded-[24px] bg-gray-50 border-none font-mono text-xs font-black px-8 shadow-inner text-left" 
+                      dir="ltr"
+                    />
+                 </div>
+               )}
 
                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تعليمات وتوجيهات المستثمر</Label>
