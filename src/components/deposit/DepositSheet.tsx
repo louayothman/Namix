@@ -33,6 +33,7 @@ import {
 import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface DepositSheetProps {
   open: boolean;
@@ -73,6 +74,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
     setSelectedCurrency(asset);
     setLoading(true);
     try {
+      if (!dbUser?.id) return;
       const res = await getOrCreateUserWallet(dbUser.id, asset.id);
       if (res.success) {
         setWalletAddress(res.address);
