@@ -13,19 +13,17 @@
         "displayName": { "type": "string" },
         "gender": { "type": "string" },
         "password": { "type": "string" },
-        "securityPin": { "type": "string", "description": "A 6-digit PIN required for financial transactions." },
+        "securityPin": { "type": "string" },
         "totalBalance": { "type": "number" },
         "activeInvestmentsTotal": { "type": "number" },
         "totalProfits": { "type": "number" },
         "referralCode": { "type": "string" },
-        "referredBy": { "type": "string", "description": "The UID of the user who referred this user." },
-        "referralEarnings": { "type": "number" },
-        "favoriteSymbols": { "type": "array", "items": { "type": "string" }, "description": "List of symbol IDs favorited by the user." },
-        "tradingVolume": { "type": "number" },
-        "isAutoInvestEnabled": { "type": "boolean" },
-        "telegramChatId": { "type": "string", "description": "The unique Telegram Chat ID for notifications and bot interaction." },
-        "telegramUsername": { "type": "string" },
-        "tempLinkToken": { "type": "string", "description": "Temporary token for linking accounts." },
+        "referredBy": { "type": "string" },
+        "assignedWallets": { 
+          "type": "object",
+          "description": "Unique permanent addresses for deposits (e.g., { 'usdttrc20': 'TX...' })"
+        },
+        "nowPaymentsId": { "type": "string" },
         "lastActive": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -39,7 +37,8 @@
       "properties": {
         "binanceApiKey": { "type": "string" },
         "binanceApiSecret": { "type": "string" },
-        "finnhubApiKey": { "type": "string" },
+        "nowPaymentsApiKey": { "type": "string" },
+        "nowPaymentsIpnSecret": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
@@ -60,7 +59,7 @@
         "path": "/system_settings/connectivity",
         "definition": {
           "entityName": "MarketConnectivity",
-          "description": "Global API connectivity settings for Binance and Finnhub."
+          "description": "Global API connectivity settings."
         }
       }
     ]
