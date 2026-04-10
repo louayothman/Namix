@@ -29,6 +29,10 @@ import { useMarketStore } from "@/store/use-market-store";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Button } from "@/components/ui/button";
 
+/**
+ * @fileOverview بوابة الأسواق الحية v15.0 - Responsive Harmony Edition
+ * إعادة تصميم الهيكل لضمان التناغم الكامل على كافة الشاشات وتحسين عناصر التحكم.
+ */
 export default function TradeWatchlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -64,7 +68,10 @@ export default function TradeWatchlistPage() {
 
   const filteredSymbols = useMemo(() => {
     if (!rawSymbols) return [];
-    let result = rawSymbols.filter(s => s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || s.code?.toLowerCase().includes(searchQuery.toLowerCase()));
+    let result = rawSymbols.filter(s => 
+      s.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      s.code?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     if (sortBy === 'name') result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     else if (sortBy === 'price') result = [...result].sort((a, b) => (prices[b.id] || 0) - (prices[a.id] || 0));
     return result;
@@ -78,17 +85,24 @@ export default function TradeWatchlistPage() {
   if (loadingSymbols || loadingConfig || isCalibrating) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-white space-y-10 font-body">
-         <div className="relative"><div className="h-28 w-28 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" /><div className="absolute inset-0 flex items-center justify-center"><ShieldCheck className="h-10 w-10 text-[#002d4d] animate-pulse" /></div></div>
-         <div className="text-center space-y-3"><h4 className="text-2xl font-black text-[#002d4d]">معايرة الأسواق الحية...</h4><p className="text-[10px] text-gray-400 font-bold">جاري جلب نبض الأسعار في الخلفية لضمان عرض لحظي موثق.</p></div>
+         <div className="relative">
+            <div className="h-24 w-24 md:h-28 md:w-28 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+               <ShieldCheck className="h-8 w-8 md:h-10 md:w-10 text-[#002d4d] animate-pulse" />
+            </div>
+         </div>
+         <div className="text-center space-y-3 px-6">
+            <h4 className="text-xl md:text-2xl font-black text-[#002d4d]">معايرة الأسواق الحية...</h4>
+            <p className="text-[10px] text-gray-400 font-bold max-w-xs mx-auto">جاري جلب نبض الأسعار في الخلفية لضمان عرض لحظي موثق للسيولة العالمية.</p>
+         </div>
       </div>
     );
   }
 
-  // بروتوكول توقف الخدمة التكتيكي
   if (globalConfig?.isTradingEnabled === false) {
     return (
       <Shell hideMobileNav>
-        <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-white font-body" dir="rtl">
+        <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-8 bg-white font-body" dir="rtl">
            <motion.div 
              initial={{ scale: 0.8, opacity: 0 }}
              animate={{ scale: 1, opacity: 1 }}
@@ -104,17 +118,17 @@ export default function TradeWatchlistPage() {
               </div>
 
               <div className="space-y-4">
-                 <h2 className="text-3xl font-black text-[#002d4d] tracking-tight">الخدمة متوقفة مؤقتاً</h2>
-                 <p className="text-gray-500 font-bold leading-loose">
-                    نعتذر، بوابة الأسواق الحية تخضع حالياً لعملية صيانة وتحديث دورية لتعزيز الأداء وضمان دقة البيانات. سنعود للعمل في أقرب وقت ممكن.
+                 <h2 className="text-3xl font-black text-[#002d4d] tracking-tight leading-none">بوابة الأسواق مغلقة</h2>
+                 <p className="text-gray-500 font-bold leading-loose text-sm px-4">
+                    نعتذر، محطة التداول تخضع حالياً لعملية صيانة وتحديث دورية لتعزيز الأداء وضمان دقة البيانات اللحظية. سنعود للعمل في أقرب وقت.
                  </p>
               </div>
 
-              <div className="grid gap-4 w-full">
+              <div className="grid gap-4 w-full px-6">
                  <Button onClick={() => router.push("/home")} className="h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
                  <div className="flex items-center justify-center gap-3 opacity-30 mt-4">
                     <ShieldCheck size={14} className="text-emerald-500" />
-                    <p className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">System Maintenance Protocol Active</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Security Maintenance Protocol Active</p>
                  </div>
               </div>
            </motion.div>
@@ -125,34 +139,152 @@ export default function TradeWatchlistPage() {
 
   return (
     <Shell hideMobileNav>
-      <div className="max-w-[1400px] mx-auto space-y-12 px-6 md:px-10 pt-10 pb-32 font-body text-right" dir="rtl">
-        <div className="flex items-center justify-between px-2 pt-2 gap-8">
-           <div className="text-right space-y-1"><h1 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-tight">الأسواق</h1><div className="flex items-center gap-2 opacity-40"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[8px] md:text-[10px] font-black uppercase">Direct Nexus Feed Active</span></div></div>
-           <div className="flex items-center gap-2.5">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild><button className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] flex items-center justify-center shadow-inner border border-gray-100 bg-white text-gray-400"><ArrowUpDown size={18} /></button></DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="rounded-[32px] border-none shadow-2xl p-3 min-w-[220px] bg-white/95 backdrop-blur-xl z-[1002]" dir="rtl">
-                  {[{ id: 'default', label: 'الترتيب التلقائي' }, { id: 'name', label: 'الفرز حسب الاسم' }, { id: 'price', label: 'السعر (الأعلى للأقل)' }].map(item => (<DropdownMenuItem key={item.id} onClick={() => setSortBy(item.id as any)} className="font-black text-[12px] py-4 px-6 rounded-[22px] transition-all cursor-pointer mb-1 justify-center">{item.label}</DropdownMenuItem>))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] flex items-center justify-center shadow-inner border border-gray-100">{isSearchOpen ? <X size={18}/> : <Search size={18}/>}</button>
-              <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] flex items-center justify-center border border-gray-100 bg-white text-gray-400"><ChevronLeft size={20} /></button>
+      <div className="max-w-[1400px] mx-auto space-y-10 px-4 md:px-8 lg:px-10 pt-8 pb-32 font-body text-right" dir="rtl">
+        
+        {/* Responsive Strategy Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+           <div className="text-right space-y-1">
+              <h1 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-tight leading-none">الأسواق</h1>
+              <div className="flex items-center gap-2 opacity-40">
+                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">Global Nexus Feed Active</span>
+              </div>
+           </div>
+
+           <div className="flex items-center gap-2 bg-gray-50/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner w-full md:w-auto justify-between md:justify-start">
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="h-10 px-4 rounded-xl flex items-center gap-2 shadow-sm border border-gray-100 bg-white text-gray-400 hover:text-[#002d4d] transition-all active:scale-95 outline-none">
+                      <ArrowUpDown size={16} />
+                      <span className="text-[10px] font-black hidden sm:inline-block">تصفية</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="rounded-[28px] border-none shadow-2xl p-2 min-w-[220px] bg-white/95 backdrop-blur-xl z-[1002]" dir="rtl">
+                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                       <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Sort Protocol</p>
+                    </div>
+                    {[
+                      { id: 'default', label: 'الترتيب التلقائي' }, 
+                      { id: 'name', label: 'الفرز حسب الاسم' }, 
+                      { id: 'price', label: 'السعر (الأعلى للأقل)' }
+                    ].map(item => (
+                      <DropdownMenuItem key={item.id} onClick={() => setSortBy(item.id as any)} className="font-black text-[11px] py-3.5 px-5 rounded-2xl transition-all cursor-pointer mb-1 justify-between">
+                        {item.label}
+                        {sortBy === item.id && <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button 
+                  onClick={() => setIsSearchOpen(!isSearchOpen)} 
+                  className={cn(
+                    "h-10 w-10 rounded-xl flex items-center justify-center transition-all active:scale-95 border",
+                    isSearchOpen ? "bg-[#002d4d] text-[#f9a885] border-transparent shadow-lg" : "bg-white text-gray-400 border-gray-100 shadow-sm"
+                  )}
+                >
+                  {isSearchOpen ? <X size={18}/> : <Search size={18}/>}
+                </button>
+              </div>
+
+              <button 
+                onClick={() => router.back()} 
+                className="h-10 w-10 rounded-xl flex items-center justify-center border border-gray-100 bg-white text-gray-400 hover:bg-gray-50 transition-all active:scale-95"
+              >
+                <ChevronLeft size={20} />
+              </button>
            </div>
         </div>
 
-        <AnimatePresence>{isSearchOpen && (<motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="relative group px-2 max-w-2xl mx-auto"><Input autoFocus placeholder="ابحث عن أصل مالي..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-16 rounded-[32px] bg-gray-50 border-none font-bold text-sm px-14 shadow-inner text-right" /><Search className="absolute right-8 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-300" /></div></motion.div>)}</AnimatePresence>
+        {/* Dynamic Animated Search Bar */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0, y: -10 }} 
+              animate={{ height: 'auto', opacity: 1, y: 0 }} 
+              exit={{ height: 0, opacity: 0, y: -10 }} 
+              className="overflow-hidden"
+            >
+              <div className="relative group px-2 max-w-3xl mx-auto py-2">
+                <Input 
+                  autoFocus 
+                  placeholder="ابحث عن أصل مالي، عملة، أو كود تداول..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="h-16 rounded-[32px] bg-white border border-gray-100 font-bold text-sm px-14 shadow-2xl text-right focus-visible:ring-4 focus-visible:ring-blue-500/5 transition-all" 
+                />
+                <Search className="absolute right-8 top-1/2 -translate-y-1/2 h-6 w-6 text-blue-500/40" />
+                <div className="absolute left-8 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                   <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                   <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Scanning...</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {favorites.length > 0 && (
+        {/* Elite Favorites Section */}
+        {favorites.length > 0 && !searchQuery && (
           <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="flex items-center gap-4 px-4"><Star className="h-5 w-5 text-orange-400 fill-orange-400" /><h2 className="text-lg font-black text-[#002d4d]">المحفظة النخبوية</h2></div>
+             <div className="flex items-center gap-4 px-4">
+                <div className="h-8 w-8 rounded-xl bg-orange-50 text-orange-400 flex items-center justify-center shadow-inner">
+                   <Star size={16} fill="currentColor" />
+                </div>
+                <div className="text-right">
+                   <h2 className="text-lg font-black text-[#002d4d] leading-none">المحفظة النخبوية</h2>
+                   <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Sovereign Watchlist</p>
+                </div>
+             </div>
              <WatchlistHero favorites={favorites} />
           </section>
         )}
 
+        {/* Global Live Markets Grid */}
         <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-           <div className="flex items-center gap-4 px-4"><Activity className="h-6 w-6 text-blue-500" /><h2 className="text-xl font-black text-[#002d4d]">الأسواق المباشرة</h2></div>
-           <MarketGrid symbols={filteredSymbols} isLoading={false} />
+           <div className="flex items-center justify-between px-4">
+              <div className="flex items-center gap-4">
+                 <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shadow-inner">
+                    <Activity size={16} />
+                 </div>
+                 <div className="text-right">
+                    <h2 className="text-lg font-black text-[#002d4d] leading-none">الأسواق المباشرة</h2>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Live Asset Inventory</p>
+                 </div>
+              </div>
+              <div className="flex items-center gap-3">
+                 <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner tracking-widest">
+                    {filteredSymbols.length} NODES
+                 </Badge>
+              </div>
+           </div>
+           
+           <div className="relative">
+              {filteredSymbols.length === 0 ? (
+                <div className="py-32 text-center flex flex-col items-center gap-6 bg-white/40 border-2 border-dashed border-gray-100 rounded-[64px] opacity-40">
+                   <div className="h-20 w-20 rounded-full bg-gray-50 flex items-center justify-center shadow-inner">
+                      <Zap size={32} className="text-[#002d4d]" />
+                   </div>
+                   <div className="space-y-1">
+                      <p className="text-xl font-black text-[#002d4d] uppercase tracking-widest">No Matches Found</p>
+                      <p className="text-sm font-bold text-gray-400">لم يتم العثور على أصول تطابق معايير البحث.</p>
+                   </div>
+                </div>
+              ) : (
+                <MarketGrid symbols={filteredSymbols} isLoading={false} />
+              )}
+           </div>
         </section>
+
+        {/* System Branding Footer */}
+        <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure v15.0</p>
+           <div className="flex gap-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
+              ))}
+           </div>
+        </div>
       </div>
     </Shell>
   );
