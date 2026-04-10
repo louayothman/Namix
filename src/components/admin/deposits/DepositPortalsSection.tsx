@@ -27,7 +27,9 @@ import {
   ListFilter,
   Zap,
   Wallet,
-  Settings2
+  Settings2,
+  Globe,
+  Radio
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -46,11 +48,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 /**
- * @fileOverview مركز هندسة بوابات الإيداع الشامل v5.0
- * يدعم الآن ثلاثة أنماط للتشغيل: (يدوي، أتمتة NOWPayments، أتمتة Binance).
+ * @fileOverview مركز هندسة بوابات الإيداع الشمولية v6.0
+ * يعتمد الآن نظام "أنماط الفئات" (Category-Based Automation Modes).
+ * يتم قفل الإضافة اليدوية في الأقسام المؤتمتة لضمان تكامل الـ API.
  */
 
 export function DepositPortalsSection() {
@@ -59,6 +61,7 @@ export function DepositPortalsSection() {
   const [isAddPortalOpen, setIsAddPortalOpen] = useState(false);
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
+  const [newCatType, setNewCatType] = useState<"manual" | "nowpayments" | "binance">("manual");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
 
   const [portalToDelete, setPortalToDelete] = useState<{ catId: string, portal: any } | null>(null);
@@ -68,11 +71,7 @@ export function DepositPortalsSection() {
     name: "",
     walletAddress: "",
     instructions: "",
-    icon: "USDT",
-    automationType: "none" as "none" | "binance" | "nowpayments",
-    nowPaymentsCurrency: "usdttrc20",
-    binanceAsset: "USDT",
-    binanceNetwork: "TRX"
+    icon: "USDT"
   });
 
   const categoriesQuery = useMemoFirebase(() => collection(db, "deposit_methods"), [db]);
@@ -83,12 +82,14 @@ export function DepositPortalsSection() {
     try {
       await addDoc(collection(db, "deposit_methods"), { 
         name: newCatName, 
+        type: newCatType,
         isActive: true,
         portals: [] 
       });
       setNewCatName("");
+      setNewCatType("manual");
       setIsAddCatOpen(false);
-      toast({ title: "تم إنشاء القسم بنجاح" });
+      toast({ title: "تم إنشاء القسم الاستراتيجي" });
     } catch (e) { toast({ variant: "destructive", title: "خطأ في الشبكة" }); }
   };
 
@@ -102,24 +103,15 @@ export function DepositPortalsSection() {
         instructions: newPortal.instructions,
         icon: newPortal.icon,
         isActive: true,
-        automationType: newPortal.automationType,
-        nowPaymentsCurrency: newPortal.nowPaymentsCurrency,
-        binanceAsset: newPortal.binanceAsset,
-        binanceNetwork: newPortal.binanceNetwork,
-        fields: newPortal.automationType === 'nowpayments' ? [] : [{ 
-          label: "معرف العملية (TXID)", 
-          placeholder: "أدخل رقم العملية هنا...", 
-          type: "text", 
-          isTxid: true, 
-          hasPasteButton: true 
-        }]
+        automationType: "none",
+        fields: [{ label: "معرف العملية (TXID)", placeholder: "أدخل رقم العملية هنا...", type: "text", isTxid: true, hasPasteButton: true }]
       };
       await updateDoc(doc(db, "deposit_methods", activeCatId), {
         portals: arrayUnion(portalData)
       });
-      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "USDT", automationType: "none", nowPaymentsCurrency: "usdttrc20", binanceAsset: "USDT", binanceNetwork: "TRX" });
+      setNewPortal({ name: "", walletAddress: "", instructions: "", icon: "USDT" });
       setIsAddPortalOpen(false);
-      toast({ title: "تمت إضافة البوابة للقسم" });
+      toast({ title: "تمت إضافة البوابة اليدوية" });
     } catch (e) { toast({ variant: "destructive", title: "فشل الإرسال" }); }
   };
 
@@ -175,7 +167,7 @@ export function DepositPortalsSection() {
               </div>
               هندسة أقسام وبوابات الإيداع الشاملة
            </h2>
-           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sovereign Inflow Architecture</p>
+           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Multi-Source Inflow Architecture</p>
          </div>
          <Button onClick={() => setIsAddCatOpen(true)} className="rounded-full h-14 px-8 bg-[#002d4d] text-white font-black text-xs shadow-xl active:scale-95 group">
            <Plus className="ml-2 h-5 w-5 text-[#f9a885] group-hover:rotate-90 transition-transform" /> إنشاء قسم إيداع جديد
@@ -189,15 +181,24 @@ export function DepositPortalsSection() {
               <div className="p-8 flex items-center justify-between bg-gray-50/50 border-b border-gray-100" dir="rtl">
                 <div className="flex items-center gap-5">
                   <div className="h-14 w-14 rounded-[22px] bg-white shadow-sm flex items-center justify-center text-[#002d4d]">
-                    <CryptoIcon name="Wallet" size={28} />
+                    {category.type === 'manual' ? <Wallet size={28}/> : category.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current" /> : <Cpu size={28} className="text-orange-500"/>}
                   </div>
                   <div className="space-y-0.5 text-right">
                     <h3 className="font-black text-xl text-[#002d4d]">{category.name}</h3>
                     <div className="flex items-center gap-3">
-                       <Badge className={cn("text-[8px] font-black border-none px-3 py-1 rounded-full", category.isActive ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400")}>
-                         {category.isActive ? "ACTIVE SECTION" : "DISABLED"}
+                       <Badge className={cn(
+                         "text-[8px] font-black border-none px-3 py-1 rounded-full", 
+                         category.isActive ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400"
+                       )}>
+                         {category.isActive ? "ACTIVE" : "DISABLED"}
                        </Badge>
-                       <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">{category.portals?.length || 0} Portals Configured</span>
+                       <Badge className={cn(
+                         "text-[8px] font-black border-none px-3 py-1 rounded-full",
+                         category.type === 'nowpayments' ? "bg-purple-50 text-purple-600" : 
+                         category.type === 'binance' ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                       )}>
+                         {category.type?.toUpperCase() || 'MANUAL'} MODE
+                       </Badge>
                     </div>
                   </div>
                 </div>
@@ -208,9 +209,14 @@ export function DepositPortalsSection() {
                     onCheckedChange={async (val) => await updateDoc(doc(db, "deposit_methods", category.id), { isActive: val })}
                     className="data-[state=checked]:bg-emerald-500"
                   />
-                  <Button variant="ghost" size="icon" onClick={() => { setActiveCatId(category.id); setIsAddPortalOpen(true); }} className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 shadow-sm" title="إضافة بوابة لهذا القسم">
-                    <Plus className="h-5 w-5" />
-                  </Button>
+                  
+                  {/* يسمح بإضافة بوابات فقط إذا كان القسم يدوي */}
+                  {category.type === 'manual' && (
+                    <Button variant="ghost" size="icon" onClick={() => { setActiveCatId(category.id); setIsAddPortalOpen(true); }} className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 shadow-sm" title="إضافة بوابة يدوية لهذا القسم">
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  )}
+
                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-red-50 text-red-400 hover:bg-red-100" onClick={() => setCatToDeleteId(category.id)}>
                     <Trash2 className="h-5 w-5" />
                   </Button>
@@ -222,7 +228,20 @@ export function DepositPortalsSection() {
 
               {expandedCat === category.id && (
                 <div className="p-8 space-y-6 animate-in slide-in-from-top-2 duration-500" dir="rtl">
-                  {category.portals?.length > 0 ? (
+                  {category.type !== 'manual' ? (
+                    <div className="p-10 bg-blue-50/30 rounded-[48px] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center gap-6">
+                       <div className="h-20 w-20 rounded-[32px] bg-white flex items-center justify-center shadow-xl">
+                          <Radio size={40} className="text-blue-600 animate-pulse" />
+                       </div>
+                       <div className="space-y-2">
+                          <h4 className="text-xl font-black text-[#002d4d]">بروتوكول المزامنة الآلي فعال</h4>
+                          <p className="text-[13px] font-bold text-blue-800/60 leading-[2.2] max-w-md mx-auto">
+                            هذا القسم يعتمد على جلب البيانات (العناوين، التعليمات، والحقول) بشكل آلي عبر الـ API الخاص بـ <strong>{category.type?.toUpperCase()}</strong>. لا يتطلب هذا الوضع إضافة بوابات يدوية من قبلك.
+                          </p>
+                       </div>
+                       <Badge className="bg-[#002d4d] text-[#f9a885] border-none font-black text-[9px] px-6 py-2 rounded-full tracking-widest shadow-xl">SOVEREIGN SYNC ACTIVE</Badge>
+                    </div>
+                  ) : category.portals?.length > 0 ? (
                     <div className="grid gap-6 md:grid-cols-2">
                       {category.portals.map((portal: any) => (
                         <div key={portal.id} className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6 relative group/portal">
@@ -231,16 +250,7 @@ export function DepositPortalsSection() {
                               <div className="h-12 w-12 rounded-[18px] bg-white flex items-center justify-center shadow-sm">
                                 <CryptoIcon name={portal.icon} size={24} />
                               </div>
-                              <div className="text-right">
-                                <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
-                                <Badge className={cn(
-                                  "text-[7px] font-black border-none px-2 py-0.5 rounded-md",
-                                  portal.automationType === 'nowpayments' ? "bg-purple-100 text-purple-600" :
-                                  portal.automationType === 'binance' ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
-                                )}>
-                                  {portal.automationType?.toUpperCase() || 'MANUAL'}
-                                </Badge>
-                              </div>
+                              <p className="font-black text-base text-[#002d4d]">{portal.name}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch 
@@ -255,106 +265,23 @@ export function DepositPortalsSection() {
                           </div>
 
                           <div className="space-y-6">
-                            <div className="grid gap-4">
-                               <div className="space-y-1.5 text-right">
-                                  <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">اسم البوابة</Label>
-                                  <Input 
-                                    value={portal.name} 
-                                    onChange={(e) => updatePortalConfig(category.id, portal.id, 'name', e.target.value)}
-                                    className="h-11 rounded-xl bg-white border-none font-black text-sm px-8 shadow-sm text-right" 
-                                  />
-                               </div>
-
-                               <div className="space-y-1.5 text-right">
-                                  <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">نمط التشغيل (Automation Mode)</Label>
-                                  <Select 
-                                    value={portal.automationType || "none"} 
-                                    onValueChange={(val) => updatePortalConfig(category.id, portal.id, 'automationType', val)}
-                                  >
-                                    <SelectTrigger className="h-11 rounded-xl bg-[#002d4d] text-white border-none font-black text-xs px-6 shadow-xl">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                       <SelectItem value="none" className="font-bold text-right py-2.5">يدوي (تحكم المشرف)</SelectItem>
-                                       <SelectItem value="nowpayments" className="font-bold text-right py-2.5">آلي (NOWPayments)</SelectItem>
-                                       <SelectItem value="binance" className="font-bold text-right py-2.5">شبه آلي (Binance Verify)</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                               </div>
+                            <div className="space-y-1.5 text-right">
+                               <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">اسم البوابة</Label>
+                               <Input 
+                                 value={portal.name} 
+                                 onChange={(e) => updatePortalConfig(category.id, portal.id, 'name', e.target.value)}
+                                 className="h-11 rounded-xl bg-white border-none font-black text-sm px-8 shadow-sm text-right" 
+                               />
                             </div>
 
-                            {/* NOWPayments Settings */}
-                            {portal.automationType === 'nowpayments' && (
-                              <div className="p-6 bg-purple-50 rounded-3xl border border-purple-100 space-y-4 animate-in zoom-in-95">
-                                 <div className="flex items-center gap-3 text-purple-600">
-                                    <Zap size={16} className="fill-current" />
-                                    <span className="text-[10px] font-black uppercase">إعدادات NOWPayments</span>
-                                 </div>
-                                 <div className="space-y-1.5">
-                                    <Label className="text-[8px] font-black text-purple-400 pr-2">Currency ID (e.g. usdttrc20)</Label>
-                                    <Input 
-                                      value={portal.nowPaymentsCurrency || ""} 
-                                      onChange={(e) => updatePortalConfig(category.id, portal.id, 'nowPaymentsCurrency', e.target.value.toLowerCase())}
-                                      className="h-9 rounded-xl bg-white border-none font-black text-[10px] px-4 shadow-sm"
-                                      placeholder="usdttrc20"
-                                    />
-                                 </div>
-                              </div>
-                            )}
-
-                            {/* Binance Settings */}
-                            {portal.automationType === 'binance' && (
-                              <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 space-y-4 animate-in zoom-in-95">
-                                 <div className="flex items-center gap-3 text-orange-600">
-                                    <Cpu size={16} />
-                                    <span className="text-[10px] font-black uppercase">إعدادات Binance SAPI</span>
-                                 </div>
-                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                       <Label className="text-[8px] font-black text-orange-400">Asset</Label>
-                                       <Input value={portal.binanceAsset || ""} onChange={e => updatePortalConfig(category.id, portal.id, 'binanceAsset', e.target.value.toUpperCase())} className="h-9 rounded-xl bg-white border-none font-black text-[10px]" placeholder="USDT" />
-                                    </div>
-                                    <div className="space-y-1">
-                                       <Label className="text-[8px] font-black text-orange-400">Network</Label>
-                                       <Input value={portal.binanceNetwork || ""} onChange={e => updatePortalConfig(category.id, portal.id, 'binanceNetwork', e.target.value.toUpperCase())} className="h-9 rounded-xl bg-white border-none font-black text-[10px]" placeholder="TRX" />
-                                    </div>
-                                 </div>
-                              </div>
-                            )}
-
-                            {/* Wallet Address (Only if NOT nowpayments) */}
-                            {portal.automationType !== 'nowpayments' && (
-                              <div className="space-y-1.5 text-right">
-                                <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">عنوان محفظة الاستلام (ثابت)</Label>
-                                <Input 
-                                  value={portal.walletAddress} 
-                                  onChange={(e) => updatePortalConfig(category.id, portal.id, 'walletAddress', e.target.value)}
-                                  className="h-11 rounded-xl bg-white border-none font-mono text-[10px] font-black px-4 shadow-sm text-left" 
-                                  dir="ltr"
-                                />
-                              </div>
-                            )}
-
                             <div className="space-y-1.5 text-right">
-                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">أيقونة الواجهة</Label>
-                              <Select 
-                                value={portal.icon || "USDT"} 
-                                onValueChange={(val) => updatePortalConfig(category.id, portal.id, 'icon', val)}
-                              >
-                                <SelectTrigger className="h-11 rounded-xl bg-white border-none font-black text-xs px-4 shadow-sm text-right">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                  {ICON_OPTIONS.map(opt => (
-                                    <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
-                                      <div className="flex items-center gap-3 justify-end">
-                                        <span>{opt.label}</span>
-                                        <CryptoIcon name={opt.id} size={16} />
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Label className="text-[9px] font-black text-gray-400 uppercase pr-2">عنوان محفظة الاستلام (ثابت)</Label>
+                              <Input 
+                                value={portal.walletAddress} 
+                                onChange={(e) => updatePortalConfig(category.id, portal.id, 'walletAddress', e.target.value)}
+                                className="h-11 rounded-xl bg-white border-none font-mono text-[10px] font-black px-4 shadow-sm text-left" 
+                                dir="ltr"
+                              />
                             </div>
 
                             <div className="space-y-1.5 text-right">
@@ -419,18 +346,47 @@ export function DepositPortalsSection() {
       </AlertDialog>
 
       <Dialog open={isAddCatOpen} onOpenChange={setIsAddCatOpen}>
-        <DialogContent className="rounded-[40px] border-none p-10 max-w-[380px] font-body text-right" dir="rtl">
-          <DialogHeader className="items-center">
-            <DialogTitle className="text-2xl font-black text-[#002d4d]">إنشاء قسم إيداع</DialogTitle>
+        <DialogContent className="rounded-[48px] border-none p-10 max-w-[420px] font-body text-right flex flex-col outline-none" dir="rtl">
+          <DialogHeader className="items-center gap-4">
+            <div className="h-16 w-16 rounded-[24px] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+               <Layers size={32} />
+            </div>
+            <DialogTitle className="text-2xl font-black text-[#002d4d]">تأسيس قسم إيداع</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 py-6 text-right">
+          
+          <div className="space-y-8 py-8 text-right">
             <div className="space-y-2">
-               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم القسم (مثلاً: عملات رقمية)</Label>
-               <Input placeholder="أدخل اسم القسم..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center" />
+               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">اسم القسم الاستراتيجي</Label>
+               <Input placeholder="مثلاً: عملات رقمية (آلي)..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-lg shadow-inner" />
+            </div>
+
+            <div className="space-y-2">
+               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">نمط التشغيل (Operational Mode)</Label>
+               <Select value={newCatType} onValueChange={(val: any) => setNewCatType(val)}>
+                  <SelectTrigger className="h-14 rounded-[24px] bg-[#002d4d] text-white border-none font-black text-xs px-8 shadow-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[28px] border-none shadow-2xl">
+                     <SelectItem value="manual" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>يدوي (بوابات مخصصة)</span><Wallet size={14}/></div></SelectItem>
+                     <SelectItem value="nowpayments" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>آلي (NOWPayments Sync)</span><Zap size={14} className="text-purple-500 fill-current"/></div></SelectItem>
+                     <SelectItem value="binance" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>شبه آلي (Binance Sync)</span><Cpu size={14} className="text-orange-500"/></div></SelectItem>
+                  </SelectContent>
+               </Select>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 flex items-start gap-4">
+               <Info size={16} className="text-blue-500 shrink-0 mt-1" />
+               <p className="text-[10px] font-bold text-gray-400 leading-relaxed">
+                 عند اختيار "آلي" أو "شبه آلي"، سيقوم النظام بجلب العناوين والتعليمات مباشرة من الـ API المربوط في قمرة القيادة، ولن تحتاج لإضافة بوابات داخل القسم يدوياً.
+               </p>
             </div>
           </div>
+
           <DialogFooter>
-            <Button onClick={handleAddCategory} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl">تنشيط القسم</Button>
+            <Button onClick={handleAddCategory} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all group">
+               تفعيل القسم الجديد
+               <ChevronLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -441,34 +397,20 @@ export function DepositPortalsSection() {
             <div className="h-14 w-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
                <CryptoIcon name="CreditCard" size={28} />
             </div>
-            <DialogTitle className="text-2xl font-black text-[#002d4d]">إضافة بوابة جديدة</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-[#002d4d]">إضافة بوابة يدوية</DialogTitle>
           </DialogHeader>
           
           <div className="flex-1 overflow-y-auto space-y-8 py-8 scrollbar-none px-2 text-right">
             <div className="space-y-6">
                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم البوابة</Label>
-                  <Input value={newPortal.name} onChange={e => setNewPortal({...newPortal, name: e.target.value})} className="h-14 rounded-[24px] bg-gray-50 border-none font-black px-8 text-right" />
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">تسمية البوابة</Label>
+                  <Input value={newPortal.name} onChange={e => setNewPortal({...newPortal, name: e.target.value})} className="h-14 rounded-[24px] bg-gray-50 border-none font-black px-8 text-right shadow-inner" />
                </div>
 
                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">نمط التشغيل</Label>
-                  <Select value={newPortal.automationType} onValueChange={(val: any) => setNewPortal({...newPortal, automationType: val})}>
-                     <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-none font-black text-xs px-6 shadow-inner text-right">
-                       <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        <SelectItem value="none" className="font-bold text-right py-2.5">يدوي (تحكم المشرف)</SelectItem>
-                        <SelectItem value="nowpayments" className="font-bold text-right py-2.5">آلي (NOWPayments)</SelectItem>
-                        <SelectItem value="binance" className="font-bold text-right py-2.5">شبه آلي (Binance Verify)</SelectItem>
-                     </SelectContent>
-                  </Select>
-               </div>
-
-               <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">أيقونة الواجهة</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">أيقونة الواجهة</Label>
                   <Select value={newPortal.icon} onValueChange={val => setNewPortal({...newPortal, icon: val})}>
-                     <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-none font-black text-xs px-6 shadow-inner">
+                     <SelectTrigger className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-xs px-8 shadow-inner">
                        <SelectValue />
                      </SelectTrigger>
                      <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -484,20 +426,18 @@ export function DepositPortalsSection() {
                   </Select>
                </div>
 
-               {newPortal.automationType !== 'nowpayments' && (
-                 <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">عنوان الإيداع / رقم الحساب</Label>
-                    <Input 
-                      value={newPortal.walletAddress} 
-                      onChange={e => setNewPortal({...newPortal, walletAddress: e.target.value})} 
-                      className="h-14 rounded-[24px] bg-gray-50 border-none font-mono text-xs font-black px-8 shadow-inner text-left" 
-                      dir="ltr"
-                    />
-                 </div>
-               )}
+               <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">عنوان الإيداع / رقم الحساب</Label>
+                  <Input 
+                    value={newPortal.walletAddress} 
+                    onChange={e => setNewPortal({...newPortal, walletAddress: e.target.value})} 
+                    className="h-14 rounded-[24px] bg-gray-50 border-none font-mono text-xs font-black px-8 shadow-inner text-left" 
+                    dir="ltr"
+                  />
+               </div>
 
                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تعليمات وتوجيهات المستثمر</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">تعليمات وتوجيهات المستثمر</Label>
                   <Textarea value={newPortal.instructions} onChange={e => setNewPortal({...newPortal, instructions: e.target.value})} className="min-h-[120px] rounded-[32px] bg-gray-50 border-none font-bold text-xs p-8 leading-loose shadow-inner text-right" />
                </div>
             </div>
