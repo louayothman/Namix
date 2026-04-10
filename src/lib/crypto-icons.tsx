@@ -51,13 +51,16 @@ import {
   Search,
   CheckCircle2,
   AlertTriangle,
-  Radar
+  Radar,
+  Droplets,
+  Building2,
+  Apple
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX SOVEREIGN ICONS v15.0 - Ultimate Unique Arsenal
- * مصفوفة أيقونات فريدة 100% تدمج بين العملات الملونة (Iconify) وأيقونات النظام (Lucide).
+ * NAMIX FINANCIAL ICONS v16.0 - Global Asset Arsenal
+ * تم توسيع المصفوفة لتشمل أيقونات السلع (الذهب، النفط) والأسهم العالمية (Apple، الشركات).
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -76,44 +79,16 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   XRP: "cryptocurrency:xrp",
   BNB: "cryptocurrency:bnb",
   USDC: "cryptocurrency:usdc",
-  AVAX: "cryptocurrency:avax",
-  SHIB: "cryptocurrency:shib",
-  DAI: "cryptocurrency:dai",
-  UNI: "cryptocurrency:uni",
-  ATOM: "cryptocurrency:atom",
-  BCH: "cryptocurrency:bch",
-  ALGO: "cryptocurrency:algo",
-  NEAR: "cryptocurrency:near",
-  FIL: "cryptocurrency:fil",
-  ICP: "cryptocurrency:icp",
-  VET: "cryptocurrency:vet",
-  SAND: "cryptocurrency:sand",
-  MANA: "cryptocurrency:mana",
-  AAVE: "cryptocurrency:aave",
-  AXS: "cryptocurrency:axs",
-  EOS: "cryptocurrency:eos",
-  THETA: "cryptocurrency:theta",
-  FTM: "cryptocurrency:ftm",
-  MKR: "cryptocurrency:mkr",
-  GRT: "cryptocurrency:grt",
-  CAKE: "cryptocurrency:cake",
-  KAVA: "cryptocurrency:kava",
-  RUNE: "cryptocurrency:rune",
-  ZEC: "cryptocurrency:zec",
-  DASH: "cryptocurrency:dash",
-  XMR: "cryptocurrency:xmr",
-  WAVES: "cryptocurrency:waves",
-  BAT: "cryptocurrency:bat",
-  ENJ: "cryptocurrency:enj",
-  HOT: "cryptocurrency:hot",
-  CELO: "cryptocurrency:celo",
-  ROSE: "cryptocurrency:rose",
-  GALA: "cryptocurrency:gala",
-  FLOW: "cryptocurrency:flow",
-  LUNA: "cryptocurrency:luna",
-  HBAR: "cryptocurrency:hbar",
   
-  // --- Unique System & Finance (Lucide) ---
+  // --- Global Markets & Commodities (Lucide Specialized) ---
+  GOLD: Gem,
+  OIL: Droplets,
+  STOCK: Building2,
+  APPLE: Apple,
+  FOREX: Globe,
+  INDEX: BarChart3,
+  
+  // --- Core System Icons (Lucide) ---
   Coins,
   Zap,
   Globe,
@@ -161,11 +136,15 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   Search,
   CheckCircle2,
   AlertTriangle,
-  Radar
+  Radar,
+  Droplets,
+  Building2,
+  Apple
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
-  const iconData = CRYPTO_ICONS_MAP[name] || CRYPTO_ICONS_MAP.Coins;
+  const iconKey = name.toUpperCase();
+  const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.Coins;
   
   if (typeof iconData === 'string') {
     return (

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -24,17 +24,18 @@ import {
   Sparkles,
   Edit2,
   ShieldCheck,
-  AlertCircle,
-  History,
+  Globe,
   TrendingUp,
-  TrendingDown,
   Activity,
-  BarChart3,
-  Globe
+  TrendingDown,
+  Building2,
+  Droplets,
+  Gem
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getBinanceExchangeSymbols } from "@/app/actions/binance-actions";
+import { getTwelveDataSymbols } from "@/app/actions/twelvedata-actions";
 import { CRYPTO_ICONS_MAP, CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -48,16 +49,17 @@ interface AssetForgeProps {
 export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [binanceLoading, setBinanceLoading] = useState(false);
-  const [binanceSymbols, setBinanceSymbols] = useState<any[]>([]);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [marketSymbols, setMarketSymbols] = useState<any[]>([]);
   const [source, setSource] = useState<'internal' | 'binance' | 'twelvedata'>(initialData?.priceSource || 'internal');
+  const [searchTerm, setSearchTerm] = useState("");
   
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     code: initialData?.code || "",
     priceSource: initialData?.priceSource || "internal",
     binanceSymbol: initialData?.binanceSymbol || "",
-    externalTicker: initialData?.externalTicker || "", // For Twelve Data
+    externalTicker: initialData?.externalTicker || "", 
     minPrice: initialData?.minPrice || 100,
     maxPrice: initialData?.maxPrice || 1000,
     volatility: initialData?.volatility || 5,
@@ -69,41 +71,78 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const db = useFirestore();
 
   useEffect(() => {
-    if (open && source === 'binance' && binanceSymbols.length === 0) {
-      fetchBinanceData();
+    if (open && (source === 'binance' || source === 'twelvedata')) {
+      fetchMarketData();
     }
   }, [open, source]);
 
-  const fetchBinanceData = async () => {
-    setBinanceLoading(true);
+  const fetchMarketData = async () => {
+    setSyncLoading(true);
+    setMarketSymbols([]);
     try {
-      const res = await getBinanceExchangeSymbols();
+      let res;
+      if (source === 'binance') {
+        res = await getBinanceExchangeSymbols();
+      } else {
+        res = await getTwelveDataSymbols();
+      }
+
       if (res.success && res.symbols) {
-        setBinanceSymbols(res.symbols);
+        setMarketSymbols(res.symbols);
+      } else if (res.error) {
+        toast({ variant: "destructive", title: "خطأ في المزامنة", description: res.error });
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setBinanceLoading(false);
+      setSyncLoading(false);
     }
   };
 
-  const handleSelectBinanceSymbol = (sym: string) => {
-    const asset = binanceSymbols.find(s => s.symbol === sym);
-    if (asset) {
-      const possibleIcon = asset.baseAsset.toUpperCase();
-      const hasSpecialized = CRYPTO_ICONS_MAP[possibleIcon] !== undefined;
+  const handleSelectMarketSymbol = (sym: string) => {
+    const asset = marketSymbols.find(s => s.symbol === sym);
+    if (!asset) return;
 
+    if (source === 'binance') {
+      const possibleIcon = asset.baseAsset.toUpperCase();
+      const hasIcon = CRYPTO_ICONS_MAP[possibleIcon] !== undefined;
       setFormData({
         ...formData,
         name: `${asset.baseAsset} / ${asset.quoteAsset}`,
         code: `${asset.baseAsset}/${asset.quoteAsset}`,
         binanceSymbol: asset.symbol,
         priceSource: 'binance',
-        icon: hasSpecialized ? possibleIcon : 'Coins'
+        icon: hasIcon ? possibleIcon : 'Coins'
+      });
+    } else {
+      // Twelve Data Auto-fill Logic
+      let autoIcon = 'STOCK';
+      const upperName = asset.name.toUpperCase();
+      const upperSym = asset.symbol.toUpperCase();
+
+      if (upperSym.includes('XAU') || upperName.includes('GOLD')) autoIcon = 'GOLD';
+      else if (upperSym.includes('WTI') || upperName.includes('OIL') || upperSym.includes('BRN')) autoIcon = 'OIL';
+      else if (upperSym === 'AAPL') autoIcon = 'APPLE';
+      else if (asset.type === 'Forex') autoIcon = 'FOREX';
+      else if (asset.type === 'Index') autoIcon = 'INDEX';
+
+      setFormData({
+        ...formData,
+        name: asset.name,
+        code: asset.symbol,
+        externalTicker: asset.symbol,
+        priceSource: 'twelvedata',
+        icon: autoIcon
       });
     }
   };
+
+  const filteredSymbols = useMemo(() => {
+    if (!searchTerm) return marketSymbols.slice(0, 50);
+    return marketSymbols
+      .filter(s => s.symbol.toLowerCase().includes(searchTerm.toLowerCase()) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
+      .slice(0, 50);
+  }, [marketSymbols, searchTerm]);
 
   const handleAction = async () => {
     if (!formData.name || !formData.code) {
@@ -121,13 +160,11 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
         updatedAt: new Date().toISOString()
       };
 
-      let symbolId = initialData?.id;
-
       if (mode === 'add') {
         await addDoc(collection(db, "trading_symbols"), { ...payload, createdAt: new Date().toISOString() });
         toast({ title: "تم إطلاق الرمز بنجاح" });
       } else {
-        await updateDoc(doc(db, "trading_symbols", symbolId), payload);
+        await updateDoc(doc(db, "trading_symbols", initialData.id), payload);
         toast({ title: "تم تحديث بيانات الرمز" });
       }
 
@@ -174,44 +211,49 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
                       <Cpu className="h-4 w-4 text-orange-500" /> بروتوكول تزويد السعر
                    </h4>
                    <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-gray-100">
-                      <button onClick={() => setSource('internal')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white" : "text-gray-400")}>داخلي</button>
-                      <button onClick={() => setSource('binance')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600" : "text-gray-400")}>بينانس</button>
-                      <button onClick={() => setSource('twelvedata')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600" : "text-gray-400")}>12Data</button>
+                      <button onClick={() => setSource('internal')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'internal' ? "bg-[#002d4d] text-white shadow-md" : "text-gray-400")}>داخلي</button>
+                      <button onClick={() => setSource('binance')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'binance' ? "bg-orange-50 text-orange-600 shadow-md" : "text-gray-400")}>بينانس</button>
+                      <button onClick={() => setSource('twelvedata')} className={cn("px-4 h-8 rounded-xl font-black text-[9px] transition-all", source === 'twelvedata' ? "bg-blue-50 text-blue-600 shadow-md" : "text-gray-400")}>12Data</button>
                    </div>
                 </div>
 
-                {source === 'binance' && (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                     <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">قائمة رموز بينانس</Label>
-                     <Select value={formData.binanceSymbol} onValueChange={handleSelectBinanceSymbol}>
-                        <SelectTrigger className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm">
-                           <SelectValue placeholder="اختر رمز الكريبتو..." />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper">
-                           <ScrollArea className="h-[250px]">
-                              {binanceSymbols.map(s => (
-                                <SelectItem key={s.symbol} value={s.symbol} className="font-bold text-right">{s.symbol}</SelectItem>
-                              ))}
-                           </ScrollArea>
-                        </SelectContent>
-                     </Select>
-                  </div>
-                )}
-
-                {source === 'twelvedata' && (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                     <div className="flex items-center gap-2 pr-2 text-blue-600">
-                        <Globe size={14} />
-                        <Label className="text-[9px] font-black uppercase">الرمز العالمي (Twelve Data Ticker)</Label>
+                {(source === 'binance' || source === 'twelvedata') && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
+                     <div className="relative">
+                        <Input 
+                          placeholder="ابحث عن رمز (BTC, Gold, Apple)..." 
+                          value={searchTerm}
+                          onChange={e => setSearchTerm(e.target.value)}
+                          className="h-11 rounded-xl bg-white border-none font-black text-xs pr-10 shadow-sm"
+                        />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                      </div>
-                     <Input 
-                       value={formData.externalTicker} 
-                       onChange={e => setFormData({...formData, externalTicker: e.target.value.toUpperCase()})}
-                       className="h-12 rounded-xl bg-white border-none font-black text-blue-600 text-center shadow-sm"
-                       placeholder="مثال: XAU/USD أو AAPL"
-                       dir="ltr"
-                     />
-                     <p className="text-[8px] text-gray-400 font-bold pr-2">تأكد من مطابقة الرمز لمعايير Twelve Data (الذهب: XAU/USD، النفط: WTI/USD، آبل: AAPL).</p>
+                     
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black text-gray-400 pr-2 uppercase">النتائج المتوفرة من {source === 'binance' ? 'Binance' : 'Twelve Data'}</Label>
+                        <Select onValueChange={handleSelectMarketSymbol}>
+                           <SelectTrigger className="h-12 rounded-xl bg-white border-none font-black text-xs shadow-sm">
+                              <SelectValue placeholder={syncLoading ? "جاري مزامنة القائمة..." : "اختر من القائمة المنسدلة..."} />
+                           </SelectTrigger>
+                           <SelectContent className="rounded-2xl border-none shadow-2xl z-[1200]" dir="rtl" position="popper">
+                              <ScrollArea className="h-[250px]">
+                                 {syncLoading ? (
+                                   <div className="p-10 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-blue-500" /></div>
+                                 ) : filteredSymbols.map(s => (
+                                   <SelectItem key={s.symbol} value={s.symbol} className="font-bold text-right py-3">
+                                      <div className="flex items-center justify-between gap-4">
+                                         <div className="flex flex-col items-start">
+                                            <span className="text-xs">{s.symbol}</span>
+                                            <span className="text-[8px] text-gray-400 font-bold uppercase">{s.name || s.type}</span>
+                                         </div>
+                                         {s.exchange && <Badge className="bg-gray-50 text-gray-400 text-[7px]">{s.exchange}</Badge>}
+                                      </div>
+                                   </SelectItem>
+                                 ))}
+                              </ScrollArea>
+                           </SelectContent>
+                        </Select>
+                     </div>
                   </div>
                 )}
              </div>
