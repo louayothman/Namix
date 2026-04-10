@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -13,19 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { 
   Cpu, 
   ChevronRight, 
-  Globe, 
   Zap, 
   ShieldCheck, 
   Loader2, 
-  Sparkles,
-  Activity,
   Plus,
   Trash2,
-  Lock,
-  KeyRound,
   Database,
-  Layers,
-  AlertTriangle,
   RotateCcw
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -35,7 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface ApiNode {
   id: string;
-  provider: 'binance' | 'finnhub' | 'custom';
+  provider: 'binance' | 'custom';
   label: string;
   apiKey: string;
   apiSecret?: string;
@@ -54,7 +47,7 @@ export default function APIManagementPage() {
 
   useEffect(() => {
     if (remoteConnectivity?.nodes) {
-      setNodes(remoteConnectivity.nodes);
+      setNodes(remoteConnectivity.nodes.filter((n: any) => n.provider !== 'finnhub'));
     }
   }, [remoteConnectivity]);
 
@@ -62,10 +55,10 @@ export default function APIManagementPage() {
     const newNode: ApiNode = {
       id: Math.random().toString(36).substr(2, 9),
       provider,
-      label: provider === 'binance' ? 'Binance Account' : provider === 'finnhub' ? 'Finnhub Node' : 'Custom Node',
+      label: provider === 'binance' ? 'Binance Node' : 'Custom Node',
       apiKey: "",
       apiSecret: "",
-      isActive: true // تفعيل تلقائي عند الإضافة لتعزيز المصفوفة
+      isActive: true
     };
     setNodes([...nodes, newNode]);
   };
@@ -83,13 +76,11 @@ export default function APIManagementPage() {
     try {
       await setDoc(connectivityRef, { 
         nodes, 
-        // دعم التوافق مع الأنظمة القديمة عبر اختيار أول عقدة نشطة
         binanceApiKey: nodes.find(n => n.provider === 'binance' && n.isActive)?.apiKey || "",
         binanceApiSecret: nodes.find(n => n.provider === 'binance' && n.isActive)?.apiSecret || "",
-        finnhubApiKey: nodes.find(n => n.provider === 'finnhub' && n.isActive)?.apiKey || "",
         updatedAt: new Date().toISOString() 
       }, { merge: true });
-      toast({ title: "تم تثبيت مصفوفة العقد بنجاح" });
+      toast({ title: "تم تحديث مصفوفة العقد" });
     } catch (e) {
       toast({ variant: "destructive", title: "فشل التحديث" });
     } finally {
@@ -107,29 +98,27 @@ export default function APIManagementPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-black text-[#002d4d] flex items-center gap-3">
               <Database className="h-8 w-8 text-blue-600" />
-              مصفوفة الاتصال الديناميكية
+              مصفوفة الربط الخارجية
             </h1>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Multi-Node API Balancer</p>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Binance API Infrastructure</p>
           </div>
           
           <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 p-1.5 bg-gray-100 rounded-2xl shadow-inner">
-                <button onClick={() => handleAddNode('binance')} className="px-4 h-9 rounded-xl bg-white text-orange-600 font-black text-[9px] shadow-sm hover:bg-orange-50 transition-all flex items-center gap-2"><Plus size={12} /> BINANCE NODE</button>
-                <button onClick={() => handleAddNode('finnhub')} className="px-4 h-9 rounded-xl bg-white text-blue-600 font-black text-[9px] shadow-sm hover:bg-blue-50 transition-all flex items-center gap-2"><Plus size={12} /> FINNHUB NODE</button>
-             </div>
-             <Button onClick={() => router.back()} variant="ghost" className="rounded-full bg-white border border-gray-100 h-12 px-8 font-black text-[10px]"><ChevronRight className="ml-2 h-4 w-4" /> العودة</Button>
+             <Button onClick={() => handleAddNode('binance')} className="rounded-xl h-11 px-6 bg-orange-50 text-orange-600 hover:bg-orange-100 font-black text-[10px] border border-orange-100 shadow-sm">
+                <Plus size={14} className="ml-2" /> إضافة عقدة BINANCE
+             </Button>
+             <Button onClick={() => router.back()} variant="ghost" className="rounded-full bg-white border border-gray-100 h-11 px-8 font-black text-[10px]"><ChevronRight className="ml-2 h-4 w-4" /> العودة</Button>
           </div>
         </div>
 
-        {/* ميزة التدوير التلقائي - شرح للمشرف */}
         <div className="p-6 bg-emerald-50 rounded-[32px] border border-emerald-100 flex items-start gap-5">
            <div className="h-10 w-10 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
               <RotateCcw className="h-6 w-6 text-emerald-600 animate-spin-slow" />
            </div>
            <div className="space-y-1">
-              <p className="text-xs font-black text-emerald-900">بروتوكول التدوير الآلي مفعل</p>
+              <p className="text-xs font-black text-emerald-900">بروتوكول موازنة الأحمال</p>
               <p className="text-[11px] font-bold text-emerald-800/60 leading-relaxed">
-                عند تفعيل أكثر من عقدة لنفس المزود، سيقوم النظام بتوزيع الطلبات عليها تلقائياً. في حال استنفاد حد الطلبات (Rate Limit) لأي مفتاح، سيتم التبديل للعقدة التالية فوراً دون انقطاع السعر.
+                يمكنك تفعيل أكثر من مفتاح Binance لتجاوز قيود الطلبات (Rate Limits). سيقوم النظام بالتبديل آلياً بين العقد النشطة لضمان استقرار تدفق الأسعار والتحقق من الإيداعات.
               </p>
            </div>
         </div>
@@ -139,14 +128,14 @@ export default function APIManagementPage() {
             {nodes.map((node) => (
               <motion.div key={node.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
                 <Card className={cn("rounded-[48px] border-none shadow-sm overflow-hidden bg-white transition-all duration-500", node.isActive ? "ring-2 ring-emerald-500/20 shadow-xl" : "opacity-60 grayscale")}>
-                  <CardHeader className={cn("p-8 border-b border-gray-50 flex flex-row items-center justify-between", node.provider === 'binance' ? "bg-orange-50/30" : "bg-blue-50/30")}>
+                  <CardHeader className="p-8 border-b border-gray-50 flex flex-row items-center justify-between bg-orange-50/20">
                     <div className="flex items-center gap-5">
-                      <div className={cn("h-14 w-14 rounded-[22px] flex items-center justify-center shadow-inner", node.provider === 'binance' ? "bg-white text-orange-500" : "bg-white text-blue-600")}>
+                      <div className="h-14 w-14 rounded-[22px] bg-white text-orange-500 flex items-center justify-center shadow-inner">
                         <Cpu className={cn("h-7 w-7", node.isActive && "animate-pulse")} />
                       </div>
                       <div className="text-right">
                         <Input value={node.label} onChange={e => updateNode(node.id, 'label', e.target.value)} className="h-8 w-48 bg-transparent border-none font-black text-lg p-0 text-[#002d4d] focus-visible:ring-0" />
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{node.provider} Protocol Node</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{node.provider} Node Config</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -164,7 +153,7 @@ export default function APIManagementPage() {
                           <Input value={node.apiKey} onChange={e => updateNode(node.id, 'apiKey', e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner text-left" dir="ltr" />
                        </div>
                        <div className="space-y-3">
-                          <Label className="text-[10px] font-black text-gray-400 uppercase pr-4">Secret Key (Optional)</Label>
+                          <Label className="text-[10px] font-black text-gray-400 uppercase pr-4">Secret Key</Label>
                           <Input type="password" value={node.apiSecret || ""} onChange={e => updateNode(node.id, 'apiSecret', e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-sm px-8 shadow-inner text-left" dir="ltr" />
                        </div>
                     </div>
@@ -173,26 +162,23 @@ export default function APIManagementPage() {
               </motion.div>
             ))}
           </AnimatePresence>
+          {nodes.length === 0 && (
+            <div className="py-20 text-center opacity-20 flex flex-col items-center gap-4">
+               <Cpu size={48} />
+               <p className="text-xs font-black uppercase tracking-widest">لا توجد عقد ربط نشطة</p>
+            </div>
+          )}
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl transition-all active:scale-[0.98] group">
           {saving ? <Loader2 className="animate-spin h-8 w-8" /> : (
             <div className="flex items-center gap-4">
-              <span>تثبيت مصفوفة التدوير الذكية</span>
+              <span>تثبيت مصفوفة الربط السيادية</span>
               <ShieldCheck className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
             </div>
           )}
         </Button>
       </div>
-      <style jsx global>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
-        }
-      `}</style>
     </Shell>
   );
 }

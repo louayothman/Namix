@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview محرك الرسم البياني الاحترافي v25.0 - Finnhub Sync Stabilized
- * تم إصلاح عطل جلب البيانات التاريخية لـ Finnhub عبر ترميز الرموز وتأمين سلاسل البيانات.
+ * @fileOverview محرك الرسم البياني الاحترافي v26.0 - Binance & Internal Focused
+ * تم تطهير المحرك من كافة مراجع Finnhub والتركيز على Binance والأصول الداخلية.
  */
 
 "use client";
@@ -29,7 +29,6 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { getHistoricalKlines } from "@/services/binance-service";
-import { getFinnhubCandles } from "@/app/actions/finnhub-actions";
 import { generateInternalHistory } from "@/lib/internal-market";
 import { calculateIndicators } from "@/lib/indicators";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -179,22 +178,12 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const db = useFirestore();
 
   const fetchMoreHistory = useCallback(async () => {
-    if (isFetchingMore || !history.length || !asset) return;
+    if (isFetchingMore || !history.length || !asset || asset.priceSource !== 'binance') return;
     
     setIsFetchingMore(true);
     try {
       const firstCandleTime = history[0].time;
-      const to = firstCandleTime - 1;
-      const from = to - (24 * 60 * 60);
-      
-      let moreData: any[] = [];
-      
-      if (asset.priceSource === 'binance' && asset.binanceSymbol) {
-        moreData = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440, firstCandleTime * 1000 - (24 * 60 * 60 * 1000));
-      } else if (asset.priceSource === 'finnhub') {
-        const res = await getFinnhubCandles(asset.externalTicker || asset.code, '1', from, to);
-        if (res.success) moreData = res.data;
-      }
+      const moreData = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440, firstCandleTime * 1000 - (24 * 60 * 60 * 1000));
       
       if (moreData.length > 0) {
         setHistory(prev => {
@@ -250,14 +239,8 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
       setIsLoading(true);
       try {
         let data: any[] = [];
-        const to = Math.floor(Date.now() / 1000);
-        const from = to - (24 * 60 * 60);
-
         if (asset.priceSource === 'binance' && asset.binanceSymbol) {
           data = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440);
-        } else if (asset.priceSource === 'finnhub') {
-          const res = await getFinnhubCandles(asset.externalTicker || asset.code, '1', from, to);
-          if (res.success && res.data?.length) data = res.data;
         } else {
           data = generateInternalHistory(asset.id, asset, 1000);
         }
@@ -312,18 +295,6 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
       refreshIndicators(history);
     }
   }, [history, isChartReady]);
-
-  useEffect(() => {
-    if (!asset?.id) return;
-    const userSession = localStorage.getItem("namix_user");
-    if (!userSession) return;
-    const user = JSON.parse(userSession);
-    const q = query(collection(db, "trades"), where("userId", "==", user.id), where("symbolId", "==", asset.id), where("status", "==", "open"));
-    const unsub = onSnapshot(q, (snap) => {
-      setActiveTrades(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return () => unsub();
-  }, [asset?.id, db]);
 
   const applyStyle = (style: ChartStyle, data?: any[]) => {
     if (!chartRef.current) return;
@@ -405,7 +376,6 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     }
     if (['candles', 'bars'].includes(currentStyle)) mainSeriesRef.current.update(currentBarRef.current);
     else mainSeriesRef.current.update({ time: currentBarRef.current.time, value: livePrice });
-    if (volumeSeriesRef.current) volumeSeriesRef.current.update({ time: currentBarRef.current.time, value: currentBarRef.current.volume || 0, color: livePrice >= currentBarRef.current.open ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' });
     
     const coord = mainSeriesRef.current.priceToCoordinate(livePrice);
     if (coord !== null) setPriceY(coord);
@@ -487,7 +457,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
             {isFetchingMore && (
               <div className="h-7 px-3 bg-white/90 border border-gray-100 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-md animate-in fade-in">
                  <Loader2 size={10} className="animate-spin text-blue-500" />
-                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Loading True History...</span>
+                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Syncing History...</span>
               </div>
             )}
           </div>
@@ -506,7 +476,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
         )}
       </AnimatePresence>
 
-      {isLoading && <div className="absolute inset-0 z-[110] bg-white/60 flex flex-col items-center justify-center gap-4"><Loader2 className="h-10 w-10 animate-spin text-blue-600" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة الرسم الحقيقي...</p></div>}
+      {isLoading && <div className="absolute inset-0 z-[110] bg-white/60 flex flex-col items-center justify-center gap-4"><Loader2 className="h-10 w-10 animate-spin text-blue-600" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Syncing Pulse...</p></div>}
       <div ref={chartContainerRef} className="w-full h-full" />
     </div>
   );

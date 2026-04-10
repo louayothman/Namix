@@ -3,14 +3,11 @@
 
 import { 
   Trash2, 
-  Cpu,
   Loader2,
   Zap,
   TrendingUp,
   Activity,
-  ShieldAlert,
   AlertTriangle,
-  Briefcase,
   Globe,
   Coins,
   Layers,
@@ -68,10 +65,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
 
   const categorizedSymbols = useMemo(() => {
     const groups: Record<string, { label: string, icon: any, items: any[] }> = {
-      equity: { label: "الأسهم العالمية", icon: Briefcase, items: [] },
-      commodity: { label: "السلع والمعادن", icon: Zap, items: [] },
-      forex: { label: "سوق العملات (Forex)", icon: Globe, items: [] },
-      crypto: { label: "العملات الرقمية", icon: Coins, items: [] },
+      crypto: { label: "العملات الرقمية (بينانس)", icon: Coins, items: [] },
       internal: { label: "أصول المنظومة الداخلية", icon: Activity, items: [] },
       other: { label: "أصول متنوعة", icon: Layers, items: [] }
     };
@@ -79,13 +73,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
     symbols.forEach(s => {
       if (s.priceSource === 'internal') groups.internal.items.push(s);
       else if (s.priceSource === 'binance') groups.crypto.items.push(s);
-      else if (s.priceSource === 'finnhub') {
-        const type = (s.type || "").toLowerCase();
-        if (type.includes('equity') || type.includes('stock') || type.includes('common')) groups.equity.items.push(s);
-        else if (type.includes('commodity') || s.icon === 'GOLD' || s.icon === 'OIL') groups.commodity.items.push(s);
-        else if (type.includes('forex')) groups.forex.items.push(s);
-        else groups.other.items.push(s);
-      } else groups.other.items.push(s);
+      else groups.other.items.push(s);
     });
 
     return Object.entries(groups).filter(([_, g]) => g.items.length > 0);
@@ -102,7 +90,12 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
 
   return (
     <div className="space-y-20 text-right" dir="rtl">
-      {categorizedSymbols.map(([key, group]) => (
+      {categorizedSymbols.length === 0 ? (
+        <div className="py-24 text-center flex flex-col items-center gap-4 opacity-20 border-2 border-dashed border-gray-100 rounded-[64px]">
+           <Layers className="h-16 w-16 text-[#002d4d]" />
+           <p className="text-xs font-black uppercase tracking-[0.5em]">لا توجد أسواق مدرجة حالياً</p>
+        </div>
+      ) : categorizedSymbols.map(([key, group]) => (
         <section key={key} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center justify-between px-6">
              <div className="flex items-center gap-4">
