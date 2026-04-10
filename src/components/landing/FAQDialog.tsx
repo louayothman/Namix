@@ -6,8 +6,8 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle,
-  DialogPortal,
+  DialogTitle, 
+  DialogPortal, 
   DialogOverlay
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,8 @@ import {
   MessageSquare,
   Zap,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Trophy
 } from "lucide-react";
 import Lottie from "lottie-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -161,7 +162,7 @@ export function FAQDialog({ open, onOpenChange, onContactClick }: FAQDialogProps
                <div className="space-y-2 md:space-y-4 text-right group/header">
                   <div className="relative inline-flex items-center justify-start">
                      <div className="absolute -right-6 -top-6 md:-right-10 md:-top-10 opacity-5 group-hover/header:opacity-15 group-hover/header:rotate-12 transition-all duration-700 pointer-events-none text-blue-600">
-                        <HelpCircle size={80} className="md:size-[120px]" />
+                        <Trophy size={80} className="md:size-[120px]" />
                      </div>
                      <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none relative z-10">الأسئلة الشائعة</DialogTitle>
                   </div>
