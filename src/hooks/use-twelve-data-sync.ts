@@ -3,13 +3,13 @@
 
 import { useEffect, useRef } from 'react';
 import { useMarketStore } from '@/store/use-market-store';
-import { getAlphaVantagePrice } from '@/app/actions/alphavantage-actions';
+import { getTwelveDataPrice } from '@/app/actions/twelvedata-actions';
 
 /**
- * @fileOverview بروتوكول مزامنة Alpha Vantage v1.3 - Market Hours Aware
- * يدير التحديث الدوري مع مراعاة إغلاق الأسواق العالمية في عطلات نهاية الأسبوع.
+ * @fileOverview بروتوكول مزامنة Twelve Data v1.0 - Market Hours Aware
+ * يدير تحديث أسعار الأسهم والفوركس والسلع مع مراعاة عطلات نهاية الأسبوع.
  */
-export function useAlphaSync(symbols: any[]) {
+export function useTwelveDataSync(symbols: any[]) {
   const updatePrice = useMarketStore(state => state.updatePrice);
   const timerRef = useRef<any>(null);
   const isMounted = useRef(true);
@@ -23,23 +23,20 @@ export function useAlphaSync(symbols: any[]) {
 
   useEffect(() => {
     isMounted.current = true;
-    const alphaSymbols = symbols?.filter(s => s.priceSource === 'alphavantage') || [];
+    const tdSymbols = symbols?.filter(s => s.priceSource === 'twelvedata') || [];
     
-    if (alphaSymbols.length === 0) return;
+    if (tdSymbols.length === 0) return;
 
     const sync = async () => {
       if (!isMounted.current) return;
       
-      // التوقف عن المزامنة إذا كان السوق العالمي مغلقاً (عطلة نهاية الأسبوع)
-      if (!isMarketOpen()) {
-        console.log("Alpha Vantage Market is Closed (Weekend). Sync Suspended.");
-        return;
-      }
+      // التوقف عن المزامنة إذا كان السوق العالمي مغلقاً
+      if (!isMarketOpen()) return;
       
-      for (const s of alphaSymbols) {
+      for (const s of tdSymbols) {
         if (!isMounted.current) break;
         try {
-          const res = await getAlphaVantagePrice(s.externalTicker || s.code);
+          const res = await getTwelveDataPrice(s.externalTicker || s.code);
           if (res.success && res.price !== undefined) {
             updatePrice(s.id, res.price, res.changePercent || 0, {
               high: res.high || res.price,
@@ -48,13 +45,13 @@ export function useAlphaSync(symbols: any[]) {
             });
           }
         } catch (e) {
-          console.error(`Alpha Sync Error for ${s.code}:`, e);
+          console.error(`TwelveData Sync Error for ${s.code}:`, e);
         }
       }
     };
 
     sync();
-    timerRef.current = setInterval(sync, 30000); // تحديث كل 30 ثانية للأصول العالمية
+    timerRef.current = setInterval(sync, 30000); 
 
     return () => {
       isMounted.current = false;
