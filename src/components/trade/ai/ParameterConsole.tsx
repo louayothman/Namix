@@ -16,7 +16,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ParameterConsoleProps {
   amount: number;
@@ -163,7 +163,6 @@ export function ParameterConsole({
                )}
              </AnimatePresence>
 
-             {/* Background Pulse Effect for Active Signals */}
              {!isHold && (
                <motion.div 
                  animate={{ opacity: [0.1, 0.3, 0.1] }}
