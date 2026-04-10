@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -78,7 +79,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         if (data.dialogue) {
           const newMessages: any[] = [];
           data.dialogue.forEach((msg: any) => {
-            // إضافة الرسالة فقط إذا تغيرت قراءة الوكيل فعلياً (WhatsApp Logic)
             if (lastAgentsRef.current[msg.agent] !== msg.message) {
               newMessages.push({ ...msg, id: Date.now() + Math.random() });
               lastAgentsRef.current[msg.agent] = msg.message;
@@ -154,11 +154,9 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <MarketPulseHub price={currentPrice} turbulence={confidenceScore} />
             
-            {/* بطاقة الأهداف الاستراتيجية الموحدة - تضم مصفوفة الاستحقاقات المسطحة */}
             <div className="p-8 bg-white rounded-[56px] border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,45,77,0.08)] space-y-10 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 transition-transform duration-1000"><Target size={180} /></div>
 
-               {/* 1. مصفوفة الاستحقاق المدمجة (Flat Metrics) */}
                <IntelligenceMetrics scorecard={{
                  momentum: Math.round((result.agents?.tech?.score || 0.5) * 100),
                  liquidity: Math.round((result.agents?.volume?.score || 0.5) * 100),
@@ -167,7 +165,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="h-px bg-gray-50 relative z-10" />
 
-               {/* 2. تدفق المستهدفات */}
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية</h4>
@@ -211,7 +208,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                </div>
             </div>
 
-            {/* بطاقة المحادثة المنفصلة (WhatsApp Style) */}
             <div className="p-8 bg-white rounded-[48px] border border-gray-100 shadow-sm relative overflow-hidden">
                <AgentDialogueFeed messages={chatHistory} />
             </div>
@@ -224,37 +220,21 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
             <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر البروتوكول المعتمد.`} />
 
-            <div className="pt-4 border-t border-gray-50">
-               <ParameterConsole 
-                 amount={tradeAmount}
-                 onAmountChange={setTradeAmount}
-                 duration={tradeDuration}
-                 onDurationChange={setTradeDuration}
-                 durations={globalConfig?.tradeDurations || []}
-                 balance={dbUser?.totalBalance || 0}
-                 minAmount={globalConfig?.minTradeAmount || 10}
-                 maxAmount={globalConfig?.maxTradeAmount || 5000}
-               />
-            </div>
+            {/* Parameter Console Integrated with Execution Button */}
+            <ParameterConsole 
+              amount={tradeAmount}
+              onAmountChange={setTradeAmount}
+              duration={tradeDuration}
+              onDurationChange={setTradeDuration}
+              durations={globalConfig?.tradeDurations || []}
+              balance={dbUser?.totalBalance || 0}
+              minAmount={globalConfig?.minTradeAmount || 10}
+              maxAmount={globalConfig?.maxTradeAmount || 5000}
+              onExecute={handleTradeExecution}
+              isExecuting={isExecuting}
+              decision={result.decision}
+            />
 
-            <div className="pt-2">
-               <Button 
-                 onClick={handleTradeExecution}
-                 disabled={isExecuting || result.decision === 'HOLD'}
-                 className={cn(
-                   "w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95 transition-all group relative overflow-hidden",
-                   result.decision === 'BUY' ? "hover:bg-emerald-600 shadow-emerald-900/40" : 
-                   result.decision === 'SELL' ? "hover:bg-red-600 shadow-red-900/40" : "bg-gray-100 text-gray-400"
-                 )}
-               >
-                 {isExecuting ? <Loader2 className="animate-spin h-6 w-6" /> : (
-                   <div className="flex items-center gap-3 relative z-10">
-                      <span>تأكيد التنفيذ (${tradeAmount.toFixed(2)})</span>
-                      <PlayCircle className="h-6 w-6" />
-                   </div>
-                 )}
-               </Button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
