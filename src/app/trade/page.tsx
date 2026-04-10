@@ -31,8 +31,8 @@ import { useMarketSync } from "@/hooks/use-market-sync";
 import { Button } from "@/components/ui/button";
 
 /**
- * @fileOverview بوابة الأسواق الحية v15.1 - Fix: Added missing Badge import
- * إعادة تصميم الهيكل لضمان التناغم الكامل على كافة الشاشات وتحسين عناصر التحكم.
+ * @fileOverview بوابة الأسواق الحية v15.2 - Refined Command Layout
+ * تم نقل أزرار التحكم لليسار وتحديث نصوص التحميل وتطهير التذييل.
  */
 export default function TradeWatchlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,15 +45,15 @@ export default function TradeWatchlistPage() {
   const prices = useMarketStore(state => state.prices);
 
   useEffect(() => {
-    const session = localStorage.getItem("namix_user");
-    if (session) {
+    const userSession = localStorage.getItem("namix_user");
+    if (userSession) {
       try {
-        const parsed = JSON.parse(session);
+        const parsed = JSON.parse(userSession);
         const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => { if (snap.exists()) setDbUser(snap.data()); });
         return () => unsub();
       } catch (e) { router.push("/login"); }
     }
-  }, [db]);
+  }, [db, router]);
 
   const globalConfigRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
   const { data: globalConfig, isLoading: loadingConfig } = useDoc(globalConfigRef);
@@ -95,8 +95,7 @@ export default function TradeWatchlistPage() {
             </div>
          </div>
          <div className="text-center space-y-3 px-6">
-            <h4 className="text-xl md:text-2xl font-black text-[#002d4d]">معايرة الأسواق الحية...</h4>
-            <p className="text-[10px] text-gray-400 font-bold max-w-xs mx-auto">جاري جلب نبض الأسعار في الخلفية لضمان عرض لحظي موثق للسيولة العالمية.</p>
+            <h4 className="text-xl md:text-2xl font-black text-[#002d4d]">تحميل أسواق الكريبتو</h4>
          </div>
       </div>
     );
@@ -144,8 +143,9 @@ export default function TradeWatchlistPage() {
     <Shell hideMobileNav>
       <div className="max-w-[1400px] mx-auto space-y-10 px-4 md:px-8 lg:px-10 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Responsive Strategy Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+        {/* Responsive Strategy Header - Blocks opposite to each other */}
+        <div className="flex flex-row items-center justify-between gap-8 px-2">
+           {/* RIGHT: Markets Title */}
            <div className="text-right space-y-1">
               <h1 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-tight leading-none">الأسواق</h1>
               <div className="flex items-center gap-2 opacity-40">
@@ -154,7 +154,8 @@ export default function TradeWatchlistPage() {
               </div>
            </div>
 
-           <div className="flex items-center gap-2 bg-gray-50/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner w-full md:w-auto justify-between md:justify-start">
+           {/* LEFT: Command Matrix (Search, Sort, Back) */}
+           <div className="flex items-center gap-2 bg-gray-50/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner">
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -279,9 +280,9 @@ export default function TradeWatchlistPage() {
            </div>
         </section>
 
-        {/* System Branding Footer */}
+        {/* System Branding Footer - Clean Edition */}
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure v15.1</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
