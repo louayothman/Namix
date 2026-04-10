@@ -60,8 +60,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX FINANCIAL ICONS v20.0 - Sovereign Unified Arsenal
- * تم توحيد المفاتيح لتكون UPPERCASE لضمان دقة الاستدعاء ومنع تكرار الأيقونة الافتراضية.
+ * @fileOverview NAMIX UNIFIED ICON ARSENAL v21.0
+ * تم توحيد كافة المفاتيح لتصبح UPPERCASE لضمان دقة الاستدعاء البرمجي ومنع الخلل البصري.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -105,7 +105,7 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   APPLE_STK: Apple,
   BITCOIN: Bitcoin,
   
-  // --- Core System Icons (Lucide - Mapped to UPPERCASE) ---
+  // --- Core System Icons (Lucide - Strictly UPPERCASE) ---
   COINS: Coins,
   ZAP: Zap,
   GLOBE: Globe,

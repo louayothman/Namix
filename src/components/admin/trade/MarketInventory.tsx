@@ -12,7 +12,9 @@ import {
   AlertTriangle,
   Briefcase,
   Globe,
-  Coins
+  Coins,
+  Layers,
+  TrendingDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
@@ -20,7 +22,7 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AssetForge } from "./AssetForge";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import {
@@ -42,8 +44,8 @@ interface MarketInventoryProps {
 }
 
 /**
- * @fileOverview جرد الأسواق المبوب v101.0 - Tactical Sector Edition
- * تم تقسيم الأصول إلى قطاعات (أسهم، سلع، فوركس، كريبتو) لتسهيل الإدارة.
+ * @fileOverview جرد الأسواق المبوب v102.0 - Multi-Source Edition
+ * تم تصنيف الأصول تحت قطاعات تكتيكية لتسهيل الإشراف المباشر.
  */
 export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
   const db = useFirestore();
@@ -67,7 +69,6 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
     await updateDoc(doc(db, "trading_symbols", id), { isActive: !current });
   };
 
-  // محرك التصنيف القطاعي
   const categorizedSymbols = useMemo(() => {
     const groups: Record<string, { label: string, icon: any, items: any[] }> = {
       equity: { label: "الأسهم العالمية", icon: Briefcase, items: [] },
