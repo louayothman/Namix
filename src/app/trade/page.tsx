@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, where, doc, onSnapshot } from "firebase/firestore";
@@ -20,6 +20,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { WatchlistHero } from "@/components/trade/watchlist/WatchlistHero";
 import { MarketGrid } from "@/components/trade/watchlist/MarketGrid";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,7 @@ import { useMarketSync } from "@/hooks/use-market-sync";
 import { Button } from "@/components/ui/button";
 
 /**
- * @fileOverview بوابة الأسواق الحية v15.0 - Responsive Harmony Edition
+ * @fileOverview بوابة الأسواق الحية v15.1 - Fix: Added missing Badge import
  * إعادة تصميم الهيكل لضمان التناغم الكامل على كافة الشاشات وتحسين عناصر التحكم.
  */
 export default function TradeWatchlistPage() {
@@ -46,9 +47,11 @@ export default function TradeWatchlistPage() {
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
-      const parsed = JSON.parse(session);
-      const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => { if (snap.exists()) setDbUser(snap.data()); });
-      return () => unsub();
+      try {
+        const parsed = JSON.parse(session);
+        const unsub = onSnapshot(doc(db, "users", parsed.id), (snap) => { if (snap.exists()) setDbUser(snap.data()); });
+        return () => unsub();
+      } catch (e) { router.push("/login"); }
     }
   }, [db]);
 
@@ -278,7 +281,7 @@ export default function TradeWatchlistPage() {
 
         {/* System Branding Footer */}
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure v15.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Market Infrastructure v15.1</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
