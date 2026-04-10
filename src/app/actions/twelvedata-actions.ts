@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v2.1
+ * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v2.2
  * محرك جلب الرموز العالمية مع معالجة متقدمة للأخطاء والمحدودية والتحقق من صحة الاستجابة.
  */
 
@@ -34,32 +34,28 @@ export async function getTwelveDataSymbols() {
     
     // التحقق من أن الاستجابة هي JSON صالح وليست نص خطأ
     if (!text || (!text.startsWith('{') && !text.startsWith('['))) {
-      return { success: false, error: "استجابة غير متوقعة من المزود. يرجى التأكد من صلاحية مفتاح الـ API وتجربة رمز مختلف." };
+      return { success: false, error: "استجابة غير متوقعة من المزود. يرجى التأكد من صلاحية مفتاح الـ API." };
     }
 
     let data;
     try {
       data = JSON.parse(text);
     } catch (parseErr) {
-      return { success: false, error: "فشل تحليل البيانات المستلمة من Twelve Data. يرجى الانتظار دقيقة والمحاولة مجدداً." };
+      return { success: false, error: "فشل تحليل البيانات المستلمة. يرجى الانتظار دقيقة والمحاولة مجدداً." };
     }
     
     if (data.status === 'error') {
-      // معالجة الأخطاء المحددة من المزود (مثل عدم توفر اشتراك لأسواق معينة)
-      if (data.code === 403) {
-        return { success: false, error: "مفتاح الـ API الخاص بك لا يملك صلاحية الوصول لهذه البيانات (يتطلب اشتراكاً مدفوعاً أو تفعيل للخدمة)." };
-      }
-      return { success: false, error: data.message || "حدث خطأ غير معروف في مزود البيانات." };
+      return { success: false, error: data.message || "حدث خطأ في مزود البيانات." };
     }
 
     if (!data.data || !Array.isArray(data.data)) {
       return { success: false, symbols: [] };
     }
 
-    // تصفية الرموز وتحديدها بـ 2000 رمز لضمان سرعة الواجهة
+    // تصفية الرموز وتحديدها لضمان سرعة الواجهة
     const filtered = data.data
       .filter((s: any) => 
-        ['Common Stock', 'Physical', 'Index', 'Forex'].includes(s.type)
+        ['Common Stock', 'Physical', 'Index', 'Forex', 'ETF'].includes(s.type)
       )
       .slice(0, 2000)
       .map((s: any) => ({

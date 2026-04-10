@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview ALPHA VANTAGE MARKET SYNC v1.0
+ * @fileOverview ALPHA VANTAGE MARKET SYNC v1.1
  * بروتوكول جلب الرموز والبحث المتقدم للأسواق العالمية.
  */
 
