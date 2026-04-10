@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview محرك الرسم البياني الاحترافي v23.1 - Source Agnostic Engine
- * تم تحديث المحرك ليدعم أصول Finnhub عبر توليد تاريخي ذكي في حال فقدان سجلات Binance.
+ * @fileOverview محرك الرسم البياني الاحترافي v24.0 - True History Engine
+ * يدعم الآن جلب البيانات التاريخية الحقيقية من Binance و Finnhub معاً.
  */
 
 "use client";
@@ -28,7 +28,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { getHistoricalKlines, BinanceKline } from "@/services/binance-service";
+import { getHistoricalKlines } from "@/services/binance-service";
+import { getFinnhubCandles } from "@/app/actions/finnhub-actions";
 import { generateInternalHistory } from "@/lib/internal-market";
 import { calculateIndicators } from "@/lib/indicators";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -178,15 +179,22 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
   const db = useFirestore();
 
   const fetchMoreHistory = useCallback(async () => {
-    if (isFetchingMore || !history.length || !asset || !asset.binanceSymbol) return;
+    if (isFetchingMore || !history.length || !asset) return;
     
     setIsFetchingMore(true);
     try {
-      const firstCandleTime = history[0].time * 1000;
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const startTime = firstCandleTime - oneDayInMs;
+      const firstCandleTime = history[0].time;
+      const to = firstCandleTime - 1;
+      const from = to - (24 * 60 * 60); // Fetch another 24 hours
       
-      const moreData = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440, startTime);
+      let moreData: any[] = [];
+      
+      if (asset.priceSource === 'binance' && asset.binanceSymbol) {
+        moreData = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440, firstCandleTime * 1000 - (24 * 60 * 60 * 1000));
+      } else if (asset.priceSource === 'finnhub') {
+        const res = await getFinnhubCandles(asset.externalTicker || asset.code, '1', from, to);
+        if (res.success) moreData = res.data;
+      }
       
       if (moreData.length > 0) {
         setHistory(prev => {
@@ -233,7 +241,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     volumeSeriesRef.current = volumeSeries;
 
     chart.timeScale().subscribeVisibleLogicalRangeChange((range: LogicalRange | null) => {
-      if (range && range.from < 50 && asset.binanceSymbol) {
+      if (range && range.from < 50) {
         fetchMoreHistory();
       }
     });
@@ -242,10 +250,15 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
       setIsLoading(true);
       try {
         let data: any[] = [];
+        const to = Math.floor(Date.now() / 1000);
+        const from = to - (24 * 60 * 60);
+
         if (asset.priceSource === 'binance' && asset.binanceSymbol) {
           data = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440);
+        } else if (asset.priceSource === 'finnhub') {
+          const res = await getFinnhubCandles(asset.externalTicker || asset.code, '1', from, to);
+          if (res.success) data = res.data;
         } else {
-          // Fallback generator for Finnhub or missing Binance symbols
           data = generateInternalHistory(asset.id, asset, 1000);
         }
 
@@ -474,7 +487,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
             {isFetchingMore && (
               <div className="h-7 px-3 bg-white/90 border border-gray-100 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-md animate-in fade-in">
                  <Loader2 size={10} className="animate-spin text-blue-500" />
-                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Loading History...</span>
+                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Loading True History...</span>
               </div>
             )}
           </div>
@@ -493,7 +506,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
         )}
       </AnimatePresence>
 
-      {isLoading && <div className="absolute inset-0 z-[110] bg-white/60 flex flex-col items-center justify-center gap-4"><Loader2 className="h-10 w-10 animate-spin text-blue-600" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة الرسم الفني...</p></div>}
+      {isLoading && <div className="absolute inset-0 z-[110] bg-white/60 flex flex-col items-center justify-center gap-4"><Loader2 className="h-10 w-10 animate-spin text-blue-600" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">معايرة الرسم الحقيقي...</p></div>}
       <div ref={chartContainerRef} className="w-full h-full" />
     </div>
   );
