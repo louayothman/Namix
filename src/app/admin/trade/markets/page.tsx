@@ -7,13 +7,14 @@ import { collection, query, orderBy } from "firebase/firestore";
 import { MarketInventory } from "@/components/admin/trade/MarketInventory";
 import { AssetForge } from "@/components/admin/trade/AssetForge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Globe, Sparkles, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMarketSync } from "@/hooks/use-market-sync";
 
 /**
- * @fileOverview صفحة ضبط الأسواق العالمية v2.0
- * تم دمج مفاعل صهر الأصول (Asset Forge) بشكل انسيابي داخل الصفحة لسهولة الإدارة والتحكم اللحظي.
+ * @fileOverview صفحة ضبط الأسواق العالمية v2.1
+ * تم إصلاح خطأ استيراد Badge ودمج مفاعل صهر الأصول (Asset Forge) لسهولة الإدارة.
  */
 export default function GlobalMarketsPage() {
   const router = useRouter();
