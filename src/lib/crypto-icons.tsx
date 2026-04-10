@@ -60,8 +60,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX UNIFIED ICON ARSENAL v21.0
- * تم توحيد كافة المفاتيح لتصبح UPPERCASE لضمان دقة الاستدعاء البرمجي ومنع الخلل البصري.
+ * @fileOverview NAMIX UNIFIED ICON ARSENAL v22.0 - Case-Insensitive Fix
+ * تم توحيد كافة المفاتيح لتصبح UPPERCASE لضمان دقة الاستدعاء البرمجي ومنع الخلل البصري المتكرر.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -159,7 +159,8 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
-  const iconKey = name.toUpperCase();
+  // بروتوكول التوحيد: تحويل كافة المفاتيح لأحرف كبيرة لضمان المطابقة
+  const iconKey = (name || "").toUpperCase();
   const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.COINS;
   
   if (typeof iconData === 'string') {

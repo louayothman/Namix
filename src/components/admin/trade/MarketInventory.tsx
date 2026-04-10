@@ -44,8 +44,8 @@ interface MarketInventoryProps {
 }
 
 /**
- * @fileOverview جرد الأسواق المبوب v103.0 - Finnhub Integrated
- * تم تحديث الأيقونات والمصادر لدعم Finnhub بدلاً من Alpha و TwelveData.
+ * @fileOverview جرد الأسواق المبوب v104.0 - Corrected Icons
+ * تم إصلاح خطأ Layers المفقود وتطهير الواجهة من تكرار الأيقونات.
  */
 export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
   const db = useFirestore();
@@ -194,7 +194,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
       ))}
       
       {symbols.length === 0 && (
-        <div className="col-span-full py-40 text-center opacity-20 flex flex-col items-center gap-6 border-2 border-dashed border-gray-100 rounded-[64px]">
+        <div className="col-span-full py-40 text-center opacity-20 flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-[64px]">
            <Activity className="h-20 w-20 text-[#002d4d]" />
            <p className="text-xs font-black uppercase tracking-[0.5em]">لا توجد أصول مدرجة في الجرد حالياً</p>
         </div>
@@ -204,7 +204,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
         <AlertDialogContent className="rounded-[48px] border-none shadow-2xl p-10 max-w-[420px] font-body text-right" dir="rtl">
           <AlertDialogHeader className="items-center gap-6">
             <div className="h-20 w-20 rounded-[32px] bg-red-50 text-red-500 flex items-center justify-center animate-bounce shadow-inner">
-              <ShieldAlert className="h-10 w-10" />
+              <AlertTriangle className="h-10 w-10" />
             </div>
             <div className="space-y-2 text-center">
               <AlertDialogTitle className="text-2xl font-black text-[#002d4d]">تحذير حذف سيادي</AlertDialogTitle>
