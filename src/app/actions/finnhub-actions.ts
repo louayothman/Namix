@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v4.0 - Historical Data Support
- * يدعم الآن تدوير مفاتيح الـ API وجلب البيانات التاريخية (الشموع) الحقيقية.
+ * @fileOverview FINNHUB GLOBAL MARKET CONNECTOR v5.0 - Historical Data Secured
+ * تم إضافة ترميز الرموز (Symbol Encoding) ومعالجة متقدمة لحالات نقص البيانات.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -78,7 +78,7 @@ export async function getFinnhubPrice(symbol: string) {
 
     for (const node of shuffledNodes) {
       const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${node.apiKey}`,
+        `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${node.apiKey}`,
         { cache: 'no-store' }
       );
 
@@ -105,10 +105,6 @@ export async function getFinnhubPrice(symbol: string) {
 
 /**
  * جلب البيانات التاريخية (الشموع) من Finnhub مع دعم التدوير
- * @param symbol الرمز السعري
- * @param resolution الدقة الزمنية (1, 5, 15, 30, 60, D, W, M)
- * @param from بداية الفترة (Timestamp بالثواني)
- * @param to نهاية الفترة (Timestamp بالثواني)
  */
 export async function getFinnhubCandles(symbol: string, resolution: string = '1', from: number, to: number) {
   try {
@@ -116,31 +112,42 @@ export async function getFinnhubCandles(symbol: string, resolution: string = '1'
     if (nodes.length === 0) return { success: false, error: "مفاتيح API مفقودة." };
 
     for (const node of nodes) {
-      const response = await fetch(
-        `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}&token=${node.apiKey}`,
-        { cache: 'no-store' }
-      );
+      const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${to}&token=${node.apiKey}`;
+      const response = await fetch(url, { cache: 'no-store' });
 
       if (response.status === 429) continue;
 
       const data = await response.json();
+      
+      // إذا كان الرمز غير مدعوم أو لا يوجد بيانات لهذه الفترة
+      if (data.s === 'no_data' || !data.t) {
+        // نجرّب دقة أعلى (مثلاً يومية) إذا كانت الدقيقة غير متوفرة
+        if (resolution === '1') {
+           const retryRes = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}&token=${node.apiKey}`, { cache: 'no-store' });
+           const retryData = await retryRes.json();
+           if (retryData.s === 'ok') return { success: true, data: formatCandles(retryData) };
+        }
+        continue;
+      }
+
       if (data.s !== 'ok') continue;
 
-      // تحويل تنسيق Finnhub إلى تنسيق الشموع المعياري
-      const candles = data.t.map((time: number, i: number) => ({
-        time: time,
-        open: data.o[i],
-        high: data.h[i],
-        low: data.l[i],
-        close: data.c[i],
-        volume: data.v[i]
-      }));
-
-      return { success: true, data: candles };
+      return { success: true, data: formatCandles(data) };
     }
 
     return { success: false, error: "تعذر جلب البيانات التاريخية من كافة العقد." };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
+}
+
+function formatCandles(data: any) {
+  return data.t.map((time: number, i: number) => ({
+    time: time,
+    open: data.o[i],
+    high: data.h[i],
+    low: data.l[i],
+    close: data.c[i],
+    volume: data.v[i]
+  }));
 }

@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview محرك الرسم البياني الاحترافي v24.0 - True History Engine
- * يدعم الآن جلب البيانات التاريخية الحقيقية من Binance و Finnhub معاً.
+ * @fileOverview محرك الرسم البياني الاحترافي v25.0 - Finnhub Sync Stabilized
+ * تم إصلاح عطل جلب البيانات التاريخية لـ Finnhub عبر ترميز الرموز وتأمين سلاسل البيانات.
  */
 
 "use client";
@@ -185,7 +185,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
     try {
       const firstCandleTime = history[0].time;
       const to = firstCandleTime - 1;
-      const from = to - (24 * 60 * 60); // Fetch another 24 hours
+      const from = to - (24 * 60 * 60);
       
       let moreData: any[] = [];
       
@@ -257,7 +257,7 @@ export function PriceChart({ asset, livePrice }: PriceChartProps) {
           data = await getHistoricalKlines(asset.binanceSymbol, '1m', 1440);
         } else if (asset.priceSource === 'finnhub') {
           const res = await getFinnhubCandles(asset.externalTicker || asset.code, '1', from, to);
-          if (res.success) data = res.data;
+          if (res.success && res.data?.length) data = res.data;
         } else {
           data = generateInternalHistory(asset.id, asset, 1000);
         }
