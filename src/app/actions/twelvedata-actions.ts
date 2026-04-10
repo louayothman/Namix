@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v2.0
- * محرك جلب الرموز العالمية مع معالجة متقدمة للأخطاء والمحدودية.
+ * @fileOverview TWELVE DATA SYMBOL SYNC PROTOCOL v2.1
+ * محرك جلب الرموز العالمية مع معالجة متقدمة للأخطاء والمحدودية والتحقق من صحة الاستجابة.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -22,7 +22,9 @@ export async function getTwelveDataSymbols() {
     }
 
     // جلب قائمة الأصول مع معالجة النصوص قبل التحويل لـ JSON
-    const response = await fetch(`https://api.twelvedata.com/symbols?apikey=${apiKey}`);
+    const response = await fetch(`https://api.twelvedata.com/symbols?apikey=${apiKey}`, {
+      cache: 'no-store'
+    });
     
     if (response.status === 429) {
       return { success: false, error: "لقد تجاوزت حد الطلبات المسموح به لخطة Twelve Data الحالية (8 طلبات/دقيقة)." };
@@ -30,19 +32,24 @@ export async function getTwelveDataSymbols() {
 
     const text = await response.text();
     
+    // التحقق من أن الاستجابة هي JSON صالح وليست نص خطأ
+    if (!text || (!text.startsWith('{') && !text.startsWith('['))) {
+      return { success: false, error: "استجابة غير متوقعة من المزود. يرجى التأكد من صلاحية مفتاح الـ API وتجربة رمز مختلف." };
+    }
+
     let data;
     try {
       data = JSON.parse(text);
     } catch (parseErr) {
-      return { success: false, error: "استجابة غير صالحة من خوادم Twelve Data. يرجى التأكد من صلاحية مفتاح الـ API." };
+      return { success: false, error: "فشل تحليل البيانات المستلمة من Twelve Data. يرجى الانتظار دقيقة والمحاولة مجدداً." };
     }
     
     if (data.status === 'error') {
       // معالجة الأخطاء المحددة من المزود (مثل عدم توفر اشتراك لأسواق معينة)
       if (data.code === 403) {
-        return { success: false, error: "مفتاح الـ API الخاص بك لا يملك صلاحية الوصول لهذه البيانات (يتطلب اشتراكاً مدفوعاً)." };
+        return { success: false, error: "مفتاح الـ API الخاص بك لا يملك صلاحية الوصول لهذه البيانات (يتطلب اشتراكاً مدفوعاً أو تفعيل للخدمة)." };
       }
-      return { success: false, error: data.message };
+      return { success: false, error: data.message || "حدث خطأ غير معروف في مزود البيانات." };
     }
 
     if (!data.data || !Array.isArray(data.data)) {
@@ -65,6 +72,7 @@ export async function getTwelveDataSymbols() {
 
     return { success: true, symbols: filtered };
   } catch (e: any) {
-    return { success: false, error: "حدث خطأ غير متوقع في بروتوكول المزامنة: " + e.message };
+    console.error("Twelve Data Sync Critical Error:", e);
+    return { success: false, error: "حدث عطل في بروتوكول المزامنة: " + (e.message || "خطأ غير متوقع") };
   }
 }

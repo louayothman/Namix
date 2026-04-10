@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   Globe,
   TrendingUp,
+  TrendingDown,
   Activity,
   AlertTriangle,
   Info
@@ -115,8 +116,8 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
     } else {
       // Twelve Data Auto-fill Logic
       let autoIcon = 'STOCK';
-      const upperName = asset.name.toUpperCase();
-      const upperSym = asset.symbol.toUpperCase();
+      const upperName = (asset.name || "").toUpperCase();
+      const upperSym = (asset.symbol || "").toUpperCase();
 
       if (upperSym.includes('XAU') || upperName.includes('GOLD')) autoIcon = 'GOLD';
       else if (upperSym.includes('WTI') || upperName.includes('OIL') || upperSym.includes('BRN')) autoIcon = 'OIL';
@@ -131,7 +132,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
 
       setFormData({
         ...formData,
-        name: asset.name,
+        name: asset.name || asset.symbol,
         code: asset.symbol,
         externalTicker: asset.symbol,
         priceSource: 'twelvedata',
@@ -143,7 +144,7 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
   const filteredSymbols = useMemo(() => {
     if (!searchTerm) return marketSymbols.slice(0, 50);
     return marketSymbols
-      .filter(s => s.symbol.toLowerCase().includes(searchTerm.toLowerCase()) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
+      .filter(s => s.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
       .slice(0, 50);
   }, [marketSymbols, searchTerm]);
 
