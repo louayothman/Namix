@@ -123,6 +123,11 @@ export function AssetForge({ initialData, mode = "add" }: AssetForgeProps) {
       if (upperSym.includes('XAU') || upperName.includes('GOLD')) autoIcon = 'GOLD';
       else if (upperSym.includes('WTI') || upperName.includes('OIL') || upperSym.includes('BRN')) autoIcon = 'OIL';
       else if (upperSym === 'AAPL') autoIcon = 'APPLE';
+      else if (upperSym === 'GOOGL' || upperSym === 'GOOG') autoIcon = 'GOOGLE';
+      else if (upperSym === 'MSFT') autoIcon = 'MICROSOFT';
+      else if (upperSym === 'TSLA') autoIcon = 'TESLA';
+      else if (upperSym === 'NVDA') autoIcon = 'NVIDIA';
+      else if (upperSym === 'AMZN') autoIcon = 'AMAZON';
       else if (asset.type === 'Forex') autoIcon = 'FOREX';
       else if (asset.type === 'Index') autoIcon = 'INDEX';
 

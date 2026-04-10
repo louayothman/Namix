@@ -59,12 +59,12 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * NAMIX FINANCIAL ICONS v16.0 - Global Asset Arsenal
- * تم توسيع المصفوفة لتشمل أيقونات السلع (الذهب، النفط) والأسهم العالمية (Apple، الشركات).
+ * NAMIX FINANCIAL ICONS v18.0 - Master Asset Arsenal
+ * تم دمج العملات الرقمية الملونة مع شعارات الشركات العالمية والسلع في خريطة واحدة.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
-  // --- Unique Crypto Assets (Iconify - Colored) ---
+  // --- Colored Crypto Assets (Iconify) ---
   BTC: "cryptocurrency:btc",
   ETH: "cryptocurrency:eth",
   USDT: "cryptocurrency:usdt",
@@ -79,67 +79,37 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   XRP: "cryptocurrency:xrp",
   BNB: "cryptocurrency:bnb",
   USDC: "cryptocurrency:usdc",
+  SHIB: "cryptocurrency:shib",
+  AVAX: "cryptocurrency:avax",
+  NEAR: "cryptocurrency:near",
+  UNI: "cryptocurrency:uni",
+  ATOM: "cryptocurrency:atom",
   
-  // --- Global Markets & Commodities (Lucide Specialized) ---
+  // --- Global Stock Logos (Iconify) ---
+  APPLE: "logos:apple",
+  GOOGLE: "logos:google-icon",
+  MICROSOFT: "logos:microsoft-icon",
+  AMAZON: "logos:amazon-icon",
+  TESLA: "logos:tesla",
+  NVIDIA: "logos:nvidia",
+  META: "logos:meta-icon",
+  NETFLIX: "logos:netflix-icon",
+  
+  // --- Commodities & Traditional Markets (Lucide) ---
   GOLD: Gem,
   OIL: Droplets,
   STOCK: Building2,
-  APPLE: Apple,
   FOREX: Globe,
   INDEX: BarChart3,
   
   // --- Core System Icons (Lucide) ---
-  Coins,
-  Zap,
-  Globe,
-  Activity,
-  Target,
-  Diamond,
-  Landmark,
-  Wallet,
-  CreditCard,
-  ShieldCheck,
-  TrendingUp,
-  Gem,
-  Award,
-  Shield,
-  CircleDollarSign,
-  Banknote,
-  Flame,
-  Rocket,
-  Cpu,
-  Layers,
-  Box,
-  Hexagon,
-  Star,
-  Sparkles,
-  RefreshCcw,
-  Scale,
-  Gavel,
-  History,
-  LineChart,
-  BarChart3,
-  PieChart,
-  Waves,
-  Lock,
-  Eye,
-  Scan,
-  Fingerprint,
-  TrendingDown,
-  Briefcase,
-  Gift,
-  Timer,
-  Navigation,
-  KeyRound,
-  FileText,
-  UserCheck,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
-  Radar,
-  Droplets,
-  Building2,
-  Apple
+  Coins, Zap, Globe, Activity, Target, Diamond, Landmark, Wallet, CreditCard, 
+  ShieldCheck, TrendingUp, Gem, Award, Shield, CircleDollarSign, Banknote, 
+  Flame, Rocket, Cpu, Layers, Box, Hexagon, Star, Sparkles, RefreshCcw, 
+  Scale, Gavel, History, LineChart, BarChart3, PieChart, Waves, Lock, 
+  Eye, Scan, Fingerprint, TrendingDown, Briefcase, Gift, Timer, 
+  Navigation, KeyRound, FileText, UserCheck, Search, CheckCircle2, 
+  AlertTriangle, Radar, Droplets, Building2
 };
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
