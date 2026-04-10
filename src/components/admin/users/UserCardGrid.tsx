@@ -6,15 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   User, Edit, UserSearch, Wallet, Trash2, ShieldCheck, Award, Loader2,
-  TrendingUp, Phone, Zap, KeyRound, Globe, Clock, ShieldAlert, Cpu
+  TrendingUp, Phone, Zap, KeyRound, Globe, Clock, ShieldAlert, Cpu,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { ar } from "date-fns/locale/ar";
-import { generateBaseUserWallets } from "@/app/actions/nowpayments-actions";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { generateBaseUserWallets } from "@/app/actions/nowpayments-actions";
+import { CryptoIcon } from "@/lib/crypto-icons";
 
 interface UserCardGridProps {
   users: any[];
@@ -49,44 +49,43 @@ export function UserCardGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {users.map((user) => {
-        const tier = user.tier || getUserTier(user);
-        const isVerified = checkVerification(user);
+        const tier = getUserTier(user);
         const isOnline = user.lastActive && (new Date().getTime() - new Date(user.lastActive).getTime() < 300000);
         const assignedWalletsCount = user.assignedWallets ? Object.keys(user.assignedWallets).length : 0;
         const hasWallets = assignedWalletsCount > 0;
         
         return (
-          <Card key={user.id} className="border-none shadow-sm rounded-[56px] bg-white overflow-hidden group transition-all hover:shadow-2xl hover:-translate-y-2 flex flex-col relative">
+          <Card key={user.id} className="border-none shadow-sm rounded-[56px] bg-white overflow-hidden group transition-all hover:shadow-2xl hover:-translate-y-2 flex flex-col relative border border-gray-50/50">
             <CardContent className="p-8 space-y-8 flex-1">
               <div className="absolute top-8 right-8 z-20">
                 {isOnline ? (
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] animate-pulse">متصل الآن</Badge>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse shadow-sm">متصل الآن</Badge>
                 ) : (
-                  <Badge className="bg-gray-50 text-gray-300 border-none font-black text-[8px]">غير متصل</Badge>
+                  <Badge className="bg-gray-50 text-gray-300 border-none font-black text-[8px] px-3 py-1 rounded-full">غير متصل</Badge>
                 )}
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-[28px] bg-gray-50 flex items-center justify-center text-xl font-black text-[#002d4d] shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500">
+              <div className="flex items-center gap-5">
+                <div className="h-16 w-16 rounded-[24px] bg-gray-50 flex items-center justify-center text-xl font-black text-[#002d4d] shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500 shrink-0">
                   {user.displayName?.[0] || 'U'}
                 </div>
-                <div className="text-right">
-                  <h3 className="font-black text-lg text-[#002d4d] truncate max-w-[160px]">{user.displayName}</h3>
-                  <div className="flex items-center gap-2 opacity-40">
-                     <Phone size={10} />
+                <div className="text-right min-w-0">
+                  <h3 className="font-black text-lg text-[#002d4d] truncate">{user.displayName}</h3>
+                  <div className="flex items-center gap-2 opacity-40 mt-1">
+                     <Phone size={10} className="text-blue-500" />
                      <span className="text-[9px] font-bold tabular-nums" dir="ltr">{user.phoneNumber}</span>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 space-y-1.5 shadow-inner">
+                <div className="p-5 bg-gray-50/50 rounded-[32px] border border-gray-100/50 space-y-1.5 shadow-inner">
                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">الرصيد الجاري</p>
                   <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-tighter">
                     ${user.totalBalance?.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-5 bg-emerald-50/30 rounded-[32px] border border-emerald-100/50 space-y-1.5 shadow-inner">
+                <div className="p-5 bg-emerald-50/20 rounded-[32px] border border-emerald-100/20 space-y-1.5 shadow-inner">
                   <p className="text-[8px] font-black text-emerald-600/60 uppercase tracking-widest">صافي الأرباح</p>
                   <p className="text-lg font-black text-emerald-600 tabular-nums tracking-tighter">
                     +${user.totalProfits?.toLocaleString()}
@@ -94,30 +93,30 @@ export function UserCardGrid({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-[24px] border border-gray-100">
+              <div className="p-5 bg-gray-50 rounded-[28px] border border-gray-100 flex items-center justify-between">
                  <div className="flex items-center gap-3">
                     <div className={cn(
-                      "h-8 w-8 rounded-xl flex items-center justify-center shadow-inner transition-all", 
+                      "h-9 w-9 rounded-xl flex items-center justify-center shadow-inner transition-all", 
                       hasWallets ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-400"
                     )}>
-                       {hasWallets ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+                       {hasWallets ? <ShieldCheck size={18} /> : <ShieldAlert size={18} />}
                     </div>
                     <div className="text-right">
-                       <p className="text-[9px] font-black text-[#002d4d]">محافظ المزامنة الآلية</p>
+                       <p className="text-[9px] font-black text-[#002d4d]">الهوية المالية</p>
                        <p className="text-[7px] font-bold text-gray-400 uppercase">
-                         {hasWallets ? `${assignedWalletsCount} Nodes Connected` : 'No Assigned Nodes'}
+                         {hasWallets ? `${assignedWalletsCount} Wallets Active` : 'No Nodes Found'}
                        </p>
                     </div>
                  </div>
                  {syncingId === user.id ? (
-                   <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100">
+                   <div className="h-8 px-3 rounded-lg bg-white border border-gray-100 flex items-center gap-2">
                       <Loader2 className="animate-spin size-3 text-blue-500" />
-                      <span className="text-[7px] font-black text-blue-500 uppercase">Syncing...</span>
+                      <span className="text-[7px] font-black text-blue-500 uppercase">Syncing</span>
                    </div>
                  ) : (
                    <button 
                      onClick={() => handleGenerateWallets(user.id)}
-                     className="text-[8px] font-black text-blue-600 hover:text-[#002d4d] uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                     className="h-8 px-3 rounded-lg bg-white border border-gray-100 text-[8px] font-black text-blue-600 hover:bg-blue-50 uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm"
                    >
                       <Zap size={10} className="fill-current" /> {hasWallets ? "تحديث" : "توليد"}
                    </button>
@@ -125,21 +124,38 @@ export function UserCardGrid({
               </div>
             </CardContent>
 
-            <div className="p-6 bg-gray-50/50 border-t border-gray-100 grid grid-cols-6 gap-2">
-              <Link href={`/admin/users/${user.id}`} className="contents"><Button variant="ghost" title="عرض الملف الكامل" className="h-12 rounded-2xl bg-white border border-gray-100 text-emerald-600"><UserSearch size={18} /></Button></Link>
-              <Button onClick={() => onEdit(user)} variant="ghost" title="تعديل البيانات" className="h-12 rounded-2xl bg-white border border-gray-100 text-blue-500"><Edit size={18} /></Button>
-              <Button onClick={() => onAdjustBalance(user)} variant="ghost" title="تعديل الرصيد يدوياً" className="h-12 rounded-2xl bg-white border border-gray-100 text-orange-500"><Wallet size={18} /></Button>
+            <div className="p-4 bg-gray-50/80 border-t border-gray-100 grid grid-cols-6 gap-2">
+              <Link href={`/admin/users/${user.id}`} className="contents">
+                <Button variant="ghost" title="الملف الكامل" className="h-11 rounded-2xl bg-white border border-gray-100 text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all active:scale-95">
+                  <UserSearch size={18} />
+                </Button>
+              </Link>
+              
+              <Button onClick={() => onEdit(user)} variant="ghost" title="تعديل" className="h-11 rounded-2xl bg-white border border-gray-100 text-blue-500 hover:bg-blue-50 shadow-sm transition-all active:scale-95">
+                <Edit size={18} />
+              </Button>
+              
+              <Button onClick={() => onAdjustBalance(user)} variant="ghost" title="الرصيد" className="h-11 rounded-2xl bg-white border border-gray-100 text-orange-500 hover:bg-orange-50 shadow-sm transition-all active:scale-95">
+                <Wallet size={18} />
+              </Button>
+              
               <Button 
                 onClick={() => handleGenerateWallets(user.id)} 
                 variant="ghost" 
-                title="مزامنة وتوليد محافظ NOWPayments"
+                title="مزامنة"
                 disabled={syncingId === user.id}
-                className="h-12 rounded-2xl bg-white border border-gray-100 text-cyan-600"
+                className="h-11 rounded-2xl bg-white border border-gray-100 text-cyan-600 hover:bg-cyan-50 shadow-sm transition-all active:scale-95"
               >
                 {syncingId === user.id ? <Loader2 className="animate-spin size-[18px]" /> : <Cpu size={18} />}
               </Button>
-              <Button onClick={() => onResetCredentials(user)} variant="ghost" title="تصفير الأمان" className="h-12 rounded-2xl bg-white border border-gray-100 text-purple-500"><KeyRound size={18} /></Button>
-              <Button onClick={() => onDelete(user)} variant="ghost" title="حذف المستثمر" className="h-12 rounded-2xl bg-white border border-gray-100 text-red-400"><Trash2 size={18} /></Button>
+              
+              <Button onClick={() => onResetCredentials(user)} variant="ghost" title="الأمان" className="h-11 rounded-2xl bg-white border border-gray-100 text-purple-500 hover:bg-purple-50 shadow-sm transition-all active:scale-95">
+                <KeyRound size={18} />
+              </Button>
+              
+              <Button onClick={() => onDelete(user)} variant="ghost" title="حذف" className="h-11 rounded-2xl bg-white border border-gray-100 text-red-400 hover:bg-red-50 shadow-sm transition-all active:scale-95">
+                <Trash2 size={18} />
+              </Button>
             </div>
           </Card>
         );

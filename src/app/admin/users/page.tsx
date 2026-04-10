@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Loader2, Download, Activity, ChevronDown, Globe, Users } from "lucide-react";
+import { Search, Filter, Loader2, Download, Activity, ChevronDown, Globe, Users, Sparkles } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc, updateDoc, increment, deleteDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
@@ -18,6 +18,10 @@ import { EditUserDialog } from "@/components/admin/users/EditUserDialog";
 import { BalanceAdjustmentDialog } from "@/components/admin/users/BalanceAdjustmentDialog";
 import { CredentialResetDialog } from "@/components/admin/users/CredentialResetDialog";
 
+/**
+ * @fileOverview إدارة قاعدة المستثمرين v10.0 - Integrated Identity Console
+ * تم توحيد الإحصائيات في كتلة برمجية واحدة وتنسيق أزرار الإجراءات بشكل عرضي متكامل.
+ */
 export default function AdminUsersPage() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,9 +32,7 @@ export default function AdminUsersPage() {
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [now, setNow] = useState(new Date());
-  
-  // Pagination State
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   // Balance Adjustment State
   const [balanceAction, setBalanceAction] = useState<"add" | "deduct">("add");
@@ -99,23 +101,9 @@ export default function AdminUsersPage() {
       historical: Number(user.activeInvestmentsTotal || 0) + Number(user.totalProfits || 0),
     };
 
-    const sortedTiers = [...tiersData.list].sort((a,b) => {
-      const balDiff = Number(b.minBalance || 0) - Number(a.minBalance || 0);
-      if (balDiff !== 0) return balDiff;
-      return Number(b.minTotalProfits || 0) - Number(a.minTotalProfits || 0);
-    });
-    
-    const achieved = sortedTiers.find(t => {
-      return userStats.balance >= Number(t.minBalance || 0) &&
-             userStats.profits >= Number(t.minTotalProfits || 0) &&
-             userStats.historical >= Number(t.minHistoricalInvest || 0);
-    });
-
+    const sortedTiers = [...tiersData.list].sort((a,b) => Number(b.minBalance || 0) - Number(a.minBalance || 0));
+    const achieved = sortedTiers.find(t => userStats.balance >= Number(t.minBalance || 0));
     return achieved || null;
-  };
-
-  const checkVerification = (user: any) => {
-    return !!(user.displayName && user.email && user.birthDate);
   };
 
   const handleOpenEdit = (user: any) => {
@@ -133,11 +121,8 @@ export default function AdminUsersPage() {
     if (!selectedUser || processing) return;
     setProcessing(true);
     try {
-      await updateDoc(doc(db, "users", selectedUser.id), {
-        ...editData,
-        updatedAt: new Date().toISOString()
-      });
-      toast({ title: "تم التحديث بنجاح", description: "تم تعديل بيانات المستثمر في القاعدة السيادية." });
+      await updateDoc(doc(db, "users", selectedUser.id), { ...editData, updatedAt: new Date().toISOString() });
+      toast({ title: "تم التحديث بنجاح" });
       setIsEditOpen(false);
     } catch (e) {
       toast({ variant: "destructive", title: "خطأ في البروتوكول" });
@@ -152,15 +137,8 @@ export default function AdminUsersPage() {
     try {
       const amount = Number(balanceAmount);
       const adjustment = balanceAction === "add" ? amount : -amount;
-      
-      await updateDoc(doc(db, "users", selectedUser.id), {
-        totalBalance: increment(adjustment)
-      });
-
-      toast({ 
-        title: balanceAction === "add" ? "تم حقن الرصيد" : "تم سحب الرصيد", 
-        description: `تم تعديل المركز المالي لـ ${selectedUser.displayName} بمقدار $${amount}` 
-      });
+      await updateDoc(doc(db, "users", selectedUser.id), { totalBalance: increment(adjustment) });
+      toast({ title: "تم تعديل المركز المالي" });
       setIsBalanceOpen(false);
       setBalanceAmount("");
     } catch (e) {
@@ -177,46 +155,39 @@ export default function AdminUsersPage() {
       const updateData: any = { updatedAt: new Date().toISOString() };
       if (type === 'password') updateData.password = newValue;
       else updateData.securityPin = newValue;
-
       await updateDoc(doc(db, "users", selectedUser.id), updateData);
-      toast({ 
-        title: "اكتمل بروتوكول الأمان", 
-        description: `تم تحديث ${type === 'password' ? 'كلمة المرور' : 'رمز PIN'} بنجاح.` 
-      });
+      toast({ title: "اكتمل بروتوكول الأمان" });
       setIsResetOpen(false);
     } catch (e) {
-      toast({ variant: "destructive", title: "فشل التحديث الأمني" });
+      toast({ variant: "destructive", title: "فشل التحديث" });
     } finally {
       setProcessing(false);
     }
   };
 
   const handleDeleteUser = async (user: any) => {
-    if (!confirm(`هل أنت متأكد من حذف المستثمر ${user.displayName}؟ لا يمكن التراجع عن هذا الإجراء السيادي.`)) return;
+    if (!confirm(`حذف نهائي للمستثمر ${user.displayName}؟`)) return;
     try {
       await deleteDoc(doc(db, "users", user.id));
-      toast({ title: "تم الحذف النهائي", description: "تم إزالة الهوية الرقمية من قاعدة البيانات." });
+      toast({ title: "تم الحذف النهائي" });
     } catch (e) {
       toast({ variant: "destructive", title: "خطأ في تنفيذ الحذف" });
     }
   };
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 10);
-  };
-
   return (
     <Shell isAdmin>
-      <div className="space-y-10 px-6 pt-10 pb-24 max-w-[1600px] mx-auto font-body">
+      <div className="max-w-[1600px] mx-auto space-y-10 px-6 pt-10 pb-24 font-body">
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-gray-100 pb-8">
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-gray-100 pb-10">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-purple-500 font-black text-[10px] uppercase tracking-[0.4em]">
               <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
-              Investor Identity Repository
+              Investor Identity Nexus
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">إدارة قاعدة المستثمرين</h1>
-            <p className="text-muted-foreground font-bold text-xs">تحكم مركزي متقدم في هويات المستثمرين، مراكزهم المالية، وصلاحيات الوصول السيادية.</p>
+            <p className="text-muted-foreground font-bold text-xs">تحكم مركزي في الهويات، المراكز المالية، وصلاحيات الوصول السيادية.</p>
           </div>
           
           <div className="flex items-center gap-4">
@@ -225,38 +196,46 @@ export default function AdminUsersPage() {
                 <Input 
                   placeholder="ابحث بالاسم، الهاتف، أو المعرف..." 
                   value={searchQuery}
-                  onChange={e => { setSearchQuery(e.target.value); setVisibleCount(10); }}
-                  className="h-12 rounded-full bg-white border-gray-100 shadow-sm pr-11 font-bold text-xs focus-visible:ring-2 focus-visible:ring-purple-500 text-right" 
+                  onChange={e => { setSearchQuery(e.target.value); setVisibleCount(12); }}
+                  className="h-14 rounded-[22px] bg-white border-gray-100 shadow-sm pr-11 font-bold text-xs focus-visible:ring-2 focus-visible:ring-purple-500 text-right" 
                 />
              </div>
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-[22px] border border-gray-100">
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   onClick={() => setFilterOnlineOnly(!filterOnlineOnly)}
                   className={cn(
-                    "rounded-full h-12 px-6 border-gray-100 shadow-sm transition-all font-black text-[10px] gap-2",
-                    filterOnlineOnly ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-white text-gray-400 hover:bg-gray-50"
+                    "rounded-xl h-11 px-6 font-black text-[10px] gap-2 transition-all",
+                    filterOnlineOnly ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400"
                   )}
                 >
                    <Globe className={cn("h-4 w-4", filterOnlineOnly && "animate-pulse")} />
-                   {filterOnlineOnly ? "عرض الكل" : "المتصلون الآن"}
+                   المتصلون
                 </Button>
-                <Button variant="outline" className="rounded-full h-12 w-12 p-0 border-gray-100 bg-white shadow-sm hover:bg-gray-50">
-                   <Download className="h-4 w-4 text-gray-400" />
+                <Button variant="ghost" className="rounded-xl h-11 w-11 p-0 text-gray-300 hover:text-[#002d4d]">
+                   <Download size={18} />
                 </Button>
              </div>
           </div>
         </div>
 
+        {/* Unified Statistics Block */}
         <UserStatsCards stats={stats} totalBalances={totalBalances} />
 
-        <div className="space-y-10">
-           <div className="flex items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                 <Activity className="h-4 w-4 text-emerald-500" />
-                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Database Nodes</span>
+        <div className="space-y-8">
+           <div className="flex items-center justify-between px-6">
+              <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+                    <Activity size={20} />
+                 </div>
+                 <div className="text-right">
+                    <h3 className="text-xl font-black text-[#002d4d]">جرد الهويات النشطة</h3>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Active Identity Repository</p>
+                 </div>
               </div>
-              <p className="text-[10px] font-bold text-gray-300">يتم عرض {displayedUsers.length} من إجمالي {filteredUsers.length} مستثمر مطابق</p>
+              <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-4 py-1.5 rounded-full shadow-inner tracking-widest">
+                 {filteredUsers.length} MATCHES FOUND
+              </Badge>
            </div>
 
            <UserCardGrid 
@@ -267,52 +246,26 @@ export default function AdminUsersPage() {
              onResetCredentials={(user) => { setSelectedUser(user); setIsResetOpen(true); }}
              onDelete={handleDeleteUser}
              getUserTier={getUserTier}
-             checkVerification={checkVerification}
+             checkVerification={(u) => !!(u.displayName && u.email && u.birthDate)}
            />
 
            {filteredUsers.length > visibleCount && (
-             <div className="flex justify-center pt-8">
+             <div className="flex justify-center pt-12">
                 <Button 
-                  onClick={loadMore}
-                  className="h-14 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-2xl transition-all active:scale-95 group"
+                  onClick={() => setVisibleCount(v => v + 12)}
+                  className="h-16 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-2xl transition-all active:scale-95 group"
                 >
                   <ChevronDown className="ml-3 h-5 w-5 text-[#f9a885] transition-transform group-hover:translate-y-1" />
-                  استكشاف المزيد من المستثمرين
+                  تحميل المزيد من المستثمرين
                 </Button>
              </div>
            )}
         </div>
       </div>
 
-      <EditUserDialog 
-        open={isEditOpen} 
-        onOpenChange={setIsEditOpen} 
-        user={selectedUser}
-        editData={editData}
-        onDataChange={setEditData}
-        onSave={handleSaveEdit}
-        processing={processing}
-      />
-
-      <BalanceAdjustmentDialog 
-        open={isBalanceOpen}
-        onOpenChange={setIsBalanceOpen}
-        user={selectedUser}
-        action={balanceAction}
-        onActionChange={setBalanceAction}
-        amount={balanceAmount}
-        onAmountChange={setBalanceAmount}
-        onConfirm={handleAdjustBalance}
-        processing={processing}
-      />
-
-      <CredentialResetDialog 
-        open={isResetOpen}
-        onOpenChange={setIsResetOpen}
-        user={selectedUser}
-        onConfirm={handleResetCredential}
-        processing={processing}
-      />
+      <EditUserDialog open={isEditOpen} onOpenChange={setIsEditOpen} user={selectedUser} editData={editData} onDataChange={setEditData} onSave={handleSaveEdit} processing={processing} />
+      <BalanceAdjustmentDialog open={isBalanceOpen} onOpenChange={setIsBalanceOpen} user={selectedUser} action={balanceAction} onActionChange={setBalanceAction} amount={balanceAmount} onAmountChange={setBalanceAmount} onConfirm={handleAdjustBalance} processing={processing} />
+      <CredentialResetDialog open={isResetOpen} onOpenChange={setIsResetOpen} user={selectedUser} onConfirm={handleResetCredential} processing={processing} />
     </Shell>
   );
 }
