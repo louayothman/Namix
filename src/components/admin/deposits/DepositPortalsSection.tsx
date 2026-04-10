@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -35,7 +34,8 @@ import {
   FileText,
   Edit3,
   Save,
-  ArrowRight
+  ArrowRight,
+  Activity
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -57,7 +57,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * @fileOverview مركز هندسة بوابات الإيداع الشمولية v7.0
- * تم إلغاء الـ Dialogs لصالح واجهة مفاعلات مدمجة (Creator & Editor) لضمان تدفق عمل منطقي واحترافي.
+ * تم إصلاح خطأ استيراد الأيقونات وإلغاء الـ Dialogs لصالح واجهة مفاعلات مدمجة.
  */
 
 export function DepositPortalsSection() {
@@ -264,7 +264,7 @@ export function DepositPortalsSection() {
            </div>
          ) : (
            <div className="py-24 text-center opacity-20 flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-[64px]">
-              <Layers size={48} />
+              <Activity size={48} />
               <p className="text-xs font-black uppercase tracking-widest">لا توجد أقسام مدرجة حالياً</p>
            </div>
          )}
