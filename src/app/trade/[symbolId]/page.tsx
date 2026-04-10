@@ -21,7 +21,8 @@ import {
   BrainCircuit,
   X,
   Hourglass,
-  AlertCircle
+  AlertCircle,
+  Activity
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -40,14 +41,14 @@ const MarketIntelligenceOverlay = dynamic(() => import("@/components/trade/termi
 const NamixAIContainer = dynamic(() => import("@/app/trade/ai/NamixAIContainer").then(m => ({ default: m.NamixAIContainer })), { ssr: false });
 
 const TerminalLoader = () => (
-  <div className="flex flex-col items-center justify-center h-full gap-6 bg-gray-50/20 backdrop-blur-sm">
+  <div className="flex flex-col items-center justify-center h-full gap-6 bg-white">
     <div className="relative">
       <div className="h-16 w-16 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
       <div className="absolute inset-0 flex items-center justify-center">
         <ShieldCheck className="h-6 w-6 text-[#002d4d]" />
       </div>
     </div>
-    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Synchronizing Market Node...</p>
+    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Initializing Trading Node...</p>
   </div>
 );
 
@@ -154,44 +155,55 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
 
   return (
     <Shell hideMobileNav>
-      <div className="flex flex-col h-[100dvh] w-full bg-white font-body select-none overflow-hidden relative">
+      <div className="flex flex-col h-[100dvh] w-full bg-[#fcfdfe] font-body select-none overflow-hidden relative" dir="rtl">
         
-        <header className="h-[74px] bg-white px-4 md:px-8 flex items-center justify-between shrink-0 z-[120] border-b border-gray-50 shadow-sm">
+        {/* Luxury Glassmorphic Header */}
+        <header className="h-[70px] bg-white/80 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 z-[120] border-b border-gray-100 shadow-sm">
            <div className="flex items-center gap-3">
-              <motion.button onClick={toggleFavorite} whileTap={{ scale: 1.4 }} className={cn("h-10 w-10 rounded-2xl flex items-center justify-center transition-all shadow-inner border border-gray-100 group", isFavorite ? "bg-orange-50 text-[#f9a885] border-orange-100" : "bg-gray-50 text-gray-300 hover:text-[#f9a885]")}>
-                <AnimatePresence mode="wait">
-                  <motion.div key={isFavorite ? 'active' : 'inactive'} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
-                    <Star size={20} fill={isFavorite ? "currentColor" : "none"} strokeWidth={2.5} />
-                  </motion.div>
-                </AnimatePresence>
-              </motion.button>
+              <button 
+                onClick={() => router.back()} 
+                className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] border border-gray-100 active:scale-90 shadow-inner"
+              >
+                <ChevronLeft size={20} className="rotate-180" />
+              </button>
+              
+              <div className="h-8 w-px bg-gray-100 mx-1" />
+
               <div className="text-right flex flex-col justify-center">
-                 <h2 className="text-sm md:text-xl font-black text-[#002d4d] tracking-tight">{asset?.name}</h2>
-                 <div className="flex items-center gap-1.5 opacity-30 mt-0.5">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    <span className="text-[7px] font-black uppercase tracking-widest tracking-normal">Sovereign Node</span>
+                 <h2 className="text-base md:text-xl font-black text-[#002d4d] tracking-tight leading-none">{asset?.name}</h2>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1.5">
+                    <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">{asset?.code} • Live</span>
                  </div>
               </div>
            </div>
 
-           <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 h-10 px-3 bg-gray-50/80 border border-gray-100 rounded-full shadow-inner">
-                 <p className="text-[11px] md:text-[13px] font-black text-[#002d4d] tabular-nums tracking-tighter">
-                   ${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+           <div className="flex items-center gap-2 md:gap-4">
+              {/* Common Action Node */}
+              <div className="hidden sm:flex items-center gap-3 px-4 h-10 bg-gray-50/50 rounded-2xl border border-gray-100 shadow-inner">
+                 <p className="text-[11px] font-black text-[#002d4d] tabular-nums">
+                   ${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                  </p>
-                 <div className="h-3 w-px bg-gray-200" />
-                 <button 
-                   onClick={() => setDepositOpen(true)} 
-                   className="h-6 w-6 rounded-full text-[#002d4d] hover:text-[#f9a885] flex items-center justify-center transition-all active:scale-90"
-                 >
+                 <button onClick={() => setDepositOpen(true)} className="h-6 w-6 rounded-lg bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all">
                     <Plus size={14} />
                  </button>
               </div>
-              
-              <div className="flex items-center gap-1.5">
+
+              {/* Functional Controls Matrix */}
+              <div className="flex items-center gap-1.5 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
+                <button 
+                  onClick={toggleFavorite}
+                  className={cn(
+                    "h-9 w-9 md:h-10 md:w-10 rounded-xl flex items-center justify-center transition-all active:scale-90",
+                    isFavorite ? "bg-white text-orange-400 shadow-sm" : "text-gray-300 hover:text-orange-400"
+                  )}
+                >
+                   <Star size={18} fill={isFavorite ? "currentColor" : "none"} strokeWidth={2.5} />
+                </button>
+
                 <button 
                   onClick={() => setAiOpen(true)}
-                  className="h-9 w-9 md:h-10 md:w-10 rounded-xl border border-gray-100 flex items-center justify-center bg-transparent active:scale-90 transition-all shadow-sm"
+                  className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white shadow-sm flex items-center justify-center active:scale-90 transition-all"
                   title="NAMIX AI"
                 >
                    <NamixAIIcon />
@@ -199,28 +211,28 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
 
                 <button 
                   onClick={() => setInsightOpen(true)} 
-                  className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-all shadow-sm active:scale-90 relative overflow-hidden group/radar" 
+                  className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white text-blue-500 hover:bg-blue-50 shadow-sm flex items-center justify-center active:scale-90" 
                   title="الرؤية العميقة"
                 >
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="absolute h-full w-full rounded-full border border-blue-100 opacity-20 animate-ping duration-[3s]" />
-                  </div>
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute h-[150%] w-[150%] bg-[conic-gradient(from_0deg,transparent_0deg,rgba(59,130,246,0.05)_180deg,rgba(59,130,246,0.3)_360deg)] rounded-full pointer-events-none"
-                  />
-                  <Radar size={16} className="relative z-10 animate-pulse" />
+                  <Radar size={18} className="animate-pulse" />
                 </button>
 
-                <button onClick={() => setHistoryOpen(true)} className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 transition-all shadow-sm active:scale-90" title="سجل التداول"><Clock size={16} /></button>
-                <button onClick={() => router.back()} className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#002d4d] border border-gray-100 active:scale-90 shadow-inner"><ChevronLeft size={18} /></button>
+                <button 
+                  onClick={() => setHistoryOpen(true)} 
+                  className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white text-gray-400 hover:text-blue-600 shadow-sm flex items-center justify-center active:scale-90" 
+                  title="سجل التداول"
+                >
+                  <Clock size={18} />
+                </button>
               </div>
            </div>
         </header>
 
+        {/* Unified Terminal Chassis */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-          <section className="flex-1 relative bg-white overflow-hidden">
+          
+          {/* Main Visual Reactor (Chart) */}
+          <section className="flex-1 relative bg-white overflow-hidden border-b lg:border-b-0">
              <Suspense fallback={<TerminalLoader />}>
                {asset.priceSource === 'internal' ? (
                  <InternalPriceChart asset={asset} livePrice={livePrice || asset.currentPrice} />
@@ -230,32 +242,43 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
              </Suspense>
           </section>
 
-          <footer className="lg:w-[380px] w-full bg-white z-[110] flex flex-col justify-center shrink-0 relative p-3 md:p-4 lg:p-5 h-auto lg:h-auto border-t lg:border-t-0 lg:border-r border-gray-50">
+          {/* Tactical Execution Sidebar (Order Panel) */}
+          <aside className="lg:w-[380px] w-full bg-white z-[110] flex flex-col justify-center shrink-0 relative p-4 md:p-6 lg:border-r border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] lg:shadow-none">
              <Suspense fallback={<div className="h-[200px] w-full bg-gray-50 rounded-3xl animate-pulse" />}>
-               <OrderPanel asset={asset} livePrice={livePrice || asset.currentPrice} globalConfig={globalConfig} riskConfig={riskConfig} onOpenDeposit={() => setDepositOpen(true)} />
+               <OrderPanel 
+                 asset={asset} 
+                 livePrice={livePrice || asset.currentPrice} 
+                 globalConfig={globalConfig} 
+                 riskConfig={riskConfig} 
+                 onOpenDeposit={() => setDepositOpen(true)} 
+               />
              </Suspense>
-          </footer>
+          </aside>
         </div>
 
+        {/* Global Overlays & Drawer Components */}
         <Drawer open={aiOpen} onOpenChange={setAiOpen}>
           <DrawerPortal>
             <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
             <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] max-h-[82vh] bg-white rounded-t-[44px] border-none shadow-2xl z-[1001] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
               <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-4">
                 <div className="flex items-center gap-4 text-right">
-                   <div className="h-10 w-10 rounded-xl flex items-center justify-center">
+                   <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-gray-50">
                       <NamixAIIcon />
                    </div>
                    <div className="space-y-0.5">
-                     <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-normal leading-none">تحليل NAMIX AI</DrawerTitle>
-                     <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1 tracking-normal">Sovereign Intelligence Core</p>
+                     <DrawerTitle className="text-lg font-black text-[#002d4d] tracking-tight leading-none">تحليل NAMIX AI</DrawerTitle>
+                     <p className="text-[#f9a885] font-black text-[7px] uppercase tracking-widest mt-1.5 leading-none">Sovereign Intelligence Core</p>
                    </div>
                 </div>
-                <button onClick={() => setAiOpen(false)} className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all active:scale-90">
-                   <X size={18} />
+                <button 
+                  onClick={() => setAiOpen(false)} 
+                  className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all active:scale-90 shadow-inner"
+                >
+                   <X size={20} />
                 </button>
               </DrawerHeader>
-              <div className="flex-1 overflow-y-auto p-5 md:p-8 scrollbar-none pb-24">
+              <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-none pb-24">
                  <NamixAIContainer asset={asset} livePrice={livePrice} />
               </div>
             </DrawerContent>
