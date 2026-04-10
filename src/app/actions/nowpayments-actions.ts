@@ -6,8 +6,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Sovereign Integration Protocol v1.0
- * يدير توليد العناوين الدائمة للمستخدمين والتحقق من الملاءة المالية عبر البوابة.
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v2.0
+ * يدعم توليد عناوين فريدة لمختلف العملات والشبكات (USDT-TRC20, USDT-BSC, BTC, ETH).
  */
 
 async function getNPConfig() {
@@ -18,9 +18,10 @@ async function getNPConfig() {
 }
 
 /**
- * جلب أو إنشاء عنوان محفظة دائم للمستخدم لعملة معينة
+ * جلب أو إنشاء عنوان محفظة دائم للمستخدم لعملة وشبكة محددة
+ * @param currencyId المعرف الخاص بـ NOWPayments (مثل: usdttrc20, usdtbsc, btc)
  */
-export async function getOrCreateUserWallet(userId: string, currency: string) {
+export async function getOrCreateUserWallet(userId: string, currencyId: string) {
   try {
     const { firestore } = initializeFirebase();
     const config = await getNPConfig();
@@ -33,22 +34,19 @@ export async function getOrCreateUserWallet(userId: string, currency: string) {
     const userData = userSnap.data();
     const assignedWallets = userData.assignedWallets || {};
 
-    // إذا كان العنوان موجوداً مسبقاً، أرجعه فوراً
-    if (assignedWallets[currency]) {
-      return { success: true, address: assignedWallets[currency] };
+    // إذا كان العنوان موجوداً مسبقاً لهذه العملة تحديداً، أرجعه فوراً
+    if (assignedWallets[currencyId]) {
+      return { success: true, address: assignedWallets[currencyId] };
     }
 
-    // طلب إنشاء عنوان دفع جديد (Permanent Payment Address)
-    // ملاحظة: NOWPayments تتطلب إنشاء "Payment" لجلب عنوان، أو استخدام Custodial API
-    // سنستخدم محرك الدفع القياسي الذي يولد عنواناً لكل عملية إيداع لضمان الدقة
+    // طلب إنشاء عنوان دفع جديد من البوابة
     const response = await axios.post(
       'https://api.nowpayments.io/v1/payment',
       {
-        price_amount: 10, // مبلغ افتراضي للبدء، سيتحدث آلياً عند الاستلام
+        price_amount: 10, 
         price_currency: 'usd',
-        pay_currency: currency,
-        order_id: `DEP_${userId}_${Date.now()}`,
-        order_description: `Deposit for User ${userId}`,
+        pay_currency: currencyId,
+        order_id: `DEP_${userId}_${currencyId}_${Date.now()}`,
         ipn_callback_url: `https://${process.env.NEXT_PUBLIC_DOMAIN}/api/webhooks/nowpayments`
       },
       {
@@ -61,32 +59,27 @@ export async function getOrCreateUserWallet(userId: string, currency: string) {
 
     const address = response.data.pay_address;
     
-    // حفظ العنوان في ملف المستخدم للاستخدام المستقبلي
+    // حفظ العنوان في مصفوفة محافظ المستخدم
     await updateDoc(userRef, {
-      [`assignedWallets.${currency}`]: address,
+      [`assignedWallets.${currencyId}`]: address,
       updatedAt: new Date().toISOString()
     });
 
     return { success: true, address };
   } catch (e: any) {
-    console.error("NOWPayments Error:", e.response?.data || e.message);
+    console.error("NOWPayments Multi-Sync Error:", e.response?.data || e.message);
     return { success: false, error: e.message };
   }
 }
 
 /**
- * الحصول على قائمة العملات المدعومة من البوابة
+ * توليد حزمة المحافظ الأساسية للمستخدم بضغطة واحدة
  */
-export async function getSupportedCurrencies() {
-  try {
-    const config = await getNPConfig();
-    if (!config?.nowPaymentsApiKey) return [];
-
-    const res = await axios.get('https://api.nowpayments.io/v1/currencies?fixed_rate=true', {
-      headers: { 'x-api-key': config.nowPaymentsApiKey }
-    });
-    return res.data.currencies || [];
-  } catch (e) {
-    return ["usdttrc20", "btc", "eth", "trx"];
+export async function generateBaseUserWallets(userId: string) {
+  const baseCurrencies = ['usdttrc20', 'usdtbsc', 'btc', 'eth'];
+  const results = [];
+  for (const curr of baseCurrencies) {
+    results.push(await getOrCreateUserWallet(userId, curr));
   }
+  return results;
 }

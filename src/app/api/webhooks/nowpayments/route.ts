@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, getDoc } from 'firebase/firestore';
 
 /**
- * @fileOverview NOWPayments IPN Webhook Handler
- * يستقبل إشعارات الدفع ويقوم بحقن الرصيد في حساب المستثمر آلياً.
+ * @fileOverview NOWPayments Multi-Wallet IPN Monitor v2.0
+ * محرك مراقبة ذكي يتحقق من العملة والعنوان لحقن الرصيد بدقة متناهية.
  */
 
 export async function POST(req: Request) {
@@ -16,57 +16,46 @@ export async function POST(req: Request) {
     
     const { firestore } = initializeFirebase();
     const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
-    const ipnSecret = configSnap.data()?.nowPaymentsIpnSecret;
+    const ipnSecret = configSnap?.data()?.nowPaymentsIpnSecret;
 
-    // 1. التحقق من صحة التوقيع لضمان أن الطلب قادم من NOWPayments حصراً
     if (ipnSecret && sig) {
       const hmac = crypto.createHmac('sha512', ipnSecret);
       hmac.update(JSON.stringify(JSON.parse(body), Object.keys(JSON.parse(body)).sort()));
       const signature = hmac.digest('hex');
-      
-      if (signature !== sig) {
-        return NextResponse.json({ error: 'Invalid Signature' }, { status: 401 });
-      }
+      if (signature !== sig) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const data = JSON.parse(body);
-    const { payment_status, pay_address, actually_paid, order_id, pay_currency } = data;
+    const { payment_status, pay_address, actually_paid, pay_currency } = data;
 
-    // 2. معالجة العمليات الناجحة فقط (finished)
     if (payment_status === 'finished') {
-      // البحث عن المستخدم صاحب هذا العنوان
+      // البحث عن المستخدم الذي يملك هذا العنوان لهذه العملة تحديداً
       const usersRef = collection(firestore, "users");
-      const q = query(usersRef, where("assignedWallets." + pay_currency, "==", pay_address));
+      const q = query(usersRef, where(`assignedWallets.${pay_currency}`, "==", pay_address));
       const userSnap = await getDocs(q);
 
       if (!userSnap.empty) {
         const userDoc = userSnap.docs[0];
-        const userId = userDoc.id;
         const amount = Number(actually_paid);
 
-        // أ. تحديث رصيد المستخدم فوراً
-        await updateDoc(doc(firestore, "users", userId), {
+        await updateDoc(doc(firestore, "users", userDoc.id), {
           totalBalance: increment(amount)
         });
 
-        // ب. توثيق عملية الإيداع في السجل التاريخي
         await addDoc(collection(firestore, "deposit_requests"), {
-          userId,
+          userId: userDoc.id,
           userName: userDoc.data().displayName,
           amount,
-          approvedAmount: amount,
-          methodName: `Auto-Deposit (${pay_currency.toUpperCase()})`,
-          transactionId: data.payment_id || order_id,
+          methodName: `Auto-Sync (${pay_currency.toUpperCase()})`,
           status: "approved",
           isAutoAudited: true,
           createdAt: new Date().toISOString()
         });
 
-        // ج. إرسال تنبيه للمستثمر
         await addDoc(collection(firestore, "notifications"), {
-          userId,
-          title: "تم استلام الإيداع آلياً ⚡",
-          message: `تم التحقق من وصول مبلغ $${amount} إلى محفظتك الخاصة بنجاح. تم تحديث رصيدك الآن.`,
+          userId: userDoc.id,
+          title: "تم حقن السيولة آلياً ⚡",
+          message: `تم رصد إيداع بقيمة $${amount} عبر محفظتك المخصصة (${pay_currency.toUpperCase()}). تم تحديث رصيدك بنجاح.`,
           type: "success",
           isRead: false,
           createdAt: new Date().toISOString()
@@ -76,14 +65,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    console.error("Webhook Error:", e.message);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
-}
-
-// دالة مساعدة لـ getDoc داخل الـ Route
-async function getDoc(ref: any) {
-  const { firestore } = initializeFirebase();
-  const snap = await require('firebase/firestore').getDoc(ref);
-  return snap;
 }

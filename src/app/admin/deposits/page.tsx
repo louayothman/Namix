@@ -11,8 +11,8 @@ import { RequestsLedgerSection } from "@/components/admin/deposits/RequestsLedge
 import { AnimatePresence, motion } from "framer-motion";
 
 /**
- * @fileOverview مركز إدارة تدفقات الخزينة v2.0 - Unified Architecture
- * قمرة قيادة موحدة تجمع بين ضبط الـ API، بوابات الدفع، وسجلات التدقيق.
+ * @fileOverview مركز إدارة تدفقات الخزينة v3.0 - Unified Sovereign Hub
+ * قمرة قيادة موحدة تجمع بين ضبط الـ API، بوابات الدفع، وسجلات التدقيق اليدوي والآلي.
  */
 
 type DepositsView = 'menu' | 'api' | 'portals' | 'ledger';
@@ -32,62 +32,35 @@ export default function AdminDepositsHub() {
         <div className="relative min-h-[600px]">
           <AnimatePresence mode="wait">
             {activeView === 'menu' && (
-              <motion.div 
-                key="menu"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
-              >
+              <motion.div key="menu" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
                 <DepositsMenu onSelect={setActiveView} />
               </motion.div>
             )}
 
             {activeView === 'api' && (
-              <motion.div 
-                key="api"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="w-full"
-              >
+              <motion.div key="api" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="w-full">
                 <PaymentApiSection />
               </motion.div>
             )}
 
             {activeView === 'portals' && (
-              <motion.div 
-                key="portals"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="w-full"
-              >
+              <motion.div key="portals" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="w-full">
                 <DepositPortalsSection />
               </motion.div>
             )}
 
             {activeView === 'ledger' && (
-              <motion.div 
-                key="ledger"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="w-full"
-              >
+              <motion.div key="ledger" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="w-full">
                 <RequestsLedgerSection />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* System Footer Branding */}
         <div className="flex flex-col items-center gap-4 pt-20 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Treasury Infrastructure v2.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Treasury Infrastructure v3.0</p>
            <div className="flex gap-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-              ))}
+              {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
            </div>
         </div>
       </div>
