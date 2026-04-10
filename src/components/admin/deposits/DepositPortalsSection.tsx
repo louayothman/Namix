@@ -30,7 +30,8 @@ import {
   Settings2,
   Globe,
   Radio,
-  Info
+  Info,
+  FileText
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -51,9 +52,8 @@ import {
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 
 /**
- * @fileOverview مركز هندسة بوابات الإيداع الشمولية v6.0
- * يعتمد الآن نظام "أنماط الفئات" (Category-Based Automation Modes).
- * يتم قفل الإضافة اليدوية في الأقسام المؤتمتة لضمان تكامل الـ API.
+ * @fileOverview مركز هندسة بوابات الإيداع الشمولية v6.1
+ * تم إضافة حقل "الوصف" عند إنشاء الأقسام لتعزيز التوجيه الإستراتيجي للمستثمرين.
  */
 
 export function DepositPortalsSection() {
@@ -62,6 +62,7 @@ export function DepositPortalsSection() {
   const [isAddPortalOpen, setIsAddPortalOpen] = useState(false);
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
+  const [newCatDescription, setNewCatDescription] = useState("");
   const [newCatType, setNewCatType] = useState<"manual" | "nowpayments" | "binance">("manual");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
 
@@ -83,11 +84,13 @@ export function DepositPortalsSection() {
     try {
       await addDoc(collection(db, "deposit_methods"), { 
         name: newCatName, 
+        description: newCatDescription,
         type: newCatType,
         isActive: true,
         portals: [] 
       });
       setNewCatName("");
+      setNewCatDescription("");
       setNewCatType("manual");
       setIsAddCatOpen(false);
       toast({ title: "تم إنشاء القسم الاستراتيجي" });
@@ -228,6 +231,13 @@ export function DepositPortalsSection() {
 
               {expandedCat === category.id && (
                 <div className="p-8 space-y-6 animate-in slide-in-from-top-2 duration-500" dir="rtl">
+                  
+                  {category.description && (
+                    <div className="p-6 bg-gray-50/50 rounded-[32px] border border-gray-100 shadow-inner">
+                       <p className="text-[11px] font-bold text-gray-500 leading-relaxed">{category.description}</p>
+                    </div>
+                  )}
+
                   {category.type !== 'manual' ? (
                     <div className="p-10 bg-blue-50/30 rounded-[48px] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center gap-6">
                        <div className="h-20 w-20 rounded-[32px] bg-white flex items-center justify-center shadow-xl">
@@ -346,18 +356,23 @@ export function DepositPortalsSection() {
       </AlertDialog>
 
       <Dialog open={isAddCatOpen} onOpenChange={setIsAddCatOpen}>
-        <DialogContent className="rounded-[48px] border-none p-10 max-w-[420px] font-body text-right flex flex-col outline-none" dir="rtl">
-          <DialogHeader className="items-center gap-4">
+        <DialogContent className="rounded-[48px] border-none p-10 max-w-[480px] font-body text-right flex flex-col outline-none overflow-hidden max-h-[90vh]" dir="rtl">
+          <DialogHeader className="items-center gap-4 shrink-0">
             <div className="h-16 w-16 rounded-[24px] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
                <Layers size={32} />
             </div>
             <DialogTitle className="text-2xl font-black text-[#002d4d]">تأسيس قسم إيداع</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-8 py-8 text-right">
+          <div className="flex-1 overflow-y-auto space-y-8 py-8 text-right scrollbar-none">
             <div className="space-y-2">
                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">اسم القسم الاستراتيجي</Label>
                <Input placeholder="مثلاً: عملات رقمية (آلي)..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-lg shadow-inner" />
+            </div>
+
+            <div className="space-y-2">
+               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">وصف القسم وتوجيهات الشحن</Label>
+               <Textarea placeholder="اكتب وصفاً مختصراً يظهر للمستثمر عند اختيار هذا القسم..." value={newCatDescription} onChange={e => setNewCatDescription(e.target.value)} className="min-h-[100px] rounded-[32px] bg-gray-50 border-none font-bold text-xs p-6 shadow-inner leading-relaxed" />
             </div>
 
             <div className="space-y-2">
@@ -366,7 +381,7 @@ export function DepositPortalsSection() {
                   <SelectTrigger className="h-14 rounded-[24px] bg-[#002d4d] text-white border-none font-black text-xs px-8 shadow-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-[28px] border-none shadow-2xl">
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
                      <SelectItem value="manual" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>يدوي (بوابات مخصصة)</span><Wallet size={14}/></div></SelectItem>
                      <SelectItem value="nowpayments" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>آلي (NOWPayments Sync)</span><Zap size={14} className="text-purple-500 fill-current"/></div></SelectItem>
                      <SelectItem value="binance" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>شبه آلي (Binance Sync)</span><Cpu size={14} className="text-orange-500"/></div></SelectItem>
@@ -382,7 +397,7 @@ export function DepositPortalsSection() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="shrink-0 pt-6 border-t border-gray-100">
             <Button onClick={handleAddCategory} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all group">
                تفعيل القسم الجديد
                <ChevronLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
