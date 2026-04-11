@@ -111,7 +111,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       list = category?.portals?.filter((p: any) => p.isActive) || [];
     } 
     else if (category?.type === 'nowpayments') {
-      // فلترة الأصول لعرض العملات التي يملك المستخدم محافظ لها فقط
       const assignedKeys = dbUser?.assignedWallets ? Object.keys(dbUser.assignedWallets) : [];
       list = NOWPAYMENTS_ASSETS.filter(a => assignedKeys.includes(a.id));
     } 
@@ -162,7 +161,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const res = await getOrCreateUserWallet(dbUser.id, asset.id);
         if (res.success) {
           setWalletAddress(res.address);
-          setInstructions(`هذا العنوان هو هويتك المالية الدائمة لعملة ${asset.coin}. يرجى التحويل عبر شبكة ${asset.network} حصراً. سيقوم النظام بحقن الرصيد آلياً فور رصد العملية.`);
+          setInstructions(`هذا العنوان هو هويتك المالية الدائمة لعملة ${asset.coin}. يرجى الإرسال عبر شبكة ${asset.network} حصراً. سيقوم النظام بإضافة الرصيد آلياً فور رصد العملية.`);
           setStep("execution");
         } else {
           setError(res.error || "تعذر توليد المحفظة حالياً.");
@@ -191,7 +190,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى تحويل المبلغ لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد التحويل، يجب إدخال الـ TXID فقط للتحقق الآلي من الميزانية وحقن الرصيد.`);
+        setInstructions(`يرجى إرسال المبلغ لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال الـ TXID فقط للتحقق الآلي من الميزانية وإضافة الرصيد.`);
         setStep("execution");
       } else {
         setError(res.error);
@@ -240,7 +239,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell>
       <div className="h-screen flex flex-col items-center justify-center gap-6 bg-white font-body">
         <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Initializing Secure Node...</p>
+        <p className="text-[10px] font-black text-gray-300 uppercase animate-pulse">Initializing Secure Node...</p>
       </div>
     </Shell>
   );
@@ -249,17 +248,16 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="max-w-4xl mx-auto space-y-10 px-4 md:px-8 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Header Block */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-8">
            <div className="flex items-center gap-4 md:gap-6">
               <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl md:rounded-[28px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl shrink-0">
                  {category?.type === 'manual' ? <Wallet size={28}/> : category?.type === 'nowpayments' ? <Zap size={28} className="fill-current"/> : <Cpu size={28}/>}
               </div>
               <div className="space-y-1">
-                 <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">{category?.name}</h1>
+                 <h1 className="text-xl md:text-3xl font-black text-[#002d4d]">{category?.name}</h1>
                  <div className="flex items-center gap-2 opacity-40">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">{category?.type?.toUpperCase()} Node Ready</p>
+                    <p className="text-[8px] md:text-[9px] font-black uppercase">{category?.type?.toUpperCase()} Node Ready</p>
                  </div>
               </div>
            </div>
@@ -279,7 +277,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                             الأكثر شيوعاً {sortMode === 'popular' && <Star size={12} className="text-orange-400 fill-current" />}
                          </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => setSortMode('name')} className="font-black text-[10px] py-3 px-4 rounded-xl cursor-pointer justify-between">
-                            الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-500" />}
+                            الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-50" />}
                          </DropdownMenuItem>
                       </DropdownMenuContent>
                    </DropdownMenu>
@@ -320,9 +318,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               isSearchOpen={isSearchOpen}
-              setIsSearchOpen={setIsSearchOpen}
-              sortMode={sortMode}
-              setSortMode={setSortMode}
             />
           )}
 
@@ -363,7 +358,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         </AnimatePresence>
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Sovereign Ledger v12.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Ledger v12.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
            </div>
