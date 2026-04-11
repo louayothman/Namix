@@ -8,6 +8,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { 
   ChevronRight, 
+  ChevronLeft,
   Loader2, 
   Search,
   ArrowUpDown,
@@ -290,7 +291,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 }} 
                 className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d] active:scale-90"
               >
-                 <ChevronRight size={18} className="rotate-0" />
+                 <ChevronLeft size={18} />
               </button>
            </div>
         </header>
