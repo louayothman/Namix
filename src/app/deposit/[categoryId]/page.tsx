@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -220,6 +221,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     } catch (e) { setError("فشل إرسال البيانات."); } finally { setLoading(false); }
   };
 
+  const handleClose = () => {
+    router.push("/home");
+  };
+
   if (loadingCat) return (
     <Shell>
       <div className="h-screen flex flex-col items-center justify-center gap-6 bg-white">
@@ -304,7 +309,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 categoryType={category?.type} 
                 successData={successData} 
                 error={error}
-                onBackHome={() => router.push("/home")} 
+                onBackHome={handleClose} 
                 onRetry={() => { setError(null); setStep("execution"); }}
               />
             )}
@@ -314,4 +319,3 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     </Shell>
   );
 }
-
