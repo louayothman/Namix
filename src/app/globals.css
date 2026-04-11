@@ -11,6 +11,14 @@
     font-display: swap;
   }
 
+  @font-face {
+    font-family: 'Cairo';
+    src: url('/fonts/cairo.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 220 40% 10%;
@@ -41,14 +49,19 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Tajawal', sans-serif !important;
+    font-family: 'Tajawal', 'Cairo', sans-serif !important;
     font-size: 13px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
+/* استخدام خط Cairo للأرقام والنصوص الإنجليزية تلقائياً */
+:lang(en), .font-mono, .tabular-nums {
+  font-family: 'Cairo', sans-serif !important;
+}
+
 .font-body, .font-headline {
-  font-family: 'Tajawal', sans-serif !important;
+  font-family: 'Tajawal', 'Cairo', sans-serif !important;
   letter-spacing: normal !important;
 }
 

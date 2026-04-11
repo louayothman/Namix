@@ -51,7 +51,7 @@ export function DepositShareDrawer({
     setGenerating(true);
     setImgUrl(null);
     try {
-      // إيقاف مؤقت محسوب لضمان استقرار تحميل الباركود
+      // إيقاف مؤقت محسوب لضمان استقرار تحميل الباركود والأيقونات
       await new Promise(r => setTimeout(r, 1500));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
@@ -60,7 +60,7 @@ export function DepositShareDrawer({
         pixelRatio: 3,
         fontEmbedCSS: '', 
         style: {
-          fontFamily: "'TajawalLocal', sans-serif",
+          fontFamily: "'TajawalLocal', 'CairoLocal', sans-serif",
         }
       });
       setImgUrl(dataUrl);
@@ -113,20 +113,27 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* صك الإيداع النخبوي - تصميم مجهري نقي */}
+      {/* صك الإيداع النخبوي - تصميم مجهري نقي ومستقر */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
           className="w-[450px] bg-white p-12 flex flex-col items-center gap-12"
-          style={{ fontFamily: "'TajawalLocal', sans-serif" }}
+          style={{ fontFamily: "'TajawalLocal', 'CairoLocal', sans-serif" }}
         >
           <style dangerouslySetInnerHTML={{ __html: `
             @font-face {
               font-family: 'TajawalLocal';
               src: url('/fonts/Tajawal.ttf') format('truetype');
-              font-weight: 900;
+              font-weight: normal;
             }
-            * { font-family: 'TajawalLocal', sans-serif !important; letter-spacing: normal !important; }
+            @font-face {
+              font-family: 'CairoLocal';
+              src: url('/fonts/cairo.ttf') format('truetype');
+              font-weight: normal;
+            }
+            * { letter-spacing: normal !important; }
+            .font-ar { font-family: 'TajawalLocal', sans-serif !important; }
+            .font-en { font-family: 'CairoLocal', sans-serif !important; }
           `}} />
 
           {/* الهوية العلوية - أقصى اليمين بنقاء تام */}
@@ -135,16 +142,16 @@ export function DepositShareDrawer({
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={40} />
              </div>
              <div className="text-right space-y-0.5">
-                <h2 className="text-sm font-black text-[#002d4d] leading-none">
+                <h2 className="text-sm font-black text-[#002d4d] leading-none font-ar">
                   {selectedAsset?.name || selectedAsset?.coin}
                 </h2>
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none font-en">
                   {selectedNetwork?.name || selectedAsset?.network}
                 </p>
              </div>
           </div>
 
-          {/* الباركود المربع الحاد - بدون أي حاويات */}
+          {/* الباركود المربع الحاد - بدون أي حاويات مشتتة */}
           <div className="flex items-center justify-center w-full py-4">
              {qrCodeUrl && (
                <div className="relative h-64 w-64">
@@ -166,8 +173,8 @@ export function DepositShareDrawer({
 
           {/* العنوان الرقمي - سطر واحد نقي بدون كبسولة */}
           <div className="w-full text-center px-4">
-             <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.4em] mb-3">DEPOSIT ADDRESS</p>
-             <p className="text-[10px] font-mono font-black text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr">
+             <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.4em] mb-3 font-en">DEPOSIT ADDRESS</p>
+             <p className="text-[10px] font-black text-[#002d4d] whitespace-nowrap overflow-hidden font-en" dir="ltr">
                {walletAddress}
              </p>
           </div>
@@ -176,7 +183,7 @@ export function DepositShareDrawer({
           <div className="w-full space-y-8 pt-6">
              <div className="h-[0.5px] w-full bg-gray-100" />
              <div className="flex items-center justify-center gap-6" dir="ltr">
-                <span className="text-[16px] font-black text-[#002d4d] uppercase" style={{ letterSpacing: '1em', marginRight: '-1em' }}>
+                <span className="text-[16px] font-black text-[#002d4d] uppercase font-en" style={{ letterSpacing: '1em', marginRight: '-1em' }}>
                   NAMIX
                 </span>
                 <div className="grid grid-cols-2 gap-0.5 scale-90">
@@ -193,7 +200,7 @@ export function DepositShareDrawer({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1100]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden" dir="rtl">
             <VisuallyHidden.Root>
               <DrawerTitle>مشاركة العنوان</DrawerTitle>
             </VisuallyHidden.Root>
