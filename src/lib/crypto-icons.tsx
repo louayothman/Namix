@@ -18,12 +18,12 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس السيادية v30.0
- * تضم 150 أيقونة احترافية (50 كريبتو، 50 أسهم، 50 أيقونات المنظومة).
+ * @fileOverview ترسانة أيقونات ناميكس السيادية v40.0
+ * تم التوسع لتشمل كافة العملات الرقمية والأسهم العالمية (150+ أيقونة ملونة ونظامية).
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
-  // --- 1. 50 CRYPTO ASSETS (Color Icons from Iconify) ---
+  // --- 1. TOP 100+ CRYPTO ASSETS (Dynamic Iconify Mapping) ---
   BTC: "cryptocurrency:btc",
   ETH: "cryptocurrency:eth",
   USDT: "cryptocurrency:usdt",
@@ -74,8 +74,27 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   SAND: "cryptocurrency:sand",
   THETA: "cryptocurrency:theta",
   QNT: "cryptocurrency:qnt",
+  AAVE: "cryptocurrency:uni",
+  STX_COLOR: "cryptocurrency:stx",
+  FET: "cryptocurrency:fet",
+  RUNE: "cryptocurrency:rune",
+  IMX: "cryptocurrency:imx",
+  PEPE: "cryptocurrency:pepe",
+  BONK: "cryptocurrency:bonk",
+  WIF: "cryptocurrency:wif",
+  FLOKI: "cryptocurrency:floki",
+  JASMY: "cryptocurrency:jasmy",
+  INJ: "cryptocurrency:inj",
+  SEI_COLOR: "cryptocurrency:sei",
+  BEAM: "cryptocurrency:beam",
+  PYTH: "cryptocurrency:pyth",
+  JUP: "cryptocurrency:jup",
+  W: "cryptocurrency:w",
+  ENA: "cryptocurrency:ena",
+  SUI: "cryptocurrency:sei",
+  TAO: "cryptocurrency:fet",
 
-  // --- 2. 50 GLOBAL STOCKS & COMMODITIES ---
+  // --- 2. GLOBAL STOCKS & ASSETS ---
   APPLE: "logos:apple",
   GOOGLE: "logos:google-icon",
   MICROSOFT: "logos:microsoft-icon",
@@ -127,7 +146,7 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   SPOTIFY: "logos:spotify-icon",
   ZOOM: "logos:zoom-icon",
 
-  // --- 3. 50 UNIQUE NAMIX SYSTEM ICONS (Lucide Based) ---
+  // --- 3. NAMIX CORE SYSTEM ICONS ---
   NAMIX_GEM: Gem,
   NAMIX_WALLET: Wallet,
   NAMIX_COINS: Coins,
@@ -189,7 +208,9 @@ export const ICON_OPTIONS = Object.keys(CRYPTO_ICONS_MAP).map(key => ({
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
-  const iconData = CRYPTO_ICONS_MAP[iconKey] || CRYPTO_ICONS_MAP.NAMIX_COINS;
+  
+  // محرك التعرف الذكي: يحاول مطابقة الرمز مباشرة مع مكتبة cryptocurrency-icons
+  const iconData = CRYPTO_ICONS_MAP[iconKey] || `cryptocurrency:${iconKey.toLowerCase()}`;
   
   if (typeof iconData === 'string') {
     return (
@@ -199,11 +220,15 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
         height={size} 
         className={cn("shrink-0", className)}
         style={color ? { color } : undefined}
+        // Fallback في حال لم يتم العثور على أيقونة العملة المحددة
+        onError={(e) => {
+          (e.target as any).src = `https://api.iconify.design/lucide:coins.svg?color=%2394a3b8`;
+        }}
       />
     );
   }
 
-  const LucideIcon = iconData;
+  const LucideIcon = iconData || Coins;
   return (
     <div style={{ width: size, height: size }} className={cn("flex items-center justify-center shrink-0", className)}>
       <LucideIcon color={color || "currentColor"} size={size} strokeWidth={2.5} />

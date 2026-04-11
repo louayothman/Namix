@@ -107,9 +107,17 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const filteredAssets = useMemo(() => {
     let list: any[] = [];
-    if (category?.type === 'manual') list = category?.portals?.filter((p: any) => p.isActive) || [];
-    else if (category?.type === 'nowpayments') list = NOWPAYMENTS_ASSETS;
-    else if (category?.type === 'binance') list = binanceConfig;
+    if (category?.type === 'manual') {
+      list = category?.portals?.filter((p: any) => p.isActive) || [];
+    } 
+    else if (category?.type === 'nowpayments') {
+      // فلترة الأصول لعرض العملات التي يملك المستخدم محافظ لها فقط
+      const assignedKeys = dbUser?.assignedWallets ? Object.keys(dbUser.assignedWallets) : [];
+      list = NOWPAYMENTS_ASSETS.filter(a => assignedKeys.includes(a.id));
+    } 
+    else if (category?.type === 'binance') {
+      list = binanceConfig;
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -137,7 +145,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     }
 
     return list;
-  }, [category, binanceConfig, searchQuery, sortMode]);
+  }, [category, binanceConfig, searchQuery, sortMode, dbUser?.assignedWallets]);
 
   const handleAssetSelect = async (asset: any) => {
     if (!dbUser?.id) {
@@ -241,7 +249,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="max-w-4xl mx-auto space-y-10 px-4 md:px-8 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Persistent Modular Header */}
+        {/* Header Block */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-8">
            <div className="flex items-center gap-4 md:gap-6">
               <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl md:rounded-[28px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl shrink-0">
