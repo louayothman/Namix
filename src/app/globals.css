@@ -49,21 +49,19 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Tajawal للعربية و Cairo للإنجليزية والأرقام */
     font-family: 'Tajawal', 'Cairo', sans-serif !important;
     font-size: 13px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* فرض خط Cairo على الأرقام والكلمات الإنجليزية */
-:lang(en), .font-mono, .tabular-nums, span:not([lang="ar"]), p:not([lang="ar"]) {
+/* فرض الخطوط بناءً على اللغة والمحتوى الرقمي */
+:lang(en), .font-mono, .tabular-nums, [dir="ltr"] {
   font-family: 'Cairo', sans-serif !important;
 }
 
 .font-body, .font-headline {
   font-family: 'Tajawal', 'Cairo', sans-serif !important;
-  letter-spacing: normal !important;
 }
 
 @keyframes pulse-ring {
