@@ -56,7 +56,7 @@ const NOWPAYMENTS_ASSETS = [
 const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL'];
 
 /**
- * NamixDotsIcon - أيقونة ناميكس المكونة من 4 نقاط للفئات التابعة لها
+ * NamixDotsIcon - أيقونة ناميكس المكونة من 4 نقاط
  */
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
@@ -165,7 +165,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const res = await getOrCreateUserWallet(dbUser.id, asset.id);
         if (res.success) {
           setWalletAddress(res.address);
-          setInstructions(`هذا العنوان هو هويتك المالية الدائمة لعملة ${asset.coin}. يرجى الإرسال عبر شبكة ${asset.network} حصراً. سيقوم النظام بإضافة الرصيد آلياً فور رصد العملية.`);
+          setInstructions(`هذا العنوان هو هويتك الدائمة لعملة ${asset.coin}. يرجى الإرسال عبر شبكة ${asset.network} حصراً. سيقوم النظام بإضافة الرصيد آلياً فور رصد العملية.`);
           setStep("execution");
         } else { setError(res.error || "تعذر التوليد."); }
       } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
@@ -234,12 +234,12 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         
-        {/* Fixed Strategic Header */}
+        {/* Fixed Header - Purified Icons */}
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-[20px] bg-white flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+              <div className="shrink-0 flex items-center justify-center">
                  {category?.type === 'binance' ? (
-                   <Icon icon="logos:binance" width={28} height={28} />
+                   <Icon icon="logos:binance" width={32} height={32} />
                  ) : (
                    <NamixDotsIcon />
                  )}
@@ -290,7 +290,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 }} 
                 className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d] active:scale-90"
               >
-                 <ChevronRight size={18} className="rotate-180" />
+                 <ChevronRight size={18} className="rotate-0" />
               </button>
            </div>
         </header>
@@ -354,7 +354,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
            <div className="flex flex-col items-center gap-4 select-none">
               <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v12.0</p>
               <div className="flex gap-2">
-                 {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
+                 {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
               </div>
            </div>
         </footer>

@@ -22,7 +22,7 @@ interface DepositSheetProps {
 }
 
 /**
- * NamixDotsIcon - أيقونة ناميكس المميزة للـ NOWPayments
+ * NamixDotsIcon - أيقونة ناميكس المميزة
  */
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
@@ -110,27 +110,16 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                         onClick={() => handleSelectCategory(cat.id)} 
                         className="w-full p-6 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-6 text-right group active:scale-[0.99] relative overflow-hidden"
                       >
-                        <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-white transition-all shrink-0 overflow-hidden">
+                        <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-white transition-all shrink-0 overflow-hidden">
                           {cat.type === 'binance' ? (
-                            <Icon icon="logos:binance" width={28} height={28} />
-                          ) : cat.type === 'nowpayments' ? (
-                            <NamixDotsIcon />
+                            <Icon icon="logos:binance" width={32} height={32} />
                           ) : (
-                            <Icon icon="lucide:wallet" width={28} height={28} className="text-[#002d4d] group-hover:text-[#f9a885]" />
+                            <NamixDotsIcon />
                           )}
                         </div>
                         <div className="flex-1 space-y-1">
-                           <div className="flex items-center justify-between">
-                              <p className="font-black text-base text-[#002d4d] group-hover:text-blue-600 transition-colors">{cat.name}</p>
-                              <Badge className={cn(
-                                "text-[7px] font-black border-none px-2 py-0.5 rounded-md",
-                                cat.type === 'nowpayments' ? "bg-blue-50 text-blue-600" :
-                                cat.type === 'binance' ? "bg-orange-50 text-orange-600" : "bg-gray-100 text-gray-400"
-                              )}>
-                                {cat.type?.toUpperCase() || 'MANUAL'}
-                              </Badge>
-                           </div>
-                           <p className="text-[10px] font-bold text-gray-400 leading-relaxed line-clamp-2">{cat.description || "استخدم هذا المسار لإيداع الأموال بذكاء وأمان."}</p>
+                           <p className="font-black text-base text-[#002d4d] group-hover:text-blue-600 transition-colors">{cat.name}</p>
+                           <p className="text-[10px] font-bold text-gray-400 leading-relaxed line-clamp-2">{cat.description || "استخدم هذا المسار لإضافة الرصيد بذكاء وأمان."}</p>
                         </div>
                         <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all shrink-0 rotate-180" />
                       </button>
