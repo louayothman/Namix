@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -11,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Tajawal', 'sans-serif'],
-        headline: ['Tajawal', 'sans-serif'],
-        code: ['monospace'],
+        body: ['Tajawal', 'Cairo', 'sans-serif'],
+        headline: ['Tajawal', 'Cairo', 'sans-serif'],
+        mono: ['Cairo', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
