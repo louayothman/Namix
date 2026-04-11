@@ -65,7 +65,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
 
   const categorizedSymbols = useMemo(() => {
     const groups: Record<string, { label: string, icon: any, items: any[] }> = {
-      crypto: { label: "العملات الرقمية (بينانس)", icon: Coins, items: [] },
+      crypto: { label: "العملات الرقمية والأسهم الملونة", icon: Coins, items: [] },
       internal: { label: "أصول المنظومة الداخلية", icon: Activity, items: [] },
       other: { label: "أصول متنوعة", icon: Layers, items: [] }
     };
@@ -124,7 +124,7 @@ export function MarketInventory({ symbols, isLoading }: MarketInventoryProps) {
                   <div className="flex items-center justify-between relative z-10">
                      <div className="flex items-center gap-4">
                         <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] transition-all duration-500">
-                          <CryptoIcon name={sym.icon} size={28} color={sym.isActive ? "#002d4d" : "#94a3b8"} />
+                          <CryptoIcon name={sym.icon} size={32} />
                         </div>
                         <div className="text-right">
                           <h4 className="font-black text-base text-[#002d4d]">{sym.name}</h4>

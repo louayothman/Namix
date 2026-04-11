@@ -46,7 +46,7 @@ export function AssetForge() {
     maxPrice: 1000,
     volatility: 5,
     trendBias: "neutral",
-    icon: "COINS",
+    icon: "USDT",
   });
 
   const handleCreate = async () => {
@@ -71,7 +71,7 @@ export function AssetForge() {
       await setDoc(doc(db, "trading_symbols", docId), payload);
       
       toast({ title: "تم تفعيل الأصل بنجاح" });
-      setFormData({ name: "", code: "", type: "Crypto", priceSource: "internal", binanceSymbol: "", minPrice: 100, maxPrice: 1000, volatility: 5, trendBias: "neutral", icon: "COINS" });
+      setFormData({ name: "", code: "", type: "Crypto", priceSource: "internal", binanceSymbol: "", minPrice: 100, maxPrice: 1000, volatility: 5, trendBias: "neutral", icon: "USDT" });
       setIsOpen(false);
     } catch (e) {
       toast({ variant: "destructive", title: "خطأ في القاعدة" });
@@ -152,15 +152,18 @@ export function AssetForge() {
                        )}
 
                        <div className="space-y-2 text-right">
-                          <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">أيقونة الهوية</Label>
+                          <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">أيقونة الهوية (الملونة)</Label>
                           <Select value={formData.icon} onValueChange={val => setFormData({...formData, icon: val})}>
                              <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner">
-                                <SelectValue />
+                                <SelectValue placeholder="اختر أيقونة من Cryptocurrency Color..." />
                              </SelectTrigger>
                              <SelectContent className="rounded-[32px] border-none shadow-2xl">
                                 <ScrollArea className="h-[300px]">
+                                   <div className="px-2 py-2 border-b border-gray-50 mb-2">
+                                      <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Global Asset Library</p>
+                                   </div>
                                    {ICON_OPTIONS.map(opt => (
-                                     <SelectItem key={opt.id} value={opt.id} className="font-bold py-3">
+                                     <SelectItem key={opt.id} value={opt.id} className="font-bold py-3 cursor-pointer">
                                         <div className="flex items-center gap-4">
                                           <CryptoIcon name={opt.id} size={24} />
                                           <span className="text-xs">{opt.label}</span>

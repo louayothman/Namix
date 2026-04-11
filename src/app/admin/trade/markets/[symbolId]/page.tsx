@@ -27,10 +27,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 /**
- * @fileOverview صفحة تفاصيل السوق السيادية v1.0
- * تم تخصيص صفحة مستقلة لإدارة بيانات السوق والمدد الزمنية الخاصة به حصراً.
+ * @fileOverview صفحة تفاصيل السوق السيادية v1.1
+ * تم تحديث محرك الأيقونات ليدعم Cryptocurrency Color مع قائمة اختيار احترافية.
  */
 
 const UNIT_OPTIONS = [
@@ -141,20 +142,25 @@ export default function MarketDetailPage({ params }: { params: Promise<{ symbolI
                     </div>
 
                     <div className="space-y-2">
-                       <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">أيقونة الأصل</Label>
+                       <Label className="text-[9px] font-black text-gray-400 pr-4 uppercase">أيقونة الأصل (الملونة)</Label>
                        <Select value={editData.icon} onValueChange={val => setEditData({...editData, icon: val})}>
                           <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black px-6 shadow-inner">
-                             <SelectValue />
+                             <SelectValue placeholder="اختر أيقونة من Cryptocurrency Color..." />
                           </SelectTrigger>
                           <SelectContent className="rounded-[32px] border-none shadow-2xl">
-                             {ICON_OPTIONS.map(opt => (
-                               <SelectItem key={opt.id} value={opt.id} className="font-bold py-3 text-right">
-                                  <div className="flex items-center gap-3 justify-end">
-                                     <span>{opt.label}</span>
-                                     <CryptoIcon name={opt.id} size={18} />
-                                  </div>
-                               </SelectItem>
-                             ))}
+                             <ScrollArea className="h-[300px]">
+                                <div className="px-2 py-2 border-b border-gray-50 mb-2">
+                                   <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Global Asset Library</p>
+                                </div>
+                                {ICON_OPTIONS.map(opt => (
+                                  <SelectItem key={opt.id} value={opt.id} className="font-bold py-3 text-right cursor-pointer">
+                                     <div className="flex items-center gap-4 justify-end">
+                                        <span>{opt.label}</span>
+                                        <CryptoIcon name={opt.id} size={24} />
+                                     </div>
+                                  </SelectItem>
+                                ))}
+                             </ScrollArea>
                           </SelectContent>
                        </Select>
                     </div>

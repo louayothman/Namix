@@ -17,8 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v60.0
- * محرك Iconify المطور لضمان تغطية 2000+ عملة رقمية وسهم عالمي.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v65.0
+ * تم تحديث المحرك لدعم Cryptocurrency Color بشكل كامل مع نظام التعرف الذكي للرموز.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -35,21 +35,91 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   NAMIX_CPU: Cpu,
   NAMIX_LAYERS: Layers,
   NAMIX_BOX: Box,
-  NAMIX_HEXAGON: Hexagon,
   NAMIX_STAR: Star,
   NAMIX_SPARKLES: Sparkles,
   NAMIX_REFRESH: RefreshCcw,
 };
 
-export const ICON_OPTIONS = Object.keys(CRYPTO_ICONS_MAP).map(key => ({
-  id: key,
-  label: key.replace('NAMIX_', '').replace('_', ' ')
-}));
+// قائمة موسعة من الأصول الرقمية والأسهم المعتمدة عالمياً للاختيار في لوحة الإدارة
+export const ICON_OPTIONS = [
+  // عملات رقمية قيادية
+  { id: 'USDT', label: 'Tether (USDT)' },
+  { id: 'BTC', label: 'Bitcoin (BTC)' },
+  { id: 'ETH', label: 'Ethereum (ETH)' },
+  { id: 'BNB', label: 'Binance Coin (BNB)' },
+  { id: 'SOL', label: 'Solana (SOL)' },
+  { id: 'XRP', label: 'Ripple (XRP)' },
+  { id: 'USDC', label: 'USD Coin (USDC)' },
+  { id: 'ADA', label: 'Cardano (ADA)' },
+  { id: 'AVAX', label: 'Avalanche (AVAX)' },
+  { id: 'DOGE', label: 'Dogecoin (DOGE)' },
+  { id: 'DOT', label: 'Polkadot (DOT)' },
+  { id: 'TRX', label: 'Tron (TRX)' },
+  { id: 'LINK', label: 'Chainlink (LINK)' },
+  { id: 'MATIC', label: 'Polygon (MATIC)' },
+  { id: 'SHIB', label: 'Shiba Inu (SHIB)' },
+  { id: 'LTC', label: 'Litecoin (LTC)' },
+  { id: 'BCH', label: 'Bitcoin Cash (BCH)' },
+  { id: 'NEAR', label: 'Near Protocol (NEAR)' },
+  { id: 'UNI', label: 'Uniswap (UNI)' },
+  { id: 'DAI', label: 'Dai (DAI)' },
+  { id: 'STX', label: 'Stacks (STX)' },
+  { id: 'FIL', label: 'Filecoin (FIL)' },
+  { id: 'ATOM', label: 'Cosmos (ATOM)' },
+  { id: 'LDO', label: 'Lido DAO (LDO)' },
+  { id: 'ICP', label: 'Internet Computer (ICP)' },
+  { id: 'IMX', label: 'Immutable (IMX)' },
+  { id: 'HBAR', label: 'Hedera (HBAR)' },
+  { id: 'KAS', label: 'Kaspa (KAS)' },
+  { id: 'ETC', label: 'Ethereum Classic (ETC)' },
+  { id: 'APT', label: 'Aptos (APT)' },
+  { id: 'OP', label: 'Optimism (OP)' },
+  { id: 'RNDR', label: 'Render (RNDR)' },
+  { id: 'ARB', label: 'Arbitrum (ARB)' },
+  { id: 'VET', label: 'VeChain (VET)' },
+  { id: 'TIA', label: 'Celestia (TIA)' },
+  { id: 'SUI', label: 'Sui (SUI)' },
+  { id: 'FTM', label: 'Fantom (FTM)' },
+  { id: 'INJ', label: 'Injective (INJ)' },
+  { id: 'PEPE', label: 'Pepe (PEPE)' },
+  { id: 'THETA', label: 'Theta (THETA)' },
+  { id: 'RUNE', label: 'THORChain (RUNE)' },
+  { id: 'SEI', label: 'Sui (SEI)' },
+  { id: 'GRT', label: 'The Graph (GRT)' },
+  { id: 'AR', label: 'Arweave (AR)' },
+  { id: 'ALGO', label: 'Algorand (ALGO)' },
+  { id: 'FLOW', label: 'Flow (FLOW)' },
+  { id: 'GALA', label: 'Gala (GALA)' },
+  { id: 'BONK', label: 'Bonk (BONK)' },
+  { id: 'FLOKI', label: 'Pepe (FLOKI)' },
+  { id: 'WIF', label: 'dogwifhat (WIF)' },
+  { id: 'JUP', label: 'Jupiter (JUP)' },
+  { id: 'STRK', label: 'Starknet (STRK)' },
+  { id: 'PYTH', label: 'Pyth Network (PYTH)' },
+  // أسهم وعلامات تجارية
+  { id: 'APPLE', label: 'Apple Inc.' },
+  { id: 'GOOGLE', label: 'Google / Alphabet' },
+  { id: 'MICROSOFT', label: 'Microsoft' },
+  { id: 'AMAZON', label: 'Amazon' },
+  { id: 'TESLA', label: 'Tesla Motors' },
+  { id: 'META', label: 'Meta / Facebook' },
+  { id: 'NVIDIA', label: 'Nvidia' },
+  { id: 'VISA', label: 'Visa' },
+  { id: 'MASTERCARD', label: 'Mastercard' },
+  { id: 'NETFLIX', label: 'Netflix' },
+  // أيقونات نظام ناميكس
+  { id: 'NAMIX_GEM', label: 'Sovereign Gem' },
+  { id: 'NAMIX_WALLET', label: 'Digital Wallet' },
+  { id: 'NAMIX_SHIELD', label: 'Asset Shield' },
+  { id: 'NAMIX_ZAP', label: 'Flash Execute' },
+  { id: 'NAMIX_CPU', label: 'AI Processor' },
+  { id: 'NAMIX_STAR', label: 'Elite Star' },
+];
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
   
-  // 1. التحقق من أيقونات النظام الأساسية
+  // 1. التحقق من أيقونات النظام الأساسية (Lucide)
   const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
   if (LucideIcon && typeof LucideIcon !== 'string') {
     return (
@@ -59,11 +129,10 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. محرك جلب الأيقونات العالمية (تغطية شاملة للعملات الرقمية)
-  // نستخدم مجموعة "cryptocurrency-color" و "logos" لضمان الجودة
+  // 2. محرك جلب الأيقونات العالمية الملونة
   let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
   
-  // تخصيص استثنائي لبعض الرموز التي قد تختلف تسميتها
+  // تخصيص استثنائي لبعض الرموز التي تختلف في Iconify
   const overrides: Record<string, string> = {
     'USDT': 'cryptocurrency-color:usdt',
     'BTC': 'cryptocurrency-color:btc',
@@ -76,7 +145,9 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     'GOOGLE': 'logos:google-icon',
     'BINANCE': 'logos:binance',
     'VISA': 'logos:visa',
-    'MASTERCARD': 'logos:mastercard'
+    'MASTERCARD': 'logos:mastercard',
+    'TESLA': 'logos:tesla',
+    'NVIDIA': 'logos:nvidia'
   };
 
   if (overrides[iconKey]) {
@@ -91,7 +162,7 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
         height={size} 
         style={color ? { color } : undefined}
         onError={(e) => {
-          // Fallback to generic coin if specific icon fails
+          // في حال فشل جلب الأيقونة الملونة، يتم العودة لأيقونة العملات العامة
           const target = e.target as any;
           if (target && target.setAttribute) {
             target.setAttribute('icon', 'lucide:coins');
