@@ -48,9 +48,9 @@ type Step = "select_asset" | "select_network" | "execution" | "success";
 type SortMode = 'popular' | 'name';
 
 const NOWPAYMENTS_ASSETS = [
-  { id: 'usdttrc20', name: 'Tether', coin: 'USDT', network: 'TRC20', icon: 'USDT' },
-  { id: 'usdtbsc', name: 'Tether', coin: 'USDT', network: 'BEP20 (BSC)', icon: 'USDT' },
-  { id: 'usdteth', name: 'Tether', coin: 'USDT', network: 'ERC20 (ETH)', icon: 'USDT' },
+  { id: 'usdttrc20', name: 'Tether (TRC20)', coin: 'USDT', network: 'TRC20', icon: 'USDT' },
+  { id: 'usdtbsc', name: 'Tether (BEP20)', coin: 'USDT', network: 'BEP20 (BSC)', icon: 'USDT' },
+  { id: 'usdteth', name: 'Tether (ERC20)', coin: 'USDT', network: 'ERC20 (ETH)', icon: 'USDT' },
   { id: 'btc', name: 'Bitcoin', coin: 'BTC', network: 'BTC', icon: 'BTC' },
   { id: 'eth', name: 'Ethereum', coin: 'ETH', network: 'ERC20', icon: 'ETH' },
   { id: 'sol', name: 'Solana', coin: 'SOL', network: 'SOL', icon: 'SOL' },
@@ -76,7 +76,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   const [loading, setLoading] = useState(false);
   const [binanceConfig, setBinanceConfig] = useState<any[]>([]);
   
-  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('popular');
@@ -116,14 +115,12 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     }
   }, [category, binanceConfig.length]);
 
-  // Combined Filtering & Sorting Logic
   const filteredAssets = useMemo(() => {
     let list: any[] = [];
     if (category?.type === 'manual') list = category?.portals?.filter((p: any) => p.isActive) || [];
     else if (category?.type === 'nowpayments') list = NOWPAYMENTS_ASSETS;
     else if (category?.type === 'binance') list = binanceConfig;
 
-    // 1. Search Filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(a => 
@@ -133,11 +130,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       );
     }
 
-    // 2. Sort Logic
     if (sortMode === 'name') {
       list = [...list].sort((a, b) => (a.name || a.coin || "").localeCompare(b.name || b.coin || ""));
     } else {
-      // Sort by popular priority
       list = [...list].sort((a, b) => {
         const aSymbol = (a.coin || a.name || "").toUpperCase();
         const bSymbol = (b.coin || b.name || "").toUpperCase();
@@ -155,6 +150,11 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   }, [category, binanceConfig, searchQuery, sortMode]);
 
   const handleAssetSelect = async (asset: any) => {
+    if (!dbUser?.id) {
+      setError("يرجى الانتظار حتى اكتمال تهيئة الجلسة...");
+      return;
+    }
+    
     setError(null);
     setSelectedAsset(asset);
     
@@ -167,10 +167,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
           setInstructions(`هذا العنوان هو هويتك المالية الدائمة لعملة ${asset.coin}. يرجى التحويل عبر شبكة ${asset.network} حصراً. سيقوم النظام بحقن الرصيد آلياً فور رصد العملية.`);
           setStep("execution");
         } else {
-          setError(res.error);
+          setError(res.error || "تعذر توليد المحفظة حالياً.");
         }
       } catch (e) {
-        setError("فشل الاتصال بمزود الخدمة.");
+        setError("فشل الاتصال بمحرك المزامنة الآلي.");
       } finally {
         setLoading(false);
       }
@@ -254,7 +254,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="max-w-4xl mx-auto space-y-10 px-4 md:px-8 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Responsive Header Matrix */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-8">
            <div className="flex items-center gap-4 md:gap-6">
               <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl md:rounded-[28px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl shrink-0">
@@ -333,44 +332,42 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                  </motion.div>
                )}
 
-               <div className="p-6 md:p-8 bg-gray-50/50 rounded-[40px] border border-gray-100 shadow-inner">
-                  <p className="text-[11px] md:text-sm font-bold text-gray-500 leading-loose">
-                    {category?.description || "يرجى اختيار الأصل الرقمي المراد شحنه لبدء بروتوكول المزامنة والمصادقة."}
-                  </p>
-               </div>
-
                <div className="space-y-6">
                   <div className="flex items-center justify-between px-4">
                      <h3 className="text-lg font-black text-[#002d4d]">الأصول المتاحة</h3>
                      <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full">CRYPTO INVENTORY</Badge>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {filteredAssets.map((asset: any) => {
                       const coinSymbol = asset.coin || asset.name || "";
                       const iconName = category?.type === 'binance' ? coinSymbol : (asset.icon || coinSymbol);
+                      const isCurrentlyProcessing = loading && selectedAsset?.id === asset.id;
                       
                       return (
                         <button 
                           key={asset.id || asset.coin} 
                           onClick={() => handleAssetSelect(asset)} 
-                          className="p-6 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-4 text-center group active:scale-[0.98] relative overflow-hidden"
+                          disabled={loading}
+                          className="p-4 rounded-[28px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] relative overflow-hidden disabled:opacity-50"
                         >
-                          <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-1000 pointer-events-none">
-                             <CryptoIcon name={iconName} size={120} />
+                          <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                             <CryptoIcon name={iconName} size={36} />
                           </div>
                           
-                          <div className="h-16 w-16 rounded-[24px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500 relative z-10">
-                             <CryptoIcon name={iconName} size={32} />
-                          </div>
-                          
-                          <div className="relative z-10 space-y-1">
-                             <p className="font-black text-base text-[#002d4d] group-hover:text-blue-600 transition-colors">{asset.name || asset.coin}</p>
-                             <div className="flex items-center justify-center gap-2">
-                                <Badge variant="outline" className="bg-gray-50 border-gray-100 text-gray-400 font-black text-[7px] px-2 py-0.5">{asset.coin || asset.network}</Badge>
-                                {POPULAR_COINS.includes(coinSymbol.toUpperCase()) && <Sparkles size={10} className="text-orange-400" />}
+                          <div className="flex-1 space-y-0.5 min-w-0">
+                             <p className="font-black text-sm text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{asset.name || asset.coin}</p>
+                             <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{asset.coin || asset.network}</span>
+                                {POPULAR_COINS.includes(coinSymbol.toUpperCase()) && <Sparkles size={8} className="text-orange-400 animate-pulse" />}
                              </div>
                           </div>
+
+                          {isCurrentlyProcessing ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                          ) : (
+                            <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
+                          )}
                         </button>
                       );
                     })}
@@ -389,7 +386,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
           {step === "select_network" && selectedAsset && (
             <motion.div key="network" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="space-y-8">
                <div className="flex items-center gap-5 px-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gray-50 flex items-center justify-center shadow-inner"><CryptoIcon name={selectedAsset.coin} size={32} /></div>
+                  <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center shadow-inner"><CryptoIcon name={selectedAsset.coin} size={28} /></div>
                   <div className="text-right">
                      <h3 className="text-xl font-black text-[#002d4d]">حدد شبكة التحويل</h3>
                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Network Selection Node for {selectedAsset.coin}</p>
