@@ -94,7 +94,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* هوية القمة الصافية */}
+      {/* هيدر القمة الصافي */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -136,12 +136,12 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* العنوان الرقمي وزر التصدير */}
+      {/* العنوان الرقمي */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
                <p className="flex-1 font-mono text-[10px] font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
-                 {loading && !walletAddress ? "جاري الاستجابة..." : walletAddress}
+                 {loading && !walletAddress ? "جاري الاتصال..." : walletAddress}
                </p>
                <button 
                  onClick={handleCopy} 
@@ -158,6 +158,7 @@ export function ExecutionStep({
             </AnimatePresence>
          </div>
 
+         {/* زر المشاركة المعزول */}
          <Button 
            onClick={() => setIsShareDrawerOpen(true)}
            disabled={!walletAddress}
@@ -176,7 +177,7 @@ export function ExecutionStep({
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 animate-in fade-in duration-1000">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
              <Info size={14} />
-             <h4 className="text-[10px] font-black uppercase tracking-normal">تعليمات الإيداع</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-normal">تعليمات الشحن</h4>
            </div>
            <p className="text-[11px] font-bold leading-[2.2] text-blue-800/70 tracking-normal">
              يرجى إرسال الرصيد الموضح أعلاه عبر الشبكة المعتمدة. تأكد من تطابق البيانات لتجنب فقدان الأصول.
@@ -187,7 +188,7 @@ export function ExecutionStep({
            <div className="space-y-3 pt-2 animate-in fade-in duration-500">
              <div className="flex items-center justify-between px-4">
                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-normal">إثبات الإرسال</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal shadow-sm">Sync Logic</Badge>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal shadow-sm">Sync Node</Badge>
              </div>
              <div className="relative">
                <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
@@ -207,7 +208,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {pasteStatus['txid'] && (
+                 {(selectedAsset && pasteStatus[selectedAsset.coin]) && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>
@@ -266,12 +267,12 @@ export function ExecutionStep({
       <div className="flex items-center justify-center gap-4 opacity-[0.15] select-none pt-2">
          <div className="flex items-center gap-1.5">
             <ShieldCheck size={10} className="text-[#002d4d]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">اتصال مؤمن</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">مؤمن</span>
          </div>
          <div className="h-1 w-1 rounded-full bg-gray-300" />
          <div className="flex items-center gap-1.5">
             <Sparkles size={10} className="text-[#f9a885]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">نظام ناميكس</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">ناميكس</span>
          </div>
       </div>
     </div>

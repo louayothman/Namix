@@ -52,8 +52,8 @@ export function DepositShareDrawer({
     setGenerating(true);
     setImgUrl(null);
     try {
-      // إيقاف مؤقت لضمان تحميل الموارد
-      await new Promise(r => setTimeout(r, 1200));
+      // إيقاف مؤقت لضمان تحميل الموارد والخطوط
+      await new Promise(r => setTimeout(r, 1500));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
@@ -99,7 +99,7 @@ export function DepositShareDrawer({
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'صك إيداع معتمد',
+          title: 'عنوان إيداع معتمد',
           text: `عنوان إيداع ${selectedAsset?.coin}`
         });
       } else {
@@ -114,36 +114,47 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* صك الإيداع الرقمي - تصميم تكنولوجي نقي للتصدير */}
+      {/* الصورة المصدّرة - تصميم تكنولوجي نقي وموزع بدقة */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
-          className="w-[450px] bg-white p-14 flex flex-col items-center gap-12"
+          className="w-[450px] bg-white p-12 flex flex-col items-center gap-10"
           style={{ fontFamily: "'Tajawal', sans-serif" }}
         >
+          {/* دمج خط Tajawal برمجياً */}
           <style dangerouslySetInnerHTML={{ __html: `
             @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
             * { font-family: 'Tajawal', sans-serif !important; letter-spacing: normal !important; }
           `}} />
 
-          {/* هيدر الهوية - أعلى اليمين */}
-          <div className="flex flex-row-reverse items-center justify-start gap-3 w-full text-right" dir="rtl">
-             <div className="h-10 w-10 flex items-center justify-center shrink-0">
+          {/* الهوية التعريفية - أعلى اليمين */}
+          <div className="w-full flex flex-row-reverse items-center justify-start gap-3" dir="rtl">
+             <div className="shrink-0">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
              </div>
-             <div className="space-y-0 text-right">
-                <h2 className="text-lg font-black text-[#002d4d] leading-none" style={{ fontWeight: 900 }}>{selectedAsset?.coin || selectedAsset?.name}</h2>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{(selectedNetwork?.name || selectedAsset?.network)?.split(' ')[0]}</p>
+             <div className="text-right space-y-0">
+                <h2 className="text-base font-black text-[#002d4d] leading-none" style={{ fontWeight: 900 }}>
+                  {selectedAsset?.name || selectedAsset?.coin}
+                </h2>
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                  {selectedNetwork?.name || selectedAsset?.network}
+                </p>
              </div>
           </div>
 
-          {/* الباركود المربع - في المركز */}
-          <div className="flex justify-center w-full">
+          {/* الباركود المربع - في المركز (نقي وبدون حاويات) */}
+          <div className="flex-1 flex items-center justify-center w-full py-4">
              {qrCodeUrl && (
-               <div className="relative h-64 w-64 flex items-center justify-center bg-white">
-                  <img src={qrCodeUrl} alt="QR" className="w-full h-full" style={{ imageRendering: 'pixelated' }} crossOrigin="anonymous" />
+               <div className="relative h-64 w-64 flex items-center justify-center bg-white shadow-sm border border-gray-50">
+                  <img 
+                    src={qrCodeUrl} 
+                    alt="QR" 
+                    className="w-full h-full" 
+                    style={{ imageRendering: 'pixelated' }} 
+                    crossOrigin="anonymous" 
+                  />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="p-0.5 bg-white">
+                     <div className="bg-white p-0.5">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                      </div>
                   </div>
@@ -151,22 +162,24 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* العنوان الرقمي - سطر واحد */}
-          <div className="space-y-2 w-full text-center">
-             <p className="text-[7px] font-black text-gray-400 uppercase tracking-[0.3em]">DEPOSIT ADDRESS</p>
-             <div className="bg-gray-50 p-5 rounded-[20px] border border-gray-100 w-full flex items-center justify-center overflow-hidden">
-                <p className="text-[9px] font-mono font-black text-[#002d4d] whitespace-nowrap text-center" dir="ltr">
+          {/* العنوان الرقمي - سطر واحد فقط */}
+          <div className="w-full space-y-2 text-center">
+             <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.3em]">DEPOSIT ADDRESS</p>
+             <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 w-full">
+                <p className="text-[9px] font-mono font-black text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr">
                   {walletAddress}
                 </p>
              </div>
           </div>
 
-          {/* تذييل ناميكس - توقيع رقمي */}
-          <div className="mt-auto pt-10 w-full space-y-6">
+          {/* التوقيع الرقمي المطور - أسفل الصورة */}
+          <div className="w-full space-y-6 pt-4">
              <div className="h-[0.5px] w-full bg-gray-100" />
              <div className="flex items-center justify-center gap-4" dir="ltr">
-                <span className="text-[14px] font-black text-[#002d4d] uppercase" style={{ letterSpacing: '0.8em', marginRight: '-0.8em' }}>NAMIX</span>
-                <div className="grid grid-cols-2 gap-0.5 scale-90">
+                <span className="text-[14px] font-black text-[#002d4d] uppercase" style={{ letterSpacing: '0.8em', marginRight: '-0.8em' }}>
+                  NAMIX
+                </span>
+                <div className="grid grid-cols-2 gap-0.5 scale-90 opacity-80">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
@@ -182,7 +195,7 @@ export function DepositShareDrawer({
           <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <VisuallyHidden.Root>
-              <DrawerTitle>مشاركة صك الإيداع</DrawerTitle>
+              <DrawerTitle>مشاركة العنوان</DrawerTitle>
             </VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center gap-8 scrollbar-none">
@@ -195,8 +208,8 @@ export function DepositShareDrawer({
                      exit={{ opacity: 0 }}
                      className="flex flex-col items-center gap-4"
                    >
-                      <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري بناء الصك المالي...</p>
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري تجهيز الصورة...</p>
                    </motion.div>
                  ) : (
                    <motion.div 
@@ -208,7 +221,7 @@ export function DepositShareDrawer({
                       <div className="p-2 bg-gray-50 rounded-[32px] shadow-inner overflow-hidden border border-gray-100">
                          <img 
                            src={imgUrl} 
-                           className="w-full max-w-[200px] rounded-[24px] shadow-2xl" 
+                           className="w-full max-w-[180px] rounded-[24px] shadow-2xl" 
                            alt="Deposit Card" 
                          />
                       </div>
@@ -240,7 +253,7 @@ export function DepositShareDrawer({
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-30 shrink-0">
                <ShieldCheck size={12} className="text-emerald-500" />
-               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Secure Asset Identity Node</p>
+               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">اتصال مؤمن</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
