@@ -95,31 +95,38 @@ export function ExecutionStep({
     
     setSharing(true);
     try {
-      const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff'
+      // استخدام toBlob مع إعدادات تجاوز أخطاء التنسيق الخارجي
+      const blob = await htmlToImage.toBlob(shareCardRef.current, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        style: {
+          visibility: 'visible',
+          opacity: '1'
+        }
       });
 
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
+      if (!blob) throw new Error("فشل توليد الملف");
+
       const file = new File([blob], `namix-deposit-${selectedAsset?.coin || 'address'}.png`, { type: 'image/png' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: `عنوان إيداع ${selectedAsset?.coin}`,
-          text: `تم استخراج هذا العنوان عبر نظام ناميكس.`
+          text: `عنوان إيداع معتمد عبر نظام ناميكس`
         });
       } else {
+        // Fallback: تحميل الصورة مباشرة إذا كان المتصفح لا يدعم مشاركة الملفات
+        const dataUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.download = `namix-deposit-${selectedAsset?.coin}.png`;
         link.href = dataUrl;
         link.click();
+        URL.revokeObjectURL(dataUrl);
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        console.error("Share Failed", err);
+        console.error("Image Export Failed:", err);
       }
     } finally {
       setSharing(false);
@@ -133,76 +140,82 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-10 font-body text-right select-none" dir="rtl">
       
-      {/* --- الصك المالي المخفي (للمشاركة فقط) --- */}
+      {/* --- الصك المالي المخفي (للتصدير كصورة فقط) --- */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0 overflow-hidden">
         <div 
           ref={shareCardRef}
-          className="w-[400px] bg-white p-12 flex flex-col items-center gap-8 text-center"
+          className="w-[450px] bg-white p-16 flex flex-col items-center gap-10 text-center"
           style={{ fontFamily: 'Tajawal, sans-serif' }}
         >
-          <div className="flex flex-col items-center gap-4">
-             <div className="h-20 w-20 flex items-center justify-center">
-                <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={64} />
+          <div className="flex flex-col items-center gap-6">
+             <div className="h-24 w-24 flex items-center justify-center">
+                <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={80} />
              </div>
-             <div className="space-y-1">
-                <h2 className="text-2xl font-black text-[#002d4d]">{selectedAsset?.name || selectedAsset?.coin}</h2>
-                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{selectedNetwork?.name || selectedAsset?.network}</p>
-             </div>
-          </div>
-
-          <div className="p-4 bg-gray-50 rounded-[40px] border border-gray-100">
-             {qrCodeUrl && <img src={qrCodeUrl} alt="QR" className="w-56 h-56 rounded-xl" />}
-          </div>
-
-          <div className="space-y-3 w-full">
-             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Deposit Address</p>
-             <div className="bg-gray-50 p-6 rounded-[28px] border border-gray-100">
-                <p className="text-xs font-mono font-black text-[#002d4d] break-all leading-relaxed" dir="ltr">{walletAddress}</p>
+             <div className="space-y-2">
+                <h2 className="text-3xl font-black text-[#002d4d] tracking-normal">{selectedAsset?.name || selectedAsset?.coin}</h2>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{selectedNetwork?.name || selectedAsset?.network}</p>
              </div>
           </div>
 
-          <div className="mt-4 pt-8 border-t border-gray-100 w-full flex items-center justify-center gap-3 opacity-40">
-             <div className="h-6 w-6 rounded-lg bg-[#002d4d] flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-0.5">
-                   <div className="h-1 w-1 rounded-full bg-white" />
-                   <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-                   <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-                   <div className="h-1 w-1 rounded-full bg-white" />
-                </div>
+          <div className="relative p-10 bg-white rounded-[64px] shadow-[0_40px_80px_-20px_rgba(0,45,77,0.1)] border border-gray-50">
+             {qrCodeUrl && (
+               <div className="relative h-64 w-64 flex items-center justify-center">
+                  <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-[48px]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                     <div className="bg-white p-2 rounded-2xl shadow-xl">
+                        <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
+                     </div>
+                  </div>
+               </div>
+             )}
+          </div>
+
+          <div className="space-y-4 w-full px-4">
+             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">DEPOSIT ADDRESS</p>
+             <div className="bg-gray-50/50 p-8 rounded-[40px] border border-gray-100 shadow-inner">
+                <p className="text-[13px] font-mono font-black text-[#002d4d] break-all leading-loose" dir="ltr">{walletAddress}</p>
              </div>
-             <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.4em]">NAMIX NETWORK</span>
+          </div>
+
+          <div className="mt-6 pt-10 border-t border-gray-50 w-full flex items-center justify-between opacity-40">
+             <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.5em]">NAMIX NETWORK</span>
+             <div className="flex gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+             </div>
           </div>
         </div>
       </div>
 
-      {/* --- الواجهة المرئية الحية (Live UI) --- */}
+      {/* --- الواجهة المرئية (Live UI) --- */}
       
-      {/* 1. القمة: هوية العملة والشبكة */}
+      {/* 1. القمة: الهوية والشبكة */}
       <section className="flex flex-col items-center gap-4 animate-in fade-in duration-700">
-         <div className="h-16 w-16 rounded-[24px] bg-white shadow-xl border border-gray-50 flex items-center justify-center transition-transform duration-700 hover:scale-110">
-            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={40} />
+         <div className="h-16 w-16 rounded-[24px] bg-white shadow-xl border border-gray-50 flex items-center justify-center group transition-all">
+            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={40} className="group-hover:scale-110 transition-transform" />
          </div>
          <div className="text-center space-y-1">
-            <h3 className="text-xl font-black text-[#002d4d] leading-none">
+            <h3 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
             <div className="flex items-center justify-center gap-2">
-               <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase">
+               <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase tracking-normal">
                   {selectedNetwork?.name || selectedAsset?.network}
                </Badge>
-               <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+               <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
             </div>
          </div>
       </section>
 
-      {/* 2. الوسط: الباركود المطور مع أيقونة مركزية */}
+      {/* 2. الوسط: الباركود المطور */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
-            <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-700">
+            <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
                {qrCodeUrl ? (
                  <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
                     <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-3xl" />
-                    {/* الأيقونة المركزية */}
                     <div className="absolute inset-0 flex items-center justify-center">
                        <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
                           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
@@ -215,7 +228,6 @@ export function ExecutionStep({
                  </div>
                )}
             </div>
-            {/* توهج خلفي ناعم */}
             <motion.div 
               animate={{ opacity: [0.02, 0.05, 0.02] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -224,12 +236,12 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 3. التنفيذ: العنوان وزر المشاركة */}
+      {/* 3. التنفيذ: العنوان وزر المشاركة المطور */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
                <p className="flex-1 font-mono text-[10px] font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
-                 {loading && !walletAddress ? "جاري استرجاع العنوان..." : walletAddress}
+                 {loading && !walletAddress ? "جاري الاستجابة..." : walletAddress}
                </p>
                <button 
                  onClick={handleCopy} 
@@ -241,7 +253,7 @@ export function ExecutionStep({
             </div>
             <AnimatePresence>
               {copyStatus && (
-                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[9px] font-black text-emerald-500">{copyStatus}</motion.p>
+                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[9px] font-black text-emerald-500 tracking-normal">{copyStatus}</motion.p>
               )}
             </AnimatePresence>
          </div>
@@ -249,22 +261,24 @@ export function ExecutionStep({
          <Button 
            onClick={handleShare}
            disabled={!walletAddress || sharing}
-           variant="ghost"
-           className="w-full h-14 rounded-full bg-gray-50 text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] font-black text-[10px] gap-3 transition-all active:scale-[0.98] group"
+           className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[11px] md:text-sm shadow-xl transition-all active:scale-[0.98] group relative overflow-hidden"
          >
-            {sharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} className="group-hover:rotate-12 transition-transform" />}
-            <span>مشاركة عنوان الإيداع كصورة</span>
+            <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
+            <div className="relative z-10 flex items-center justify-center gap-3">
+               {sharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} className="group-hover:rotate-12 transition-transform text-[#f9a885]" />}
+               <span>حفظ ومشاركة العنوان</span>
+            </div>
          </Button>
       </section>
 
-      {/* 4. القاعدة: التعليمات والتحذيرات */}
+      {/* 4. القاعدة: التعليمات */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 animate-in fade-in duration-1000">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
              <Info size={14} />
              <h4 className="text-[10px] font-black uppercase tracking-normal">تعليمات الإيداع</h4>
            </div>
-           <p className="text-[11px] font-bold leading-[2] text-blue-800/70 tracking-normal">
+           <p className="text-[11px] font-bold leading-[2.2] text-blue-800/70 tracking-normal">
              {instructions.replace(/أدناه/g, "أعلاه")}
            </p>
          </div>
@@ -273,7 +287,7 @@ export function ExecutionStep({
            <div className="space-y-3 pt-2 animate-in fade-in duration-500">
              <div className="flex items-center justify-between px-4">
                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-normal">إثبات الإرسال الموثق</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-full">Binance Sync Node</Badge>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-full tracking-normal">Binance Sync Node</Badge>
              </div>
              <div className="relative">
                <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
@@ -293,8 +307,8 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {pasteStatus && (
-                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500">{pasteStatus}</motion.p>
+                 {pasteStatus[selectedAsset?.coin] && (
+                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>
              </div>
