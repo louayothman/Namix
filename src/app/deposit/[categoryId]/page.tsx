@@ -163,7 +163,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     } else if (category?.type === 'binance') setStep("select_network");
     else if (category?.type === 'manual') {
       setWalletAddress(asset.walletAddress);
-      setInstructions(asset.instructions);
+      setInstructions(asset.instructions?.replace("أعلاه", "أدناه") || `يرجى إرسال الرصيد إلى العنوان الموضح أدناه.`);
       setStep("execution");
     }
   };
@@ -249,7 +249,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
                  <div className="flex items-center gap-1.5 opacity-40 mt-1">
                     <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">Operational Node Active</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">Node Sync Active</span>
                  </div>
               </div>
            </div>
