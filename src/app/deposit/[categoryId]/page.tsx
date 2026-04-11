@@ -234,12 +234,12 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         
-        {/* Fixed Header - Purified Icons */}
+        {/* Fixed Header - Purified Icons & Binance Fix */}
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
               <div className="shrink-0 flex items-center justify-center">
                  {category?.type === 'binance' ? (
-                   <Icon icon="logos:binance" width={32} height={32} />
+                   <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
                  ) : (
                    <NamixDotsIcon />
                  )}

@@ -62,9 +62,9 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-4">
             <div className="flex items-center gap-4 text-right">
                <div className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl"><ArrowUpCircle size={24} /></div>
-               <div className="space-y-0.5">
+               <div className="space-y-0">
                  <DrawerTitle className="text-xl font-black text-[#002d4d]">إضافة رصيد</DrawerTitle>
-                 <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Infusion Gateway</p>
+                 <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Inflow Gateway</p>
                </div>
             </div>
           </DrawerHeader>
@@ -112,7 +112,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                       >
                         <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-white transition-all shrink-0 overflow-hidden">
                           {cat.type === 'binance' ? (
-                            <Icon icon="logos:binance" width={32} height={32} />
+                            <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
                           ) : (
                             <NamixDotsIcon />
                           )}
