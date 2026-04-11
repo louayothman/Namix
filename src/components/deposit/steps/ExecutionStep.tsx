@@ -94,7 +94,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* هيدر القمة الصافي - نقاء مؤسساتي بدون أطر */}
+      {/* هيدر القمة - نقاء تام بدون أطر */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -109,14 +109,13 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* الباركود المطور - عرض مباشر فوق الخلفية */}
+      {/* الباركود المطور */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
                {qrCodeUrl ? (
                  <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
                     <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-3xl" />
-                    {/* أيقونة مركزية مدمجة بنقاء */}
                     <div className="absolute inset-0 flex items-center justify-center">
                        <div className="bg-white p-0.5">
                           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
@@ -129,7 +128,6 @@ export function ExecutionStep({
                  </div>
                )}
             </div>
-            {/* توهج خلفي ناعم */}
             <motion.div 
               animate={{ opacity: [0.02, 0.05, 0.02] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -160,7 +158,7 @@ export function ExecutionStep({
             </AnimatePresence>
          </div>
 
-         {/* بوابة المشاركة النخبوية */}
+         {/* زر المشاركة */}
          <Button 
            onClick={() => setIsShareDrawerOpen(true)}
            disabled={!walletAddress}

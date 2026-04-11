@@ -31,8 +31,8 @@ interface DepositShareDrawerProps {
 }
 
 /**
- * @fileOverview مفاعل تصدير الصكوك المطور v3.0 - Sovereign Minimalist Design
- * تم دمج الخطوط المحلية وتصغير حجم العناصر لضمان تجربة مستخدم نخبوية بدون تمرير.
+ * @fileOverview مفاعل تصدير الصور المطور v5.0 - Sovereign Minimalist Edition
+ * يستخدم خط Tajawal المحلي المدمج بمسار /fonts/Tajawal.ttf
  */
 export function DepositShareDrawer({
   open,
@@ -56,16 +56,16 @@ export function DepositShareDrawer({
     setGenerating(true);
     setImgUrl(null);
     try {
-      // إيقاف مؤقت محسوب لضمان تحميل الموارد والخطوط المحلية
+      // إيقاف مؤقت لضمان اكتمال بناء الـ DOM والباركود
       await new Promise(r => setTimeout(r, 1200));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 3,
-        fontEmbedCSS: '', // تخطي مسح الملفات الخارجية لعلاج خطأ CORS
+        fontEmbedCSS: '', // تخطي مسح ملفات CSS الخارجية لتجنب CORS
         style: {
-          fontFamily: "'Tajawal', sans-serif",
+          fontFamily: "'TajawalLocal', sans-serif",
         }
       });
       setImgUrl(dataUrl);
@@ -86,7 +86,7 @@ export function DepositShareDrawer({
     if (!imgUrl) return;
     setSaving(true);
     const link = document.createElement('a');
-    link.download = `namix-${selectedAsset?.coin || 'deposit'}.png`;
+    link.download = `namix-${selectedAsset?.coin || 'address'}.png`;
     link.href = imgUrl;
     link.click();
     setTimeout(() => setSaving(false), 1000);
@@ -103,7 +103,7 @@ export function DepositShareDrawer({
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'عنوان إيداع معتمد',
+          title: 'عنوان الإيداع',
           text: `عنوان إيداع ${selectedAsset?.coin}`
         });
       } else {
@@ -123,16 +123,16 @@ export function DepositShareDrawer({
         <div 
           ref={shareCardRef}
           className="w-[450px] bg-white p-12 flex flex-col items-center gap-10"
-          style={{ fontFamily: "'Tajawal', sans-serif" }}
+          style={{ fontFamily: "'TajawalLocal', sans-serif" }}
         >
-          {/* دمج خط Tajawal المحلي برمجياً لضمان الاستقرار */}
+          {/* دمج الخط المحلي برمجياً لضمان الاستقرار التام في الصورة */}
           <style dangerouslySetInnerHTML={{ __html: `
             @font-face {
-              font-family: 'Tajawal';
-              src: url('/font/tajawal') format('truetype');
+              font-family: 'TajawalLocal';
+              src: url('/fonts/Tajawal.ttf') format('truetype');
               font-weight: 900;
             }
-            * { font-family: 'Tajawal', sans-serif !important; letter-spacing: normal !important; }
+            * { font-family: 'TajawalLocal', sans-serif !important; letter-spacing: normal !important; }
           `}} />
 
           {/* الهوية التعريفية - أعلى اليمين (نقية وصغيرة) */}
@@ -150,7 +150,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الباركود المربع الحاد - في المركز (بدون أي حاويات) */}
+          {/* الباركود المربع الحاد - في المركز */}
           <div className="flex-1 flex items-center justify-center w-full py-2">
              {qrCodeUrl && (
                <div className="relative h-64 w-64 flex items-center justify-center">
@@ -161,7 +161,6 @@ export function DepositShareDrawer({
                     style={{ imageRendering: 'pixelated' }} 
                     crossOrigin="anonymous" 
                   />
-                  {/* أيقونة العملة في قلب الباركود - مجردة تماماً */}
                   <div className="absolute inset-0 flex items-center justify-center">
                      <div className="bg-white p-0.5">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
@@ -171,7 +170,7 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* العنوان الرقمي - سطر واحد احترافي */}
+          {/* العنوان الرقمي - سطر واحد نقي */}
           <div className="w-full space-y-2 text-center">
              <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.3em]">DEPOSIT ADDRESS</p>
              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 w-full overflow-hidden">
@@ -181,7 +180,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* التوقيع المؤسساتي - أسفل الصورة */}
+          {/* التوقيع المؤسساتي في القاعدة */}
           <div className="w-full space-y-6 pt-4">
              <div className="h-[0.5px] w-full bg-gray-100" />
              <div className="flex items-center justify-center gap-4" dir="ltr">
@@ -204,7 +203,7 @@ export function DepositShareDrawer({
           <DrawerOverlay className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <VisuallyHidden.Root>
-              <DrawerTitle>مشاركة عنوان الإيداع</DrawerTitle>
+              <DrawerTitle>مشاركة العنوان</DrawerTitle>
             </VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center gap-6 scrollbar-none">
@@ -225,21 +224,20 @@ export function DepositShareDrawer({
                      key="preview"
                      initial={{ opacity: 0, scale: 0.95 }} 
                      animate={{ opacity: 1, scale: 1 }} 
-                     className="relative group"
+                     className="relative"
                    >
-                      <div className="p-2 bg-gray-50 rounded-[32px] shadow-inner overflow-hidden border border-gray-100">
+                      <div className="p-2 bg-gray-50 rounded-[32px] shadow-inner border border-gray-100 overflow-hidden">
                          <img 
                            src={imgUrl} 
                            className="w-full max-w-[180px] md:max-w-[200px] rounded-[24px] shadow-2xl" 
-                           alt="Deposit Card" 
+                           alt="Preview" 
                          />
                       </div>
-                      <div className="absolute inset-[-30px] bg-blue-500/5 rounded-full blur-[50px] -z-10" />
                    </motion.div>
                  )}
                </AnimatePresence>
 
-               {/* أزرار الإجراء العرضية - رشاقة وتحكم كامل */}
+               {/* أزرار الإجراء العرضية */}
                <div className="w-full max-w-[320px] grid grid-cols-2 gap-3 pb-4">
                   <Button 
                     onClick={handleDownload} 
@@ -263,7 +261,7 @@ export function DepositShareDrawer({
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-30 shrink-0">
                <ShieldCheck size={12} className="text-emerald-500" />
-               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">تأمين الهوية المالية</p>
+               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">تأمين البيانات</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
