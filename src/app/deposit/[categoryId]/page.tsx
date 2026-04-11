@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
-import { doc, onSnapshot, collection } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { 
   ChevronRight, 
@@ -19,7 +19,7 @@ import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig } from "@/app/actions/binance-actions";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Modular Step Components
@@ -234,7 +234,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         
-        {/* Fixed Header - Purified Icons & Binance Fix */}
+        {/* Fixed Header */}
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
               <div className="shrink-0 flex items-center justify-center">
@@ -349,15 +349,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
             )}
           </AnimatePresence>
         </main>
-
-        <footer className="fixed bottom-0 left-0 right-0 p-6 pointer-events-none opacity-20">
-           <div className="flex flex-col items-center gap-4 select-none">
-              <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v12.0</p>
-              <div className="flex gap-2">
-                 {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
-              </div>
-           </div>
-        </footer>
       </div>
     </Shell>
   );

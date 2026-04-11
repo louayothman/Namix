@@ -129,10 +129,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
               </div>
             )}
           </div>
-
-          <div className="p-8 bg-gray-50/50 border-t border-gray-100 text-center shrink-0">
-             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-300">Namix Liquidity Interface v12.0</p>
-          </div>
         </DrawerContent>
       </DrawerPortal>
     </Drawer>
