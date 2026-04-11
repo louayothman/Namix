@@ -1,14 +1,13 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { Search, Sparkles, ChevronLeft, Loader2, ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface AssetSelectionStepProps {
   filteredAssets: any[];
@@ -31,8 +30,9 @@ export function AssetSelectionStep({
   setSearchQuery,
   isSearchOpen
 }: AssetSelectionStepProps) {
-  // نظام التحميل التدريجي (Lazy Loading States)
+  // نظام التحميل التلقائي (Infinite Scroll Logic)
   const [visibleCount, setVisibleCount] = useState(24);
+  const observerRef = useRef<HTMLDivElement>(null);
   
   const displayedAssets = useMemo(() => {
     return filteredAssets.slice(0, visibleCount);
@@ -40,9 +40,28 @@ export function AssetSelectionStep({
 
   const hasMore = filteredAssets.length > visibleCount;
 
-  const handleShowMore = () => {
-    setVisibleCount(prev => prev + 24);
-  };
+  // إعداد مراقب التمرير (Intersection Observer)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setVisibleCount(prev => prev + 24);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore]);
+
+  // إعادة ضبط التصفيف عند البحث
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [searchQuery]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
@@ -54,10 +73,7 @@ export function AssetSelectionStep({
               autoFocus
               placeholder="ابحث عن اسم العملة أو الرمز..."
               value={searchQuery}
-              onChange={e => {
-                setSearchQuery(e.target.value);
-                setVisibleCount(24); // Reset pagination on search
-              }}
+              onChange={e => setSearchQuery(e.target.value)}
               className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-sm px-12 text-right focus-visible:ring-4 focus-visible:ring-blue-500/5 shadow-inner"
             />
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -75,7 +91,7 @@ export function AssetSelectionStep({
           </div>
           <div className="flex items-center gap-2 opacity-30">
              <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[8px] font-black uppercase tracking-widest">Live Inventory Node</span>
+             <span className="text-[8px] font-black uppercase tracking-widest">Live Auto-Stream</span>
           </div>
         </div>
 
@@ -115,17 +131,13 @@ export function AssetSelectionStep({
           })}
         </div>
 
-        {/* Load More Controller */}
+        {/* Sentinel element for Infinite Scroll */}
         {hasMore && (
-          <div className="flex justify-center pt-6 pb-10">
-             <Button 
-               onClick={handleShowMore} 
-               variant="ghost" 
-               className="h-14 px-10 rounded-full bg-white border border-gray-100 text-gray-400 hover:text-[#002d4d] font-black text-[10px] shadow-sm hover:shadow-md transition-all active:scale-95 group"
-             >
-                <ChevronDown className="ml-2 h-4 w-4 transition-transform group-hover:translate-y-1" />
-                عرض المزيد من العملات الرقمية
-             </Button>
+          <div ref={observerRef} className="h-20 flex items-center justify-center py-10">
+             <div className="flex items-center gap-3 opacity-20">
+                <Loader2 className="h-5 w-5 animate-spin text-[#002d4d]" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em]">تحميل المزيد من الأصول...</p>
+             </div>
           </div>
         )}
 

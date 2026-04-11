@@ -17,12 +17,11 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v50.0
- * تم دمج محرك Iconify لضمان تغطية 1000+ عملة رقمية وسهم عالمي.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v60.0
+ * محرك Iconify المطور لضمان تغطية 2000+ عملة رقمية وسهم عالمي.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
-  // --- 1. SYSTEM & CATEGORY ICONS ---
   NAMIX_GEM: Gem,
   NAMIX_WALLET: Wallet,
   NAMIX_COINS: Coins,
@@ -40,7 +39,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   NAMIX_STAR: Star,
   NAMIX_SPARKLES: Sparkles,
   NAMIX_REFRESH: RefreshCcw,
-  // ... more system icons mapped here
 };
 
 export const ICON_OPTIONS = Object.keys(CRYPTO_ICONS_MAP).map(key => ({
@@ -51,7 +49,7 @@ export const ICON_OPTIONS = Object.keys(CRYPTO_ICONS_MAP).map(key => ({
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
   
-  // 1. Check if it's a known Lucide system icon
+  // 1. التحقق من أيقونات النظام الأساسية
   const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
   if (LucideIcon && typeof LucideIcon !== 'string') {
     return (
@@ -61,29 +59,43 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. Map standard codes to Iconify Cryptocurrency set (covers 1000+ assets)
-  // Mapping pattern: cryptocurrency:<lowercase_code>
-  // Also support some mapping for stocks if needed
-  let iconifyName = `cryptocurrency:${iconKey.toLowerCase()}`;
+  // 2. محرك جلب الأيقونات العالمية (تغطية شاملة للعملات الرقمية)
+  // نستخدم مجموعة "cryptocurrency-color" و "logos" لضمان الجودة
+  let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
   
-  // Custom overrides for specific logos
-  if (iconKey === 'APPLE') iconifyName = "logos:apple";
-  if (iconKey === 'GOOGLE') iconifyName = "logos:google-icon";
-  if (iconKey === 'BINANCE') iconifyName = "logos:binance";
-  if (iconKey === 'USDT') iconifyName = "cryptocurrency:usdt";
+  // تخصيص استثنائي لبعض الرموز التي قد تختلف تسميتها
+  const overrides: Record<string, string> = {
+    'USDT': 'cryptocurrency-color:usdt',
+    'BTC': 'cryptocurrency-color:btc',
+    'ETH': 'cryptocurrency-color:eth',
+    'BNB': 'cryptocurrency-color:bnb',
+    'SOL': 'cryptocurrency-color:sol',
+    'TRX': 'cryptocurrency-color:trx',
+    'MATIC': 'cryptocurrency-color:matic',
+    'APPLE': 'logos:apple',
+    'GOOGLE': 'logos:google-icon',
+    'BINANCE': 'logos:binance',
+    'VISA': 'logos:visa',
+    'MASTERCARD': 'logos:mastercard'
+  };
+
+  if (overrides[iconKey]) {
+    iconName = overrides[iconKey];
+  }
 
   return (
     <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
       <Icon 
-        icon={iconifyName} 
+        icon={iconName} 
         width={size} 
         height={size} 
         style={color ? { color } : undefined}
-        // Fallback to generic coin if specific crypto icon doesn't exist
         onError={(e) => {
-          const target = e.target as HTMLElement;
-          // Set a fallback generic icon using Iconify to ensure consistency
-          (e as any).currentTarget.setAttribute('icon', 'lucide:coins');
+          // Fallback to generic coin if specific icon fails
+          const target = e.target as any;
+          if (target && target.setAttribute) {
+            target.setAttribute('icon', 'lucide:coins');
+          }
         }}
       />
     </div>
