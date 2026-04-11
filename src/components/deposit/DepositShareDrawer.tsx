@@ -14,14 +14,13 @@ import { Button } from "@/components/ui/button";
 import { 
   Download, 
   Share2, 
-  Check, 
   Loader2, 
   ShieldCheck, 
   X,
   Image as ImageIcon
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import * as htmlToImage from 'html-to-image';
 
 interface DepositShareDrawerProps {
@@ -53,12 +52,18 @@ export function DepositShareDrawer({
     if (!shareCardRef.current || generating) return;
     setGenerating(true);
     try {
-      // ننتظر قليلاً لضمان رندر العناصر المخفية
-      await new Promise(r => setTimeout(r, 500));
+      // ننتظر قليلاً لضمان رندر الباركود
+      await new Promise(r => setTimeout(r, 800));
+      
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 2,
+        // معالجة خطأ Cross-origin stylesheet عبر منع المكتبة من محاولة جلب الخطوط الخارجية المسببة للخطأ
+        fontEmbedCSS: '',
+        style: {
+          fontFamily: 'sans-serif',
+        }
       });
       setImgUrl(dataUrl);
     } catch (err) {
@@ -111,19 +116,19 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* الصك المالي المخفي للتصدير */}
+      {/* الصك المالي المخفي للتصدير - تصميم نخبوي */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
           className="w-[400px] bg-white p-12 flex flex-col items-center gap-8 text-center"
-          style={{ fontFamily: 'Tajawal, sans-serif' }}
+          style={{ fontFamily: 'sans-serif' }}
         >
           <div className="flex flex-col items-center gap-4">
              <div className="h-20 w-20 flex items-center justify-center">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={64} />
              </div>
              <div className="space-y-1">
-                <h2 className="text-2xl font-black text-[#002d4d]">{selectedAsset?.name || selectedAsset?.coin}</h2>
+                <h2 className="text-2xl font-black text-[#002d4d]" style={{ fontWeight: 900 }}>{selectedAsset?.name || selectedAsset?.coin}</h2>
                 <p className="text-[10px] font-black text-gray-400 uppercase">{selectedNetwork?.name || selectedAsset?.network}</p>
              </div>
           </div>
@@ -163,7 +168,7 @@ export function DepositShareDrawer({
           <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1200]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1201] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <DrawerHeader className="px-8 pt-6 border-b border-gray-50 flex items-center justify-between shrink-0">
-               <div className="flex items-center gap-3">
+               <div className="flex items-center gap-3 text-right">
                   <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
                      <ImageIcon size={20} />
                   </div>

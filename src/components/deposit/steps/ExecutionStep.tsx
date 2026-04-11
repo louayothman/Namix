@@ -80,8 +80,12 @@ export function ExecutionStep({
       if (text) {
         setTxid(text);
         const coin = selectedAsset?.coin || 'default';
-        setPasteStatus({ [coin]: true });
-        setTimeout(() => setPasteStatus({}), 2000);
+        setPasteStatus(prev => ({ ...prev, [coin]: true }));
+        setTimeout(() => setPasteStatus(prev => {
+          const next = { ...prev };
+          delete next[coin];
+          return next;
+        }), 2000);
       }
     } catch (err) {}
   };
@@ -93,16 +97,16 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-10 font-body text-right select-none" dir="rtl">
       
-      {/* 1. القمة: الهوية والشبكة (بدون أطر أو ظلال) */}
+      {/* 1. القمة: الهوية والشبكة (بدون أطر أو ظلال - نقاء تام) */}
       <section className="flex flex-col items-center gap-4 animate-in fade-in duration-700">
-         <div className="flex items-center justify-center group transition-all">
-            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} className="group-hover:scale-110 transition-transform" />
+         <div className="flex items-center justify-center">
+            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={56} />
          </div>
          <div className="text-center space-y-0.5">
             <h3 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-2 mt-1">
                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal">
                   {selectedNetwork?.name || selectedAsset?.network}
                </p>
@@ -209,7 +213,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {pasteStatus[selectedAsset?.coin] && (
+                 {selectedAsset?.coin && pasteStatus[selectedAsset.coin] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>
