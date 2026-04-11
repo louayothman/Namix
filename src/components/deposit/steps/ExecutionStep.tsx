@@ -94,7 +94,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* 1. هوية القمة الصافية - بدون أطر أو ظلال */}
+      {/* هوية القمة الصافية */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -109,7 +109,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 2. الباركود المطور (QR Code) */}
+      {/* الباركود المطور */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
@@ -117,7 +117,7 @@ export function ExecutionStep({
                  <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
                     <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-3xl" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
+                       <div className="p-0.5 bg-white">
                           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                        </div>
                     </div>
@@ -136,7 +136,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 3. العنوان الرقمي وزر التصدير */}
+      {/* العنوان الرقمي وزر التصدير */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
@@ -171,7 +171,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
-      {/* 4. التعليمات والتحذيرات */}
+      {/* التعليمات والتحذيرات */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 animate-in fade-in duration-1000">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
