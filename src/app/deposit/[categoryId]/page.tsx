@@ -4,41 +4,31 @@
 import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot, collection } from "firebase/firestore";
 import { 
-  Copy, 
-  Check, 
   ChevronRight, 
-  ChevronLeft,
   Loader2, 
-  CheckCircle2, 
-  Zap, 
-  ShieldCheck, 
-  Info, 
   Cpu, 
   Wallet, 
-  AlertCircle,
-  Hash,
-  Globe,
-  Coins,
+  Zap,
   Search,
   ArrowUpDown,
-  X,
-  Star,
-  Sparkles
+  X
 } from "lucide-react";
 import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig } from "@/app/actions/binance-actions";
-import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Star, Check } from "lucide-react";
+
+// Modular Step Components
+import { AssetSelectionStep } from "@/components/deposit/steps/AssetSelectionStep";
+import { NetworkSelectionStep } from "@/components/deposit/steps/NetworkSelectionStep";
+import { ExecutionStep } from "@/components/deposit/steps/ExecutionStep";
+import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 
 interface DepositPageProps {
   params: Promise<{ categoryId: string }>;
@@ -205,11 +195,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleFinalSubmit = async () => {
     if (!dbUser) return;
-    if (category?.type !== 'binance' && !amount) return;
-    if (category?.type === 'binance' && !txid) return;
-
     setLoading(true);
     try {
       const methodName = category?.type === 'manual' 
@@ -254,6 +241,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell hideMobileNav>
       <div className="max-w-4xl mx-auto space-y-10 px-4 md:px-8 pt-8 pb-32 font-body text-right" dir="rtl">
         
+        {/* Persistent Modular Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-8">
            <div className="flex items-center gap-4 md:gap-6">
               <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl md:rounded-[28px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl shrink-0">
@@ -315,200 +303,54 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
         <AnimatePresence mode="wait">
           {step === "select_asset" && (
-            <motion.div key="selection" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
-               
-               {isSearchOpen && (
-                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
-                    <div className="relative group">
-                       <Input 
-                         autoFocus
-                         placeholder="ابحث عن اسم العملة أو الرمز..."
-                         value={searchQuery}
-                         onChange={e => setSearchQuery(e.target.value)}
-                         className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-sm px-12 text-right focus-visible:ring-4 focus-visible:ring-blue-500/5 shadow-inner"
-                       />
-                       <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
-                    </div>
-                 </motion.div>
-               )}
-
-               <div className="space-y-6">
-                  <div className="flex items-center justify-between px-4">
-                     <h3 className="text-lg font-black text-[#002d4d]">الأصول المتاحة</h3>
-                     <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full">CRYPTO INVENTORY</Badge>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {filteredAssets.map((asset: any) => {
-                      const coinSymbol = asset.coin || asset.name || "";
-                      const iconName = category?.type === 'binance' ? coinSymbol : (asset.icon || coinSymbol);
-                      const isCurrentlyProcessing = loading && selectedAsset?.id === asset.id;
-                      
-                      return (
-                        <button 
-                          key={asset.id || asset.coin} 
-                          onClick={() => handleAssetSelect(asset)} 
-                          disabled={loading}
-                          className="p-4 rounded-[28px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] relative overflow-hidden disabled:opacity-50"
-                        >
-                          <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-                             <CryptoIcon name={iconName} size={36} />
-                          </div>
-                          
-                          <div className="flex-1 space-y-0.5 min-w-0">
-                             <p className="font-black text-sm text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{asset.name || asset.coin}</p>
-                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{asset.coin || asset.network}</span>
-                                {POPULAR_COINS.includes(coinSymbol.toUpperCase()) && <Sparkles size={8} className="text-orange-400 animate-pulse" />}
-                             </div>
-                          </div>
-
-                          {isCurrentlyProcessing ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          ) : (
-                            <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {filteredAssets.length === 0 && (
-                    <div className="py-20 text-center opacity-20 border-2 border-dashed border-gray-100 rounded-[48px] flex flex-col items-center gap-4">
-                       <Search size={48} />
-                       <p className="text-xs font-black uppercase tracking-widest">لم يتم العثور على نتائج</p>
-                    </div>
-                  )}
-               </div>
-            </motion.div>
+            <AssetSelectionStep 
+              key="asset-step"
+              filteredAssets={filteredAssets}
+              onSelect={handleAssetSelect}
+              loading={loading}
+              selectedAsset={selectedAsset}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              isSearchOpen={isSearchOpen}
+              setIsSearchOpen={setIsSearchOpen}
+              sortMode={sortMode}
+              setSortMode={setSortMode}
+            />
           )}
 
-          {step === "select_network" && selectedAsset && (
-            <motion.div key="network" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="space-y-8">
-               <div className="flex items-center gap-5 px-4">
-                  <div className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center shadow-inner"><CryptoIcon name={selectedAsset.coin} size={28} /></div>
-                  <div className="text-right">
-                     <h3 className="text-xl font-black text-[#002d4d]">حدد شبكة التحويل</h3>
-                     <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Network Selection Node for {selectedAsset.coin}</p>
-                  </div>
-               </div>
-
-               <div className="grid gap-3">
-                  {selectedAsset.networkList?.filter((n: any) => n.depositEnable).map((net: any) => (
-                    <button 
-                      key={net.network} 
-                      onClick={() => handleNetworkSelect(net)}
-                      className="p-6 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center justify-between group active:scale-[0.99]"
-                    >
-                       <div className="text-right">
-                          <p className="font-black text-lg text-[#002d4d]">{net.name} ({net.network})</p>
-                          <div className="flex items-center gap-2 mt-1">
-                             <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2.5 py-0.5 rounded-full shadow-sm">INSTANT VERIFICATION</Badge>
-                             <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-                          </div>
-                       </div>
-                       <ChevronLeft className="h-6 w-6 text-gray-200 group-hover:text-[#002d4d] transition-all" />
-                    </button>
-                  ))}
-               </div>
-            </motion.div>
+          {step === "select_network" && (
+            <NetworkSelectionStep 
+              key="network-step"
+              selectedAsset={selectedAsset}
+              onSelect={handleNetworkSelect}
+              loading={loading}
+            />
           )}
 
           {step === "execution" && (
-            <motion.div key="exec" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-10">
-               <div className="p-8 bg-blue-50/40 rounded-[48px] border border-blue-100/50 space-y-4">
-                  <div className="flex items-center gap-3 text-blue-600">
-                     <Info size={20} />
-                     <h4 className="text-sm font-black uppercase tracking-widest">بروتوكول الشحن المعتمد</h4>
-                  </div>
-                  <p className="text-[13px] md:text-base font-bold leading-loose text-blue-800/70">{instructions}</p>
-               </div>
-
-               <div className="p-8 md:p-12 bg-gray-50 rounded-[56px] border border-gray-100 shadow-inner space-y-10">
-                  <div className="space-y-4">
-                     <Label className="text-[10px] font-black text-gray-400 uppercase pr-6 tracking-[0.2em]">عنوان استلام السيولة</Label>
-                     <div className="bg-white p-6 md:p-8 rounded-[36px] border border-gray-100 shadow-sm flex items-center gap-6 group hover:shadow-xl transition-all">
-                        {loading ? (
-                          <div className="flex-1 flex items-center gap-3 animate-pulse">
-                             <Loader2 size={16} className="animate-spin text-blue-500" />
-                             <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Generating Address...</span>
-                          </div>
-                        ) : (
-                          <div className="flex-1 font-mono text-xs md:text-xl font-black text-[#002d4d] break-all text-left leading-relaxed" dir="ltr">{walletAddress}</div>
-                        )}
-                        <button onClick={handleCopy} disabled={loading} className="h-16 w-16 rounded-2xl bg-[#002d4d] text-[#f9a885] shadow-2xl shrink-0 active:scale-90 transition-all flex items-center justify-center disabled:opacity-20">
-                           {copied ? <Check size={28}/> : <Copy size={28}/>}
-                        </button>
-                     </div>
-                  </div>
-
-                  <div className="space-y-10">
-                     {category?.type !== 'binance' && (
-                       <div className="space-y-4">
-                          <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-[0.2em]">المبلغ المراد شحنه ($)</Label>
-                          <div className="relative group">
-                             <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-24 rounded-[40px] bg-white border-none font-black text-center text-6xl text-emerald-600 shadow-xl focus-visible:ring-8 focus-visible:ring-emerald-500/5 transition-all" placeholder="0.00" />
-                             <Coins size={32} className="absolute left-8 top-1/2 -translate-y-1/2 text-emerald-100 group-focus-within:text-emerald-500 transition-colors" />
-                          </div>
-                       </div>
-                     )}
-                     
-                     {category?.type !== 'nowpayments' && (
-                       <div className="space-y-4">
-                          <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-[0.2em]">{category?.type === 'binance' ? 'معرف العملية (TXID)' : 'رقم العملية المرجعي'}</Label>
-                          <div className="relative">
-                            <Input value={txid} onChange={e => setTxid(e.target.value)} className="h-16 rounded-[24px] bg-white border-none font-mono text-sm font-black px-10 text-center shadow-lg focus-visible:ring-4 focus-visible:ring-blue-500/5" placeholder="ألصق الـ Hash هنا..." />
-                            <Hash className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-100" />
-                          </div>
-                       </div>
-                     )}
-                  </div>
-               </div>
-
-               {error && (
-                 <div className="p-6 bg-red-50 rounded-[32px] border border-red-100 flex items-center gap-4 text-red-600 animate-pulse">
-                    <AlertCircle size={24} />
-                    <p className="text-sm font-black">{error}</p>
-                 </div>
-               )}
-
-               <Button 
-                 onClick={handleSubmit} 
-                 disabled={loading || (category?.type !== 'binance' && !amount) || (category?.type === 'binance' && !txid)} 
-                 className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-[0.98] group transition-all"
-               >
-                  {loading ? <Loader2 className="animate-spin h-8 w-8" /> : (
-                    <div className="flex items-center gap-4">
-                       <span>{category?.type === 'nowpayments' ? "تأكيد واستلام السيولة" : "توثيق الإيداع آلياً"}</span>
-                       <ShieldCheck className="h-6 w-6 text-[#f9a885] group-hover:rotate-12 transition-transform" />
-                    </div>
-                  )}
-               </Button>
-            </motion.div>
+            <ExecutionStep 
+              key="execution-step"
+              instructions={instructions}
+              walletAddress={walletAddress}
+              loading={loading}
+              amount={amount}
+              setAmount={setAmount}
+              txid={txid}
+              setTxid={setTxid}
+              onSubmit={handleFinalSubmit}
+              error={error}
+              categoryType={category?.type}
+              copied={copied}
+              handleCopy={handleCopy}
+            />
           )}
 
           {step === "success" && (
-            <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-12 text-center py-20">
-               <div className="relative inline-flex">
-                  <div className="h-48 w-48 bg-emerald-50 rounded-[64px] flex items-center justify-center shadow-inner border border-emerald-100 animate-in zoom-in-50 duration-700">
-                     <CheckCircle2 className="h-24 w-24 text-emerald-500" />
-                  </div>
-                  <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-emerald-400/20 rounded-[64px] blur-3xl" />
-               </div>
-               
-               <div className="space-y-4">
-                  <h3 className="text-4xl md:text-5xl font-black text-[#002d4d] tracking-tight">تم إطلاق البروتوكول</h3>
-                  <p className="text-gray-400 font-bold text-base md:text-xl px-12 leading-loose">
-                    {category?.type === 'nowpayments' 
-                      ? "سيتم تحديث رصيدك آلياً بمجرد رصد الحوالة في سجلات البلوكشين العالمية (0 Confirmation)." 
-                      : "لقد تم استلام بيانات الإيداع. سيقوم محرك التدقيق بمراجعة العملية وحقن الرصيد خلال دقائق معدودة."}
-                  </p>
-               </div>
-
-               <Button onClick={() => router.push("/home")} className="w-full h-20 rounded-full bg-[#002d4d] text-white font-black text-xl shadow-2xl active:scale-95 transition-all">
-                  العودة للوحة القيادة
-               </Button>
-            </motion.div>
+            <SuccessStep 
+              key="success-step"
+              categoryType={category?.type}
+              onBackHome={() => router.push("/home")}
+            />
           )}
         </AnimatePresence>
 
