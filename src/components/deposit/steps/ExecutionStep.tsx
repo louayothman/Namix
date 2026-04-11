@@ -16,9 +16,9 @@ import {
   ShieldCheck, 
   AlertCircle, 
   ClipboardPaste,
-  ChevronLeft,
   Share2,
-  Sparkles
+  Sparkles,
+  Download
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CryptoIcon } from "@/lib/crypto-icons";
@@ -95,23 +95,20 @@ export function ExecutionStep({
     : null;
 
   return (
-    <div className="w-full space-y-10 font-body text-right select-none" dir="rtl">
+    <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
       {/* 1. القمة: الهوية والشبكة (نقاء تام بدون حواف أو ظلال) */}
-      <section className="flex flex-col items-center gap-4 animate-in fade-in duration-700">
-         <div className="flex items-center justify-center">
-            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={56} />
+      <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
+         <div className="shrink-0">
+            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
          </div>
-         <div className="text-center space-y-0.5">
+         <div className="text-right space-y-0.5">
             <h3 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
-            <div className="flex items-center justify-center gap-2 mt-1">
-               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal">
-                  {selectedNetwork?.name || selectedAsset?.network}
-               </p>
-               <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            </div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal">
+               {selectedNetwork?.name || selectedAsset?.network}
+            </p>
          </div>
       </section>
 
@@ -177,7 +174,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
-      {/* 4. التعليمات والتحذيرات الصريحة */}
+      {/* 4. التعليمات والتحذيرات */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 animate-in fade-in duration-1000">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
@@ -193,7 +190,7 @@ export function ExecutionStep({
            <div className="space-y-3 pt-2 animate-in fade-in duration-500">
              <div className="flex items-center justify-between px-4">
                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-normal">إثبات الإرسال</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal">Binance Sync</Badge>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal shadow-sm">Binance Sync</Badge>
              </div>
              <div className="relative">
                <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
@@ -213,7 +210,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {selectedAsset?.coin && pasteStatus && pasteStatus[selectedAsset.coin] && (
+                 {selectedAsset?.coin && pasteStatus && (pasteStatus as any)[selectedAsset.coin] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>

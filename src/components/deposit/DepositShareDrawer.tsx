@@ -20,7 +20,7 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import * as htmlToImage from 'html-to-image';
 
 interface DepositShareDrawerProps {
@@ -52,17 +52,17 @@ export function DepositShareDrawer({
     if (!shareCardRef.current || generating) return;
     setGenerating(true);
     try {
-      // ننتظر قليلاً لضمان رندر الباركود في المتصفح
-      await new Promise(r => setTimeout(r, 1000));
+      // ننتظر قليلاً لضمان رندر الباركود والخطوط
+      await new Promise(r => setTimeout(r, 1200));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        // منع محاولة جلب الخطوط الخارجية التي تسبب خطأ CORS
+        pixelRatio: 3,
+        // السماح بالخطوط التي تم دمجها برمجياً
         fontEmbedCSS: '',
         style: {
-          fontFamily: 'sans-serif',
+          fontFamily: "'Tajawal', sans-serif",
         }
       });
       setImgUrl(dataUrl);
@@ -116,13 +116,19 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* الصك المالي المخفي للتصدير - تصميم نخبوي صافي */}
+      {/* الصك المالي المخفي للتصدير - دمج خط Tajawal برمجياً */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
           className="w-[400px] bg-white p-12 flex flex-col items-center gap-8 text-center"
-          style={{ fontFamily: 'sans-serif' }}
+          style={{ fontFamily: "'Tajawal', sans-serif" }}
         >
+          {/* محاكاة تعريف الخط محلياً للصورة */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+            * { font-family: 'Tajawal', sans-serif !important; }
+          `}} />
+
           <div className="flex flex-col items-center gap-4">
              <div className="h-20 w-20 flex items-center justify-center">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={64} />
@@ -165,8 +171,9 @@ export function DepositShareDrawer({
 
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
-          <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-md z-[1200]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1201] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+          {/* تم إصلاح التراكب ليكون خلف المحتوى مع شفافية رقيقة */}
+          <DrawerOverlay className="fixed inset-0 bg-black/20 backdrop-blur-md z-[1200]" />
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1201] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <DrawerHeader className="px-8 pt-6 border-b border-gray-50 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-3 text-right">
                   <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
@@ -174,7 +181,7 @@ export function DepositShareDrawer({
                   </div>
                   <DrawerTitle className="text-lg font-black text-[#002d4d]">معاينة صك الإيداع</DrawerTitle>
                </div>
-               <button onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400"><X size={20} /></button>
+               <button onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 active:scale-90 transition-all"><X size={20} /></button>
             </DrawerHeader>
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center gap-10 scrollbar-none">
@@ -185,20 +192,20 @@ export function DepositShareDrawer({
                          initial={{ opacity: 0, scale: 0.9 }} 
                          animate={{ opacity: 1, scale: 1 }} 
                          src={imgUrl} 
-                         className="w-full max-w-[280px] rounded-[36px] shadow-2xl" 
+                         className="w-full max-w-[260px] rounded-[36px] shadow-2xl" 
                          alt="Deposit Card" 
                        />
                      ) : (
-                       <div className="w-[280px] h-[400px] flex flex-col items-center justify-center gap-4">
+                       <div className="w-[260px] h-[380px] flex flex-col items-center justify-center gap-4">
                           <Loader2 className="animate-spin text-blue-500" />
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري توليد الصك...</p>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">تجهيز الصك المعتمد...</p>
                        </div>
                      )}
                   </div>
                   <div className="absolute inset-[-20px] bg-blue-500/5 rounded-full blur-[60px] -z-10" />
                </div>
 
-               {/* أزرار الحفظ والمشاركة - تنسيق عرضي تكتيكي */}
+               {/* الأزرار العرضية - تنسيق تكتيكي بجانب بعضها البعض */}
                <div className="w-full max-w-[340px] grid grid-cols-2 gap-4 pb-10">
                   <Button 
                     onClick={handleDownload} 
@@ -222,7 +229,7 @@ export function DepositShareDrawer({
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-30">
                <ShieldCheck size={12} className="text-emerald-500" />
-               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Secure Export Node v1.0</p>
+               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Secure Asset Export Node</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
