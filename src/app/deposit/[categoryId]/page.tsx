@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -20,7 +19,7 @@ import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Modular Step Components
@@ -33,7 +32,7 @@ interface DepositPageProps {
   params: Promise<{ categoryId: string }>;
 }
 
-type Step = "select_asset" | "select_network" | "execution" | "verifying" | "success";
+type Step = "select_asset" | "select_network" | "execution" | "verifying" | "result";
 type SortMode = 'popular' | 'name';
 
 const NOWPAYMENTS_ASSETS = [
@@ -193,10 +192,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await verifyAndProcessBinanceDeposit(dbUser.id, txid, selectedAsset.coin);
       if (res.success) {
         setSuccessData(res.data);
-        setStep("success");
+        setStep("result");
       } else {
         setError(res.error);
-        setStep("execution");
+        setStep("result");
       }
       setLoading(false);
       return;
@@ -217,7 +216,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         isAutoAudited: category?.type === 'nowpayments',
         createdAt: new Date().toISOString()
       });
-      setStep("success");
+      setStep("result");
     } catch (e) { setError("فشل إرسال البيانات."); } finally { setLoading(false); }
   };
 
@@ -266,7 +265,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 </>
               )}
               <button onClick={() => {
-                if (step === "execution") setStep(category?.type === 'binance' ? "select_network" : "select_asset");
+                if (step === "result") handleClose();
+                else if (step === "execution") setStep(category?.type === 'binance' ? "select_network" : "select_asset");
                 else if (step === "select_network") setStep("select_asset");
                 else router.back();
               }} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d]"><ChevronLeft size={18} /></button>
@@ -274,27 +274,44 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         </header>
 
         <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
-          {step === "verifying" ? (
-            <div className="h-full flex flex-col items-center justify-center py-24 gap-8">
-               <div className="relative">
-                  <div className="h-24 w-24 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center"><Check className="h-8 w-8 text-[#002d4d] animate-pulse" /></div>
-               </div>
-               <div className="text-center space-y-2">
-                  <h3 className="text-xl font-black text-[#002d4d]">جاري مطابقة البيانات</h3>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Verifying transaction integrity...</p>
-               </div>
-            </div>
-          ) : (
-            <AnimatePresence mode="wait">
-              {step === "select_asset" && <AssetSelectionStep key="a" filteredAssets={filteredAssets} onSelect={handleAssetSelect} loading={loading} selectedAsset={selectedAsset} searchQuery={searchQuery} setSearchQuery={setSearchQuery} isSearchOpen={isSearchOpen} />}
-              {step === "select_network" && <NetworkSelectionStep key="n" selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />}
-              {step === "execution" && <ExecutionStep key="e" instructions={instructions} walletAddress={walletAddress} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} categoryType={category?.type} selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} />}
-              {step === "success" && <SuccessStep key="s" categoryType={category?.type} successData={successData} onBackHome={() => router.push("/home")} />}
-            </AnimatePresence>
-          )}
+          <AnimatePresence mode="wait">
+            {step === "verifying" ? (
+              <motion.div 
+                key="verifying"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="h-full flex flex-col items-center justify-center py-24 gap-8"
+              >
+                 <div className="relative">
+                    <div className="h-24 w-24 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center"><Check className="h-8 w-8 text-[#002d4d] animate-pulse" /></div>
+                 </div>
+                 <div className="text-center space-y-2">
+                    <h3 className="text-xl font-black text-[#002d4d]">جاري مطابقة البيانات</h3>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Verifying transaction integrity...</p>
+                 </div>
+              </motion.div>
+            ) : step === "select_asset" ? (
+              <AssetSelectionStep key="a" filteredAssets={filteredAssets} onSelect={handleAssetSelect} loading={loading} selectedAsset={selectedAsset} searchQuery={searchQuery} setSearchQuery={setSearchQuery} isSearchOpen={isSearchOpen} />
+            ) : step === "select_network" ? (
+              <NetworkSelectionStep key="n" selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />
+            ) : step === "execution" ? (
+              <ExecutionStep key="e" instructions={instructions} walletAddress={walletAddress} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} categoryType={category?.type} selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} />
+            ) : (
+              <SuccessStep 
+                key="r" 
+                categoryType={category?.type} 
+                successData={successData} 
+                error={error}
+                onBackHome={() => router.push("/home")} 
+                onRetry={() => { setError(null); setStep("execution"); }}
+              />
+            )}
+          </AnimatePresence>
         </main>
       </div>
     </Shell>
   );
 }
+
