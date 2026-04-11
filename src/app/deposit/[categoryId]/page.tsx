@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -190,7 +189,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال المبلغ لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال الـ TXID فقط للتحقق الآلي من الميزانية وإضافة الرصيد.`);
+        setInstructions(`يرجى إرسال المبلغ لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال معرف العملية (TXID) فقط للتحقق الآلي وإضافة الرصيد.`);
         setStep("execution");
       } else {
         setError(res.error);
@@ -246,19 +245,16 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   return (
     <Shell hideMobileNav>
-      <div className="max-w-4xl mx-auto space-y-10 px-4 md:px-8 pt-8 pb-32 font-body text-right" dir="rtl">
+      <div className="max-w-4xl mx-auto space-y-8 px-4 md:px-0 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        <div className="flex items-center justify-between border-b border-gray-100 pb-8">
-           <div className="flex items-center gap-4 md:gap-6">
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl md:rounded-[28px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-2xl shrink-0">
-                 {category?.type === 'manual' ? <Wallet size={28}/> : category?.type === 'nowpayments' ? <Zap size={28} className="fill-current"/> : <Cpu size={28}/>}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-6 px-2">
+           <div className="flex items-center gap-4">
+              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl md:rounded-[24px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl shrink-0">
+                 {category?.type === 'manual' ? <Wallet size={24}/> : category?.type === 'nowpayments' ? <Zap size={24} className="fill-current"/> : <Cpu size={24}/>}
               </div>
-              <div className="space-y-1">
-                 <h1 className="text-xl md:text-3xl font-black text-[#002d4d]">{category?.name}</h1>
-                 <div className="flex items-center gap-2 opacity-40">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-[8px] md:text-[9px] font-black uppercase">{category?.type?.toUpperCase()} Node Ready</p>
-                 </div>
+              <div className="space-y-0.5">
+                 <h1 className="text-lg md:text-2xl font-black text-[#002d4d] leading-none">{category?.name}</h1>
+                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Operational Node Active</p>
               </div>
            </div>
 
@@ -267,9 +263,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 <div className="flex items-center gap-1">
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                         <button className="h-10 px-4 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] transition-all outline-none">
-                            <ArrowUpDown size={16} />
-                            <span className="text-[10px] font-black hidden sm:inline-block">فرز</span>
+                         <button className="h-9 px-3 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] transition-all outline-none">
+                            <ArrowUpDown size={14} />
+                            <span className="text-[9px] font-black hidden sm:inline-block">فرز</span>
                          </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="rounded-2xl border-none shadow-2xl p-2 min-w-[180px] bg-white z-[1002]" dir="rtl">
@@ -285,11 +281,11 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                    <button 
                      onClick={() => setIsSearchOpen(!isSearchOpen)}
                      className={cn(
-                       "h-10 w-10 rounded-xl flex items-center justify-center transition-all",
+                       "h-9 w-9 rounded-xl flex items-center justify-center transition-all",
                        isSearchOpen ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400"
                      )}
                    >
-                      {isSearchOpen ? <X size={18}/> : <Search size={18}/>}
+                      {isSearchOpen ? <X size={16}/> : <Search size={16}/>}
                    </button>
                 </div>
               )}
@@ -300,9 +296,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                   else if (step === "select_network") setStep("select_asset");
                   else router.back();
                 }} 
-                className="h-10 w-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-[#002d4d] shadow-sm active:scale-90"
+                className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-[#002d4d] shadow-sm active:scale-90"
               >
-                 <ChevronRight size={20} />
+                 <ChevronRight size={18} />
               </button>
            </div>
         </div>
@@ -345,6 +341,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               categoryType={category?.type}
               copied={copied}
               handleCopy={handleCopy}
+              selectedAsset={selectedAsset}
+              selectedNetwork={selectedNetwork}
             />
           )}
 
@@ -358,9 +356,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         </AnimatePresence>
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Ledger v12.0</p>
-           <div className="flex gap-3">
-              {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix Ledger v12.0</p>
+           <div className="flex gap-2">
+              {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
            </div>
         </div>
       </div>
