@@ -14,7 +14,6 @@ import {
   ShieldCheck, 
   AlertCircle, 
   ClipboardPaste,
-  Share2,
   Sparkles,
   ChevronLeft
 } from "lucide-react";
@@ -94,22 +93,22 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* 1. الهوية والشبكة - عرض صافٍ ومباشر */}
+      {/* 1. الهوية والشبكة - عرض صافي ومجرد في القمة */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
-         <div className="shrink-0">
+         <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
          </div>
-         <div className="text-right space-y-0.5">
+         <div className="text-right space-y-0">
             <h3 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal mt-1">
                {selectedNetwork?.name || selectedAsset?.network}
             </p>
          </div>
       </section>
 
-      {/* 2. الباركود المطور (QR Code) مع الأيقونة المركزية */}
+      {/* 2. الباركود المطور (QR Code) */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
@@ -165,7 +164,7 @@ export function ExecutionStep({
          >
             <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
             <div className="relative z-10 flex items-center justify-center gap-3">
-               <Share2 size={18} className="group-hover:rotate-12 transition-transform text-[#f9a885]" />
+               <Sparkles size={18} className="group-hover:rotate-12 transition-transform text-[#f9a885]" />
                <span>حفظ ومشاركة العنوان</span>
             </div>
          </Button>
@@ -179,7 +178,7 @@ export function ExecutionStep({
              <h4 className="text-[10px] font-black uppercase tracking-normal">تعليمات الإيداع</h4>
            </div>
            <p className="text-[11px] font-bold leading-[2.2] text-blue-800/70 tracking-normal">
-             {instructions.replace(/أدناه/g, "أعلاه")}
+             يرجى إرسال الرصيد الموضح أعلاه عبر الشبكة المعتمدة. تأكد من تطابق البيانات لتجنب فقدان الأصول.
            </p>
          </div>
 
@@ -187,7 +186,7 @@ export function ExecutionStep({
            <div className="space-y-3 pt-2 animate-in fade-in duration-500">
              <div className="flex items-center justify-between px-4">
                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-normal">إثبات الإرسال</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal shadow-sm">Binance Sync</Badge>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal shadow-sm">Sync Logic</Badge>
              </div>
              <div className="relative">
                <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
