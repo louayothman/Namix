@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo } from "react";
@@ -7,11 +6,9 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerPortal, DrawerO
 import { Badge } from "@/components/ui/badge";
 import { useFirestore, useMemoFirebase, useCollection, useDoc } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
+import { Icon } from "@iconify/react";
 import { 
   ArrowUpCircle, 
-  Zap, 
-  Wallet, 
-  Cpu,
   ChevronLeft,
   Sparkles,
   Gift,
@@ -25,9 +22,17 @@ interface DepositSheetProps {
 }
 
 /**
- * @fileOverview بوابة تعزيز الرصيد v10.0 - Navigation Gateway
- * تم تبسيط المكون ليعمل كبوابة تفتح صفحة مستقلة لكل فئة إيداع.
+ * NamixDotsIcon - أيقونة ناميكس المميزة للـ NOWPayments
  */
+const NamixDotsIcon = () => (
+  <div className="grid grid-cols-2 gap-1 scale-110">
+    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+  </div>
+);
+
 export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
   const router = useRouter();
   const db = useFirestore();
@@ -45,7 +50,6 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
   const handleSelectCategory = (categoryId: string) => {
     onOpenChange(false);
-    // التوجه لصفحة الإيداع المستقلة لهذه الفئة
     router.push(`/deposit/${categoryId}`);
   };
 
@@ -59,8 +63,8 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             <div className="flex items-center gap-4 text-right">
                <div className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl"><ArrowUpCircle size={24} /></div>
                <div className="space-y-0.5">
-                 <DrawerTitle className="text-xl font-black text-[#002d4d]">تعزيز الرصيد</DrawerTitle>
-                 <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest leading-none mt-1">Capital Infusion Gateway</p>
+                 <DrawerTitle className="text-xl font-black text-[#002d4d]">إضافة رصيد</DrawerTitle>
+                 <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Infusion Gateway</p>
                </div>
             </div>
           </DrawerHeader>
@@ -69,12 +73,11 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
             {loadingCats ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-6">
                  <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Scanning Protocols...</p>
+                 <p className="text-[10px] font-black text-gray-300 uppercase animate-pulse">Scanning Nodes...</p>
               </div>
             ) : (
               <div className="space-y-8 animate-in fade-in duration-700">
                 
-                {/* Bonus Awareness Banner */}
                 {maxBonus > 0 && (
                   <div className="p-6 bg-emerald-600 rounded-[32px] text-white relative overflow-hidden shadow-xl group">
                      <div className="absolute top-0 right-0 p-6 opacity-[0.1] -rotate-12 pointer-events-none group-hover:scale-125 transition-transform duration-1000">
@@ -85,9 +88,9 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                            <Gift className="h-7 w-7 text-[#f9a885] animate-bounce" />
                         </div>
                         <div className="text-right space-y-1">
-                           <h4 className="font-black text-lg leading-tight">مكافأة الشحن مفعلة</h4>
+                           <h4 className="font-black text-lg leading-tight">حوافز الإيداع نشطة</h4>
                            <p className="text-[11px] font-bold text-emerald-100 leading-relaxed">
-                             استفد من مكافأة تصل إلى <span className="text-[#f9a885] font-black">%{maxBonus}</span> عند تعزيز رصيدك الآن.
+                             مكافأة إضافية تصل إلى <span className="text-[#f9a885] font-black">%{maxBonus}</span> عند تعزيز رصيدك الآن.
                            </p>
                         </div>
                      </div>
@@ -96,8 +99,8 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
-                     <h3 className="text-base font-black text-[#002d4d]">حدد قطاع الإيداع</h3>
-                     <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full uppercase">Select Inflow Node</Badge>
+                     <h3 className="text-base font-black text-[#002d4d]">حدد مسار الإيداع</h3>
+                     <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full uppercase">Select Node</Badge>
                   </div>
 
                   <div className="grid gap-3">
@@ -107,23 +110,29 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
                         onClick={() => handleSelectCategory(cat.id)} 
                         className="w-full p-6 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-6 text-right group active:scale-[0.99] relative overflow-hidden"
                       >
-                        <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shrink-0">
-                          {cat.type === 'manual' ? <Wallet size={28}/> : cat.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current"/> : <Cpu size={28} className="text-orange-500"/>}
+                        <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-white transition-all shrink-0 overflow-hidden">
+                          {cat.type === 'binance' ? (
+                            <Icon icon="logos:binance" width={28} height={28} />
+                          ) : cat.type === 'nowpayments' ? (
+                            <NamixDotsIcon />
+                          ) : (
+                            <Icon icon="lucide:wallet" width={28} height={28} className="text-[#002d4d] group-hover:text-[#f9a885]" />
+                          )}
                         </div>
                         <div className="flex-1 space-y-1">
                            <div className="flex items-center justify-between">
                               <p className="font-black text-base text-[#002d4d] group-hover:text-blue-600 transition-colors">{cat.name}</p>
                               <Badge className={cn(
                                 "text-[7px] font-black border-none px-2 py-0.5 rounded-md",
-                                cat.type === 'nowpayments' ? "bg-purple-50 text-purple-600" :
-                                cat.type === 'binance' ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                                cat.type === 'nowpayments' ? "bg-blue-50 text-blue-600" :
+                                cat.type === 'binance' ? "bg-orange-50 text-orange-600" : "bg-gray-100 text-gray-400"
                               )}>
                                 {cat.type?.toUpperCase() || 'MANUAL'}
                               </Badge>
                            </div>
-                           <p className="text-[10px] font-bold text-gray-400 leading-relaxed line-clamp-2">{cat.description || "استخدم هذا المسار لشحن رصيدك بذكاء وأمان."}</p>
+                           <p className="text-[10px] font-bold text-gray-400 leading-relaxed line-clamp-2">{cat.description || "استخدم هذا المسار لإيداع الأموال بذكاء وأمان."}</p>
                         </div>
-                        <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all shrink-0" />
+                        <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all shrink-0 rotate-180" />
                       </button>
                     ))}
                   </div>
@@ -133,7 +142,7 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           </div>
 
           <div className="p-8 bg-gray-50/50 border-t border-gray-100 text-center shrink-0">
-             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-300">Namix Liquidity Gateway v10.0</p>
+             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-300">Namix Liquidity Interface v12.0</p>
           </div>
         </DrawerContent>
       </DrawerPortal>

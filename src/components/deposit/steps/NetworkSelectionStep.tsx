@@ -16,14 +16,19 @@ export function NetworkSelectionStep({ selectedAsset, onSelect, loading }: Netwo
   if (!selectedAsset) return null;
 
   return (
-    <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="w-full space-y-6">
-      <div className="flex items-center gap-4 px-1">
+    <motion.div 
+      initial={{ opacity: 0, x: 50 }} 
+      animate={{ opacity: 1, x: 0 }} 
+      exit={{ opacity: 0, x: -50 }} 
+      className="w-full space-y-6"
+    >
+      <div className="flex items-center gap-4">
         <div className="shrink-0 flex items-center justify-center">
           <CryptoIcon name={selectedAsset.icon || selectedAsset.coin} size={36} />
         </div>
         <div className="text-right">
-          <h3 className="text-base font-black text-[#002d4d]">حدد شبكة الايداع</h3>
-          <p className="text-[8px] font-bold text-gray-400 uppercase mt-0.5">Asset: {selectedAsset.coin}</p>
+          <h3 className="text-base font-black text-[#002d4d] leading-none">حدد شبكة الايداع</h3>
+          <p className="text-[8px] font-bold text-gray-400 uppercase mt-1.5">Asset: {selectedAsset.coin}</p>
         </div>
       </div>
 

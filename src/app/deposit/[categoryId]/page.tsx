@@ -5,23 +5,22 @@ import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot, collection } from "firebase/firestore";
+import { Icon } from "@iconify/react";
 import { 
   ChevronRight, 
   Loader2, 
-  Cpu, 
-  Wallet, 
-  Zap,
   Search,
   ArrowUpDown,
-  X
+  X,
+  Check,
+  Star
 } from "lucide-react";
 import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig } from "@/app/actions/binance-actions";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Star, Check } from "lucide-react";
 
 // Modular Step Components
 import { AssetSelectionStep } from "@/components/deposit/steps/AssetSelectionStep";
@@ -55,6 +54,18 @@ const NOWPAYMENTS_ASSETS = [
 ];
 
 const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL'];
+
+/**
+ * NamixDotsIcon - أيقونة ناميكس المكونة من 4 نقاط للفئات التابعة لها
+ */
+const NamixDotsIcon = () => (
+  <div className="grid grid-cols-2 gap-1 scale-110">
+    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+  </div>
+);
 
 export default function CategoryDepositPage({ params }: DepositPageProps) {
   const { categoryId } = use(params);
@@ -134,23 +145,17 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const bSymbol = (b.coin || b.name || "").toUpperCase();
         const aPop = POPULAR_COINS.indexOf(aSymbol);
         const bPop = POPULAR_COINS.indexOf(bSymbol);
-        
         if (aPop !== -1 && bPop !== -1) return aPop - bPop;
         if (aPop !== -1) return -1;
         if (bPop !== -1) return 1;
         return aSymbol.localeCompare(bSymbol);
       });
     }
-
     return list;
   }, [category, binanceConfig, searchQuery, sortMode, dbUser?.assignedWallets]);
 
   const handleAssetSelect = async (asset: any) => {
-    if (!dbUser?.id) {
-      setError("يرجى الانتظار حتى اكتمال تهيئة الجلسة...");
-      return;
-    }
-    
+    if (!dbUser?.id) { setError("يرجى الانتظار..."); return; }
     setError(null);
     setSelectedAsset(asset);
     
@@ -162,14 +167,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
           setWalletAddress(res.address);
           setInstructions(`هذا العنوان هو هويتك المالية الدائمة لعملة ${asset.coin}. يرجى الإرسال عبر شبكة ${asset.network} حصراً. سيقوم النظام بإضافة الرصيد آلياً فور رصد العملية.`);
           setStep("execution");
-        } else {
-          setError(res.error || "تعذر توليد المحفظة حالياً.");
-        }
-      } catch (e) {
-        setError("فشل الاتصال بمحرك المزامنة الآلي.");
-      } finally {
-        setLoading(false);
-      }
+        } else { setError(res.error || "تعذر التوليد."); }
+      } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
     } else if (category?.type === 'binance') {
       setStep("select_network");
     } else if (category?.type === 'manual') {
@@ -184,21 +183,14 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     setLoading(true);
     setError(null);
     setSelectedNetwork(network);
-
     try {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال المبلغ لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال معرف العملية (TXID) فقط للتحقق الآلي وإضافة الرصيد.`);
+        setInstructions(`يرجى إرسال الأموال لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال معرف العملية (TXID) فقط للتحقق الآلي وإضافة الرصيد.`);
         setStep("execution");
-      } else {
-        setError(res.error);
-      }
-    } catch (e) {
-      setError("فشل الاتصال ببروتوكول بينانس.");
-    } finally {
-      setLoading(false);
-    }
+      } else { setError(res.error); }
+    } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
   };
 
   const handleFinalSubmit = async () => {
@@ -208,7 +200,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const methodName = category?.type === 'manual' 
         ? `${category?.name} - ${selectedAsset?.name}`
         : `${category?.name} (${selectedAsset?.coin || selectedAsset?.name})`;
-
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id,
         userName: dbUser.displayName,
@@ -220,11 +211,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         createdAt: new Date().toISOString()
       });
       setStep("success");
-    } catch (e) {
-      setError("فشل إرسال طلب التدقيق.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setError("فشل إرسال الطلب."); } finally { setLoading(false); }
   };
 
   const handleCopy = () => {
@@ -238,32 +225,37 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell>
       <div className="h-screen flex flex-col items-center justify-center gap-6 bg-white font-body">
         <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-        <p className="text-[10px] font-black text-gray-300 uppercase animate-pulse">Initializing Secure Node...</p>
+        <p className="text-[10px] font-black text-gray-300 uppercase">Initializing Secure Node...</p>
       </div>
     </Shell>
   );
 
   return (
     <Shell hideMobileNav>
-      <div className="max-w-4xl mx-auto space-y-8 px-4 md:px-0 pt-8 pb-32 font-body text-right" dir="rtl">
+      <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         
-        <div className="flex items-center justify-between border-b border-gray-100 pb-6">
+        {/* Fixed Strategic Header */}
+        <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl md:rounded-[24px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl shrink-0">
-                 {category?.type === 'manual' ? <Wallet size={24}/> : category?.type === 'nowpayments' ? <Zap size={24} className="fill-current"/> : <Cpu size={24}/>}
+              <div className="h-12 w-12 rounded-[20px] bg-white flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+                 {category?.type === 'binance' ? (
+                   <Icon icon="logos:binance" width={28} height={28} />
+                 ) : (
+                   <NamixDotsIcon />
+                 )}
               </div>
-              <div className="space-y-0.5">
-                 <h1 className="text-lg md:text-2xl font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Operational Node Active</p>
+              <div className="text-right">
+                 <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
+                 <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1">Operational Node Active</p>
               </div>
            </div>
 
-           <div className="flex items-center gap-2 bg-gray-100/50 p-1.5 rounded-2xl border border-gray-100">
+           <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
               {step === "select_asset" && (
-                <div className="flex items-center gap-1">
+                <>
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                         <button className="h-9 px-3 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] transition-all outline-none">
+                         <button className="h-9 px-3 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] transition-all outline-none bg-transparent">
                             <ArrowUpDown size={14} />
                             <span className="text-[9px] font-black hidden sm:inline-block">فرز</span>
                          </button>
@@ -273,7 +265,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                             الأكثر شيوعاً {sortMode === 'popular' && <Star size={12} className="text-orange-400 fill-current" />}
                          </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => setSortMode('name')} className="font-black text-[10px] py-3 px-4 rounded-xl cursor-pointer justify-between">
-                            الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-50" />}
+                            الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-500" />}
                          </DropdownMenuItem>
                       </DropdownMenuContent>
                    </DropdownMenu>
@@ -281,13 +273,13 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                    <button 
                      onClick={() => setIsSearchOpen(!isSearchOpen)}
                      className={cn(
-                       "h-9 w-9 rounded-xl flex items-center justify-center transition-all",
-                       isSearchOpen ? "bg-[#002d4d] text-[#f9a885] shadow-lg" : "text-gray-400"
+                       "h-9 w-9 rounded-xl flex items-center justify-center transition-all bg-transparent",
+                       isSearchOpen ? "text-[#002d4d]" : "text-gray-400"
                      )}
                    >
                       {isSearchOpen ? <X size={16}/> : <Search size={16}/>}
                    </button>
-                </div>
+                </>
               )}
 
               <button 
@@ -296,71 +288,76 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                   else if (step === "select_network") setStep("select_asset");
                   else router.back();
                 }} 
-                className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-[#002d4d] shadow-sm active:scale-90"
+                className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d] active:scale-90"
               >
-                 <ChevronRight size={18} />
+                 <ChevronRight size={18} className="rotate-180" />
               </button>
            </div>
-        </div>
+        </header>
 
-        <AnimatePresence mode="wait">
-          {step === "select_asset" && (
-            <AssetSelectionStep 
-              key="asset-step"
-              filteredAssets={filteredAssets}
-              onSelect={handleAssetSelect}
-              loading={loading}
-              selectedAsset={selectedAsset}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              isSearchOpen={isSearchOpen}
-            />
-          )}
+        {/* Dynamic Content Body */}
+        <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
+          <AnimatePresence mode="wait">
+            {step === "select_asset" && (
+              <AssetSelectionStep 
+                key="asset-step"
+                filteredAssets={filteredAssets}
+                onSelect={handleAssetSelect}
+                loading={loading}
+                selectedAsset={selectedAsset}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                isSearchOpen={isSearchOpen}
+              />
+            )}
 
-          {step === "select_network" && (
-            <NetworkSelectionStep 
-              key="network-step"
-              selectedAsset={selectedAsset}
-              onSelect={handleNetworkSelect}
-              loading={loading}
-            />
-          )}
+            {step === "select_network" && (
+              <NetworkSelectionStep 
+                key="network-step"
+                selectedAsset={selectedAsset}
+                onSelect={handleNetworkSelect}
+                loading={loading}
+              />
+            )}
 
-          {step === "execution" && (
-            <ExecutionStep 
-              key="execution-step"
-              instructions={instructions}
-              walletAddress={walletAddress}
-              loading={loading}
-              amount={amount}
-              setAmount={setAmount}
-              txid={txid}
-              setTxid={setTxid}
-              onSubmit={handleFinalSubmit}
-              error={error}
-              categoryType={category?.type}
-              copied={copied}
-              handleCopy={handleCopy}
-              selectedAsset={selectedAsset}
-              selectedNetwork={selectedNetwork}
-            />
-          )}
+            {step === "execution" && (
+              <ExecutionStep 
+                key="execution-step"
+                instructions={instructions}
+                walletAddress={walletAddress}
+                loading={loading}
+                amount={amount}
+                setAmount={setAmount}
+                txid={txid}
+                setTxid={setTxid}
+                onSubmit={handleFinalSubmit}
+                error={error}
+                categoryType={category?.type}
+                copied={copied}
+                handleCopy={handleCopy}
+                selectedAsset={selectedAsset}
+                selectedNetwork={selectedNetwork}
+              />
+            )}
 
-          {step === "success" && (
-            <SuccessStep 
-              key="success-step"
-              categoryType={category?.type}
-              onBackHome={() => router.push("/home")}
-            />
-          )}
-        </AnimatePresence>
+            {step === "success" && (
+              <SuccessStep 
+                key="success-step"
+                categoryType={category?.type}
+                onBackHome={() => router.push("/home")}
+              />
+            )}
+          </AnimatePresence>
+        </main>
 
-        <div className="flex flex-col items-center gap-4 pt-10 opacity-20 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix Ledger v12.0</p>
-           <div className="flex gap-2">
-              {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
+        <footer className="fixed bottom-0 left-0 right-0 p-6 pointer-events-none opacity-20">
+           <div className="flex flex-col items-center gap-4 select-none">
+              <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v12.0</p>
+              <div className="flex gap-2">
+                 {[...Array(3)].map((_, i) => (<div key={i} className="h-1 w-1 rounded-full bg-gray-300" />))}
+              </div>
            </div>
-        </div>
+        </footer>
       </div>
     </Shell>
   );
