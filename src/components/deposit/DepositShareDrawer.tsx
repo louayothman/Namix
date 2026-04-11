@@ -51,7 +51,7 @@ export function DepositShareDrawer({
     setGenerating(true);
     setImgUrl(null);
     try {
-      // إيقاف مؤقت محسوب لضمان استقرار تحميل الباركود والأيقونات
+      // إيقاف مؤقت محسوب لضمان استقرار تحميل الباركود والأيقونات والخطوط المحلية
       await new Promise(r => setTimeout(r, 1500));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
@@ -113,7 +113,7 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* صك الإيداع النخبوي - تصميم مجهري نقي ومستقر */}
+      {/* صك الإيداع النخبوي - تصميم مجهري نقي ومستقر بخطوط توطين */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
