@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -39,8 +40,8 @@ interface ExecutionStepProps {
 }
 
 /**
- * @fileOverview وحدة التنفيذ النهائية v15.0 - Directional Correction Edition
- * تم تصحيح التعليمات لتشير إلى "أعلاه" وتثبيت الترتيب اللوجستي الفخم.
+ * @fileOverview وحدة التنفيذ النهائية v16.0 - Resilient Share Edition
+ * تم معالجة خطأ AbortError عند إلغاء المشاركة وتثبيت الترتيب اللوجستي الفخم.
  */
 export function ExecutionStep({
   instructions,
@@ -99,12 +100,14 @@ export function ExecutionStep({
       if (navigator.share) {
         await navigator.share(shareData);
       }
-    } catch (err) {
-      console.error("Share failed", err);
+    } catch (err: any) {
+      // معالجة خطأ الإلغاء بصمت لضمان عدم ظهور رسائل خطأ للمستخدم
+      if (err.name !== 'AbortError') {
+        console.error("Share failed", err);
+      }
     }
   };
 
-  // تصحيح التعليمات لتشير إلى "أعلاه" برمجياً لضمان الدقة
   const correctedInstructions = instructions.replace(/أدناه/g, "أعلاه");
 
   const qrCodeUrl = walletAddress 
@@ -119,7 +122,7 @@ export function ExecutionStep({
       className="w-full space-y-8 font-body text-right" 
       dir="rtl"
     >
-      {/* 1. القمة: هيدر العملة والشبكة */}
+      {/* 1. القمة: هيدر العملة والشبكة مباشرة على الصفحة */}
       <div className="flex items-center gap-4 px-2 animate-in fade-in duration-700">
          <div className="h-14 w-14 flex items-center justify-center shrink-0">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -135,13 +138,12 @@ export function ExecutionStep({
       </div>
 
       {/* 2. الباركود المطور مع أيقونة مركزية */}
-      <div className="flex flex-col items-center justify-center py-4 relative">
+      <div className="flex flex-col items-center justify-center py-2 relative">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[44px] border border-gray-100 shadow-inner group-hover:scale-105 transition-transform duration-700">
                {qrCodeUrl ? (
                  <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
                     <img src={qrCodeUrl} alt="Deposit QR" className="w-full h-full rounded-2xl" />
-                    {/* أيقونة العملة في مركز الباركود */}
                     <div className="absolute inset-0 flex items-center justify-center">
                        <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
                           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
@@ -162,7 +164,7 @@ export function ExecutionStep({
          </div>
       </div>
 
-      {/* 3. عنوان الإيداع وأزرار التفاعل */}
+      {/* 3. عنوان الإيداع وزر المشاركة */}
       <div className="w-full space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
