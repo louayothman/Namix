@@ -16,8 +16,8 @@ export function NetworkSelectionStep({ selectedAsset, onSelect, loading }: Netwo
   if (!selectedAsset) return null;
 
   return (
-    <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="space-y-6">
-      <div className="flex items-center gap-4 px-2">
+    <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="w-full space-y-6">
+      <div className="flex items-center gap-4 px-1">
         <div className="shrink-0 flex items-center justify-center">
           <CryptoIcon name={selectedAsset.icon || selectedAsset.coin} size={36} />
         </div>
@@ -27,15 +27,15 @@ export function NetworkSelectionStep({ selectedAsset, onSelect, loading }: Netwo
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
         {selectedAsset.networkList?.filter((n: any) => n.depositEnable).map((net: any) => (
           <button 
             key={net.network} 
             onClick={() => onSelect(net)}
             disabled={loading}
-            className="h-[72px] p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] disabled:opacity-50"
+            className="h-[72px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] disabled:opacity-50"
           >
-            <div className="flex-1 space-y-0.5 min-w-0 pr-2">
+            <div className="flex-1 space-y-0.5 min-w-0">
               <p className="font-black text-[13px] text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{net.name}</p>
               <div className="flex items-center gap-2">
                 <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-1.5 py-0.5 rounded-md shadow-sm uppercase">{net.network}</Badge>

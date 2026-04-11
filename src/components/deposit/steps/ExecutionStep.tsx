@@ -58,15 +58,15 @@ export function ExecutionStep({
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-6 font-body text-right" dir="rtl">
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="w-full space-y-6 font-body text-right" dir="rtl">
       
-      <div className="flex items-center gap-4 px-2">
-        <div className="shrink-0">
+      <div className="flex items-center gap-4 px-1">
+        <div className="shrink-0 flex items-center justify-center">
           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || "USDT"} size={36} />
         </div>
         <div className="text-right">
           <h3 className="text-base font-black text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h3>
-          <p className="text-[9px] font-bold text-gray-400 uppercase mt-1.5">{selectedNetwork?.name || selectedAsset?.network || "Network Node"}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase mt-1.5">{selectedNetwork?.name || selectedAsset?.network || "Network"}</p>
         </div>
       </div>
 

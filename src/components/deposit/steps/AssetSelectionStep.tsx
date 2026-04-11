@@ -57,10 +57,10 @@ export function AssetSelectionStep({
   }, [searchQuery]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full space-y-6">
       
       {isSearchOpen && (
-        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden px-1">
+        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
           <div className="relative">
             <Input 
               autoFocus
@@ -75,7 +75,7 @@ export function AssetSelectionStep({
       )}
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between px-2">
+        <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-black text-[#002d4d]">اختر عملة الايداع</h3>
           <Badge className="bg-gray-100 text-gray-400 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase">
             {filteredAssets.length} Total
@@ -92,7 +92,7 @@ export function AssetSelectionStep({
                 key={asset.id || asset.coin} 
                 onClick={() => onSelect(asset)} 
                 disabled={loading}
-                className="h-[72px] p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] disabled:opacity-50"
+                className="h-[72px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] disabled:opacity-50"
               >
                 <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
                   <CryptoIcon name={asset.icon || coinSymbol} size={36} />
