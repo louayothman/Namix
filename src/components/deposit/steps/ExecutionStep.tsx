@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -63,11 +64,11 @@ export function ExecutionStep({
     if (!walletAddress) return;
     navigator.clipboard.writeText(walletAddress)
       .then(() => {
-        setCopyStatus("تم نسخ العنوان");
+        setCopyStatus("تم نسخ العنوان بنجاح");
         setTimeout(() => setCopyStatus(null), 2000);
       })
       .catch(() => {
-        setCopyStatus("فشل النسخ");
+        setCopyStatus("فشل في نسخ البيانات");
         setTimeout(() => setCopyStatus(null), 2000);
       });
   };
@@ -77,11 +78,11 @@ export function ExecutionStep({
       const text = await navigator.clipboard.readText();
       if (text) {
         setTxid(text);
-        setPasteStatus("تم اللصق");
+        setPasteStatus("تم لصق المعرف");
         setTimeout(() => setPasteStatus(null), 2000);
       }
     } catch (err) {
-      setPasteStatus("فشل الوصول");
+      setPasteStatus("فشل الوصول للحافظة");
       setTimeout(() => setPasteStatus(null), 2000);
     }
   };
@@ -91,7 +92,7 @@ export function ExecutionStep({
     try {
       const shareData = {
         title: `عنوان إيداع ${selectedAsset?.coin}`,
-        text: `يرجى إيداع ${selectedAsset?.coin} عبر شبكة ${selectedNetwork?.name || selectedAsset?.network} إلى هذا العنوان: ${walletAddress}`,
+        text: `يرجى إرسال ${selectedAsset?.coin} عبر شبكة ${selectedNetwork?.name || selectedAsset?.network} إلى هذا العنوان المعتمد: ${walletAddress}`,
         url: window.location.href
       };
       if (navigator.share) {
@@ -102,9 +103,8 @@ export function ExecutionStep({
     }
   };
 
-  // محرك توليد الباركود اللحظي
   const qrCodeUrl = walletAddress 
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(walletAddress)}&bgcolor=ffffff&color=002d4d`
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(walletAddress)}&bgcolor=ffffff&color=002d4d`
     : null;
 
   return (
@@ -125,7 +125,7 @@ export function ExecutionStep({
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
             <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mt-1">
-              {selectedNetwork?.name || selectedAsset?.network || "Network Node"}
+              {selectedNetwork?.name || selectedAsset?.network || "نظام الشبكات المعتمد"}
             </p>
          </div>
       </div>
@@ -142,46 +142,49 @@ export function ExecutionStep({
       {/* تحفة عنوان الاستلام والباركود */}
       <div className="space-y-4">
          <div className="flex items-center justify-between px-4">
-            <Label className="text-[9px] font-black text-gray-400 uppercase">بيانات استلام الأموال</Label>
+            <Label className="text-[9px] font-black text-gray-400 uppercase">بيانات استلام الرصيد</Label>
             <div className="flex items-center gap-1">
                <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[8px] font-black text-emerald-600 uppercase">Secure Node</span>
+               <span className="text-[8px] font-black text-emerald-600 uppercase">نظام فحص نشط</span>
             </div>
          </div>
 
-         <Card className="rounded-[48px] border-none shadow-xl bg-white overflow-hidden p-8 flex flex-col items-center gap-8 relative group">
-            {/* الباركود المركزي */}
-            <div className="relative p-4 bg-white rounded-[32px] border border-gray-100 shadow-inner group-hover:scale-105 transition-transform duration-700">
+         <Card className="rounded-[48px] border-none shadow-2xl bg-white overflow-hidden p-10 flex flex-col items-center gap-8 relative group">
+            {/* الباركود المركزي - تطابق تام مع بينانس */}
+            <div className="relative p-5 bg-white rounded-[40px] border border-gray-100 shadow-inner group-hover:scale-105 transition-transform duration-700">
                {qrCodeUrl ? (
-                 <img src={qrCodeUrl} alt="Deposit QR" className="h-48 w-48 rounded-2xl" />
+                 <img src={qrCodeUrl} alt="Deposit QR" className="h-48 w-48 md:h-56 md:w-56 rounded-2xl" />
                ) : (
-                 <div className="h-48 w-48 flex items-center justify-center bg-gray-50 rounded-2xl">
+                 <div className="h-48 w-48 md:h-56 md:w-56 flex items-center justify-center bg-gray-50 rounded-2xl">
                     <Loader2 className="animate-spin text-gray-200" />
                  </div>
                )}
-               <div className="absolute -top-2 -right-2 h-8 w-8 rounded-xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg">
-                  <QrCode size={16} />
+               <div className="absolute -top-2 -right-2 h-10 w-10 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl">
+                  <QrCode size={20} />
                </div>
             </div>
 
-            {/* عرض العنوان الصافي */}
-            <div className="w-full space-y-4">
-               <div className="p-5 bg-gray-50 rounded-[28px] border border-gray-100 flex items-center justify-between gap-4">
-                  <div className="flex-1 font-mono text-[9px] font-black text-[#002d4d] break-all text-left leading-relaxed opacity-80" dir="ltr">
-                    {loading && !walletAddress ? "جاري جرد البيانات..." : walletAddress}
+            {/* عرض العنوان الصافي بدون حقل */}
+            <div className="w-full space-y-5">
+               <div className="flex flex-col items-center gap-1 text-center">
+                  <p className="text-[8px] font-black text-gray-300 uppercase leading-none">{selectedAsset?.coin} • {selectedNetwork?.name || selectedAsset?.network}</p>
+                  <div className="flex items-center justify-center gap-4 w-full">
+                     <p className="flex-1 font-mono text-[10px] md:text-xs font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
+                       {loading && !walletAddress ? "جاري جلب بيانات العنوان..." : walletAddress}
+                     </p>
+                     <button 
+                       onClick={handleCopy} 
+                       disabled={!walletAddress}
+                       className="h-10 w-10 flex items-center justify-center text-gray-300 hover:text-[#002d4d] transition-all active:scale-90 shrink-0 bg-transparent border-none shadow-none"
+                     >
+                       {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
+                     </button>
                   </div>
-                  <button 
-                    onClick={handleCopy} 
-                    disabled={!walletAddress}
-                    className="text-gray-300 hover:text-[#002d4d] transition-all active:scale-90 shrink-0"
-                  >
-                    {copyStatus ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
-                  </button>
                </div>
                
                <AnimatePresence>
                  {copyStatus && (
-                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[8px] font-black text-emerald-500 uppercase text-center">{copyStatus}</motion.p>
+                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[9px] font-black text-emerald-500 uppercase text-center">{copyStatus}</motion.p>
                  )}
                </AnimatePresence>
 
@@ -189,10 +192,10 @@ export function ExecutionStep({
                <Button 
                  onClick={handleShare}
                  variant="ghost"
-                 className="w-full h-14 rounded-full bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-600 font-black text-[10px] gap-3 transition-all active:scale-[0.98]"
+                 className="w-full h-14 rounded-full bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-600 font-black text-[10px] gap-3 transition-all active:scale-[0.98] border-none shadow-none"
                >
                   <Share2 size={16} />
-                  <span>مشاركة بيانات العنوان</span>
+                  <span>مشاركة بيانات الإيداع</span>
                </Button>
             </div>
          </Card>
@@ -203,28 +206,28 @@ export function ExecutionStep({
         <div className="space-y-3 pt-2 animate-in fade-in duration-500">
           <div className="flex items-center justify-between px-4">
              <Label className="text-[9px] font-black text-gray-400 uppercase">إثبات الإرسال</Label>
-             <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5">BINANCE SYNC</Badge>
+             <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">Binance Sync</Badge>
           </div>
           <div className="relative">
             <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
               <Input 
                 value={txid} 
                 onChange={e => setTxid(e.target.value)} 
-                className="h-full w-full bg-transparent border-none font-mono text-[10px] font-black px-12 text-center shadow-none focus-visible:ring-0" 
+                className="h-full w-full bg-transparent border-none font-mono text-[10px] font-black px-14 text-center shadow-none focus-visible:ring-0" 
                 placeholder="ألصق معرف العملية (TXID) هنا..." 
               />
               <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
               <button 
                 onClick={handlePaste}
                 type="button"
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#f9a885] hover:bg-[#002d4d] hover:text-white transition-all active:scale-90 shadow-sm border border-gray-100"
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#f9a885] hover:bg-[#002d4d] hover:text-white transition-all active:scale-90 shadow-sm border-none"
               >
                 <ClipboardPaste size={18} />
               </button>
             </div>
             <AnimatePresence>
               {pasteStatus && (
-                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[8px] font-black text-emerald-500 uppercase">{pasteStatus}</motion.p>
+                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 uppercase">{pasteStatus.msg}</motion.p>
               )}
             </AnimatePresence>
           </div>
@@ -253,7 +256,7 @@ export function ExecutionStep({
         <div className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <button 
             onClick={() => window.location.href = '/home'}
-            className="w-full h-20 rounded-[40px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-2xl relative overflow-hidden group transition-all active:scale-[0.98]"
+            className="w-full h-20 rounded-[40px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-2xl relative overflow-hidden group transition-all active:scale-[0.98] border-none"
           >
             <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 opacity-[0.05] group-hover:opacity-[0.12] transition-all duration-1000 pointer-events-none text-[#f9a885]">
                <ShieldCheck size={140} strokeWidth={1.5} />
@@ -293,12 +296,12 @@ export function ExecutionStep({
       <div className="flex items-center justify-center gap-4 opacity-[0.15] select-none pt-2">
          <div className="flex items-center gap-1.5">
             <ShieldCheck size={10} className="text-[#002d4d]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d]">Verified Access</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d]">اتصال مشفر</span>
          </div>
          <div className="h-1 w-1 rounded-full bg-gray-300" />
          <div className="flex items-center gap-1.5">
             <Sparkles size={10} className="text-[#f9a885]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d]">Namix Core</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d]">نظام ناميكس المعتمد</span>
          </div>
       </div>
     </motion.div>
