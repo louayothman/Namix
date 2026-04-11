@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo } from "react";
@@ -21,9 +22,6 @@ interface DepositSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/**
- * NamixDotsIcon - أيقونة ناميكس المميزة
- */
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
