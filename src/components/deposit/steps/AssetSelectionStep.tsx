@@ -84,7 +84,7 @@ export function AssetSelectionStep({
       <div className="space-y-6">
         <div className="flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
-             <h3 className="text-lg font-black text-[#002d4d]">اختر العملة</h3>
+             <h3 className="text-lg font-black text-[#002d4d]">اختر عملة الايداع</h3>
              <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">
                 {filteredAssets.length} Total
              </Badge>
