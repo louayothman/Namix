@@ -52,6 +52,7 @@
     "firebase": "^11.9.1",
     "genkit": "^1.28.0",
     "google-auth-library": "^9.15.1",
+    "html-to-image": "^1.11.11",
     "jsonwebtoken": "^9.0.2",
     "lightweight-charts": "^4.2.2",
     "lottie-react": "^2.4.0",
