@@ -56,7 +56,7 @@
   }
 }
 
-/* فرض الخطوط بناءً على اللغة والمحتوى الرقمي لضمان الدقة */
+/* فرض خط Cairo للغة الإنجليزية والأرقام والرموز الرقمية */
 :lang(en), .font-mono, .tabular-nums, [dir="ltr"] {
   font-family: 'Cairo', sans-serif !important;
   font-weight: 400;
