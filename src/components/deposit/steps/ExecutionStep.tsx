@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -93,16 +94,16 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* 1. الهوية والشبكة - عرض صافي ومجرد في القمة */}
+      {/* 1. هوية القمة الصافية - بدون أطر أو ظلال */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
          </div>
-         <div className="text-right space-y-0">
+         <div className="text-right space-y-0.5">
             <h3 className="text-xl font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal mt-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-normal">
                {selectedNetwork?.name || selectedAsset?.network}
             </p>
          </div>
@@ -135,7 +136,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 3. العنوان وزر المشاركة الموحد */}
+      {/* 3. العنوان الرقمي وزر التصدير */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
