@@ -2,12 +2,12 @@
 'use server';
 
 /**
- * @fileOverview Binance Sovereign Automation Protocol v8.0
- * يدعم الآن تدوير المفاتيح (Key Rotation) لتجاوز قيود SAPI اللحظية.
+ * @fileOverview Binance Sovereign Automation Protocol v9.0
+ * يدعم الآن جلب قائمة العملات والشبكات الحية (Live Config) والتحقق من الـ TXID.
  */
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import crypto from 'node:crypto';
 
 async function binanceSignedRequest(endpoint: string, params: Record<string, string>, apiKey: string, apiSecret: string) {
@@ -60,25 +60,41 @@ async function getActiveBinanceNodes() {
   return [];
 }
 
-export async function getBinanceTickerPrice(symbol: string) {
+/**
+ * جلب كافة العملات والشبكات المدعومة من بينانس حياً
+ */
+export async function getBinanceCoinsConfig() {
   try {
-    const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol.toUpperCase()}`, {
-      cache: 'no-store'
-    });
-    const data = await response.json();
-    return { success: true, price: Number(data.price) };
+    const nodes = await getActiveBinanceNodes();
+    if (nodes.length === 0) return { success: false, error: "API Nodes not configured" };
+
+    const res = await binanceSignedRequest('/sapi/v1/capital/config/getall', {}, nodes[0].apiKey, nodes[0].apiSecret);
+    
+    if (res.status !== 200) throw new Error(res.data.msg || "Failed to fetch Binance config");
+
+    // تصفية العملات التي تدعم الإيداع فقط
+    const coins = res.data.filter((c: any) => c.depositAllEnable);
+    
+    return { success: true, coins };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
 }
 
 /**
- * التحقق من الإيداع مع تدوير المفاتيح تلقائياً عند حدوث ضغط (Failover)
+ * التحقق من الإيداع مع تدوير المفاتيح والتحقق من عدم تكرار الـ TXID
  */
-export async function verifyBinanceDeposit(txid: string, amount?: number, asset: string = "USDT") {
+export async function verifyBinanceDeposit(txid: string, asset: string = "USDT") {
   try {
+    const { firestore } = initializeFirebase();
+    
+    // 1. التحقق أولاً من أن الـ TXID لم يتم استخدامه مسبقاً في قاعدة بياناتنا
+    const dupQuery = query(collection(firestore, "deposit_requests"), where("transactionId", "==", txid.trim()));
+    const dupSnap = await getDocs(dupQuery);
+    if (!dupSnap.empty) return { success: false, error: "تم استخدام معرف العملية هذا مسبقاً." };
+
     const nodes = await getActiveBinanceNodes();
-    if (nodes.length === 0) return { success: false, error: "بروتوكول الأمان (Binance Nodes) غير مفعل." };
+    if (nodes.length === 0) return { success: false, error: "بروتوكول الأمان غير مفعل." };
 
     for (const node of nodes) {
       const res = await binanceSignedRequest('/sapi/v1/capital/deposit/hisrec', { 
@@ -86,7 +102,7 @@ export async function verifyBinanceDeposit(txid: string, amount?: number, asset:
         status: "1" 
       }, node.apiKey, node.apiSecret);
 
-      if (res.status === 429) continue; // تجاوز الحد، جرب العقدة التالية
+      if (res.status === 429) continue; 
 
       const history = res.data;
       if (history.code) continue;
@@ -108,7 +124,7 @@ export async function verifyBinanceDeposit(txid: string, amount?: number, asset:
       }
     }
 
-    return { success: false, error: "لم يتم العثور على عملية إيداع مطابقة. يرجى الانتظار أو التأكد من العقد النشطة." };
+    return { success: false, error: "لم يتم العثور على عملية إيداع مطابقة في السجلات العالمية." };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -117,7 +133,7 @@ export async function verifyBinanceDeposit(txid: string, amount?: number, asset:
 export async function getBinanceDepositAddress(coin: string, network: string) {
   try {
     const nodes = await getActiveBinanceNodes();
-    if (nodes.length === 0) return { success: false, error: "لا توجد عقد نشطة لجلب العناوين." };
+    if (nodes.length === 0) return { success: false, error: "No active nodes." };
 
     for (const node of nodes) {
       const res = await binanceSignedRequest('/sapi/v1/capital/deposit/address', { 
@@ -131,7 +147,7 @@ export async function getBinanceDepositAddress(coin: string, network: string) {
       return { success: true, address: res.data.address };
     }
 
-    return { success: false, error: "فشل جلب العنوان من كافة العقد المتاحة." };
+    return { success: false, error: "Failed to fetch address from Binance API." };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
