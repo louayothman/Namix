@@ -14,6 +14,7 @@ import {
   Copy, 
   Check, 
   ChevronRight, 
+  ChevronLeft,
   Loader2, 
   CheckCircle2, 
   Zap, 
@@ -92,7 +93,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     }
   }, [db]);
 
-  // جلب إعدادات بينانس الحية عند فتح الصفحة
   useEffect(() => {
     if (category?.type === 'binance' && binanceConfig.length === 0) {
       const fetchConfig = async () => {
@@ -163,7 +163,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   const handleSubmit = async () => {
     if (!dbUser) return;
     if (category?.type !== 'binance' && !amount) return;
-    if (category?.type !== 'nowpayments' && !txid) return;
+    if (category?.type === 'binance' && !txid) return;
 
     setLoading(true);
     try {
@@ -174,7 +174,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id,
         userName: dbUser.displayName,
-        amount: category?.type === 'binance' ? 0 : Number(amount), // المبلغ 0 سيتم تحديثه آلياً للمزامنة
+        amount: category?.type === 'binance' ? 0 : Number(amount),
         methodName,
         transactionId: txid || "AUTO_SYNC_PENDING",
         status: "pending",
@@ -353,9 +353,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                      
                      {category?.type !== 'nowpayments' && (
                        <div className="space-y-3">
-                          <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-widest">معرف العملية الرقمي (TXID)</Label>
+                          <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-widest">{category?.type === 'binance' ? 'معرف العملية (TXID)' : 'رقم العملية / المرجع'}</Label>
                           <div className="relative">
-                            <Input value={txid} onChange={e => setTxid(e.target.value)} className="h-16 rounded-[24px] bg-white border-none font-mono text-sm font-black px-8 text-center shadow-lg" placeholder="أدخل رمز العملية (64 خانة)..." />
+                            <Input value={txid} onChange={e => setTxid(e.target.value)} className="h-16 rounded-[24px] bg-white border-none font-mono text-sm font-black px-8 text-center shadow-lg" placeholder="أدخل رمز العملية..." />
                             <Hash className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-100" />
                           </div>
                        </div>
@@ -372,7 +372,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
                <Button 
                  onClick={handleSubmit} 
-                 disabled={loading || (category?.type !== 'binance' && !amount) || (category?.type !== 'nowpayments' && !txid)} 
+                 disabled={loading || (category?.type !== 'binance' && !amount) || (category?.type === 'binance' && !txid)} 
                  className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-95 group transition-all"
                >
                   {loading ? <Loader2 className="animate-spin h-8 w-8" /> : (
