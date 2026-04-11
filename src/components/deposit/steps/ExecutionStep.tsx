@@ -18,7 +18,8 @@ import {
   ClipboardPaste,
   Share2,
   Sparkles,
-  Download
+  Download,
+  ChevronLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CryptoIcon } from "@/lib/crypto-icons";
@@ -210,7 +211,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {selectedAsset?.coin && pasteStatus && (pasteStatus as any)[selectedAsset.coin] && (
+                 {selectedAsset?.coin && pasteStatus && pasteStatus[selectedAsset.coin] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>

@@ -52,15 +52,13 @@ export function DepositShareDrawer({
     if (!shareCardRef.current || generating) return;
     setGenerating(true);
     try {
-      // ننتظر قليلاً لضمان رندر الباركود والخطوط
-      await new Promise(r => setTimeout(r, 1200));
+      await new Promise(r => setTimeout(r, 1500)); // ننتظر قليلاً لضمان رندر الباركود والخطوط
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 3,
-        // السماح بالخطوط التي تم دمجها برمجياً
-        fontEmbedCSS: '',
+        fontEmbedCSS: '', // تجنب محاولة دمج الروابط الخارجية
         style: {
           fontFamily: "'Tajawal', sans-serif",
         }
@@ -123,10 +121,9 @@ export function DepositShareDrawer({
           className="w-[400px] bg-white p-12 flex flex-col items-center gap-8 text-center"
           style={{ fontFamily: "'Tajawal', sans-serif" }}
         >
-          {/* محاكاة تعريف الخط محلياً للصورة */}
           <style dangerouslySetInnerHTML={{ __html: `
             @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
-            * { font-family: 'Tajawal', sans-serif !important; }
+            * { font-family: 'Tajawal', sans-serif !important; letter-spacing: normal !important; }
           `}} />
 
           <div className="flex flex-col items-center gap-4">
@@ -171,8 +168,7 @@ export function DepositShareDrawer({
 
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
-          {/* تم إصلاح التراكب ليكون خلف المحتوى مع شفافية رقيقة */}
-          <DrawerOverlay className="fixed inset-0 bg-black/20 backdrop-blur-md z-[1200]" />
+          <DrawerOverlay className="fixed inset-0 bg-black/10 backdrop-blur-sm z-[1200]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[82vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1201] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <DrawerHeader className="px-8 pt-6 border-b border-gray-50 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-3 text-right">
@@ -205,7 +201,6 @@ export function DepositShareDrawer({
                   <div className="absolute inset-[-20px] bg-blue-500/5 rounded-full blur-[60px] -z-10" />
                </div>
 
-               {/* الأزرار العرضية - تنسيق تكتيكي بجانب بعضها البعض */}
                <div className="w-full max-w-[340px] grid grid-cols-2 gap-4 pb-10">
                   <Button 
                     onClick={handleDownload} 
