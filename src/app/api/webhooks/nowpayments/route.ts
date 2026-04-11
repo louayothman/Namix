@@ -1,12 +1,11 @@
-
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { initializeFirebase } from '@/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, getDoc } from 'firebase/firestore';
 
 /**
- * @fileOverview NOWPayments Multi-Wallet IPN Monitor v2.0
- * محرك مراقبة ذكي يتحقق من العملة والعنوان لحقن الرصيد بدقة متناهية.
+ * @fileOverview مراقب الإيداع الآلي المطور v3.0 - NOWPayments Multi-Wallet Monitor
+ * محرك مراقبة ذكي يتحقق من العملة والعنوان ويقوم بحساب المكافآت آلياً لتنبيه المستثمر فوراً.
  */
 
 export async function POST(req: Request) {
@@ -29,7 +28,6 @@ export async function POST(req: Request) {
     const { payment_status, pay_address, actually_paid, pay_currency } = data;
 
     if (payment_status === 'finished') {
-      // البحث عن المستخدم الذي يملك هذا العنوان لهذه العملة تحديداً
       const usersRef = collection(firestore, "users");
       const q = query(usersRef, where(`assignedWallets.${pay_currency}`, "==", pay_address));
       const userSnap = await getDocs(q);
@@ -38,15 +36,31 @@ export async function POST(req: Request) {
         const userDoc = userSnap.docs[0];
         const amount = Number(actually_paid);
 
+        // حساب المكافآت من إعدادات الخزنة
+        const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
+        let bonus = 0;
+        let bonusPercent = 0;
+        if (vaultSnap.exists()) {
+          const bonuses = vaultSnap.data().depositBonuses || [];
+          const tier = bonuses.find((t: any) => amount >= t.min && amount <= (t.max || Infinity));
+          if (tier) {
+            bonusPercent = tier.percent;
+            bonus = (amount * bonusPercent) / 100;
+          }
+        }
+
         await updateDoc(doc(firestore, "users", userDoc.id), {
-          totalBalance: increment(amount)
+          totalBalance: increment(amount + bonus)
         });
 
         await addDoc(collection(firestore, "deposit_requests"), {
           userId: userDoc.id,
           userName: userDoc.data().displayName,
           amount,
-          methodName: `Auto-Sync (${pay_currency.toUpperCase()})`,
+          approvedAmount: amount,
+          bonusApplied: bonus,
+          bonusPercent,
+          methodName: `آلية المزامنة (${pay_currency.toUpperCase()})`,
           status: "approved",
           isAutoAudited: true,
           createdAt: new Date().toISOString()
@@ -54,8 +68,8 @@ export async function POST(req: Request) {
 
         await addDoc(collection(firestore, "notifications"), {
           userId: userDoc.id,
-          title: "تم حقن السيولة آلياً ⚡",
-          message: `تم رصد إيداع بقيمة $${amount} عبر محفظتك المخصصة (${pay_currency.toUpperCase()}). تم تحديث رصيدك بنجاح.`,
+          title: "تم تأكيد الإيداع الآلي ✅",
+          message: `تم رصد إيداع بقيمة $${amount} عبر محفظتك المخصصة. تم تحديث رصيدك بنجاح ${bonus > 0 ? `مع مكافأة $${bonus}` : ''}.`,
           type: "success",
           isRead: false,
           createdAt: new Date().toISOString()

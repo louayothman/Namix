@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -238,7 +237,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="shrink-0 flex items-center justify-center">
+              <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
                  {category?.type === 'binance' ? (
                    <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
                  ) : (
@@ -247,7 +246,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest mt-1">Operational Node Active</p>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1">
+                    <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">Operational Node Active</span>
+                 </div>
               </div>
            </div>
 

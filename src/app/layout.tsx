@@ -1,10 +1,10 @@
-
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
+import { GlobalDepositDialog } from "@/components/deposit/GlobalDepositDialog";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
 
@@ -119,6 +119,7 @@ export default async function RootLayout({
         <FirebaseClientProvider>
           <SWRegistration />
           {children}
+          <GlobalDepositDialog />
           <PWAInstaller />
           <Toaster />
         </FirebaseClientProvider>
