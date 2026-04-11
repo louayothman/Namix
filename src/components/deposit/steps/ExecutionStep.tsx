@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ import {
   ClipboardPaste,
   ChevronLeft,
   Share2,
-  QrCode,
   Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -64,11 +62,11 @@ export function ExecutionStep({
     if (!walletAddress) return;
     navigator.clipboard.writeText(walletAddress)
       .then(() => {
-        setCopyStatus("تم نسخ العنوان بنجاح");
+        setCopyStatus("تم نسخ العنوان");
         setTimeout(() => setCopyStatus(null), 2000);
       })
       .catch(() => {
-        setCopyStatus("فشل في نسخ البيانات");
+        setCopyStatus("فشل النسخ");
         setTimeout(() => setCopyStatus(null), 2000);
       });
   };
@@ -78,11 +76,11 @@ export function ExecutionStep({
       const text = await navigator.clipboard.readText();
       if (text) {
         setTxid(text);
-        setPasteStatus("تم لصق المعرف");
+        setPasteStatus("تم اللصق");
         setTimeout(() => setPasteStatus(null), 2000);
       }
     } catch (err) {
-      setPasteStatus("فشل الوصول للحافظة");
+      setPasteStatus("فشل الوصول");
       setTimeout(() => setPasteStatus(null), 2000);
     }
   };
@@ -92,8 +90,7 @@ export function ExecutionStep({
     try {
       const shareData = {
         title: `عنوان إيداع ${selectedAsset?.coin}`,
-        text: `يرجى إرسال ${selectedAsset?.coin} عبر شبكة ${selectedNetwork?.name || selectedAsset?.network} إلى هذا العنوان المعتمد: ${walletAddress}`,
-        url: window.location.href
+        text: `${selectedAsset?.coin} (${selectedNetwork?.name || selectedAsset?.network}): ${walletAddress}`,
       };
       if (navigator.share) {
         await navigator.share(shareData);
@@ -121,10 +118,10 @@ export function ExecutionStep({
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
          </div>
          <div className="text-right space-y-0.5">
-            <h3 className="text-lg font-black text-[#002d4d] leading-none">
+            <h3 className="text-lg font-black text-[#002d4d] leading-none tracking-normal">
               {selectedAsset?.name || selectedAsset?.coin}
             </h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mt-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mt-1 tracking-normal">
               {selectedNetwork?.name || selectedAsset?.network || "نظام الشبكات المعتمد"}
             </p>
          </div>
@@ -134,86 +131,89 @@ export function ExecutionStep({
       <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2">
         <div className="flex items-center gap-2 text-blue-600 mb-1">
           <Info size={14} />
-          <h4 className="text-[10px] font-black uppercase">توجيهات الإيداع</h4>
+          <h4 className="text-[10px] font-black uppercase tracking-normal">توجيهات الإيداع</h4>
         </div>
-        <p className="text-[11px] font-bold leading-[2] text-blue-800/70">{instructions}</p>
+        <p className="text-[11px] font-bold leading-[2] text-blue-800/70 tracking-normal">{instructions}</p>
       </div>
 
-      {/* تحفة عنوان الاستلام والباركود */}
-      <div className="space-y-4">
-         <div className="flex items-center justify-between px-4">
-            <Label className="text-[9px] font-black text-gray-400 uppercase">بيانات استلام الرصيد</Label>
-            <div className="flex items-center gap-1">
-               <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[8px] font-black text-emerald-600 uppercase">نظام فحص نشط</span>
-            </div>
-         </div>
-
-         <Card className="rounded-[48px] border-none shadow-2xl bg-white overflow-hidden p-10 flex flex-col items-center gap-8 relative group">
-            {/* الباركود المركزي - تطابق تام مع بينانس */}
-            <div className="relative p-5 bg-white rounded-[40px] border border-gray-100 shadow-inner group-hover:scale-105 transition-transform duration-700">
+      {/* منطقة الباركود والعنوان - عرض مباشر بدون حاوية مخصصة */}
+      <div className="flex flex-col items-center gap-8 py-4">
+         
+         {/* الباركود المركزي مع أيقونة العملة في المنتصف */}
+         <div className="relative group">
+            <div className="relative p-6 bg-white rounded-[44px] border border-gray-100 shadow-inner group-hover:scale-105 transition-transform duration-700">
                {qrCodeUrl ? (
-                 <img src={qrCodeUrl} alt="Deposit QR" className="h-48 w-48 md:h-56 md:w-56 rounded-2xl" />
+                 <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
+                    <img src={qrCodeUrl} alt="Deposit QR" className="w-full h-full rounded-2xl" />
+                    {/* أيقونة العملة في مركز الباركود */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                       <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
+                          <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
+                       </div>
+                    </div>
+                 </div>
                ) : (
                  <div className="h-48 w-48 md:h-56 md:w-56 flex items-center justify-center bg-gray-50 rounded-2xl">
                     <Loader2 className="animate-spin text-gray-200" />
                  </div>
                )}
-               <div className="absolute -top-2 -right-2 h-10 w-10 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl">
-                  <QrCode size={20} />
-               </div>
             </div>
+            {/* نبض أمني خلفي */}
+            <motion.div 
+              animate={{ opacity: [0.02, 0.05, 0.02] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute inset-[-20px] bg-blue-500 rounded-full blur-[60px] -z-10"
+            />
+         </div>
 
-            {/* عرض العنوان الصافي بدون حقل */}
-            <div className="w-full space-y-5">
-               <div className="flex flex-col items-center gap-1 text-center">
-                  <p className="text-[8px] font-black text-gray-300 uppercase leading-none">{selectedAsset?.coin} • {selectedNetwork?.name || selectedAsset?.network}</p>
-                  <div className="flex items-center justify-center gap-4 w-full">
-                     <p className="flex-1 font-mono text-[10px] md:text-xs font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
-                       {loading && !walletAddress ? "جاري جلب بيانات العنوان..." : walletAddress}
-                     </p>
-                     <button 
-                       onClick={handleCopy} 
-                       disabled={!walletAddress}
-                       className="h-10 w-10 flex items-center justify-center text-gray-300 hover:text-[#002d4d] transition-all active:scale-90 shrink-0 bg-transparent border-none shadow-none"
-                     >
-                       {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
-                     </button>
-                  </div>
+         {/* عرض العنوان الصافي وأزرار التحكم */}
+         <div className="w-full space-y-6">
+            <div className="flex flex-col items-center gap-3">
+               <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
+                  <p className="flex-1 font-mono text-[10px] md:text-xs font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80 tracking-normal" dir="ltr">
+                    {loading && !walletAddress ? "جاري جلب العنوان..." : walletAddress}
+                  </p>
+                  <button 
+                    onClick={handleCopy} 
+                    disabled={!walletAddress}
+                    className="h-10 w-10 flex items-center justify-center text-gray-300 hover:text-[#002d4d] transition-all active:scale-90 shrink-0"
+                  >
+                    {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
+                  </button>
                </div>
                
                <AnimatePresence>
                  {copyStatus && (
-                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[9px] font-black text-emerald-500 uppercase text-center">{copyStatus}</motion.p>
+                   <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-[9px] font-black text-emerald-500 uppercase tracking-normal">{copyStatus}</motion.p>
                  )}
                </AnimatePresence>
-
-               {/* زر المشاركة النخبوي */}
-               <Button 
-                 onClick={handleShare}
-                 variant="ghost"
-                 className="w-full h-14 rounded-full bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-600 font-black text-[10px] gap-3 transition-all active:scale-[0.98] border-none shadow-none"
-               >
-                  <Share2 size={16} />
-                  <span>مشاركة بيانات الإيداع</span>
-               </Button>
             </div>
-         </Card>
+
+            {/* زر المشاركة النخبوي المحدث */}
+            <Button 
+              onClick={handleShare}
+              variant="ghost"
+              className="w-full h-14 rounded-full bg-gray-50 text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] font-black text-[10px] gap-3 transition-all active:scale-[0.98] border-none shadow-none group"
+            >
+               <Share2 size={16} className="group-hover:rotate-12 transition-transform" />
+               <span>مشاركة عنوان الإيداع</span>
+            </Button>
+         </div>
       </div>
 
       {/* حقل معرف العملية لـ Binance */}
       {!isNowPayments && isBinance && (
         <div className="space-y-3 pt-2 animate-in fade-in duration-500">
           <div className="flex items-center justify-between px-4">
-             <Label className="text-[9px] font-black text-gray-400 uppercase">إثبات الإرسال</Label>
-             <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">Binance Sync</Badge>
+             <Label className="text-[9px] font-black text-gray-400 uppercase tracking-normal">إثبات الإرسال</Label>
+             <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md tracking-normal">Binance Sync</Badge>
           </div>
           <div className="relative">
             <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
               <Input 
                 value={txid} 
                 onChange={e => setTxid(e.target.value)} 
-                className="h-full w-full bg-transparent border-none font-mono text-[10px] font-black px-14 text-center shadow-none focus-visible:ring-0" 
+                className="h-full w-full bg-transparent border-none font-mono text-[10px] font-black px-14 text-center shadow-none focus-visible:ring-0 tracking-normal" 
                 placeholder="ألصق معرف العملية (TXID) هنا..." 
               />
               <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
@@ -227,7 +227,7 @@ export function ExecutionStep({
             </div>
             <AnimatePresence>
               {pasteStatus && (
-                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 uppercase">{pasteStatus.msg}</motion.p>
+                <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 uppercase tracking-normal">{pasteStatus}</motion.p>
               )}
             </AnimatePresence>
           </div>
@@ -237,13 +237,13 @@ export function ExecutionStep({
       {/* حقل المبلغ للفئات اليدوية */}
       {!isNowPayments && !isBinance && (
         <div className="space-y-3 pt-2 animate-in fade-in duration-500">
-          <Label className="text-[9px] font-black text-gray-400 uppercase pr-4">المبلغ المودع ($)</Label>
+          <Label className="text-[9px] font-black text-gray-400 uppercase pr-4 tracking-normal">المبلغ المودع ($)</Label>
           <div className="relative">
             <Input 
               type="number" 
               value={amount} 
               onChange={e => setAmount(e.target.value)} 
-              className="h-[72px] rounded-[32px] bg-white border border-gray-100 font-black text-center text-2xl text-emerald-600 shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-500/10 tabular-nums" 
+              className="h-[72px] rounded-[32px] bg-white border border-gray-100 font-black text-center text-2xl text-emerald-600 shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-500/10 tabular-nums tracking-tighter" 
               placeholder="0.00" 
             />
             <Coins size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-100" />
@@ -273,7 +273,7 @@ export function ExecutionStep({
       {error && (
         <div className="p-4 bg-red-50 rounded-[24px] border border-red-100 flex items-center gap-3 text-red-600">
           <AlertCircle size={16} />
-          <p className="text-[10px] font-black">{error}</p>
+          <p className="text-[10px] font-black tracking-normal">{error}</p>
         </div>
       )}
 
@@ -282,7 +282,7 @@ export function ExecutionStep({
         <Button 
           onClick={onSubmit} 
           disabled={loading || (!isBinance && !amount) || (isBinance && !txid)} 
-          className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-[0.98] group transition-all"
+          className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all group"
         >
           {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
             <div className="flex items-center gap-3">
@@ -296,12 +296,12 @@ export function ExecutionStep({
       <div className="flex items-center justify-center gap-4 opacity-[0.15] select-none pt-2">
          <div className="flex items-center gap-1.5">
             <ShieldCheck size={10} className="text-[#002d4d]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d]">اتصال مشفر</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">اتصال مشفر</span>
          </div>
          <div className="h-1 w-1 rounded-full bg-gray-300" />
          <div className="flex items-center gap-1.5">
             <Sparkles size={10} className="text-[#f9a885]" />
-            <span className="text-[7px] font-black uppercase text-[#002d4d]">نظام ناميكس المعتمد</span>
+            <span className="text-[7px] font-black uppercase text-[#002d4d] tracking-normal">نظام ناميكس المعتمد</span>
          </div>
       </div>
     </motion.div>
