@@ -166,7 +166,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const res = await getOrCreateUserWallet(dbUser.id, asset.id);
         if (res.success) {
           setWalletAddress(res.address);
-          setInstructions(`هذا العنوان هو هويتك الدائمة لعملة ${asset.coin}. يرجى الإرسال عبر شبكة ${asset.network} حصراً. سيقوم النظام بإضافة الرصيد آلياً فور رصد العملية.`);
+          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${asset.network} فقط. تأكد من اختيار الشبكة الصحيحة؛ إرسال الأموال عبر شبكة غير مدعومة قد يؤدي إلى فقدان الأصول نهائياً.`);
           setStep("execution");
         } else { setError(res.error || "تعذر التوليد."); }
       } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
@@ -188,7 +188,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال الأموال لعنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. بعد الإرسال، يجب إدخال معرف العملية (TXID) فقط للتحقق الآلي وإضافة الرصيد.`);
+        setInstructions(`يرجى إرسال المبلغ إلى العنوان الموضح أعلاه عبر شبكة ${network.name}. انتبه: إرسال الأموال عبر شبكة غير مطابقة قد يؤدي إلى فقدانها بشكل نهائي. يرجى تزويدنا بمعرف العملية (TXID) بعد الإرسال.`);
         setStep("execution");
       } else { setError(res.error); }
     } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
@@ -226,7 +226,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     <Shell>
       <div className="h-screen flex flex-col items-center justify-center gap-6 bg-white font-body">
         <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-        <p className="text-[10px] font-black text-gray-300 uppercase">Initializing Secure Node...</p>
+        <p className="text-[10px] font-black text-gray-300 uppercase">Initializing Node...</p>
       </div>
     </Shell>
   );
