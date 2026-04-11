@@ -94,7 +94,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* هيدر القمة الصافي */}
+      {/* هيدر القمة الصافي - نقاء مؤسساتي بدون أطر */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -109,15 +109,16 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* الباركود المطور */}
+      {/* الباركود المطور - عرض مباشر فوق الخلفية */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
                {qrCodeUrl ? (
                  <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
                     <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-3xl" />
+                    {/* أيقونة مركزية مدمجة بنقاء */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <div className="p-0.5 bg-white">
+                       <div className="bg-white p-0.5">
                           <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                        </div>
                     </div>
@@ -128,6 +129,7 @@ export function ExecutionStep({
                  </div>
                )}
             </div>
+            {/* توهج خلفي ناعم */}
             <motion.div 
               animate={{ opacity: [0.02, 0.05, 0.02] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -136,7 +138,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* العنوان الرقمي */}
+      {/* العنوان الرقمي والتحكم */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
@@ -158,7 +160,7 @@ export function ExecutionStep({
             </AnimatePresence>
          </div>
 
-         {/* زر المشاركة المعزول */}
+         {/* بوابة المشاركة النخبوية */}
          <Button 
            onClick={() => setIsShareDrawerOpen(true)}
            disabled={!walletAddress}
@@ -179,7 +181,7 @@ export function ExecutionStep({
              <Info size={14} />
              <h4 className="text-[10px] font-black uppercase tracking-normal">تعليمات الشحن</h4>
            </div>
-           <p className="text-[11px] font-bold leading-[2.2] text-blue-800/70 tracking-normal">
+           <p className="text-[11px] font-bold leading-relaxed text-blue-800/70 tracking-normal">
              يرجى إرسال الرصيد الموضح أعلاه عبر الشبكة المعتمدة. تأكد من تطابق البيانات لتجنب فقدان الأصول.
            </p>
          </div>
@@ -208,7 +210,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {(selectedAsset && pasteStatus[selectedAsset.coin]) && (
+                 {pasteStatus['txid'] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>
@@ -256,6 +258,7 @@ export function ExecutionStep({
          )}
       </section>
 
+      {/* مفاعل المشاركة المنسدل */}
       <DepositShareDrawer 
         open={isShareDrawerOpen} 
         onOpenChange={setIsShareDrawerOpen} 
