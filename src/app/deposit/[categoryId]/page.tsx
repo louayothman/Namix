@@ -8,17 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useFirestore, useMemoFirebase, useDoc, useCollection } from "@/firebase";
-import { doc, onSnapshot, collection, addDoc, query, where } from "firebase/firestore";
+import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
+import { doc, onSnapshot, collection } from "firebase/firestore";
 import { 
   Copy, 
   Check, 
   ChevronRight, 
+  ChevronLeft,
   Loader2, 
   CheckCircle2, 
   Zap, 
   ShieldCheck, 
-  ArrowUpCircle, 
   Info, 
   Cpu, 
   Wallet, 
@@ -225,7 +225,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                       activePortals.map((p: any) => (
                         <button key={p.id} onClick={() => handlePortalSelect(p)} className="p-6 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center justify-between group active:scale-[0.99]">
                           <div className="flex items-center gap-5">
-                             <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all"><CryptoIcon name={p.icon} size={28} /></div>
+                             <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500"><CryptoIcon name={p.icon} size={28} /></div>
                              <p className="font-black text-base text-[#002d4d]">{p.name}</p>
                           </div>
                           <ChevronLeft className="h-6 w-6 text-gray-200 group-hover:text-[#002d4d] transition-all" />
