@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -14,7 +15,8 @@ import {
   ShieldCheck, 
   AlertCircle, 
   ClipboardPaste,
-  Activity
+  ChevronLeft,
+  Home
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CryptoIcon } from "@/lib/crypto-icons";
@@ -91,6 +93,7 @@ export function ExecutionStep({
       className="w-full space-y-6 font-body text-right" 
       dir="rtl"
     >
+      {/* هيدر معلومات العملة المطور */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-4">
           <div className="shrink-0 flex items-center justify-center">
@@ -106,14 +109,16 @@ export function ExecutionStep({
         )}
       </div>
 
+      {/* صندوق التعليمات المباشر */}
       <div className="p-5 bg-blue-50/40 rounded-[28px] border border-blue-100/50 space-y-1">
         <div className="flex items-center gap-2 text-blue-600 mb-1">
           <Info size={14} />
-          <h4 className="text-[10px] font-black uppercase">تعليمات الإيداع المعتمدة</h4>
+          <h4 className="text-[10px] font-black uppercase">توجيهات الإيداع المعتمدة</h4>
         </div>
         <p className="text-[11px] font-bold leading-loose text-blue-800/70">{instructions}</p>
       </div>
 
+      {/* حقل العنوان وتوليد البيانات */}
       <div className="p-6 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
         <div className="space-y-2">
           <Label className="text-[9px] font-black text-gray-400 uppercase pr-3">عنوان استلام الرصيد</Label>
@@ -138,6 +143,7 @@ export function ExecutionStep({
           </div>
         </div>
 
+        {/* حقول إضافية فقط للفئات غير الآلية بالكامل */}
         {!isNowPayments && (
           <div className="space-y-6 pt-2 animate-in fade-in duration-500">
             {isBinance ? (
@@ -186,10 +192,23 @@ export function ExecutionStep({
         )}
       </div>
 
+      {/* زر العودة للرئيسية - خاص بفئة الإيداع الآلي */}
       {isNowPayments && (
-        <div className="p-6 bg-white border-2 border-dashed border-gray-100 rounded-[40px] text-center space-y-3">
-           <Activity className="h-6 w-6 text-gray-200 mx-auto animate-pulse" />
-           <p className="text-[10px] font-bold text-gray-400 leading-relaxed">بمجرد إتمام الإرسال، سيتلقى نظامنا إشعاراً فورياً. سيظهر لك ملخص الإيداع والمكافأة في نافذة منبثقة أينما كنت داخل المنصة.</p>
+        <div className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <button 
+            onClick={() => window.location.href = '/home'}
+            className="w-full h-20 rounded-[32px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-2xl relative overflow-hidden group transition-all active:scale-[0.98]"
+          >
+            {/* أيقونة خلفية ضخمة وحيوية */}
+            <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 opacity-[0.05] group-hover:opacity-[0.12] group-hover:rotate-12 group-hover:scale-110 transition-all duration-1000 pointer-events-none text-[#f9a885]">
+               <ShieldCheck size={140} strokeWidth={1.5} />
+            </div>
+            
+            <div className="relative z-10 flex items-center justify-center gap-4">
+               <span>العودة للرئيسية</span>
+               <ChevronLeft className="h-6 w-6 text-[#f9a885] group-hover:-translate-x-2 transition-transform" />
+            </div>
+          </button>
         </div>
       )}
 
@@ -200,6 +219,7 @@ export function ExecutionStep({
         </div>
       )}
 
+      {/* زر المتابعة - فقط للفئات التي تتطلب تدقيقاً يدوياً أو TXID */}
       {!isNowPayments && (
         <Button 
           onClick={onSubmit} 
