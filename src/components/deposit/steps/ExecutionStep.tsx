@@ -97,7 +97,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-10 font-body text-right select-none" dir="rtl">
       
-      {/* 1. القمة: الهوية والشبكة (بدون أطر أو ظلال - نقاء تام) */}
+      {/* 1. القمة: الهوية والشبكة (نقاء تام بدون حواف أو ظلال) */}
       <section className="flex flex-col items-center gap-4 animate-in fade-in duration-700">
          <div className="flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={56} />
@@ -142,7 +142,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 3. العنوان وزر المشاركة */}
+      {/* 3. العنوان وزر المشاركة الموحد */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
@@ -177,7 +177,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
-      {/* 4. التعليمات (تشير للأعلى) */}
+      {/* 4. التعليمات والتحذيرات الصريحة */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2 animate-in fade-in duration-1000">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
@@ -213,7 +213,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {selectedAsset?.coin && pasteStatus[selectedAsset.coin] && (
+                 {selectedAsset?.coin && pasteStatus && pasteStatus[selectedAsset.coin] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>

@@ -52,14 +52,14 @@ export function DepositShareDrawer({
     if (!shareCardRef.current || generating) return;
     setGenerating(true);
     try {
-      // ننتظر قليلاً لضمان رندر الباركود
+      // ننتظر قليلاً لضمان رندر الباركود في المتصفح
       await new Promise(r => setTimeout(r, 800));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 2,
-        // معالجة خطأ Cross-origin stylesheet عبر منع المكتبة من محاولة جلب الخطوط الخارجية المسببة للخطأ
+        // منع محاولة جلب الخطوط الخارجية التي تسبب خطأ CORS
         fontEmbedCSS: '',
         style: {
           fontFamily: 'sans-serif',
@@ -116,7 +116,7 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* الصك المالي المخفي للتصدير - تصميم نخبوي */}
+      {/* الصك المالي المخفي للتصدير - تصميم نخبوي صافي */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
@@ -198,23 +198,24 @@ export function DepositShareDrawer({
                   <div className="absolute inset-[-20px] bg-blue-500/5 rounded-full blur-[60px] -z-10" />
                </div>
 
-               <div className="w-full max-w-[320px] grid gap-4 pb-10">
+               {/* أزرار الحفظ والمشاركة - تنسيق عرضي تكتيكي */}
+               <div className="w-full max-w-[340px] grid grid-cols-2 gap-4 pb-10">
                   <Button 
                     onClick={handleDownload} 
                     disabled={!imgUrl || saving}
-                    className="h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    className="h-16 rounded-[28px] bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
                   >
-                    {saving ? <Loader2 className="animate-spin" /> : <Download size={20} className="text-[#f9a885]" />}
-                    <span>حفظ في المعرض</span>
+                    {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Download size={18} className="text-[#f9a885]" />}
+                    <span>حفظ</span>
                   </Button>
                   
                   <Button 
                     onClick={handleNativeShare} 
                     disabled={!imgUrl || sharing}
-                    className="h-16 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-black text-base active:scale-95 transition-all flex items-center justify-center gap-3"
+                    className="h-16 rounded-[28px] bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
                   >
-                    {sharing ? <Loader2 className="animate-spin" /> : <Share2 size={20} className="text-blue-500" />}
-                    <span>مشاركة عبر التطبيقات</span>
+                    {sharing ? <Loader2 className="animate-spin h-4 w-4" /> : <Share2 size={18} className="text-blue-500" />}
+                    <span>مشاركة</span>
                   </Button>
                </div>
             </div>
