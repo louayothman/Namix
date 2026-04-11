@@ -51,19 +51,19 @@ export function DepositShareDrawer({
     setGenerating(true);
     setImgUrl(null);
     try {
-      // انتظار تكتيكي لضمان تحميل الباركود والخطوط المحلية
+      // إيقاع انتظار تكتيكي لضمان تحميل الباركود والخطوط المحلية تماماً
       await new Promise(r => setTimeout(r, 1800));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 3,
-        fontEmbedCSS: '', // منع CORS
+        fontEmbedCSS: '', // تجنب تعليق CORS
         skipAutoScale: true
       });
       setImgUrl(dataUrl);
     } catch (err) {
-      console.error("Capture Protocol Fail:", err);
+      console.error("Capture Protocol Error:", err);
     } finally {
       setGenerating(false);
     }
@@ -103,7 +103,7 @@ export function DepositShareDrawer({
         handleDownload();
       }
     } catch (err: any) {
-      if (err.name !== 'AbortError') console.error("Share error:", err);
+      if (err.name !== 'AbortError') console.error("Share fail:", err);
     } finally {
       setSharing(false);
     }
@@ -111,26 +111,29 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* الصك المالي النخبوي - تصميم مجهري نقي */}
+      {/* صك الإيداع الرقمي النخبوي - مخفي ومصمم للتصدير الصافي */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
           className="w-[450px] bg-white p-12 flex flex-col items-center gap-12"
           style={{ fontFamily: "'Tajawal', 'Cairo', sans-serif" }}
         >
+          {/* حقن الخطوط المحلية حصرياً لهذا العنصر لضمان عملها في الصورة */}
           <style dangerouslySetInnerHTML={{ __html: `
             @font-face {
               font-family: 'Tajawal';
               src: url('/fonts/Tajawal.ttf') format('truetype');
+              font-weight: 400;
             }
             @font-face {
               font-family: 'Cairo';
               src: url('/fonts/cairo.ttf') format('truetype');
+              font-weight: 400;
             }
-            * { letter-spacing: normal !important; }
+            * { font-weight: 400 !important; letter-spacing: normal !important; }
           `}} />
 
-          {/* الهوية العلوية اليمنى */}
+          {/* هيدر القمة: الزاوية العليا اليمنى */}
           <div className="w-full flex flex-row-reverse items-center justify-start gap-4" dir="rtl">
              <div className="shrink-0">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={42} />
@@ -145,7 +148,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الباركود المربع الحاد في المركز */}
+          {/* الباركود المربع الصافي - بدون حاويات */}
           <div className="flex items-center justify-center w-full py-2">
              {qrCodeUrl && (
                <div className="relative h-60 w-60">
@@ -165,7 +168,7 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* العنوان الرقمي النقي - سطر واحد */}
+          {/* العنوان الرقمي الموحد - سطر واحد بخط Cairo */}
           <div className="w-full text-center px-4">
              <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.4em] mb-3" style={{ fontFamily: 'Cairo' }}>DEPOSIT ADDRESS</p>
              <p className="text-[10px] font-black text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontFamily: 'Cairo' }}>
@@ -173,7 +176,7 @@ export function DepositShareDrawer({
              </p>
           </div>
 
-          {/* التوقيع السيادي الفخم */}
+          {/* التوقيع السيادي الفخم: خط ممتد وتباعد حروف واسع */}
           <div className="w-full space-y-8 pt-6">
              <div className="h-[0.5px] w-full bg-gray-100" />
              <div className="flex items-center justify-center gap-6" dir="ltr">
@@ -230,6 +233,7 @@ export function DepositShareDrawer({
                  )}
                </AnimatePresence>
 
+               {/* أزرار التحكم العرضية */}
                <div className="w-full max-w-[320px] grid grid-cols-2 gap-3 pb-4">
                   <Button 
                     onClick={handleDownload} 

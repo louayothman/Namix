@@ -6,7 +6,7 @@
   @font-face {
     font-family: 'Tajawal';
     src: url('/fonts/Tajawal.ttf') format('truetype');
-    font-weight: normal;
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
   }
@@ -14,7 +14,7 @@
   @font-face {
     font-family: 'Cairo';
     src: url('/fonts/cairo.ttf') format('truetype');
-    font-weight: normal;
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
   }
@@ -51,17 +51,20 @@
     @apply bg-background text-foreground;
     font-family: 'Tajawal', 'Cairo', sans-serif !important;
     font-size: 13px;
+    font-weight: 400;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* فرض الخطوط بناءً على اللغة والمحتوى الرقمي */
+/* فرض الخطوط بناءً على اللغة والمحتوى الرقمي لضمان الدقة */
 :lang(en), .font-mono, .tabular-nums, [dir="ltr"] {
   font-family: 'Cairo', sans-serif !important;
+  font-weight: 400;
 }
 
 .font-body, .font-headline {
   font-family: 'Tajawal', 'Cairo', sans-serif !important;
+  font-weight: 400;
 }
 
 @keyframes pulse-ring {
