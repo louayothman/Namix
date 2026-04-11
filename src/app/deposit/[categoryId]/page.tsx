@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -155,7 +156,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const res = await getOrCreateUserWallet(dbUser.id, asset.id);
         if (res.success) {
           setWalletAddress(res.address);
-          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${asset.network} فقط. تأكد من اختيار الشبكة الصحيحة؛ إرسال الأموال عبر شبكة غير مدعومة قد يؤدي إلى فقدانها نهائياً.`);
+          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أدناه عبر شبكة ${asset.network} فقط. تأكد من اختيار الشبكة الصحيحة؛ إرسال الأموال عبر شبكة غير مدعومة يؤدي إلى فقدانها نهائياً.`);
           setStep("execution");
         } else setError(res.error);
       } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
@@ -176,7 +177,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال المبلغ إلى عنوان الاستلام الموضح أعلاه عبر شبكة ${network.name}. انتبه: إرسال الأموال عبر شبكة غير مطابقة قد يؤدي إلى فقدانها بشكل نهائي. يرجى تزويدنا بمعرف العملية (TXID) بعد الإرسال.`);
+        setInstructions(`يرجى إرسال المبلغ إلى عنوان الاستلام الموضح أدناه عبر شبكة ${network.name}. انتبه: إرسال الأموال عبر شبكة غير مطابقة يؤدي إلى فقدانها بشكل نهائي. يرجى تزويدنا بمعرف العملية (TXID) بعد الإرسال.`);
         setStep("execution");
       } else setError(res.error);
     } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
@@ -258,7 +259,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                 <>
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                         <button className="h-9 px-3 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] outline-none">
+                         <button className="h-9 px-3 rounded-xl flex items-center gap-2 text-gray-400 hover:text-[#002d4d] outline-none bg-transparent">
                             <ArrowUpDown size={14} />
                             <span className="text-[9px] font-black hidden sm:inline-block">فرز</span>
                          </button>
@@ -268,7 +269,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                          <DropdownMenuItem onClick={() => setSortMode('name')} className="font-black text-[10px] py-3 px-4 rounded-xl cursor-pointer justify-between">الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-500" />}</DropdownMenuItem>
                       </DropdownMenuContent>
                    </DropdownMenu>
-                   <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16}/> : <Search size={16}/>}</button>
+                   <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16}/> : <Search size={16}/>}</button>
                 </>
               )}
               <button onClick={() => {
