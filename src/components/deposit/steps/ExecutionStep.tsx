@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -11,14 +10,12 @@ import {
   Loader2, 
   Check, 
   Copy, 
-  Coins, 
   Hash, 
   ShieldCheck, 
   AlertCircle, 
   ClipboardPaste,
   Share2,
   Sparkles,
-  Download,
   ChevronLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,16 +72,15 @@ export function ExecutionStep({
       });
   };
 
-  const handlePaste = async () => {
+  const handlePaste = async (fieldName: string) => {
     try {
       const text = await navigator.clipboard.readText();
       if (text) {
         setTxid(text);
-        const coin = selectedAsset?.coin || 'default';
-        setPasteStatus(prev => ({ ...prev, [coin]: true }));
+        setPasteStatus(prev => ({ ...prev, [fieldName]: true }));
         setTimeout(() => setPasteStatus(prev => {
           const next = { ...prev };
-          delete next[coin];
+          delete next[fieldName];
           return next;
         }), 2000);
       }
@@ -98,7 +94,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 font-body text-right select-none" dir="rtl">
       
-      {/* 1. القمة: الهوية والشبكة (نقاء تام بدون حواف أو ظلال) */}
+      {/* 1. الهوية والشبكة - عرض صافٍ ومباشر */}
       <section className="flex items-center gap-4 animate-in fade-in duration-700 px-2">
          <div className="shrink-0">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -113,7 +109,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 2. الباركود المطور (أيقونة مركزية) */}
+      {/* 2. الباركود المطور (QR Code) مع الأيقونة المركزية */}
       <section className="flex justify-center relative py-2">
          <div className="relative group">
             <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner overflow-hidden transition-all duration-1000">
@@ -144,7 +140,7 @@ export function ExecutionStep({
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-               <p className="flex-1 font-mono text-[9px] font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
+               <p className="flex-1 font-mono text-[10px] font-black text-[#002d4d] break-all text-center leading-relaxed opacity-80" dir="ltr">
                  {loading && !walletAddress ? "جاري الاستجابة..." : walletAddress}
                </p>
                <button 
@@ -203,7 +199,7 @@ export function ExecutionStep({
                  />
                  <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
                  <button 
-                   onClick={handlePaste}
+                   onClick={() => handlePaste('txid')}
                    type="button"
                    className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#f9a885] hover:bg-[#002d4d] hover:text-white transition-all active:scale-90"
                  >
@@ -211,7 +207,7 @@ export function ExecutionStep({
                  </button>
                </div>
                <AnimatePresence>
-                 {selectedAsset?.coin && pasteStatus && pasteStatus[selectedAsset.coin] && (
+                 {pasteStatus['txid'] && (
                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -bottom-5 right-6 text-[9px] font-black text-emerald-500 tracking-normal">تم اللصق بنجاح</motion.p>
                  )}
                </AnimatePresence>
