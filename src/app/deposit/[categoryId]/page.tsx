@@ -29,7 +29,8 @@ import {
   Search,
   ArrowUpDown,
   X,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react";
 import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig } from "@/app/actions/binance-actions";
@@ -82,7 +83,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<any>(null);
-  const [selectedPortalId, setSelectedPortalId] = useState("");
   
   const [walletAddress, setWalletAddress] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -177,7 +177,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     } else if (category?.type === 'binance') {
       setStep("select_network");
     } else if (category?.type === 'manual') {
-      setSelectedPortalId(asset.id);
       setWalletAddress(asset.walletAddress);
       setInstructions(asset.instructions);
       setStep("execution");
@@ -355,10 +354,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                         <button 
                           key={asset.id || asset.coin} 
                           onClick={() => handleAssetSelect(asset)} 
-                          className="p-6 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-2xl transition-all duration-500 flex flex-col items-center gap-4 text-center group active:scale-[0.98] relative overflow-hidden"
+                          className="p-6 rounded-[36px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex flex-col items-center gap-4 text-center group active:scale-[0.98] relative overflow-hidden"
                         >
-                          <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-1000">
-                             <CryptoIcon name={iconName} size={80} />
+                          <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-1000 pointer-events-none">
+                             <CryptoIcon name={iconName} size={120} />
                           </div>
                           
                           <div className="h-16 w-16 rounded-[24px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500 relative z-10">
@@ -479,7 +478,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                <Button 
                  onClick={handleSubmit} 
                  disabled={loading || (category?.type !== 'binance' && !amount) || (category?.type === 'binance' && !txid)} 
-                 className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-95 group transition-all"
+                 className="w-full h-20 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xl shadow-2xl active:scale-[0.98] group transition-all"
                >
                   {loading ? <Loader2 className="animate-spin h-8 w-8" /> : (
                     <div className="flex items-center gap-4">
