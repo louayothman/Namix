@@ -53,7 +53,7 @@ export function DepositShareDrawer({
     setGenerating(true);
     try {
       // ننتظر قليلاً لضمان رندر الباركود في المتصفح
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 1000));
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
@@ -138,7 +138,7 @@ export function DepositShareDrawer({
                <div className="relative h-56 w-56 flex items-center justify-center">
                   <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-[32px]" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-50">
+                     <div className="bg-white p-1.5 rounded-xl shadow-lg border border-gray-100">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                      </div>
                   </div>
@@ -165,7 +165,7 @@ export function DepositShareDrawer({
 
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
-          <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1200]" />
+          <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-md z-[1200]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[85vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1201] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
             <DrawerHeader className="px-8 pt-6 border-b border-gray-50 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-3 text-right">
