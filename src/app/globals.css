@@ -1,9 +1,16 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  @font-face {
+    font-family: 'Tajawal';
+    src: url('/fonts/Tajawal.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 220 40% 10%;
@@ -34,13 +41,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Tajawal', sans-serif !important;
     font-size: 13px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Typography Normalization - Anti-Tracking for Arabic */
 .font-body, .font-headline {
+  font-family: 'Tajawal', sans-serif !important;
   letter-spacing: normal !important;
 }
 
@@ -75,7 +83,6 @@
 [dir="rtl"] .ml-auto { margin-right: auto; margin-left: 0; }
 [dir="rtl"] .mr-auto { margin-left: auto; margin-right: 0; }
 
-/* Hide scrollbars for ultra-clean UI */
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
