@@ -7,8 +7,8 @@ import axios from 'axios';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview NOWPayments Per-Transaction Protocol v10.0
- * تم استبدال العناوين الدائمة بنظام طلبات الدفع الفريدة (Invoices) لضمان أعلى مستويات الأمان والدقة.
+ * @fileOverview NOWPayments Unified Protocol v11.0
+ * تم تحديث المنطق ليدعم الإيداع المفتوح (Dynamic Amount) عبر نظام المزامنة النسبية.
  */
 
 async function getNPConfig() {
@@ -20,8 +20,9 @@ async function getNPConfig() {
 
 /**
  * إنشاء طلب دفع جديد فريد لهذه المعاملة
+ * يستخدم مبلغاً افتراضياً للتوليد، والـ IPN سيعتمد المبلغ الحقيقي المدفوع بالدولار.
  */
-export async function createNowPayment(userId: string, currencyId: string, amountUSD: number) {
+export async function createNowPayment(userId: string, currencyId: string, amountUSD: number = 10) {
   try {
     const { firestore } = initializeFirebase();
     const config = await getNPConfig();
@@ -31,7 +32,7 @@ export async function createNowPayment(userId: string, currencyId: string, amoun
     if (!userSnap.exists()) throw new Error("User not found");
     const userData = userSnap.data();
 
-    // اكتشاف المضيف الحقيقي للـ Webhook
+    // اكتشاف المضيف الحقيقي للـ Webhook لضمان عدم وجود undefined
     const headersList = await headers();
     const host = headersList.get('host');
     const protocol = host?.includes('localhost') ? 'http' : 'https';
@@ -61,6 +62,7 @@ export async function createNowPayment(userId: string, currencyId: string, amoun
       userId,
       userName: userData.displayName || "مستثمر",
       amount: amountUSD,
+      requestedAmount: amountUSD,
       paymentId: paymentData.payment_id.toString(),
       transactionId: "WAITING_FOR_PAYMENT",
       payAddress: paymentData.pay_address,

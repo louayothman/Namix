@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -6,13 +7,12 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot, collection } from "firebase/firestore";
 import { Icon } from "@iconify/react";
-import { ChevronLeft, Loader2, Search, ArrowUpDown, X, Check, Star } from "lucide-react";
+import { ChevronLeft, Loader2, Search, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createNowPayment } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { AnimatePresence, motion } from "framer-motion";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Categorized Modular Steps
 import { BinanceCurrencyStep } from "@/components/deposit/categories/binance/BinanceCurrencyStep";
@@ -20,6 +20,7 @@ import { BinanceNetworkStep } from "@/components/deposit/categories/binance/Bina
 import { BinanceExecutionStep } from "@/components/deposit/categories/binance/BinanceExecutionStep";
 
 import { NowPaymentsCurrencyStep } from "@/components/deposit/categories/nowpayments/NowPaymentsCurrencyStep";
+import { NowPaymentsNetworkStep } from "@/components/deposit/categories/nowpayments/NowPaymentsNetworkStep";
 import { NowPaymentsExecutionStep } from "@/components/deposit/categories/nowpayments/NowPaymentsExecutionStep";
 
 import { ManualCurrencyStep } from "@/components/deposit/categories/manual/ManualCurrencyStep";
@@ -53,7 +54,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [sortMode, setSortMode] = useState<'popular' | 'name'>('popular');
 
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<any>(null);
@@ -87,21 +87,26 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleAssetSelect = async (asset: any) => {
     setSelectedAsset(asset);
-    if (category?.type === 'binance') setStep("select_network");
+    if (category?.type === 'binance' || category?.type === 'nowpayments') setStep("select_network");
     else setStep("execution");
   };
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
-    setLoading(true);
-    const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-    if (addrRes.success) {
-      setWalletAddress(addrRes.address);
-      setStep("execution");
+    if (category?.type === 'binance') {
+      setLoading(true);
+      const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
+      if (addrRes.success) {
+        setWalletAddress(addrRes.address);
+        setStep("execution");
+      } else {
+        setError(addrRes.error);
+      }
+      setLoading(false);
     } else {
-      setError(addrRes.error);
+      // NowPayments case
+      setStep("execution");
     }
-    setLoading(false);
   };
 
   const handleFinalSubmit = async () => {
@@ -110,7 +115,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     setError(null);
     
     if (category?.type === 'nowpayments') {
-      const res = await createNowPayment(dbUser.id, selectedAsset.id, Number(amount));
+      // استخدام مبلغ افتراضي (10 دولار) لتوليد العنوان، وسيقوم الـ IPN بمزامنة المبلغ الحقيقي
+      const res = await createNowPayment(dbUser.id, selectedNetwork.id, 10);
       if (res.success) {
         setWalletAddress(res.address);
       } else {
@@ -146,6 +152,13 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     } catch (e) { setError("فشل إرسال البيانات."); } finally { setLoading(false); }
   };
 
+  const handleBack = () => {
+    if (step === "result") { router.push("/home"); return; }
+    if (step === "execution") { setStep("select_network"); return; }
+    if (step === "select_network") { setStep("select_asset"); return; }
+    router.back();
+  };
+
   if (loadingCat) return <Shell><div className="h-screen flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-[#002d4d]" /></div></Shell>;
 
   return (
@@ -165,7 +178,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               {step === "select_asset" && (
                 <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16} /> : <Search size={16} />}</button>
               )}
-              <button onClick={() => { if (step === "result") router.push("/home"); else if (step === "execution") setStep(category?.type === 'binance' ? "select_network" : "select_asset"); else if (step === "select_network") setStep("select_asset"); else router.back(); }} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d]"><ChevronLeft size={18} /></button>
+              <button onClick={handleBack} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d]"><ChevronLeft size={18} /></button>
            </div>
         </header>
 
@@ -178,13 +191,14 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               </motion.div>
             ) : step === "select_asset" ? (
               category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
-              category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
+              category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
               <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />
             ) : step === "select_network" ? (
+              category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} /> :
               <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />
             ) : step === "execution" ? (
               category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
-              category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} walletAddress={walletAddress} loading={loading} amount={amount} setAmount={setAmount} onSubmit={handleFinalSubmit} error={error} /> :
+              category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} onSubmit={handleFinalSubmit} error={error} /> :
               <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />
             ) : (
               <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
