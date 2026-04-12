@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -91,7 +90,7 @@ export function ExecutionStep({
          </Badge>
       </section>
 
-      {/* 2. QR Code - Minimalist Integration */}
+      {/* 2. QR Code - Pure Minimalist Integration */}
       <section className="flex justify-center py-4 relative group">
          {walletAddress ? (
            <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
@@ -147,12 +146,12 @@ export function ExecutionStep({
            <div className="space-y-5 text-[11px] font-normal leading-loose text-blue-800/70">
               {isNowPayments ? (
                 <div className="space-y-2">
-                  <p>أودع الأموال إلى العنوان **أعلاه** عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
-                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد إتمام العملية.</p>
+                  <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
+                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد اتمام العملية.</p>
                 </div>
               ) : isBinance ? (
                 <div className="space-y-2">
-                  <p>أودع الأموال إلى العنوان **أعلاه** عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
+                  <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
                   <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID.</p>
                 </div>
               ) : (
@@ -161,11 +160,11 @@ export function ExecutionStep({
 
               <div className="space-y-2 pt-4 border-t border-blue-100/50">
                  <p className="font-black text-red-500/70 flex items-center gap-1.5">
-                    <AlertCircle size={10} /> تحذير استراتيجي:
+                    <AlertCircle size={10} /> تحذير:
                  </p>
                  <ul className="list-disc pr-4 space-y-2 text-[10px]">
                     <li>تأكد من اختيار شبكة <span className="font-black">{networkName}</span> حصراً عند الإرسال.</li>
-                    <li>تحقق من صحة العنوان يدوياً قبل تنفيذ العملية.</li>
+                    <li>تحقق من صحة العنوان قبل تنفيذ العملية.</li>
                     <li>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</li>
                  </ul>
               </div>
@@ -176,10 +175,9 @@ export function ExecutionStep({
            <div className="space-y-3 pt-2">
              <div className="flex items-center justify-between px-4">
                 <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">إثبات المزامنة (TXID)</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-full">Binance Secure Sync</Badge>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-full">Binance Sync</Badge>
              </div>
              
-             {/* Fixed Input Container - Single Layer Focus */}
              <div className="relative h-16 md:h-20 rounded-[28px] bg-gray-50/50 border border-gray-100 transition-all group overflow-hidden">
                 <input 
                   value={txid} 
@@ -200,7 +198,15 @@ export function ExecutionStep({
          )}
 
          <div className="pt-2 space-y-4">
-            {!isNowPayments ? (
+            {isNowPayments ? (
+              <Button 
+                onClick={() => window.location.href = '/home'}
+                className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group"
+              >
+                 <span>العودة للرئيسية</span>
+                 <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />
+              </Button>
+            ) : (
               <Button 
                 onClick={onSubmit} 
                 disabled={loading || (isBinance && !txid)} 
@@ -212,14 +218,6 @@ export function ExecutionStep({
                     <ShieldCheck size={20} className="text-[#f9a885]" />
                   </>
                 )}
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => window.location.href = '/home'}
-                className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group"
-              >
-                 <span>العودة للرئيسية</span>
-                 <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />
               </Button>
             )}
             

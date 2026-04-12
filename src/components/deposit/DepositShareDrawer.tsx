@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -24,10 +23,17 @@ import * as htmlToImage from 'html-to-image';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QRCodeSVG } from "qrcode.react";
 
+interface DepositShareDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedAsset: any;
+  selectedNetwork: any;
+  walletAddress: string;
+}
+
 /**
- * @fileOverview مفاعل تصدير المعاملات v20.0 - Sovereign Pure Edition
- * تم تصحيح ترتيب حروف الختم (N A M I X) وعكس جهة الشعار ليكون يساراً.
- * التحميل الآن صامت وفخم يعتمد على المفاعل الأيقوني فقط.
+ * @fileOverview مفاعل تصدير المعاملات v22.0 - Sovereign Pure Edition
+ * تم تجريد الباركود من كافة الحاويات لدمجه مباشرة في الصورة، وضبط الختم بترتيب الكلمات المنفصلة LTR.
  */
 export function DepositShareDrawer({
   open,
@@ -44,10 +50,10 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // تأخير تقني لضمان رندر الباركود المحلي بالكامل قبل الالتقاط
+      // تأخير تقني لضمان استقرار الباركود المحلي بالكامل قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
-      }, 1800);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [open]);
@@ -125,13 +131,13 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Pure QR - No Containers */}
-          <div className="py-10 flex items-center justify-center">
+          {/* Pure QR - Directly on Canvas */}
+          <div className="py-10">
              {walletAddress && (
                <div className="relative">
                   <QRCodeSVG 
                     value={walletAddress}
-                    size={300}
+                    size={280}
                     bgColor={"#ffffff"}
                     fgColor={"#002d4d"}
                     level={"H"}
@@ -161,10 +167,9 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Corrected Sovereign Signature - LTR flow for N A M I X */}
+          {/* Sovereign Signature - Word-separated LTR */}
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="ltr">
              <div className="flex items-center gap-5">
-                {/* Logo on the LEFT */}
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
@@ -172,7 +177,6 @@ export function DepositShareDrawer({
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                {/* Letters in correct order */}
                 <div className="flex items-center gap-4 text-[#002d4d] font-normal text-[10px] tracking-[0.1em]">
                    <span>N</span>
                    <span>A</span>
@@ -206,10 +210,10 @@ export function DepositShareDrawer({
                          <motion.div 
                            animate={{ rotate: 360 }}
                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                           className="h-24 w-24 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full" 
+                           className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full" 
                          />
                          <div className="absolute inset-0 flex items-center justify-center">
-                            <ShieldCheck className="h-8 w-8 text-[#002d4d] animate-pulse" />
+                            <ShieldCheck className="h-7 w-7 text-[#002d4d] animate-pulse" />
                          </div>
                       </div>
                    </motion.div>
@@ -265,12 +269,4 @@ export function DepositShareDrawer({
       </Drawer>
     </>
   );
-}
-
-interface DepositShareDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedAsset: any;
-  selectedNetwork: any;
-  walletAddress: string;
 }

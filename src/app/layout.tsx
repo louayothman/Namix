@@ -95,7 +95,6 @@ export default async function RootLayout({
         <FirebaseClientProvider>
           <SWRegistration />
           {children}
-          <GlobalDepositDialog />
           <PWAInstaller />
           <Toaster />
         </FirebaseClientProvider>
