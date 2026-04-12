@@ -31,8 +31,9 @@ interface DepositShareDrawerProps {
 }
 
 /**
- * @fileOverview مفاعل تصدير المعاملات السيادي v20.0 - Rebuilt from Scratch
- * تم إعادة بناء المكون بالكامل لضمان تحميل الموارد قبل التقاط الصورة مع ضبط هندسي دقيق للختم والبيانات.
+ * @fileOverview مفاعل تصدير المعاملات المطور v25.0 - Ultimate Reliability
+ * تم تطهير حلقة التحميل من النصوص، وإعادة هندسة الختم ليكون أصغر وفي الأسفل مع لوجو لليسار.
+ * المكون الآن لا يلتقط الصورة إلا بعد تأكيد بروتوكولي باستقرار الصورة في الـ DOM.
  */
 export function DepositShareDrawer({
   open,
@@ -50,7 +51,7 @@ export function DepositShareDrawer({
     ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(walletAddress)}&bgcolor=ffffff&color=002d4d`
     : null;
 
-  // إعادة ضبط الحالة عند فتح النافذة لضمان دورة حياة نظيفة
+  // ريسيت كامل عند الفتح لضمان دورة حياة نظيفة
   useEffect(() => {
     if (open) {
       setImgUrl(null);
@@ -59,36 +60,33 @@ export function DepositShareDrawer({
     }
   }, [open]);
 
-  // محرك توليد الصورة النهائي - يعمل فقط بعد ثبات كافة الموارد
-  const generateFinalImage = async () => {
+  // مفاعل الالتقاط السيادي - يعمل فقط بعد ثبات الموارد
+  const captureProtocol = async () => {
     if (!captureRef.current) return;
     
     try {
-      // 1. التأكد من جاهزية الخطوط في المتصفح
+      // انتظار استقرار المتصفح والخطوط
       await document.fonts.ready;
-      
-      // 2. انتظار إضافي لضمان ثبات التخطيط (Layout Stability)
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 1000));
 
-      // 3. تنفيذ عملية الالتقاط بدقة عالية
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 3, // دقة مضاعفة لضمان وضوح النصوص الصغيرة
+        pixelRatio: 3, 
       });
 
       setImgUrl(dataUrl);
     } catch (err) {
-      console.error("Capture Protocol Execution Failure:", err);
+      console.error("Capture Failure:", err);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // مراقب جاهزية الباركود: يطلق المفاعل بمجرد اكتمال تحميل الصورة
+  // مراقب الجاهزية: يطلق الالتقاط بمجرد تأكيد تحميل الباركود
   useEffect(() => {
     if (open && qrLoaded && !imgUrl && isProcessing) {
-      generateFinalImage();
+      captureProtocol();
     }
   }, [open, qrLoaded, imgUrl, isProcessing]);
 
@@ -109,8 +107,8 @@ export function DepositShareDrawer({
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'عنوان الإيداع المعتمد',
-          text: `عنوان إيداع ${selectedAsset?.coin} عبر منصة ناميكس`
+          title: 'عنوان الإيداع',
+          text: `عنوان إيداع ${selectedAsset?.coin} - ناميكس`
         });
       } else {
         handleDownload();
@@ -120,25 +118,25 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* القالب السيادي المخفي للالتقاط - Source Element */}
+      {/* القالب المخفي للالتقاط - Off-screen Source */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
-          className="w-[450px] bg-white p-12 flex flex-col items-center gap-10 min-h-[680px]"
+          className="w-[450px] bg-white p-12 flex flex-col items-center gap-10 min-h-[720px]"
           style={{ fontFamily: "'Cairo', 'Tajawal', sans-serif" }}
         >
-          {/* Header Identity */}
+          {/* Header */}
           <div className="w-full flex items-center justify-between border-b border-gray-50 pb-8" dir="rtl">
              <div className="flex items-center gap-5">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
                 <div className="text-right">
-                   <h2 className="text-base font-black text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h2>
-                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">
+                   <h2 className="text-base font-normal text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h2>
+                   <p className="text-[9px] font-normal text-gray-400 uppercase tracking-widest mt-1.5">
                      {selectedNetwork?.name || selectedAsset?.network}
                    </p>
                 </div>
              </div>
-             <div className="grid grid-cols-2 gap-1">
+             <div className="grid grid-cols-2 gap-1 opacity-20">
                 <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
                 <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
                 <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
@@ -146,10 +144,10 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Central QR Code - الحفاظ على الحواف الحادة */}
+          {/* QR Code */}
           <div className="py-4 flex items-center justify-center">
              {qrCodeUrl && (
-               <div className="p-3 bg-white rounded-[40px] border border-gray-50 shadow-sm relative">
+               <div className="p-4 bg-white rounded-[40px] border border-gray-50 shadow-sm relative">
                   <img 
                     src={qrCodeUrl} 
                     alt="QR" 
@@ -166,48 +164,48 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* Core Data Node - العنوان والشبكة */}
+          {/* Data Node */}
           <div className="w-full text-center space-y-6" dir="rtl">
              <div className="space-y-2">
-                <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.4em]">DEPOSIT ADDRESS</p>
-                <p className="text-[13px] font-black text-[#002d4d] break-all leading-loose px-4" dir="ltr">
+                <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">DEPOSIT ADDRESS</p>
+                <p className="text-[13px] font-normal text-[#002d4d] break-all leading-loose px-4" dir="ltr">
                   {walletAddress}
                 </p>
              </div>
              
              <div className="inline-flex items-center gap-3 px-6 py-2 bg-gray-50 rounded-full border border-gray-100 shadow-inner">
-                <span className="text-[11px] font-black text-[#002d4d]">
+                <span className="text-[11px] font-normal text-[#002d4d]">
                   الشبكة : {selectedAsset?.coin} - {selectedNetwork?.name || selectedAsset?.network}
                 </span>
              </div>
           </div>
 
-          {/* Bottom Sovereign Signature - الختم في أقصى الأسفل */}
-          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex items-center justify-center gap-5">
-             {/* شعار النقاط على اليسار */}
-             <div className="grid grid-cols-2 gap-0.5 scale-75 opacity-30">
+          {/* Footer Signature - Tiny, Bottom, Logo Left */}
+          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex items-center justify-center gap-5 opacity-30">
+             {/* Logo on the LEFT */}
+             <div className="grid grid-cols-2 gap-0.5 scale-75">
                 <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
              </div>
              
-             {/* اسم ناميكس بحروف منفصلة لضبط التباعد */}
-             <div className="flex items-center gap-4 opacity-25">
+             {/* Characters on the RIGHT */}
+             <div className="flex items-center gap-4">
                 {['N', 'A', 'M', 'I', 'X'].map((char, i) => (
-                  <span key={i} className="text-[10px] font-black text-[#002d4d]">{char}</span>
+                  <span key={i} className="text-[10px] font-normal text-[#002d4d]">{char}</span>
                 ))}
              </div>
           </div>
         </div>
       </div>
 
-      {/* واجهة العرض للمستثمر - UI Drawer */}
+      {/* Drawer UI */}
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
-            <VisuallyHidden.Root><DrawerTitle>معاينة معاملة الإيداع</DrawerTitle></VisuallyHidden.Root>
+            <VisuallyHidden.Root><DrawerTitle>معاملة الإيداع</DrawerTitle></VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-10 scrollbar-none">
                <AnimatePresence mode="wait">
@@ -220,7 +218,6 @@ export function DepositShareDrawer({
                      className="flex flex-col items-center gap-6"
                    >
                       <div className="relative">
-                         {/* حلقة التحميل الفخمة */}
                          <motion.div 
                            animate={{ rotate: 360 }}
                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -230,7 +227,6 @@ export function DepositShareDrawer({
                             <ShieldCheck className="h-8 w-8 text-[#002d4d] opacity-20" />
                          </div>
                       </div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">جاري تأمين المعاينة...</p>
                    </motion.div>
                  ) : imgUrl && (
                    <motion.div 
@@ -243,10 +239,10 @@ export function DepositShareDrawer({
                          <img 
                            src={imgUrl} 
                            className="w-full max-w-[200px] md:max-w-[240px] rounded-[36px]" 
-                           alt="Encrypted Transaction" 
+                           alt="Transaction" 
                          />
                       </div>
-                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-5 py-1.5 rounded-full text-[9px] font-black shadow-lg flex items-center gap-2 whitespace-nowrap">
+                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-5 py-1.5 rounded-full text-[9px] font-normal shadow-lg flex items-center gap-2 whitespace-nowrap">
                          <Check size={12} strokeWidth={3} />
                          جاهزة للمشاركة
                       </div>
@@ -258,7 +254,7 @@ export function DepositShareDrawer({
                   <Button 
                     onClick={handleDownload} 
                     disabled={isProcessing || !imgUrl}
-                    className="h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    className="h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-normal text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
                   >
                     <Download size={18} className="text-[#f9a885]" />
                     <span>حفظ</span>
@@ -267,7 +263,7 @@ export function DepositShareDrawer({
                   <Button 
                     onClick={handleShare} 
                     disabled={isProcessing || !imgUrl}
-                    className="h-14 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
+                    className="h-14 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-normal text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
                   >
                     <Share2 size={18} className="text-blue-500" />
                     <span>مشاركة</span>
@@ -277,7 +273,7 @@ export function DepositShareDrawer({
 
             <div className="p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-20 shrink-0">
                <ShieldCheck size={14} className="text-emerald-500" />
-               <p className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Secure Asset Protocol</p>
+               <p className="text-[9px] font-normal uppercase tracking-widest text-[#002d4d]">Secure Asset Protocol</p>
             </div>
           </DrawerContent>
         </DrawerPortal>

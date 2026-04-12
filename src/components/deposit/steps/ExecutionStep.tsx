@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   AlertCircle
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { DepositShareDrawer } from "../DepositShareDrawer";
@@ -37,6 +36,10 @@ interface ExecutionStepProps {
   selectedNetwork?: any;
 }
 
+/**
+ * @fileOverview مكون التنفيذ المطور v15.0 - Clean Interface Edition
+ * تم إصلاح مشكلة تداخل الحواف في حقل TXID وتبسيط لغة التصميم.
+ */
 export function ExecutionStep({
   instructions,
   walletAddress,
@@ -75,6 +78,7 @@ export function ExecutionStep({
 
   return (
     <div className="w-full space-y-8 text-right" dir="rtl">
+      {/* 1. Asset Header Identity */}
       <section className="flex items-center gap-4 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -85,6 +89,7 @@ export function ExecutionStep({
          </div>
       </section>
 
+      {/* 2. Visual QR Center */}
       <section className="flex justify-center relative py-2">
          <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner">
             {qrCodeUrl ? (
@@ -98,6 +103,7 @@ export function ExecutionStep({
          </div>
       </section>
 
+      {/* 3. Address Interaction Matrix */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
@@ -116,6 +122,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
+      {/* 4. Submission & Data Input */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
@@ -131,11 +138,26 @@ export function ExecutionStep({
                 <Label className="text-[9px] font-normal text-gray-400 uppercase">إثبات المعاملة</Label>
                 <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">تنسيق آلي</Badge>
              </div>
-             <div className="relative">
-               <div className="relative flex items-center h-[72px] bg-white rounded-[32px] border border-gray-100 shadow-xl transition-all hover:border-[#002d4d]">
-                 <Input value={txid} onChange={e => setTxid(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-normal text-xs px-14 focus-visible:ring-0 shadow-none" placeholder="ألصق معرف العملية (TXID) هنا..." />
-                 <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-200" />
-                 <button onClick={handlePaste} type="button" className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#f9a885] active:scale-90 shadow-sm"><ClipboardPaste size={18} /></button>
+             
+             {/* حقل TXID المصحح هندسياً لمنع تداخل الحواف */}
+             <div className="relative group">
+               <div className="relative flex items-center h-16 md:h-20 bg-gray-50/50 rounded-[28px] border border-gray-100 transition-all duration-300 group-within:bg-white group-within:border-[#002d4d] group-within:shadow-xl group-within:ring-4 group-within:ring-blue-500/5 overflow-hidden">
+                 <div className="absolute right-6 pointer-events-none opacity-20 group-within:opacity-100 transition-opacity">
+                    <Hash size={18} className="text-[#002d4d]" />
+                 </div>
+                 <input 
+                   value={txid} 
+                   onChange={e => setTxid(e.target.value)} 
+                   className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-16 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
+                   placeholder="ألصق معرف العملية (TXID) هنا..." 
+                 />
+                 <button 
+                   onClick={handlePaste} 
+                   type="button" 
+                   className="absolute left-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm z-10"
+                 >
+                    <ClipboardPaste size={18} />
+                 </button>
                </div>
              </div>
            </div>
