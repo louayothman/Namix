@@ -29,8 +29,8 @@ import { ManualExecutionStep } from "@/components/deposit/categories/manual/Manu
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 
 /**
- * @fileOverview مُفاعل التحميل السيادي المطور v2.0 - Sovereign Dynamic Pulse
- * تم تحديث الأيقونة لتنبض وتدور (Scale & Rotate) داخل الحلقة الطاقية لضمان تجربة بصرية حية وفخمة.
+ * @fileOverview مُفاعل التحميل السيادي المطور v2.1 - Sovereign Dynamic Pulse
+ * أيقونة ناميكس المركزية تنبض وتدور داخل الحلقة الطاقية لضمان تجربة تكنولوجية فاخرة.
  */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
@@ -125,6 +125,10 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     }
   };
 
+  /**
+   * محرك رصد التوافر اللحظي v2.0
+   * تم إلغاء مهلة الثواني والاعتماد كلياً على نجاح أو فشل الـ API.
+   */
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
     setWalletAddress("");
@@ -132,20 +136,15 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSlowNetworkId(null);
     setLoading(true);
 
-    // بروتوكول رصد عدم التوافر اللحظي (3 ثوانٍ)
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("UNAVAILABLE")), 3000)
-    );
-
     try {
       if (category?.type === 'nowpayments') {
-        const paymentPromise = createNowPayment(dbUser.id, network.id, 10);
-        const res: any = await Promise.race([paymentPromise, timeoutPromise]);
+        const res = await createNowPayment(dbUser.id, network.id, 10);
         
         if (res.success) {
           setWalletAddress(res.address);
           setStep("execution");
         } else {
+          // رصد عدم التوافر التقني من المزود
           setSlowNetworkId(network.id || network.network);
         }
       } else if (category?.type === 'binance') {
@@ -158,6 +157,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         }
       }
     } catch (err: any) {
+      // رصد فشل الاتصال العام
       setSlowNetworkId(network.id || network.network);
     } finally {
       setLoading(false);
