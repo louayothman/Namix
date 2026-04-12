@@ -50,7 +50,7 @@ export function DepositShareDrawer({
       // Initiate capture after a brief rendering delay
       const timer = setTimeout(() => {
         captureProtocol();
-      }, 1000);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [open]);
@@ -129,10 +129,10 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* QR Code (Generated Locally) */}
-          <div className="py-4 flex items-center justify-center">
+          {/* QR Code - Pure Placement (No Container) */}
+          <div className="py-8 flex items-center justify-center">
              {walletAddress && (
-               <div className="p-4 bg-white rounded-[40px] border border-gray-50 shadow-sm relative">
+               <div className="relative">
                   <QRCodeSVG 
                     value={walletAddress}
                     size={300}
@@ -143,7 +143,7 @@ export function DepositShareDrawer({
                     className="w-64 h-64"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="bg-white p-1.5 rounded-xl">
+                     <div className="bg-white p-1.5">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={36} />
                      </div>
                   </div>
@@ -153,30 +153,23 @@ export function DepositShareDrawer({
 
           {/* Data Node */}
           <div className="w-full text-center space-y-6" dir="rtl">
-             <div className="space-y-2">
+             <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
                 <p className="text-[13px] font-normal text-[#002d4d] break-all leading-loose px-4" dir="ltr">
                   {walletAddress}
                 </p>
              </div>
              
-             <div className="inline-flex items-center gap-3 px-6 py-2 bg-gray-50 rounded-full border border-gray-100 shadow-inner">
+             <div className="inline-flex items-center gap-2 px-6 py-2 bg-gray-50 rounded-full border border-gray-100">
                 <span className="text-[11px] font-normal text-[#002d4d]">
                   الشبكة : {selectedAsset?.coin} - {selectedNetwork?.name || selectedAsset?.network}
                 </span>
              </div>
           </div>
 
-          {/* Footer Signature - Compact, Bottom, Logo Left of Name */}
-          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex items-center justify-center gap-5 opacity-30">
-             {/* Name on the RIGHT */}
-             <div className="flex items-center gap-4">
-                {['N', 'A', 'M', 'I', 'X'].map((char, i) => (
-                  <span key={i} className="text-[10px] font-normal text-[#002d4d]">{char}</span>
-                ))}
-             </div>
-
-             {/* Logo on the LEFT */}
+          {/* Footer Signature - Minimalist Bottom Strip */}
+          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex items-center justify-center gap-6 opacity-30" dir="rtl">
+             <span className="text-[10px] font-normal text-[#002d4d] tracking-[0.8em] mr-[0.8em]">NAMIX</span>
              <div className="grid grid-cols-2 gap-0.5 scale-75">
                 <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />

@@ -81,28 +81,30 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 2. Visual QR Center (Local Generation) */}
-      <section className="flex justify-center relative py-2">
-         <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner">
-            {walletAddress ? (
-              <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
-                 <QRCodeSVG 
-                   value={walletAddress}
-                   size={256}
-                   bgColor={"#ffffff"}
-                   fgColor={"#002d4d"}
-                   level={"L"}
-                   includeMargin={false}
-                   className="w-full h-full"
-                 />
-                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white p-1 rounded-xl">
-                       <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
-                    </div>
+      {/* 2. Visual QR Center (Pure Placement) */}
+      <section className="flex justify-center relative py-4">
+         {walletAddress ? (
+           <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
+              <QRCodeSVG 
+                value={walletAddress}
+                size={256}
+                bgColor={"#ffffff"}
+                fgColor={"#002d4d"}
+                level={"L"}
+                includeMargin={false}
+                className="w-full h-full"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                 <div className="bg-white p-1">
+                    <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                  </div>
               </div>
-            ) : <Loader2 className="animate-spin text-gray-200" />}
-         </div>
+           </div>
+         ) : (
+           <div className="h-48 flex items-center justify-center opacity-10">
+              <Loader2 className="animate-spin" />
+           </div>
+         )}
       </section>
 
       {/* 3. Address Interaction Matrix */}
@@ -141,25 +143,23 @@ export function ExecutionStep({
                 <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">تنسيق آلي</Badge>
              </div>
              
-             <div className="relative group">
-               <div className="relative flex items-center h-16 md:h-20 bg-gray-50/50 rounded-[28px] border border-gray-100 transition-all duration-300 group-within:bg-white group-within:border-[#002d4d] group-within:shadow-xl group-within:ring-4 group-within:ring-blue-500/5 overflow-hidden">
-                 <div className="absolute right-6 pointer-events-none opacity-20 group-within:opacity-100 transition-opacity">
-                    <Hash size={18} className="text-[#002d4d]" />
-                 </div>
-                 <input 
-                   value={txid} 
-                   onChange={e => setTxid(e.target.value)} 
-                   className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-16 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
-                   placeholder="ألصق معرف العملية (TXID) هنا..." 
-                 />
-                 <button 
-                   onClick={handlePaste} 
-                   type="button" 
-                   className="absolute left-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm z-10"
-                 >
-                    <ClipboardPaste size={18} />
-                 </button>
-               </div>
+             <div className="relative h-16 md:h-20 bg-gray-50/50 rounded-[28px] border border-gray-100 overflow-hidden flex items-center focus-within:bg-white focus-within:border-[#002d4d] transition-all">
+                <div className="absolute right-6 pointer-events-none opacity-20">
+                   <Hash size={18} className="text-[#002d4d]" />
+                </div>
+                <input 
+                  value={txid} 
+                  onChange={e => setTxid(e.target.value)} 
+                  className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-16 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
+                  placeholder="ألصق معرف العملية (TXID) هنا..." 
+                />
+                <button 
+                  onClick={handlePaste} 
+                  type="button" 
+                  className="absolute left-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm"
+                >
+                   <ClipboardPaste size={18} />
+                </button>
              </div>
            </div>
          )}
