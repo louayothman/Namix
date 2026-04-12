@@ -7,8 +7,8 @@ import axios from 'axios';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview NOWPayments Unified Protocol v11.0
- * تم تحديث المنطق ليدعم الإيداع المفتوح (Dynamic Amount) عبر نظام المزامنة النسبية.
+ * @fileOverview NOWPayments Unified Protocol v12.0 - Dynamic Availability Sync
+ * تم إضافة محرك الجرد اللحظي للتأكد من توفر العملات والشبكات قبل عرضها للمستخدم.
  */
 
 async function getNPConfig() {
@@ -19,8 +19,30 @@ async function getNPConfig() {
 }
 
 /**
+ * جرد العملات المتاحة لحظياً في حساب NOWPayments
+ */
+export async function getAvailableNowPaymentsCurrencies() {
+  try {
+    const config = await getNPConfig();
+    if (!config?.nowPaymentsApiKey) throw new Error("API Key missing");
+
+    const response = await axios.get('https://api.nowpayments.io/v1/currencies', {
+      headers: { 
+        'x-api-key': config.nowPaymentsApiKey 
+      }
+    });
+    
+    return { 
+      success: true, 
+      currencies: response.data.currencies // مصفوفة الرموز المتاحة مثل ['usdttrc20', 'btc', ...]
+    };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
  * إنشاء طلب دفع جديد فريد لهذه المعاملة
- * يستخدم مبلغاً افتراضياً للتوليد، والـ IPN سيعتمد المبلغ الحقيقي المدفوع بالدولار.
  */
 export async function createNowPayment(userId: string, currencyId: string, amountUSD: number = 10) {
   try {
@@ -32,7 +54,6 @@ export async function createNowPayment(userId: string, currencyId: string, amoun
     if (!userSnap.exists()) throw new Error("User not found");
     const userData = userSnap.data();
 
-    // اكتشاف المضيف الحقيقي للـ Webhook لضمان عدم وجود undefined
     const headersList = await headers();
     const host = headersList.get('host');
     const protocol = host?.includes('localhost') ? 'http' : 'https';
@@ -57,7 +78,7 @@ export async function createNowPayment(userId: string, currencyId: string, amoun
 
     const paymentData = response.data;
 
-    // تسجيل الطلب في سجل الإيداعات المعلقة فوراً
+    // تسجيل الطلب في سجل الإيداعات المعلقة
     const depositRef = await addDoc(collection(firestore, "deposit_requests"), {
       userId,
       userName: userData.displayName || "مستثمر",
