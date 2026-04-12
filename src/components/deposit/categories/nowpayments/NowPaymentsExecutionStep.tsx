@@ -3,11 +3,9 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Info, 
-  Loader2, 
   Check, 
   Copy, 
   ShieldCheck, 
@@ -28,8 +26,8 @@ interface NowPaymentsExecutionStepProps {
 }
 
 /**
- * @fileOverview بروتوكول تعليمات Namix النخبوية v16.0
- * تم تحديث الواجهة لتكون بلسان "ناميكس" بالكامل مع تجريد الباركود من الحاويات.
+ * @fileOverview بروتوكول تعليمات Namix النخبوية v17.0 - Silent Open Inflow
+ * تم تحديث الواجهة لتكون بلسان ناميكس الرسمي مع تعليمات مطهرة بالكامل.
  */
 export function NowPaymentsExecutionStep({
   selectedAsset,
@@ -110,7 +108,7 @@ export function NowPaymentsExecutionStep({
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
               <p>أودع الأموال إلى العنوان أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
-              <p className="font-black text-[#002d4d] text-[13px]">سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية.</p>
+              <p className="font-black text-[#002d4d] text-[13px]">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد إتمام العملية.</p>
 
               <div className="space-y-3 pt-6 border-t border-gray-200">
                  <p className="font-black text-red-500 flex items-center gap-2">

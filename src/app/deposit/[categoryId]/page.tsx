@@ -105,7 +105,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         setError(addrRes.error);
       }
     } else if (category?.type === 'nowpayments') {
-      // Automatic Generation for NowPayments
+      // Automatic Generation for NowPayments - Silent without text
       const res = await createNowPayment(dbUser.id, network.id, 10);
       if (res.success) {
         setWalletAddress(res.address);
@@ -186,7 +186,8 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                     <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
                     <div className="absolute inset-0 flex items-center justify-center"><Check className="h-6 w-6 text-[#002d4d] animate-pulse" /></div>
                  </div>
-                 <p className="text-xl font-black text-[#002d4d]">جاري تهيئة القناة...</p>
+                 {/* No Text for NowPayments per user request */}
+                 {category?.type !== 'nowpayments' && <p className="text-xl font-black text-[#002d4d]">جاري تهيئة القناة...</p>}
               </motion.div>
             ) : step === "verifying" ? (
               <motion.div key="v" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center py-24 gap-8">

@@ -4,7 +4,7 @@
 import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { ChevronLeft, Layers } from "lucide-react";
+import { ChevronLeft, Layers, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface NowPaymentsNetworkStepProps {
@@ -13,7 +13,10 @@ interface NowPaymentsNetworkStepProps {
   loading: boolean;
 }
 
-// خريطة الشبكات المتاحة لكل عملة في ناوبايمنتس
+/**
+ * @fileOverview قائمة الشبكات المتاحة في ناوبايمنتس v14.0
+ * تم حصر الشبكات في تلك المدعومة فعلياً لتجنب الأخطاء التقنية.
+ */
 const NETWORK_MAP: Record<string, any[]> = {
   USDT: [
     { id: 'usdttrc20', name: 'Tether (TRC20)', network: 'TRON (TRC20)' },
@@ -35,7 +38,7 @@ const NETWORK_MAP: Record<string, any[]> = {
   XRP: [{ id: 'xrp', name: 'Ripple', network: 'XRP' }],
   ADA: [{ id: 'ada', name: 'Cardano', network: 'ADA' }],
   DOT: [{ id: 'dot', name: 'Polkadot', network: 'DOT' }],
-  MATIC: [{ id: 'matic', name: 'Polygon', network: 'POLYGON' }],
+  MATIC: [{ id: 'maticpolygon', name: 'Polygon (Native)', network: 'POLYGON' }],
 };
 
 export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading }: NowPaymentsNetworkStepProps) {
@@ -70,7 +73,9 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading }: Now
               <p className="font-black text-[13px] text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{net.name}</p>
               <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-1.5 py-0.5 rounded-md shadow-sm uppercase">{net.network}</Badge>
             </div>
-            <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
+            <div className="shrink-0">
+               {loading ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />}
+            </div>
           </button>
         ))}
       </div>
