@@ -46,7 +46,6 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // بروتوكول انتظار نانوي لضمان ثبات الرندر قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
       }, 1500);
@@ -102,14 +101,12 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* القالب المؤسساتي لتوليد الصورة */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
           className="w-[450px] bg-white p-12 flex flex-col items-center gap-10 min-h-[750px]"
           style={{ fontFamily: "'Cairo', 'Tajawal', sans-serif" }}
         >
-          {/* هيدر المعاملة النقي */}
           <div className="w-full flex items-center justify-between border-b border-gray-50 pb-8" dir="rtl">
              <div className="flex items-center gap-5">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -128,7 +125,6 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* منطقة الباركود المباشرة - بدون حاويات */}
           <div className="py-8 flex items-center justify-center">
              {walletAddress && (
                <div className="relative">
@@ -149,7 +145,6 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* تفاصيل العنوان والشبكة */}
           <div className="w-full text-center space-y-6" dir="rtl">
              <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
@@ -165,10 +160,8 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الختم السفلي المصغر - تم تصحيح الاتجاه والترتيب */}
           <div className="mt-auto pt-10 w-full border-t border-gray-50 flex flex-col items-center gap-3 opacity-30" dir="ltr">
              <div className="flex items-center gap-4">
-                {/* شعار النقاط على اليسار */}
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.6] origin-center">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
@@ -176,7 +169,6 @@ export function DepositShareDrawer({
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                {/* حروف الاسم بترتيبها الصحيح من اليسار لليمين */}
                 <div className="flex items-center gap-3 text-[#002d4d] font-normal text-[9px] tracking-normal">
                    <span>N</span>
                    <span>A</span>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -68,7 +67,6 @@ export function ExecutionStep({
     } catch (err) {}
   };
 
-  // محرك اختيار اسم الشبكة الفعلي للعرض
   const networkName = isBinance ? (selectedNetwork?.name || "المعتمدة") : (selectedAsset?.network || "المعتمدة");
 
   return (
@@ -193,7 +191,7 @@ export function ExecutionStep({
            </div>
          )}
 
-         {(isNowPayments || step === "success") && (
+         {isNowPayments && (
            <div className="pt-2">
              <button onClick={() => window.location.href = '/home'} className="w-full h-20 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98]">
                 <span>العودة للرئيسية</span>
