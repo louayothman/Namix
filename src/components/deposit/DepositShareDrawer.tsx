@@ -40,6 +40,7 @@ export function DepositShareDrawer({
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [qrLoaded, setQrLoaded] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const qrCodeUrl = walletAddress 
@@ -49,16 +50,15 @@ export function DepositShareDrawer({
   const generateImage = async () => {
     if (!shareCardRef.current || generating) return;
     setGenerating(true);
-    setImgUrl(null);
     try {
-      // إيقاع انتظار تكتيكي لضمان تحميل الباركود والخطوط المحلية تماماً
-      await new Promise(r => setTimeout(r, 1800));
+      // التأكد من تحميل الخطوط قبل الالتقاط
+      await document.fonts.ready;
       
       const dataUrl = await htmlToImage.toPng(shareCardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 3,
-        fontEmbedCSS: '', // تجنب تعليق CORS
+        fontEmbedCSS: '', 
         skipAutoScale: true
       });
       setImgUrl(dataUrl);
@@ -69,11 +69,21 @@ export function DepositShareDrawer({
     }
   };
 
+  // بروتوكول الانتظار الذكي لظهور الباركود
   useEffect(() => {
-    if (open) {
-      generateImage();
+    if (open && qrLoaded && walletAddress) {
+      const timer = setTimeout(generateImage, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [open, walletAddress]);
+  }, [open, qrLoaded, walletAddress]);
+
+  // تصفير الحالة عند الإغلاق
+  useEffect(() => {
+    if (!open) {
+      setQrLoaded(false);
+      setImgUrl(null);
+    }
+  }, [open]);
 
   const handleDownload = () => {
     if (!imgUrl) return;
@@ -111,14 +121,13 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* معاملة الإيداع الرقمية الاحترافية - مخفية ومصممة للتصدير الصافي */}
+      {/* المعاملة الرقمية الاحترافية - مخفية للتصدير */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
-          className="w-[450px] bg-white p-12 flex flex-col items-center gap-12"
+          className="w-[450px] bg-white p-12 flex flex-col items-center gap-10 min-h-[600px]"
           style={{ fontFamily: "'Tajawal', 'Cairo', sans-serif" }}
         >
-          {/* حقن الخطوط المحلية حصرياً لهذا العنصر لضمان عملها في الصورة */}
           <style dangerouslySetInnerHTML={{ __html: `
             @font-face {
               font-family: 'Tajawal';
@@ -133,7 +142,7 @@ export function DepositShareDrawer({
             * { font-weight: 400 !important; letter-spacing: normal !important; }
           `}} />
 
-          {/* هيدر القمة: الزاوية العليا اليمنى */}
+          {/* الهوية العليا */}
           <div className="w-full flex flex-row-reverse items-center justify-start gap-4" dir="rtl">
              <div className="shrink-0">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={42} />
@@ -148,7 +157,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الباركود المربع الصافي - بدون حاويات */}
+          {/* الباركود المركزي */}
           <div className="flex items-center justify-center w-full py-2">
              {qrCodeUrl && (
                <div className="relative h-60 w-60">
@@ -158,6 +167,7 @@ export function DepositShareDrawer({
                     className="w-full h-full" 
                     style={{ imageRendering: 'pixelated' }} 
                     crossOrigin="anonymous" 
+                    onLoad={() => setQrLoaded(true)}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                      <div className="bg-white p-0.5">
@@ -168,30 +178,33 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* العنوان الرقمي الموحد - سطر واحد بخط Cairo */}
-          <div className="w-full text-center px-4">
-             <p className="text-[7px] font-normal text-gray-300 uppercase tracking-[0.4em] mb-3" style={{ fontFamily: 'Cairo' }}>DEPOSIT ADDRESS</p>
+          {/* العنوان الرقمي والشبكة التفصيلية */}
+          <div className="w-full text-center px-4 space-y-2">
+             <p className="text-[7px] font-normal text-gray-300 uppercase tracking-[0.4em] mb-1" style={{ fontFamily: 'Cairo' }}>DEPOSIT ADDRESS</p>
              <p className="text-[10px] font-normal text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontFamily: 'Cairo' }}>
                {walletAddress}
              </p>
+             <p className="text-[9px] font-normal text-gray-400 pt-1" style={{ fontFamily: 'Tajawal' }}>
+               الشبكة : {selectedAsset?.coin} - {selectedNetwork?.name || selectedAsset?.network}
+             </p>
           </div>
 
-          {/* التوقيع الاحترافي الفخم: حروف منفصلة مع لوجو النقاط على اليسار */}
-          <div className="w-full space-y-8 pt-6">
+          {/* الختم السفلي المصغر - شعار يساري وحروف منفصلة */}
+          <div className="w-full space-y-6 pt-4 mt-auto">
              <div className="h-[0.5px] w-full bg-gray-100" />
-             <div className="flex items-center justify-center gap-8" dir="ltr">
-                {/* لوجو النقاط على الجهة اليسرى */}
-                <div className="grid grid-cols-2 gap-0.5 scale-110">
-                   <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-                   <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                   <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                   <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+             <div className="flex items-center justify-center gap-6" dir="ltr">
+                {/* شعار النقاط على اليسار */}
+                <div className="grid grid-cols-2 gap-0.5 scale-75 order-first">
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                {/* حروف الاسم منفصلة لتطبيق مسافات تباعد دقيقة بوزن Regular */}
-                <div className="flex items-center gap-6">
+                {/* حروف الاسم بتباعد منتظم */}
+                <div className="flex items-center gap-3">
                    {['N', 'A', 'M', 'I', 'X'].map((letter, idx) => (
-                     <span key={idx} className="text-[22px] font-normal text-[#002d4d]" style={{ fontFamily: 'Cairo' }}>
+                     <span key={idx} className="text-[12px] font-normal text-[#002d4d]" style={{ fontFamily: 'Cairo' }}>
                        {letter}
                      </span>
                    ))}
@@ -220,7 +233,9 @@ export function DepositShareDrawer({
                      className="flex flex-col items-center gap-4"
                    >
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                      <p className="text-[10px] font-normal text-gray-400 uppercase tracking-widest">جاري تجهيز الصورة...</p>
+                      <p className="text-[10px] font-normal text-gray-400 uppercase tracking-widest text-center">
+                        جاري التأكد من ظهور الباركود...
+                      </p>
                    </motion.div>
                  ) : (
                    <motion.div 
@@ -240,7 +255,6 @@ export function DepositShareDrawer({
                  )}
                </AnimatePresence>
 
-               {/* أزرار التحكم العرضية */}
                <div className="w-full max-w-[320px] grid grid-cols-2 gap-3 pb-4">
                   <Button 
                     onClick={handleDownload} 
