@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from "react";
@@ -43,7 +44,6 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, availableIds, 
       { id: symbol.toLowerCase(), name: selectedAsset?.name, network: 'Mainnet' }
     ];
     
-    // فلترة الشبكات المتاحة فعلياً بصمت
     return allPossible.filter(net => availableIds.includes(net.id));
   }, [selectedAsset, availableIds]);
 

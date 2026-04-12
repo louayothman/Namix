@@ -33,17 +33,17 @@ const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
       <motion.div 
-        animate={{ rotate: 360, opacity: [0.3, 0.6, 0.3] }}
+        animate={{ rotate: 360 }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         className="h-24 w-24 border-[1px] border-[#f9a885]/20 border-t-[#f9a885] rounded-full shadow-[0_0_30px_rgba(249,168,133,0.1)]"
       />
       <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Logo size="md" hideText className="opacity-80" />
-        </motion.div>
+        <div className="grid grid-cols-2 gap-1 scale-110">
+          <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+          <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+          <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+          <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+        </div>
       </div>
     </div>
   </div>
@@ -116,7 +116,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSlowNetworkId(null);
     setLoading(true);
 
-    // بروتوكول رصد الـ 3s المطور لضمان استقرار التوليد
+    // بروتوكول رصد الـ 3 ثوانٍ المطور
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error("TIMEOUT")), 3000)
     );
@@ -180,10 +180,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setTxid("");
     setSlowNetworkId(null);
     if (step === "result") { router.push("/home"); return; }
-    if (step === "execution") { 
-      setStep("select_network");
-      return; 
-    }
+    if (step === "execution") { setStep("select_network"); return; }
     if (step === "select_network") { setStep("select_asset"); return; }
     router.back();
   };
@@ -222,7 +219,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
           {isSearchOpen && step === "select_asset" && (
             <div className="pb-4">
               <div className="relative">
-                <input autoFocus placeholder="ابحث عن العملة..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-14 w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner outline-none focus:ring-2 focus:ring-[#002d4d]/10 transition-all" />
+                <input autoFocus placeholder="ابحث عن العملة..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-[72px] w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner outline-none focus:ring-2 focus:ring-[#002d4d]/10 transition-all" />
                 <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
               </div>
             </div>

@@ -40,7 +40,6 @@ export function NowPaymentsCurrencyStep({
   searchQuery
 }: NowPaymentsCurrencyStepProps) {
   const filtered = useMemo(() => {
-    // تجميع العملات بشكل فريد دون تكرار الشبكات في هذه الخطوة
     const uniqueCoins: any[] = [];
     const coinsSeen = new Set<string>();
 
