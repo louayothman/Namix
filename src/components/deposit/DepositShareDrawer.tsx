@@ -24,17 +24,10 @@ import * as htmlToImage from 'html-to-image';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QRCodeSVG } from "qrcode.react";
 
-interface DepositShareDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedAsset: any;
-  selectedNetwork: any;
-  walletAddress: string;
-}
-
 /**
- * @fileOverview مفاعل تصدير المعاملات v19.0 - Sovereign Minimalist Edition
- * تم تصغير التوقيع في الأسفل، نقل الشعار لليسار، وفصل حروف الاسم لتباعد هندسي مثالي.
+ * @fileOverview مفاعل تصدير المعاملات v20.0 - Sovereign Pure Edition
+ * تم تصحيح ترتيب حروف الختم (N A M I X) وعكس جهة الشعار ليكون يساراً.
+ * التحميل الآن صامت وفخم يعتمد على المفاعل الأيقوني فقط.
  */
 export function DepositShareDrawer({
   open,
@@ -51,10 +44,10 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // تأخير بسيط لضمان رندر العناصر قبل الالتقاط
+      // تأخير تقني لضمان رندر الباركود المحلي بالكامل قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
-      }, 1500);
+      }, 1800);
       return () => clearTimeout(timer);
     }
   }, [open]);
@@ -132,12 +125,13 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          <div className="py-8 flex items-center justify-center">
+          {/* Pure QR - No Containers */}
+          <div className="py-10 flex items-center justify-center">
              {walletAddress && (
                <div className="relative">
                   <QRCodeSVG 
                     value={walletAddress}
-                    size={280}
+                    size={300}
                     bgColor={"#ffffff"}
                     fgColor={"#002d4d"}
                     level={"H"}
@@ -145,39 +139,41 @@ export function DepositShareDrawer({
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                      <div className="bg-white p-1.5 rounded-sm">
-                        <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
+                        <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={36} />
                      </div>
                   </div>
                </div>
              )}
           </div>
 
-          <div className="w-full text-center space-y-6" dir="rtl">
+          <div className="w-full text-center space-y-8" dir="rtl">
              <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
-                <p className="text-[13px] font-normal text-[#002d4d] break-all leading-loose px-4" dir="ltr">
+                <p className="text-[14px] font-normal text-[#002d4d] break-all leading-loose px-4 font-mono" dir="ltr">
                   {walletAddress}
                 </p>
              </div>
              
-             <div className="inline-flex items-center gap-2 px-6 py-2 bg-gray-50 rounded-full border border-gray-100">
-                <span className="text-[11px] font-normal text-[#002d4d]">
+             <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
+                <span className="text-[12px] font-normal text-[#002d4d]">
                   الشبكة : {selectedAsset?.coin || 'Asset'} - {selectedNetwork?.name || selectedAsset?.network}
                 </span>
              </div>
           </div>
 
-          {/* Sovereign Footer Signature */}
-          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex flex-col items-center gap-3 opacity-30" dir="ltr">
-             <div className="flex items-center gap-4">
-                <div className="grid grid-cols-2 gap-0.5 scale-[0.6] origin-center">
+          {/* Corrected Sovereign Signature - LTR flow for N A M I X */}
+          <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="ltr">
+             <div className="flex items-center gap-5">
+                {/* Logo on the LEFT */}
+                <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                <div className="flex items-center gap-3 text-[#002d4d] font-normal text-[9px]">
+                {/* Letters in correct order */}
+                <div className="flex items-center gap-4 text-[#002d4d] font-normal text-[10px] tracking-[0.1em]">
                    <span>N</span>
                    <span>A</span>
                    <span>M</span>
@@ -185,7 +181,7 @@ export function DepositShareDrawer({
                    <span>X</span>
                 </div>
              </div>
-             <p className="text-[5px] font-normal text-gray-400 uppercase tracking-widest">Authorized Identity Node</p>
+             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em]">Institutional Trust Protocol</p>
           </div>
         </div>
       </div>
@@ -204,16 +200,16 @@ export function DepositShareDrawer({
                      initial={{ opacity: 0 }}
                      animate={{ opacity: 1 }}
                      exit={{ opacity: 0 }}
-                     className="flex flex-col items-center gap-6"
+                     className="flex flex-col items-center justify-center"
                    >
                       <div className="relative">
                          <motion.div 
                            animate={{ rotate: 360 }}
                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                           className="h-20 w-20 border-[3px] border-gray-100 border-t-blue-500 rounded-full" 
+                           className="h-24 w-24 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full" 
                          />
                          <div className="absolute inset-0 flex items-center justify-center">
-                            <ShieldCheck className="h-8 w-8 text-[#002d4d] opacity-20" />
+                            <ShieldCheck className="h-8 w-8 text-[#002d4d] animate-pulse" />
                          </div>
                       </div>
                    </motion.div>
@@ -269,4 +265,12 @@ export function DepositShareDrawer({
       </Drawer>
     </>
   );
+}
+
+interface DepositShareDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedAsset: any;
+  selectedNetwork: any;
+  walletAddress: string;
 }

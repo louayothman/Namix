@@ -15,11 +15,13 @@ import {
   ClipboardPaste,
   Sparkles,
   AlertCircle,
-  ChevronLeft
+  ChevronLeft,
+  RefreshCcw
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { DepositShareDrawer } from "../DepositShareDrawer";
 import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
 
 interface ExecutionStepProps {
   instructions: string;
@@ -36,10 +38,6 @@ interface ExecutionStepProps {
   selectedNetwork?: any;
 }
 
-/**
- * @fileOverview مكون التنفيذ والمزامنة v16.0 - Professional Clean Edition
- * تم تحديث نصوص التعليمات لتشير للعنوان أعلاه، وحل مشكلة المتغير المفقود step.
- */
 export function ExecutionStep({
   instructions,
   walletAddress,
@@ -75,94 +73,99 @@ export function ExecutionStep({
   const networkName = isBinance ? (selectedNetwork?.name || "المعتمدة") : (selectedAsset?.network || "المعتمدة");
 
   return (
-    <div className="w-full space-y-8 text-right font-body" dir="rtl">
+    <div className="w-full space-y-8 text-right font-body animate-in fade-in duration-700" dir="rtl">
       
-      {/* 1. Asset Identity */}
-      <section className="flex items-center gap-4 px-2">
-         <div className="shrink-0 flex items-center justify-center">
-            <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
+      {/* 1. Asset Identity & Status */}
+      <section className="flex items-center justify-between px-2">
+         <div className="flex items-center gap-4">
+            <div className="shrink-0 flex items-center justify-center">
+               <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
+            </div>
+            <div className="text-right space-y-0.5">
+               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h3>
+               <p className="text-[10px] text-gray-400 uppercase tracking-widest">{networkName}</p>
+            </div>
          </div>
-         <div className="text-right space-y-0.5">
-            <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h3>
-            <p className="text-[10px] text-gray-400 uppercase">{networkName}</p>
-         </div>
+         <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse">
+            NODE ACTIVE
+         </Badge>
       </section>
 
-      {/* 2. QR Code - Pure Integration */}
-      <section className="flex justify-center py-4">
+      {/* 2. QR Code - Minimalist Integration */}
+      <section className="flex justify-center py-4 relative group">
          {walletAddress ? (
-           <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
+           <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
               <QRCodeSVG 
                 value={walletAddress}
                 size={256}
                 bgColor={"#ffffff"}
                 fgColor={"#002d4d"}
-                level={"L"}
+                level={"H"}
                 includeMargin={false}
                 className="w-full h-full"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="bg-white p-1 rounded-sm">
+                 <div className="bg-white p-1 rounded-sm shadow-sm">
                     <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                  </div>
               </div>
            </div>
          ) : (
-           <div className="h-48 flex items-center justify-center opacity-10">
-              <Loader2 className="animate-spin" />
+           <div className="h-48 flex items-center justify-center">
+              <Loader2 className="animate-spin text-gray-100 h-10 w-10" />
            </div>
          )}
       </section>
 
-      {/* 3. Address Strip */}
+      {/* 3. Address Strip & Share */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-               <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed" dir="ltr">
-                 {walletAddress || "جاري تهيئة العنوان..."}
+               <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed font-mono opacity-80" dir="ltr">
+                 {walletAddress || "جاري تهيئة القناة..."}
                </p>
-               <button onClick={handleCopy} disabled={!walletAddress} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0">
+               <button onClick={handleCopy} disabled={!walletAddress} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90">
                  {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
                </button>
             </div>
          </div>
 
-         <Button onClick={() => setIsShareDrawerOpen(true)} disabled={!walletAddress} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-normal text-sm shadow-xl active:scale-95 group">
-            <Sparkles size={18} className="ml-3 text-[#f9a885]" />
-            <span>حفظ ومشاركة العنوان</span>
+         <Button onClick={() => setIsShareDrawerOpen(true)} disabled={!walletAddress} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-normal text-sm shadow-xl active:scale-95 group transition-all">
+            <Sparkles size={18} className="ml-3 text-[#f9a885] group-hover:rotate-12 transition-transform" />
+            <span>حفظ ومشاركة المعاملة</span>
          </Button>
       </section>
 
-      {/* 4. Instructions */}
+      {/* 4. Instructions & Guidance */}
       <section className="space-y-6">
-         <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-4">
+         <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-5">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
              <Info size={14} />
-             <h4 className="text-[10px] font-normal uppercase tracking-widest">ميثاق الإيداع المعتمد</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-widest">ميثاق الإيداع المعتمد</h4>
            </div>
            
-           <div className="space-y-4 text-[11px] font-normal leading-loose text-blue-800/70">
+           <div className="space-y-5 text-[11px] font-normal leading-loose text-blue-800/70">
               {isNowPayments ? (
-                <>
-                  <p>أودع الأموال إلى العنوان أعلاه عبر شبكة {networkName} فقط.</p>
-                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية.</p>
-                </>
+                <div className="space-y-2">
+                  <p>أودع الأموال إلى العنوان **أعلاه** عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
+                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد إتمام العملية.</p>
+                </div>
               ) : isBinance ? (
-                <>
-                  <p>أودع الأموال إلى العنوان أعلاه عبر شبكة {networkName} فقط.</p>
+                <div className="space-y-2">
+                  <p>أودع الأموال إلى العنوان **أعلاه** عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
                   <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID.</p>
-                </>
+                </div>
               ) : (
                 <p>{instructions}</p>
               )}
 
-              <div className="space-y-2 pt-3 border-t border-blue-100/50">
+              <div className="space-y-2 pt-4 border-t border-blue-100/50">
                  <p className="font-black text-red-500/70 flex items-center gap-1.5">
-                    <AlertCircle size={10} /> تحذير:
+                    <AlertCircle size={10} /> تحذير استراتيجي:
                  </p>
-                 <ul className="list-disc pr-4 space-y-1.5">
-                    <li>تأكد من اختيار شبكة {networkName} حصراً عند الإرسال.</li>
-                    <li>تحقق من صحة العنوان قبل تنفيذ العملية.</li>
+                 <ul className="list-disc pr-4 space-y-2 text-[10px]">
+                    <li>تأكد من اختيار شبكة <span className="font-black">{networkName}</span> حصراً عند الإرسال.</li>
+                    <li>تحقق من صحة العنوان يدوياً قبل تنفيذ العملية.</li>
                     <li>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</li>
                  </ul>
               </div>
@@ -172,45 +175,69 @@ export function ExecutionStep({
          {isBinance && (
            <div className="space-y-3 pt-2">
              <div className="flex items-center justify-between px-4">
-                <Label className="text-[9px] font-normal text-gray-400 uppercase tracking-widest">إثبات المزامنة</Label>
-                <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">Binance SAPI</Badge>
+                <Label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">إثبات المزامنة (TXID)</Label>
+                <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-full">Binance Secure Sync</Badge>
              </div>
              
-             <div className="relative h-16 md:h-20 rounded-[28px] bg-gray-50/50 border border-gray-100 focus-within:border-[#002d4d] focus-within:bg-white transition-all flex items-center px-4">
+             {/* Fixed Input Container - Single Layer Focus */}
+             <div className="relative h-16 md:h-20 rounded-[28px] bg-gray-50/50 border border-gray-100 transition-all group overflow-hidden">
                 <input 
                   value={txid} 
                   onChange={e => setTxid(e.target.value)} 
-                  className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-12 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
-                  placeholder="ألصق معرف العملية (TXID) هنا..." 
+                  className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-14 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
+                  placeholder="ألصق معرف العملية هنا..." 
                 />
                 <button 
                   onClick={handlePaste} 
                   type="button" 
-                  className="absolute left-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm"
                 >
                    <ClipboardPaste size={18} />
                 </button>
+                <Hash className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-200" />
              </div>
            </div>
          )}
 
-         {isNowPayments && (
-           <div className="pt-2">
-             <button onClick={() => window.location.href = '/home'} className="w-full h-20 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group">
-                <span>العودة للرئيسية</span>
-                <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />
-             </button>
-           </div>
-         )}
-
-         {!isNowPayments && (
-           <Button onClick={onSubmit} disabled={loading || (isBinance && !txid)} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-normal text-base shadow-xl active:scale-95 transition-all">
-             {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <div className="flex items-center gap-3"><span>تأكيد الإيداع والمزامنة</span><ShieldCheck className="h-5 w-5 text-[#f9a885]" /></div>}
-           </Button>
-         )}
+         <div className="pt-2 space-y-4">
+            {!isNowPayments ? (
+              <Button 
+                onClick={onSubmit} 
+                disabled={loading || (isBinance && !txid)} 
+                className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-normal text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                  <>
+                    <span>تأكيد الإيداع والمزامنة</span>
+                    <ShieldCheck size={20} className="text-[#f9a885]" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => window.location.href = '/home'}
+                className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group"
+              >
+                 <span>العودة للرئيسية</span>
+                 <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />
+              </Button>
+            )}
+            
+            {isNowPayments && (
+              <p className="text-[9px] text-gray-400 font-bold text-center px-6 leading-relaxed">
+                سيقوم النظام بمراقبة العنوان وتحديث رصيدك تلقائياً. يمكنك إغلاق هذه الصفحة الآن والعودة لاحقاً.
+              </p>
+            )}
+         </div>
       </section>
 
-      <DepositShareDrawer open={isShareDrawerOpen} onOpenChange={setIsShareDrawerOpen} selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} />
+      <DepositShareDrawer 
+        open={isShareDrawerOpen} 
+        onOpenChange={setIsShareDrawerOpen} 
+        selectedAsset={selectedAsset} 
+        selectedNetwork={selectedNetwork} 
+        walletAddress={walletAddress} 
+      />
     </div>
   );
 }
