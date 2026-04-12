@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc, increment, addDoc, collection, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, addDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 /**
- * @fileOverview مراقب الإيداع الآلي المطور v8.0 - Official IPN Protocol
- * تم تحديث المنطق ليتوافق تماماً مع متطلبات التوقيع (Sorting) والتحقق الواردة في وثائق NowPayments.
+ * @fileOverview مراقب الإيداع الآلي السيادي v10.0 - Official IPN Protocol
+ * تم تحديث المنطق ليدعم الربط عبر payment_id ومنع التكرار الجذري.
  */
 
 export async function POST(req: Request) {
@@ -16,14 +16,13 @@ export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const sig = req.headers.get('x-nowpayments-sig');
-    
+    const data = JSON.parse(rawBody);
+
+    // 1. بروتوكول التحقق من التوقيع (Strict Key Sorting)
     const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
     const ipnSecret = configSnap?.data()?.nowPaymentsIpnSecret;
 
-    // 1. بروتوكول التحقق من التوقيع (Official Sorting Logic)
     if (ipnSecret && sig) {
-      const data = JSON.parse(rawBody);
-      // الفرز الأبجدي للمفاتيح هو متطلب إلزامي في الوثائق لنجاح الـ HMAC
       const sortedKeys = Object.keys(data).sort();
       const sortedData: Record<string, any> = {};
       sortedKeys.forEach(key => {
@@ -35,104 +34,81 @@ export async function POST(req: Request) {
       const signature = hmac.digest('hex');
       
       if (signature !== sig) {
-        await addDoc(collection(firestore, "system_logs"), {
-          type: "webhook_security_alert",
-          message: "Invalid Webhook Signature. Sorting mismatch or wrong secret.",
-          createdAt: timestamp
-        });
         return NextResponse.json({ error: 'Unauthorized Signature' }, { status: 401 });
       }
     }
 
-    const data = JSON.parse(rawBody);
-
     // معالجة طلبات الاختبار
     if (data.payment_status === 'test') {
-      return NextResponse.json({ ok: true, message: "Test IPN Received" });
+      await addDoc(collection(firestore, "system_logs"), { type: "ipn_test_success", message: "Test IPN Received and Verified", createdAt: timestamp });
+      return NextResponse.json({ ok: true });
     }
 
-    const { payment_status, pay_address, price_amount, pay_currency, payment_id, order_id } = data;
+    const { payment_id, payment_status, pay_address, price_amount, pay_currency, purchase_id } = data;
 
-    // 2. الحالات التشغيلية المعتمدة (finished = مكتمل، confirmed = مؤكد، partially_paid = مدفوع جزئياً)
-    const VALID_STATUSES = ['finished', 'confirmed', 'partially_paid'];
+    // 2. البحث عن طلب الإيداع المسجل في النظام
+    const depQuery = query(collection(firestore, "deposit_requests"), where("paymentId", "==", payment_id.toString()), limit(1));
+    const depSnap = await getDocs(depQuery);
+
+    if (depSnap.empty) {
+      await addDoc(collection(firestore, "system_logs"), { type: "ipn_orphan_error", message: `Unmapped payment ID: ${payment_id}`, payload: data, createdAt: timestamp });
+      return NextResponse.json({ ok: true });
+    }
+
+    const depositDoc = depSnap.docs[0];
+    const depositData = depositDoc.data();
+    const userId = depositData.userId;
+
+    // 3. تحديث الحالة بناءً على تدفق NowPayments
+    // الحالات: waiting, confirming, confirmed, finished, failed, expired, partially_paid
     
-    if (VALID_STATUSES.includes(payment_status)) {
-      
-      // محاولة التعرف على المستخدم عبر المحفظة أو الـ Order ID (Double Match)
-      let userId = null;
-      let userName = "مستثمر";
+    let newStatus = "pending";
+    if (['finished', 'confirmed'].includes(payment_status)) newStatus = "approved";
+    if (payment_status === 'failed' || payment_status === 'expired') newStatus = "rejected";
+    if (payment_status === 'confirming') newStatus = "confirming";
 
-      // البحث عبر العنوان
-      const mappingRef = doc(firestore, "wallet_mappings", pay_address.toLowerCase());
-      const mappingSnap = await getDoc(mappingRef);
-      
-      if (mappingSnap.exists()) {
-        userId = mappingSnap.data().userId;
-        userName = mappingSnap.data().userName;
-      } else if (order_id && order_id.startsWith('DEPOSIT_')) {
-        // Fallback: استخراج المعرف من الـ Order ID
-        userId = order_id.split('_')[1];
+    // إذا كانت الحالة "approved" ولم يتم معالجتها مسبقاً -> إضافة الرصيد
+    if (newStatus === "approved" && depositData.status !== "approved") {
+      const amount = Number(price_amount);
+
+      // جلب مكافآت الإيداع
+      const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
+      let bonus = 0;
+      if (vaultSnap.exists()) {
+        const bonuses = vaultSnap.data().depositBonuses || [];
+        const tier = bonuses.find((t: any) => amount >= t.min && amount <= (t.max || Infinity));
+        if (tier) bonus = (amount * tier.percent) / 100;
       }
 
-      if (userId) {
-        const amount = Number(price_amount); // استخدام القيمة بالدولار لضمان دقة الرصيد
+      // تحديث الرصيد السيادي
+      await updateDoc(doc(firestore, "users", userId), {
+        totalBalance: increment(amount + bonus),
+        updatedAt: timestamp
+      });
 
-        // منع تكرار المعالجة
-        const processRef = doc(firestore, "processed_payments", payment_id.toString());
-        const processSnap = await getDoc(processRef);
-        
-        if (processSnap.exists()) {
-          return NextResponse.json({ ok: true, message: "Duplicate payment ignored." });
-        }
+      // توثيق المعاملة كـ "مكتملة"
+      await updateDoc(depositDoc.ref, {
+        status: "approved",
+        approvedAmount: amount,
+        bonusApplied: bonus,
+        transactionId: purchase_id || data.payment_id.toString(),
+        updatedAt: timestamp
+      });
 
-        // جلب مكافآت الإيداع
-        const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
-        let bonus = 0;
-        if (vaultSnap.exists()) {
-          const bonuses = vaultSnap.data().depositBonuses || [];
-          const tier = bonuses.find((t: any) => amount >= t.min && amount <= (t.max || Infinity));
-          if (tier) bonus = (amount * tier.percent) / 100;
-        }
-
-        // تحديث الرصيد السيادي
-        await updateDoc(doc(firestore, "users", userId), {
-          totalBalance: increment(amount + bonus),
-          updatedAt: timestamp
-        });
-
-        // توثيق المعاملة
-        await addDoc(collection(firestore, "deposit_requests"), {
-          userId,
-          userName,
-          amount,
-          approvedAmount: amount,
-          bonusApplied: bonus,
-          transactionId: payment_id.toString(),
-          methodName: `NowPayments (${pay_currency.toUpperCase()})`,
-          status: "approved",
-          isAutoAudited: true,
-          createdAt: timestamp
-        });
-
-        await setDoc(processRef, { userId, amount, processedAt: timestamp });
-
-        await addDoc(collection(firestore, "notifications"), {
-          userId,
-          title: "تم تأكيد الإيداع الآلي ✅",
-          message: `تمت مزامنة مبلغ $${amount} مع محفظتك بنجاح. القناة: ${pay_currency.toUpperCase()}.`,
-          type: "success",
-          isRead: false,
-          createdAt: timestamp
-        });
-
-      } else {
-        await addDoc(collection(firestore, "system_logs"), {
-          type: "webhook_mapping_error",
-          message: `Unmapped payment received for address: ${pay_address}`,
-          payload: data,
-          createdAt: timestamp
-        });
-      }
+      await addDoc(collection(firestore, "notifications"), {
+        userId,
+        title: "تم تأكيد الإيداع الآلي ✅",
+        message: `تمت مزامنة مبلغ $${amount} مع محفظتك بنجاح. القناة: ${pay_currency.toUpperCase()}.`,
+        type: "success",
+        isRead: false,
+        createdAt: timestamp
+      });
+    } else {
+      // تحديث الحالة فقط (مثل confirming أو rejected)
+      await updateDoc(depositDoc.ref, {
+        status: newStatus,
+        updatedAt: timestamp
+      });
     }
 
     return NextResponse.json({ ok: true });

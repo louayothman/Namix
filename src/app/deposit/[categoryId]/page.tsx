@@ -16,7 +16,7 @@ import {
   Check,
   Star
 } from "lucide-react";
-import { getOrCreateUserWallet } from "@/app/actions/nowpayments-actions";
+import { createNowPayment } from "@/app/actions/nowpayments-actions";
 import { getBinanceDepositAddress, getBinanceCoinsConfig, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
 import { cn } from "@/lib/utils";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -33,7 +33,7 @@ interface DepositPageProps {
   params: Promise<{ categoryId: string }>;
 }
 
-type Step = "select_asset" | "select_network" | "execution" | "verifying" | "result";
+type Step = "select_asset" | "select_network" | "form" | "execution" | "verifying" | "result";
 type SortMode = 'popular' | 'name';
 
 const NOWPAYMENTS_ASSETS = [
@@ -118,8 +118,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     if (category?.type === 'manual') {
       list = category?.portals?.filter((p: any) => p.isActive) || [];
     } else if (category?.type === 'nowpayments') {
-      const assignedKeys = dbUser?.assignedWallets ? Object.keys(dbUser.assignedWallets) : [];
-      list = NOWPAYMENTS_ASSETS.filter(a => assignedKeys.includes(a.id));
+      list = NOWPAYMENTS_ASSETS;
     } else if (category?.type === 'binance') {
       list = binanceConfig;
     }
@@ -144,43 +143,17 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       });
     }
     return list;
-  }, [category, binanceConfig, searchQuery, sortMode, dbUser?.assignedWallets]);
+  }, [category, binanceConfig, searchQuery, sortMode]);
 
   const handleAssetSelect = async (asset: any) => {
-    if (!dbUser?.id) return;
-    setError(null);
     setSelectedAsset(asset);
-    if (category?.type === 'nowpayments') {
-      setLoading(true);
-      try {
-        const res = await getOrCreateUserWallet(dbUser.id, asset.id);
-        if (res.success) {
-          setWalletAddress(res.address);
-          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${asset.network} فقط. لا حاجة لإرفاق إثبات؛ سيقوم نظام المزامنة الذكي برصد الإيداع وإضافته لمحفظتك تلقائياً فور تأكيد المعاملة في البلوكشين.`);
-          setStep("execution");
-        } else setError(res.error);
-      } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
-    } else if (category?.type === 'binance') setStep("select_network");
-    else if (category?.type === 'manual') {
-      setWalletAddress(asset.walletAddress);
-      setInstructions(asset.instructions || `يرجى إرسال الرصيد إلى العنوان الموضح أعلاه. بعد إتمام العملية، يرجى تزويدنا بالبيانات المطلوبة أدناه للتحقق من الإيداع واعتماده.`);
-      setStep("execution");
-    }
+    if (category?.type === 'binance') setStep("select_network");
+    else setStep("execution");
   };
 
   const handleNetworkSelect = async (network: any) => {
-    if (!dbUser || !selectedAsset) return;
-    setLoading(true);
-    setError(null);
     setSelectedNetwork(network);
-    try {
-      const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-      if (res.success) {
-        setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${network.name}. بعد اكتمال التحويل، يرجى لصق معرف العملية (TXID) في الحقل أدناه لبدء بروتوكول التدقيق الفوري والمزامنة مع محفظتك.`);
-        setStep("execution");
-      } else setError(res.error);
-    } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
+    setStep("execution");
   };
 
   const handleFinalSubmit = async () => {
@@ -188,33 +161,57 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     setLoading(true);
     setError(null);
     
-    if (category?.type === 'binance') {
-      setStep("verifying");
-      const res = await verifyAndProcessBinanceDeposit(dbUser.id, txid, selectedAsset.coin);
+    if (category?.type === 'nowpayments') {
+      const res = await createNowPayment(dbUser.id, selectedAsset.id, Number(amount));
       if (res.success) {
-        setSuccessData(res.data);
-        setStep("result");
+        setWalletAddress(res.address);
+        setInstructions(`أودع الأموال إلى العنوان أعلاه عبر شبكة ${selectedAsset.network} فقط. سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية. تحذير: تأكد من اختيار الشبكة حصراً عند الإرسال، وأي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.`);
+        setStep("execution");
       } else {
         setError(res.error);
-        setStep("result");
       }
       setLoading(false);
       return;
     }
 
+    if (category?.type === 'binance') {
+      // First generate address if not present
+      if (!walletAddress) {
+        const addrRes = await getBinanceDepositAddress(selectedAsset.coin, selectedNetwork.network);
+        if (addrRes.success) {
+          setWalletAddress(addrRes.address);
+          setInstructions(`أودع الأموال إلى العنوان أعلاه عبر شبكة ${selectedNetwork.name} فقط. سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID. تحذير: تأكد من اختيار الشبكة حصراً عند الإرسال، وأي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.`);
+        } else {
+          setError(addrRes.error);
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (txid) {
+        setStep("verifying");
+        const res = await verifyAndProcessBinanceDeposit(dbUser.id, txid, selectedAsset.coin);
+        if (res.success) {
+          setSuccessData(res.data);
+          setStep("result");
+        } else {
+          setError(res.error);
+          setStep("result");
+        }
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Manual Logic
     try {
-      const methodName = category?.type === 'manual' 
-        ? `${category?.name} - ${selectedAsset?.name}`
-        : `${category?.name} (${selectedAsset?.coin || selectedAsset?.name})`;
-      
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id,
         userName: dbUser.displayName,
         amount: Number(amount),
-        methodName,
-        transactionId: txid || "AUTO_SYNC_PENDING",
+        methodName: `${category?.name} - ${selectedAsset?.name}`,
+        transactionId: txid || "MANUAL_REVIEW_PENDING",
         status: "pending",
-        isAutoAudited: category?.type === 'nowpayments',
         createdAt: new Date().toISOString()
       });
       setStep("result");
@@ -269,7 +266,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                          <DropdownMenuItem onClick={() => setSortMode('name')} className="font-black text-[10px] py-3 px-4 rounded-xl cursor-pointer justify-between">الاسم (A-Z) {sortMode === 'name' && <Check size={12} className="text-blue-500" />}</DropdownMenuItem>
                       </DropdownMenuContent>
                    </DropdownMenu>
-                   <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16}/> : <Search size={16}/>}</button>
+                   <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16} /> : <Search size={16} />}</button>
                 </>
               )}
               <button onClick={() => {

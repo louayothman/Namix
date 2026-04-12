@@ -2,13 +2,13 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
 import axios from 'axios';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v8.0
- * تم تحديث محرك توليد الروابط ليستخدم المضيف الفعلي من الـ Headers لضمان دقة الـ IPN.
+ * @fileOverview NOWPayments Per-Transaction Protocol v10.0
+ * تم استبدال العناوين الدائمة بنظام طلبات الدفع الفريدة (Invoices) لضمان أعلى مستويات الأمان والدقة.
  */
 
 async function getNPConfig() {
@@ -18,77 +18,69 @@ async function getNPConfig() {
   return configSnap.data();
 }
 
-export async function getOrCreateUserWallet(userId: string, currencyId: string) {
+/**
+ * إنشاء طلب دفع جديد فريد لهذه المعاملة
+ */
+export async function createNowPayment(userId: string, currencyId: string, amountUSD: number) {
   try {
     const { firestore } = initializeFirebase();
     const config = await getNPConfig();
     if (!config?.nowPaymentsApiKey) throw new Error("API Key missing");
 
-    const userRef = doc(firestore, "users", userId);
-    const userSnap = await getDoc(userRef);
+    const userSnap = await getDoc(doc(firestore, "users", userId));
     if (!userSnap.exists()) throw new Error("User not found");
-
     const userData = userSnap.data();
-    const assignedWallets = userData.assignedWallets || {};
 
-    let address = assignedWallets[currencyId];
+    // اكتشاف المضيف الحقيقي للـ Webhook
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const callbackUrl = `${protocol}://${host}/api/webhooks/nowpayments`;
 
-    if (!address) {
-      // اكتشاف المضيف الحقيقي لضمان عمل الـ IPN Callback بدقة 100%
-      const headersList = await headers();
-      const host = headersList.get('host');
-      const protocol = host?.includes('localhost') ? 'http' : 'https';
-      const callbackUrl = `${protocol}://${host}/api/webhooks/nowpayments`;
-
-      const response = await axios.post(
-        'https://api.nowpayments.io/v1/payment',
-        {
-          price_amount: 1, 
-          price_currency: 'usd',
-          pay_currency: currencyId,
-          order_id: `DEPOSIT_${userId}_${Date.now()}`, // بصمة فريدة للربط الاحتياطي
-          ipn_callback_url: callbackUrl
-        },
-        {
-          headers: {
-            'x-api-key': config.nowPaymentsApiKey,
-            'Content-Type': 'application/json'
-          }
+    const response = await axios.post(
+      'https://api.nowpayments.io/v1/payment',
+      {
+        price_amount: amountUSD,
+        price_currency: 'usd',
+        pay_currency: currencyId,
+        ipn_callback_url: callbackUrl,
+        order_id: `DEP_${userId}_${Date.now()}`
+      },
+      {
+        headers: {
+          'x-api-key': config.nowPaymentsApiKey,
+          'Content-Type': 'application/json'
         }
-      );
-      address = response.data.pay_address;
-      
-      await updateDoc(userRef, {
-        [`assignedWallets.${currencyId}`]: address,
-        updatedAt: new Date().toISOString()
-      });
-    }
+      }
+    );
 
-    // تسجيل في مخطط الربط العالمي لضمان المزامنة اللحظية
-    await setDoc(doc(firestore, "wallet_mappings", address.toLowerCase()), {
+    const paymentData = response.data;
+
+    // تسجيل الطلب في سجل الإيداعات المعلقة فوراً
+    const depositRef = await addDoc(collection(firestore, "deposit_requests"), {
       userId,
       userName: userData.displayName || "مستثمر",
-      currencyId,
+      amount: amountUSD,
+      paymentId: paymentData.payment_id.toString(),
+      transactionId: "WAITING_FOR_PAYMENT",
+      payAddress: paymentData.pay_address,
+      methodName: `NowPayments (${currencyId.toUpperCase()})`,
+      status: "pending",
+      isAutoAudited: true,
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    });
 
-    return { success: true, address };
+    return { 
+      success: true, 
+      paymentId: paymentData.payment_id,
+      address: paymentData.pay_address,
+      amount: paymentData.pay_amount,
+      currency: paymentData.pay_currency,
+      depositId: depositRef.id
+    };
   } catch (e: any) {
     const errorMsg = e.response?.data?.message || e.message;
     return { success: false, error: errorMsg };
   }
-}
-
-export async function generateBaseUserWallets(userId: string) {
-  const baseCurrencies = ['usdttrc20', 'usdtbsc', 'btc', 'eth', 'sol', 'trx', 'ltc', 'doge'];
-  const results = [];
-  for (const curr of baseCurrencies) {
-    try {
-      const res = await getOrCreateUserWallet(userId, curr);
-      results.push({ currency: curr, ...res });
-    } catch (e) {
-      results.push({ currency: curr, success: false });
-    }
-  }
-  return results;
 }
