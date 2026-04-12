@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -69,8 +68,8 @@ export function ExecutionStep({
   };
 
   return (
-    <div className="w-full space-y-8 text-right" dir="rtl">
-      {/* 1. Asset Header Identity */}
+    <div className="w-full space-y-8 text-right font-body" dir="rtl">
+      {/* 1. Asset Identity Header */}
       <section className="flex items-center gap-4 px-2">
          <div className="shrink-0 flex items-center justify-center">
             <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -81,7 +80,7 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 2. Visual QR Center (Pure Placement) */}
+      {/* 2. Visual QR Center - Pure Placement (No Container) */}
       <section className="flex justify-center relative py-4">
          {walletAddress ? (
            <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
@@ -95,7 +94,7 @@ export function ExecutionStep({
                 className="w-full h-full"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="bg-white p-1">
+                 <div className="bg-white p-1 rounded-sm">
                     <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                  </div>
               </div>
@@ -133,7 +132,12 @@ export function ExecutionStep({
              <Info size={14} />
              <h4 className="text-[10px] font-normal uppercase">تعليمات الإيداع</h4>
            </div>
-           <p className="text-[11px] font-normal leading-relaxed text-blue-800/70">{instructions}</p>
+           <p className="text-[11px] font-normal leading-relaxed text-blue-800/70">
+             يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر الشبكة المعتمدة حصراً. 
+             {isBinance ? " بعد اكتمال التحويل، يرجى لصق معرف العملية (TXID) في الحقل أدناه لبدء التدقيق الفوري والمزامنة." : 
+              isNowPayments ? " نظام المراقبة الذكي سيتعرف على الإيداع ويضيفه لمحفظتك تلقائياً فور تأكيد المعاملة." : 
+              " بعد التحويل، يرجى تزويدنا بالبيانات المطلوبة للتدقيق والاعتماد."}
+           </p>
          </div>
 
          {isBinance && (
@@ -143,14 +147,15 @@ export function ExecutionStep({
                 <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">تنسيق آلي</Badge>
              </div>
              
-             <div className="relative h-16 md:h-20 bg-gray-50/50 rounded-[28px] border border-gray-100 overflow-hidden flex items-center focus-within:bg-white focus-within:border-[#002d4d] transition-all">
+             {/* حقل TXID معدل لمنع تداخل الحواف */}
+             <div className="relative h-16 md:h-20 rounded-[28px] border border-gray-100 bg-gray-50/50 overflow-hidden flex items-center focus-within:bg-white focus-within:border-[#002d4d] transition-all px-4">
                 <div className="absolute right-6 pointer-events-none opacity-20">
                    <Hash size={18} className="text-[#002d4d]" />
                 </div>
                 <input 
                   value={txid} 
                   onChange={e => setTxid(e.target.value)} 
-                  className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-16 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
+                  className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-12 focus:ring-0 outline-none text-[#002d4d] placeholder:text-gray-300" 
                   placeholder="ألصق معرف العملية (TXID) هنا..." 
                 />
                 <button 
