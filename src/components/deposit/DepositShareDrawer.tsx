@@ -14,7 +14,8 @@ import {
   Share2, 
   ShieldCheck, 
   Sparkles,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,7 +46,7 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // تأخير بسيط لضمان رندر الباركود قبل الالتقاط
+      // بروتوكول انتظار نانوي لضمان ثبات الرندر قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
       }, 1500);
@@ -90,7 +91,7 @@ export function DepositShareDrawer({
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'عنوان الإيداع المعتمد',
+          title: 'معاملة إيداع معتمدة',
           text: `عنوان إيداع ${selectedAsset?.coin} عبر منصة ناميكس`
         });
       } else {
@@ -101,14 +102,14 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* القالب المخفي لتوليد الصورة - هندسة احترافية */}
+      {/* القالب المؤسساتي لتوليد الصورة */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
           className="w-[450px] bg-white p-12 flex flex-col items-center gap-10 min-h-[750px]"
           style={{ fontFamily: "'Cairo', 'Tajawal', sans-serif" }}
         >
-          {/* الهيدر المؤسساتي */}
+          {/* هيدر المعاملة النقي */}
           <div className="w-full flex items-center justify-between border-b border-gray-50 pb-8" dir="rtl">
              <div className="flex items-center gap-5">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
@@ -127,7 +128,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الباركود - نقي ومباشر على الخلفية */}
+          {/* منطقة الباركود المباشرة - بدون حاويات */}
           <div className="py-8 flex items-center justify-center">
              {walletAddress && (
                <div className="relative">
@@ -148,7 +149,7 @@ export function DepositShareDrawer({
              )}
           </div>
 
-          {/* البيانات الرقمية والشبكة */}
+          {/* تفاصيل العنوان والشبكة */}
           <div className="w-full text-center space-y-6" dir="rtl">
              <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
@@ -164,19 +165,19 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* الختم السفلي - فصل الحروف لضمان التباعد الهيدروليكي */}
-          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="rtl">
-             <div className="flex items-center gap-6">
+          {/* الختم السفلي المصغر - تم تصحيح الاتجاه والترتيب */}
+          <div className="mt-auto pt-10 w-full border-t border-gray-50 flex flex-col items-center gap-3 opacity-30" dir="ltr">
+             <div className="flex items-center gap-4">
                 {/* شعار النقاط على اليسار */}
-                <div className="grid grid-cols-2 gap-0.5 scale-75 order-first">
+                <div className="grid grid-cols-2 gap-0.5 scale-[0.6] origin-center">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                {/* الحروف المنفصلة لضمان التباعد */}
-                <div className="flex items-center gap-4 text-[#002d4d] font-normal text-[10px] tracking-normal">
+                {/* حروف الاسم بترتيبها الصحيح من اليسار لليمين */}
+                <div className="flex items-center gap-3 text-[#002d4d] font-normal text-[9px] tracking-normal">
                    <span>N</span>
                    <span>A</span>
                    <span>M</span>
@@ -184,7 +185,7 @@ export function DepositShareDrawer({
                    <span>X</span>
                 </div>
              </div>
-             <p className="text-[6px] font-normal text-gray-400 uppercase tracking-[0.3em]">Institutional Asset Node</p>
+             <p className="text-[5px] font-normal text-gray-400 uppercase tracking-[0.3em]">Institutional Asset Node</p>
           </div>
         </div>
       </div>
@@ -193,7 +194,7 @@ export function DepositShareDrawer({
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[60dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
-            <VisuallyHidden.Root><DrawerTitle>معاملة الإيداع</DrawerTitle></VisuallyHidden.Root>
+            <VisuallyHidden.Root><DrawerTitle>معالجة المعاملة</DrawerTitle></VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-10 scrollbar-none">
                <AnimatePresence mode="wait">
