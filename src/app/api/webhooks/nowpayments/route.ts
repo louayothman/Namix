@@ -5,8 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection, setDoc } from 'firebase/firestore';
 
 /**
- * @fileOverview مراقب الإيداع الآلي المطور v5.0 - Robust Multi-Status Sync
- * تم تحسين المنطق لضمان التعرف الفوري والمعالجة الدقيقة لكافة حالات النجاح.
+ * @fileOverview مراقب الإيداع الآلي المطور v6.0 - Robust Sync & Diagnostics
+ * تم تحسين المنطق لدعم اختبارات الـ IPN وتسجيل كافة المعطيات للتدقيق.
  */
 
 export async function POST(req: Request) {
@@ -20,6 +20,9 @@ export async function POST(req: Request) {
     const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
     const ipnSecret = configSnap?.data()?.nowPaymentsIpnSecret;
 
+    // تسجيل الطلب للتدقيق (Helpful for Testing)
+    console.log("Incoming NP Webhook:", body);
+
     // 1. بروتوكول التحقق من التوقيع (Signature Validation)
     if (ipnSecret && sig) {
       const hmac = crypto.createHmac('sha512', ipnSecret);
@@ -29,7 +32,6 @@ export async function POST(req: Request) {
       const signature = hmac.digest('hex');
       
       if (signature !== sig) {
-        // تسجيل محاولة وصول غير مصرح بها للتدقيق الأمني
         await addDoc(collection(firestore, "system_logs"), {
           type: "webhook_security_alert",
           message: "Invalid Webhook Signature detected.",
@@ -41,6 +43,18 @@ export async function POST(req: Request) {
     }
 
     const data = JSON.parse(body);
+
+    // معالجة طلبات الاختبار من NowPayments
+    if (data.payment_status === 'test') {
+      await addDoc(collection(firestore, "system_logs"), {
+        type: "webhook_test_success",
+        message: "IPN Connection Test Successful.",
+        payload: data,
+        createdAt: timestamp
+      });
+      return NextResponse.json({ ok: true, message: "Test IPN Received" });
+    }
+
     const { payment_status, pay_address, actually_paid, pay_currency, payment_id } = data;
 
     // 2. تصفية الحالات التشغيلية المعتمدة
@@ -117,7 +131,6 @@ export async function POST(req: Request) {
         });
 
       } else {
-        // تسجيل خطأ: عنوان محفظة غير مرتبط بأي مستخدم
         await addDoc(collection(firestore, "system_logs"), {
           type: "webhook_mapping_error",
           message: `Received payment for unmapped address: ${pay_address}`,
@@ -129,7 +142,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    // تسجيل أي خطأ فني غير متوقع في قاعدة البيانات للمراجعة الإدارية
     await addDoc(collection(firestore, "system_logs"), {
       type: "webhook_runtime_crash",
       error: e.message,

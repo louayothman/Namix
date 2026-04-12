@@ -1,16 +1,15 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
-import { GlobalDepositDialog } from "@/components/deposit/GlobalDepositDialog";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
 
 /**
  * محرك توليد الميتاداتا الديناميكي
- * يكتشف الدومين الحالي تلقائياً لضمان عمل الصور والروابط على أي بيئة
  */
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -84,11 +83,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'namix.pro';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const currentDomain = `${protocol}://${host}`;
-
   return (
     <html lang="ar" dir="rtl">
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">

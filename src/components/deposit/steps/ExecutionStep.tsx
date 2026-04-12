@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -14,8 +15,7 @@ import {
   ClipboardPaste,
   Sparkles,
   AlertCircle,
-  ChevronLeft,
-  RefreshCcw
+  ChevronLeft
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { DepositShareDrawer } from "../DepositShareDrawer";
@@ -90,21 +90,21 @@ export function ExecutionStep({
          </Badge>
       </section>
 
-      {/* 2. QR Code - Pure Minimalist Integration */}
-      <section className="flex justify-center py-4 relative group">
+      {/* 2. QR Code - Pure Minimalist (No Container) */}
+      <section className="flex justify-center py-4">
          {walletAddress ? (
-           <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
+           <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
               <QRCodeSVG 
                 value={walletAddress}
                 size={256}
-                bgColor={"#ffffff"}
+                bgColor={"transparent"}
                 fgColor={"#002d4d"}
                 level={"H"}
                 includeMargin={false}
                 className="w-full h-full"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="bg-white p-1 rounded-sm shadow-sm">
+                 <div className="bg-white p-1 rounded-sm">
                     <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
                  </div>
               </div>
@@ -135,7 +135,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
-      {/* 4. Instructions & Guidance */}
+      {/* 4. Instructions & Guidance (Re-styled for Clarity) */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-5">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
@@ -147,7 +147,7 @@ export function ExecutionStep({
               {isNowPayments ? (
                 <div className="space-y-2">
                   <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
-                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد اتمام العملية.</p>
+                  <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية.</p>
                 </div>
               ) : isBinance ? (
                 <div className="space-y-2">
@@ -155,7 +155,7 @@ export function ExecutionStep({
                   <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID.</p>
                 </div>
               ) : (
-                <p>{instructions}</p>
+                <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> واتبع التعليمات الموضحة.</p>
               )}
 
               <div className="space-y-2 pt-4 border-t border-blue-100/50">
@@ -197,15 +197,12 @@ export function ExecutionStep({
            </div>
          )}
 
-         <div className="pt-2 space-y-4">
-            {isNowPayments ? (
-              <Button 
-                onClick={() => window.location.href = '/home'}
-                className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group"
-              >
+         <div className="pt-2">
+            {(isNowPayments) ? (
+              <button onClick={() => window.location.href = '/home'} className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group">
                  <span>العودة للرئيسية</span>
                  <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />
-              </Button>
+              </button>
             ) : (
               <Button 
                 onClick={onSubmit} 
@@ -219,12 +216,6 @@ export function ExecutionStep({
                   </>
                 )}
               </Button>
-            )}
-            
-            {isNowPayments && (
-              <p className="text-[9px] text-gray-400 font-bold text-center px-6 leading-relaxed">
-                سيقوم النظام بمراقبة العنوان وتحديث رصيدك تلقائياً. يمكنك إغلاق هذه الصفحة الآن والعودة لاحقاً.
-              </p>
             )}
          </div>
       </section>

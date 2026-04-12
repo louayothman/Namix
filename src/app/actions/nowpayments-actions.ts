@@ -6,8 +6,8 @@ import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v6.0
- * تم إضافة بروتوكول "wallet_mappings" لضمان التعرف اللحظي والآلي على إيداعات المستخدمين.
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v7.0
+ * تم إصلاح مشكلة الدومين (undefined) لضمان دقة رابط الـ IPN Callback.
  */
 
 async function getNPConfig() {
@@ -36,6 +36,10 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
     let address = assignedWallets[currencyId];
 
     if (!address) {
+      // اكتشاف الدومين الحالي لضمان عمل الـ IPN
+      const domain = process.env.NEXT_PUBLIC_DOMAIN || (typeof window !== 'undefined' ? window.location.host : '');
+      const callbackUrl = `https://${domain}/api/webhooks/nowpayments`;
+
       const response = await axios.post(
         'https://api.nowpayments.io/v1/payment',
         {
@@ -43,7 +47,7 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
           price_currency: 'usd',
           pay_currency: currencyId,
           order_id: `ADDR_GEN_${userId}_${currencyId}`,
-          ipn_callback_url: `https://${process.env.NEXT_PUBLIC_DOMAIN}/api/webhooks/nowpayments`
+          ipn_callback_url: callbackUrl
         },
         {
           headers: {

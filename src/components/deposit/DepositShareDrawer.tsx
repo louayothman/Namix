@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -32,8 +33,8 @@ interface DepositShareDrawerProps {
 }
 
 /**
- * @fileOverview مفاعل تصدير المعاملات v22.0 - Sovereign Pure Edition
- * تم تجريد الباركود من كافة الحاويات لدمجه مباشرة في الصورة، وضبط الختم بترتيب الكلمات المنفصلة LTR.
+ * @fileOverview مفاعل تصدير المعاملات v23.0 - Pure Minimalist & Correct Signature
+ * تم تجريد الباركود من الحاويات، وفصل حروف الختم لضمان التباعد مع شعار النقاط على اليسار.
  */
 export function DepositShareDrawer({
   open,
@@ -50,26 +51,22 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // تأخير تقني لضمان استقرار الباركود المحلي بالكامل قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
-      }, 1500);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
   const captureProtocol = async () => {
     if (!captureRef.current) return;
-    
     try {
       await document.fonts.ready;
-      
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         pixelRatio: 3, 
       });
-
       setImgUrl(dataUrl);
     } catch (err) {
       console.error("Capture Failure:", err);
@@ -106,7 +103,6 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* Hidden Master Template for Image Capture */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
@@ -131,7 +127,6 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Pure QR - Directly on Canvas */}
           <div className="py-10">
              {walletAddress && (
                <div className="relative">
@@ -144,7 +139,7 @@ export function DepositShareDrawer({
                     includeMargin={false}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="bg-white p-1.5 rounded-sm">
+                     <div className="bg-white p-1.5 rounded-sm shadow-sm">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={36} />
                      </div>
                   </div>
@@ -167,7 +162,6 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Sovereign Signature - Word-separated LTR */}
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="ltr">
              <div className="flex items-center gap-5">
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">
