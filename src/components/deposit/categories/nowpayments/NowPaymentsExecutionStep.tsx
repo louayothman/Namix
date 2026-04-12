@@ -44,11 +44,10 @@ export function NowPaymentsExecutionStep({
                <p className="text-[10px] text-gray-400 uppercase tracking-widest">{networkLabel}</p>
             </div>
          </div>
-         <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse">ACTIVE NODE</Badge>
+         <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full">READY</Badge>
       </section>
 
       <section className="space-y-10">
-         {/* مكون عرض العنوان والباركود المعزول */}
          <AddressDisplay 
            walletAddress={walletAddress} 
            selectedAsset={selectedAsset} 
@@ -64,25 +63,11 @@ export function NowPaymentsExecutionStep({
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
               <p>أودع الأموال إلى العنوان أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
-              <p className="font-black text-[#002d4d] text-[13px]">سيتم إضافة الرصيد إلى محفظتك تلقائياً بعد إتمام العملية.</p>
-
               <div className="space-y-3 pt-6 border-t border-gray-200">
-                 <p className="font-black text-red-500 flex items-center gap-2">
-                    <AlertCircle size={14} /> تحذير:
-                 </p>
-                 <ul className="space-y-3 pr-2 list-none">
-                    <li className="flex items-start gap-2">
-                       <div className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0 mt-2" />
-                       <span>تأكد من اختيار شبكة <span className="font-black text-red-600">{networkLabel}</span> حصراً عند الإرسال.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <div className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0 mt-2" />
-                       <span>تحقق من صحة العنوان قبل تنفيذ العملية.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <div className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0 mt-2" />
-                       <span>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</span>
-                    </li>
+                 <p className="font-black text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
+                 <ul className="space-y-3 pr-2 list-none text-[11px]">
+                    <li>تأكد من اختيار شبكة <span className="font-black text-red-600">{networkLabel}</span> حصراً.</li>
+                    <li>أي إيداع عبر شبكة غير مدعومة قد يؤدي لفقدان الأصول.</li>
                  </ul>
               </div>
            </div>
@@ -91,11 +76,10 @@ export function NowPaymentsExecutionStep({
          <div className="pt-4">
             <button 
               onClick={() => window.location.href = '/home'} 
-              className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
             >
-               <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
-               <span className="relative z-10">العودة للرئيسية</span>
-               <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1 relative z-10" />
+               <span>العودة للرئيسية</span>
+               <ChevronLeft className="h-6 w-6 text-[#f9a885]" />
             </button>
          </div>
       </section>

@@ -15,8 +15,7 @@ import {
   Share2, 
   ShieldCheck, 
   Sparkles,
-  Check,
-  Loader2
+  Check
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,10 +31,6 @@ interface DepositShareDrawerProps {
   walletAddress: string;
 }
 
-/**
- * @fileOverview مفاعل تصدير المعاملات v25.0 - Sovereign Precise Signature
- * هندسة فخمة للختم السفلي: N A M I X (كلمات منفصلة) مع شعار النقاط على اليسار (LTR).
- */
 export function DepositShareDrawer({
   open,
   onOpenChange,
@@ -44,17 +39,14 @@ export function DepositShareDrawer({
   walletAddress
 }: DepositShareDrawerProps) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
       setImgUrl(null);
-      setIsProcessing(true);
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         captureProtocol();
-      }, 1500); // زيادة المهلة لضمان استقرار الباركود
-      return () => clearTimeout(timer);
+      }, 800); 
     }
   }, [open]);
 
@@ -65,20 +57,18 @@ export function DepositShareDrawer({
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 3, 
+        pixelRatio: 2, 
       });
       setImgUrl(dataUrl);
     } catch (err) {
       console.error("Capture Failure:", err);
-    } finally {
-      setIsProcessing(false);
     }
   };
 
   const handleDownload = () => {
     if (!imgUrl) return;
     const link = document.createElement('a');
-    link.download = `namix-deposit-${selectedAsset?.coin || 'transaction'}.png`;
+    link.download = `namix-deposit.png`;
     link.href = imgUrl;
     link.click();
   };
@@ -92,8 +82,8 @@ export function DepositShareDrawer({
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'معاملة إيداع معتمدة',
-          text: `عنوان إيداع ${selectedAsset?.coin} عبر منصة ناميكس`
+          title: 'معاملة إيداع',
+          text: `عنوان إيداع ${selectedAsset?.coin}`
         });
       } else {
         handleDownload();
@@ -103,7 +93,6 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* Hidden Capture Node */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
@@ -114,7 +103,7 @@ export function DepositShareDrawer({
              <div className="flex items-center gap-5">
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
                 <div className="text-right">
-                   <h2 className="text-base font-normal text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h2>
+                   <h2 className="text-base font-normal text-[#002d4d]">{selectedAsset?.name || selectedAsset?.coin}</h2>
                    <p className="text-[9px] font-normal text-gray-400 uppercase tracking-widest mt-1.5">
                      {selectedNetwork?.name || selectedAsset?.network}
                    </p>
@@ -131,14 +120,7 @@ export function DepositShareDrawer({
           <div className="py-10">
              {walletAddress && (
                <div className="relative">
-                  <QRCodeSVG 
-                    value={walletAddress}
-                    size={280}
-                    bgColor={"#ffffff"}
-                    fgColor={"#002d4d"}
-                    level={"H"}
-                    includeMargin={false}
-                  />
+                  <QRCodeSVG value={walletAddress} size={280} bgColor={"#ffffff"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
                   <div className="absolute inset-0 flex items-center justify-center">
                      <div className="bg-white p-1.5 rounded-sm shadow-sm">
                         <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={36} />
@@ -151,19 +133,13 @@ export function DepositShareDrawer({
           <div className="w-full text-center space-y-8" dir="rtl">
              <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
-                <p className="text-[14px] font-normal text-[#002d4d] break-all leading-loose px-4 font-mono" dir="ltr">
-                  {walletAddress}
-                </p>
+                <p className="text-[14px] font-normal text-[#002d4d] break-all leading-loose px-4 font-mono" dir="ltr">{walletAddress}</p>
              </div>
-             
              <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
-                <span className="text-[12px] font-normal text-[#002d4d]">
-                  الشبكة : {selectedAsset?.coin || 'Asset'} - {selectedNetwork?.name || selectedAsset?.network}
-                </span>
+                <span className="text-[12px] font-normal text-[#002d4d]">الشبكة : {selectedAsset?.coin} - {selectedNetwork?.name || selectedAsset?.network}</span>
              </div>
           </div>
 
-          {/* Sovereign Stamp - LTR Signature with separated letters */}
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="ltr">
              <div className="flex items-center gap-5">
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">
@@ -172,13 +148,8 @@ export function DepositShareDrawer({
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
-                
                 <div className="flex items-center gap-4 text-[#002d4d] font-normal text-[10px] tracking-[0.1em]">
-                   <span>N</span>
-                   <span>A</span>
-                   <span>M</span>
-                   <span>I</span>
-                   <span>X</span>
+                   <span>N</span><span>A</span><span>M</span><span>I</span><span>X</span>
                 </div>
              </div>
              <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em]">Institutional Trust Protocol</p>
@@ -194,65 +165,23 @@ export function DepositShareDrawer({
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-10 scrollbar-none">
                <AnimatePresence mode="wait">
-                 {isProcessing ? (
-                   <motion.div 
-                     key="loading"
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     className="flex flex-col items-center justify-center"
-                   >
-                      <div className="relative">
-                         <motion.div 
-                           animate={{ rotate: 360 }}
-                           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                           className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full" 
-                         />
-                         <div className="absolute inset-0 flex items-center justify-center">
-                            <ShieldCheck className="h-7 w-7 text-[#002d4d] animate-pulse" />
-                         </div>
-                      </div>
-                   </motion.div>
-                 ) : imgUrl && (
-                   <motion.div 
-                     key="preview"
-                     initial={{ opacity: 0, scale: 0.95 }} 
-                     animate={{ opacity: 1, scale: 1 }} 
-                     className="relative"
-                   >
+                 {imgUrl ? (
+                   <motion.div key="preview" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative">
                       <div className="p-2 bg-white rounded-[44px] shadow-2xl border border-gray-100 overflow-hidden">
-                         <img 
-                           src={imgUrl} 
-                           className="w-full max-w-[200px] md:max-w-[240px] rounded-[36px]" 
-                           alt="Transaction" 
-                         />
+                         <img src={imgUrl} className="w-full max-w-[200px] md:max-w-[240px] rounded-[36px]" alt="Transaction" />
                       </div>
                       <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-5 py-1.5 rounded-full text-[9px] font-normal shadow-lg flex items-center gap-2 whitespace-nowrap">
-                         <Check size={12} strokeWidth={3} />
-                         جاهزة للمشاركة
+                         <Check size={12} strokeWidth={3} /> جاهزة للمشاركة
                       </div>
                    </motion.div>
+                 ) : (
+                   <div className="h-40 w-40 bg-gray-50 rounded-[44px] animate-pulse" />
                  )}
                </AnimatePresence>
 
                <div className="w-full max-w-sm grid grid-cols-2 gap-4 pb-6">
-                  <Button 
-                    onClick={handleDownload} 
-                    disabled={isProcessing || !imgUrl}
-                    className="h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-normal text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-                  >
-                    <Download size={18} className="text-[#f9a885]" />
-                    <span>حفظ</span>
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleShare} 
-                    disabled={isProcessing || !imgUrl}
-                    className="h-14 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-normal text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
-                  >
-                    <Share2 size={18} className="text-blue-500" />
-                    <span>مشاركة</span>
-                  </Button>
+                  <Button onClick={handleDownload} disabled={!imgUrl} className="h-14 rounded-full bg-[#002d4d] text-white font-normal text-sm shadow-xl active:scale-95 transition-all">حفظ</Button>
+                  <Button onClick={handleShare} disabled={!imgUrl} className="h-14 rounded-full bg-gray-100 text-[#002d4d] font-normal text-sm active:scale-95 transition-all">مشاركة</Button>
                </div>
             </div>
 

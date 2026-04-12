@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { ChevronLeft, Layers, Loader2 } from "lucide-react";
+import { ChevronLeft, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getAvailableNowPaymentsCurrencies } from "@/app/actions/nowpayments-actions";
@@ -41,16 +41,11 @@ const NETWORK_MAP: Record<string, any[]> = {
 
 export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: parentLoading }: NowPaymentsNetworkStepProps) {
   const [availableIds, setAvailableIds] = useState<string[]>([]);
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const fetchAvailability = async () => {
-      setChecking(true);
       const res = await getAvailableNowPaymentsCurrencies();
-      if (res.success && res.currencies) {
-        setAvailableIds(res.currencies);
-      }
-      setChecking(false);
+      if (res.success && res.currencies) setAvailableIds(res.currencies);
     };
     fetchAvailability();
   }, []);
@@ -59,8 +54,8 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: paren
     const allPossible = NETWORK_MAP[selectedAsset?.symbol] || [
       { id: selectedAsset?.symbol.toLowerCase(), name: selectedAsset?.name, network: 'Mainnet' }
     ];
-    
-    // إخفاء الشبكات غير المتاحة لحظياً في NOWPayments
+    // Filter silently if data is available, otherwise show all
+    if (availableIds.length === 0) return allPossible;
     return allPossible.filter(net => availableIds.includes(net.id));
   }, [selectedAsset, availableIds]);
 
@@ -76,43 +71,29 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: paren
         </div>
       </div>
 
-      {checking ? (
-        <div className="py-20 text-center flex flex-col items-center gap-4 animate-pulse">
-           <Loader2 className="h-8 w-8 animate-spin text-gray-200" />
-           <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Scanning Available Nodes...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-          {filteredNetworks.map((net) => (
-            <button 
-              key={net.id} 
-              onClick={() => onSelect(net)}
-              disabled={parentLoading}
-              className="h-[80px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
-            >
-              <div className="h-10 w-10 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center transition-all shrink-0 shadow-inner group-hover:bg-blue-50 group-hover:text-blue-600">
-                 <Layers size={20} />
-              </div>
-              <div className="flex-1 space-y-0.5 min-w-0">
-                <p className="font-black text-[13px] text-[#002d4d] truncate">{net.name}</p>
-                <Badge className="font-black text-[7px] px-1.5 py-0.5 rounded-md shadow-sm uppercase border-none bg-emerald-50 text-emerald-600">
-                  {net.network}
-                </Badge>
-              </div>
-              <div className="shrink-0">
-                 {parentLoading ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />}
-              </div>
-            </button>
-          ))}
-          
-          {filteredNetworks.length === 0 && !checking && (
-            <div className="col-span-full py-20 text-center flex flex-col items-center gap-4 opacity-40">
-               <Layers size={40} className="text-gray-200" />
-               <p className="text-[10px] font-black uppercase text-gray-400">لا توجد شبكات متاحة لهذه العملة حالياً</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        {filteredNetworks.map((net) => (
+          <button 
+            key={net.id} 
+            onClick={() => onSelect(net)}
+            disabled={parentLoading}
+            className="h-[80px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
+          >
+            <div className="h-10 w-10 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center transition-all shrink-0 shadow-inner group-hover:bg-blue-50 group-hover:text-blue-600">
+               <Layers size={20} />
             </div>
-          )}
-        </div>
-      )}
+            <div className="flex-1 space-y-0.5 min-w-0">
+              <p className="font-black text-[13px] text-[#002d4d] truncate">{net.name}</p>
+              <Badge className="font-black text-[7px] px-1.5 py-0.5 rounded-md shadow-sm uppercase border-none bg-emerald-50 text-emerald-600">
+                {net.network}
+              </Badge>
+            </div>
+            <div className="shrink-0">
+               <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
+            </div>
+          </button>
+        ))}
+      </div>
     </motion.div>
   );
 }
