@@ -51,7 +51,6 @@ export function ManualExecutionStep({
       </section>
 
       <section className="space-y-10">
-         {/* مكون عرض العنوان والباركود المعزول */}
          <AddressDisplay 
            walletAddress={selectedAsset?.walletAddress} 
            selectedAsset={selectedAsset} 
@@ -62,7 +61,7 @@ export function ManualExecutionStep({
          <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner space-y-5">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
              <Info size={14} />
-             <h4 className="text-[10px] font-black uppercase tracking-widest">تعليمات الإيداع اليدوي</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-widest">تعليمات الإيداع</h4>
            </div>
            <p className="text-[11px] font-bold leading-loose text-gray-500 pr-1">{selectedAsset?.instructions}</p>
          </div>
@@ -70,15 +69,15 @@ export function ManualExecutionStep({
          <div className="space-y-6">
             <div className="space-y-2">
                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">مبلغ الإيداع ($)</Label>
-               <div className="relative">
-                  <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-18 w-full bg-gray-50 border-none rounded-[24px] text-center font-black text-2xl text-[#002d4d] shadow-inner outline-none" placeholder="0.00" />
+               <div className="relative h-18 rounded-[24px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner">
+                  <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-normal text-2xl text-[#002d4d] outline-none" placeholder="0.00" />
                   <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
                </div>
             </div>
             <div className="space-y-2">
                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">معرف العملية (TXID) / رقم الحوالة</Label>
                <div className="relative h-18 rounded-[24px] bg-gray-50 border border-gray-100 shadow-inner">
-                  <input value={txid} onChange={e => setTxid(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-black text-xs text-[#002d4d] outline-none px-12" placeholder="أدخل المرجع الرقمي..." />
+                  <input value={txid} onChange={e => setTxid(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-normal text-sm text-[#002d4d] outline-none px-12" placeholder="أدخل المرجع الرقمي..." />
                   <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
                </div>
             </div>
@@ -86,7 +85,7 @@ export function ManualExecutionStep({
 
          <div className="pt-2">
             <Button onClick={onSubmit} disabled={loading || !amount || !txid} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all">
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال طلب الإيداع للتدقيق"}
+              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال طلب الإيداع"}
             </Button>
          </div>
       </section>

@@ -14,18 +14,16 @@ import { AddressDisplay } from "../../shared/AddressDisplay";
 
 interface NowPaymentsExecutionStepProps {
   selectedAsset: any;
-  selectedNetwork: any;
   walletAddress: string;
   loading: boolean;
 }
 
 export function NowPaymentsExecutionStep({
   selectedAsset,
-  selectedNetwork,
   walletAddress,
   loading
 }: NowPaymentsExecutionStepProps) {
-  const networkLabel = selectedNetwork?.network || "المعتمدة";
+  const networkLabel = selectedAsset?.network || "الأساسية";
 
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">
@@ -36,7 +34,7 @@ export function NowPaymentsExecutionStep({
                <CryptoIcon name={selectedAsset?.icon} size={48} />
             </div>
             <div className="text-right space-y-0.5">
-               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.name}</h3>
+               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.label || selectedAsset?.name}</h3>
                <p className="text-[10px] text-gray-400 uppercase tracking-widest">{networkLabel}</p>
             </div>
          </div>
@@ -47,14 +45,14 @@ export function NowPaymentsExecutionStep({
          <AddressDisplay 
            walletAddress={walletAddress} 
            selectedAsset={selectedAsset} 
-           selectedNetwork={selectedNetwork}
+           selectedNetwork={{ name: networkLabel }}
            loading={loading}
          />
 
          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
              <Info size={16} />
-             <h4 className="text-[11px] font-black uppercase tracking-widest">تعليمات الإيداع المعتمدة</h4>
+             <h4 className="text-[11px] font-black uppercase tracking-widest">تعليمات الإيداع</h4>
            </div>
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">

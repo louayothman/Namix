@@ -42,7 +42,7 @@ export function BinanceExecutionStep({
     } catch (err) {}
   };
 
-  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "المعتمدة";
+  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "الأساسية";
 
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">
@@ -71,7 +71,7 @@ export function BinanceExecutionStep({
          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
              <Info size={16} />
-             <h4 className="text-[11px] font-black uppercase tracking-widest">تعليمات الإيداع المعتمدة</h4>
+             <h4 className="text-[11px] font-black uppercase tracking-widest">تعليمات الإيداع</h4>
            </div>
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
@@ -92,10 +92,10 @@ export function BinanceExecutionStep({
               <input 
                 value={txid} 
                 onChange={e => setTxid(e.target.value)} 
-                className="h-full w-full bg-transparent border-none text-center font-black text-sm px-14 outline-none text-[#002d4d]" 
+                className="h-full w-full bg-transparent border-none text-center font-normal text-sm px-14 outline-none text-[#002d4d]" 
                 placeholder="ألصق معرف العملية هنا..." 
               />
-              <button onClick={handlePaste} type="button" className="absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] active:scale-90"><ClipboardPaste size={20} /></button>
+              <button onClick={handlePaste} type="button" className="absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] active:scale-90 shadow-sm"><ClipboardPaste size={20} /></button>
               <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
            </div>
          </div>
@@ -104,7 +104,7 @@ export function BinanceExecutionStep({
             <button 
               onClick={onSubmit} 
               disabled={loading || !txid || !walletAddress} 
-              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3 disabled:opacity-20"
+              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3"
             >
                <span>المتابعة</span>
                <ShieldCheck size={24} className="text-[#f9a885]" />

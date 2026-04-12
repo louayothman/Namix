@@ -15,23 +15,17 @@ import { createNowPayment } from "@/app/actions/nowpayments-actions";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Categorized Modular Steps (Dumb Components now, just props)
 import { BinanceCurrencyStep } from "@/components/deposit/categories/binance/BinanceCurrencyStep";
 import { BinanceNetworkStep } from "@/components/deposit/categories/binance/BinanceNetworkStep";
 import { BinanceExecutionStep } from "@/components/deposit/categories/binance/BinanceExecutionStep";
 
 import { NowPaymentsCurrencyStep } from "@/components/deposit/categories/nowpayments/NowPaymentsCurrencyStep";
-import { NowPaymentsNetworkStep } from "@/components/deposit/categories/nowpayments/NowPaymentsNetworkStep";
 import { NowPaymentsExecutionStep } from "@/components/deposit/categories/nowpayments/NowPaymentsExecutionStep";
 
 import { ManualCurrencyStep } from "@/components/deposit/categories/manual/ManualCurrencyStep";
 import { ManualExecutionStep } from "@/components/deposit/categories/manual/ManualExecutionStep";
 
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
-
-interface DepositPageProps {
-  params: Promise<{ categoryId: string }>;
-}
 
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
@@ -42,24 +36,34 @@ const NamixDotsIcon = () => (
   </div>
 );
 
-export default function CategoryDepositPage({ params }: DepositPageProps) {
+const SovereignLoader = () => (
+  <div className="flex flex-col items-center justify-center py-20 gap-6">
+    <div className="relative">
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full shadow-[0_0_20px_rgba(0,45,77,0.05)]"
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <NamixDotsIcon />
+      </div>
+    </div>
+  </div>
+);
+
+export default function CategoryDepositPage({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = use(params);
   const router = useRouter();
   const db = useFirestore();
   
   const [step, setStep] = useState<string>("select_asset");
   const [loading, setLoading] = useState(false);
-  
-  // Data Cache - Pre-fetched
   const [binanceConfig, setBinanceConfig] = useState<any[]>([]);
   const [npAvailableIds, setNpAvailableIds] = useState<string[]>([]);
-  
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<any>(null);
-  
   const [walletAddress, setWalletAddress] = useState("");
   const [dbUser, setDbUser] = useState<any>(null);
   const [txid, setTxid] = useState("");
@@ -70,7 +74,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   const categoryRef = useMemoFirebase(() => doc(db, "deposit_methods", categoryId), [db, categoryId]);
   const { data: category } = useDoc(categoryRef);
 
-  // 1. Initial Session & Pre-fetch Data
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -84,25 +87,30 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   useEffect(() => {
     if (!category) return;
-    
-    // جلب بيانات بينانس مسبقاً بصمت
     if (category.type === 'binance' && binanceConfig.length === 0) {
       getBinanceCoinsConfig().then(res => { if (res.success) setBinanceConfig(res.coins); });
     }
-    
-    // جلب شبكات ناوبايمنتس مسبقاً بصمت
     if (category.type === 'nowpayments' && npAvailableIds.length === 0) {
       getAvailableNowPaymentsCurrencies().then(res => { if (res.success) setNpAvailableIds(res.currencies); });
     }
   }, [category, binanceConfig.length, npAvailableIds.length]);
 
-  // 2. Navigation Logic
-  const handleAssetSelect = (asset: any) => {
+  const handleAssetSelect = async (asset: any) => {
     setSelectedAsset(asset);
     setSearchQuery("");
     setWalletAddress("");
-    if (category?.type === 'binance' || category?.type === 'nowpayments') setStep("select_network");
-    else {
+    
+    if (category?.type === 'nowpayments') {
+      // مسار ناوبايمنتس: اختيار مباشر -> جلب العنوان -> تنفيذ
+      setStep("execution");
+      setLoading(true);
+      const res = await createNowPayment(dbUser.id, asset.id, 10);
+      if (res.success) setWalletAddress(res.address);
+      else setError(res.error);
+      setLoading(false);
+    } else if (category?.type === 'binance') {
+      setStep("select_network");
+    } else {
       setWalletAddress(asset.walletAddress || "");
       setStep("execution");
     }
@@ -110,33 +118,20 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
-    setWalletAddress(""); // تصفير العنوان القديم فوراً
+    setWalletAddress("");
     setStep("execution");
     setLoading(true);
-    setError(null);
-
-    try {
-      if (category?.type === 'binance') {
-        const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-        if (addrRes.success) setWalletAddress(addrRes.address);
-        else setError(addrRes.error);
-      } else if (category?.type === 'nowpayments') {
-        const res = await createNowPayment(dbUser.id, network.id, 10);
-        if (res.success) setWalletAddress(res.address);
-        else setError(res.error);
-      }
-    } catch (e) {
-      setError("فشل في مزامنة العنوان.");
-    } finally {
-      setLoading(false);
+    if (category?.type === 'binance') {
+      const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
+      if (addrRes.success) setWalletAddress(addrRes.address);
+      else setError(addrRes.error);
     }
+    setLoading(false);
   };
 
   const handleFinalSubmit = async () => {
     if (!dbUser) return;
     setLoading(true);
-    setError(null);
-    
     if (category?.type === 'binance') {
       const res = await verifyAndProcessBinanceDeposit(dbUser.id, txid, selectedAsset.coin);
       if (res.success) setSuccessData(res.data);
@@ -145,11 +140,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       setLoading(false);
       return;
     }
-
     try {
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id, userName: dbUser.displayName, amount: Number(amount),
-        methodName: `${category?.name} - ${selectedAsset?.name || selectedAsset?.symbol}`,
+        methodName: `${category?.name} - ${selectedAsset?.name || selectedAsset?.symbol || selectedAsset?.label}`,
         transactionId: txid || "MANUAL_REVIEW_PENDING",
         status: "pending", createdAt: new Date().toISOString()
       });
@@ -162,7 +156,11 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     setWalletAddress("");
     setTxid("");
     if (step === "result") { router.push("/home"); return; }
-    if (step === "execution") { setStep("select_network"); return; }
+    if (step === "execution") { 
+      if (category?.type === 'nowpayments') setStep("select_asset");
+      else setStep(category?.type === 'binance' ? "select_network" : "select_asset");
+      return; 
+    }
     if (step === "select_network") { setStep("select_asset"); return; }
     router.back();
   };
@@ -182,58 +180,59 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
               {step === "select_asset" && (
-                <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent transition-all", isSearchOpen ? "text-[#002d4d] bg-white shadow-sm" : "text-gray-400")}>
+                <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center transition-all", isSearchOpen ? "text-[#002d4d] bg-white shadow-sm" : "text-gray-400")}>
                   {isSearchOpen ? <X size={16} /> : <Search size={16} />}
                 </button>
               )}
-              <button onClick={handleBack} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d] active:scale-90 transition-all"><ChevronLeft size={18} /></button>
+              <button onClick={handleBack} className="h-9 w-9 rounded-xl flex items-center justify-center text-[#002d4d] active:scale-90 transition-all"><ChevronLeft size={18} /></button>
            </div>
         </header>
 
         <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
           {isSearchOpen && step === "select_asset" && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden pb-4">
+            <div className="pb-4">
               <div className="relative">
-                <input 
-                  autoFocus
-                  placeholder="ابحث عن العملة..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="h-14 w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner focus:ring-2 focus:ring-[#002d4d]/10 transition-all outline-none"
-                />
+                <input autoFocus placeholder="ابحث عن العملة..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-14 w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner outline-none focus:ring-2 focus:ring-[#002d4d]/10 transition-all" />
                 <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
               </div>
-            </motion.div>
+            </div>
           )}
 
           <AnimatePresence mode="wait">
-            {step === "select_asset" && (
-              <div key="sa" className="animate-in fade-in duration-500">
-                {category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
-                category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
-                <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />}
-              </div>
-            )}
-            
-            {step === "select_network" && (
-              <div key="sn" className="animate-in fade-in duration-500">
-                {category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} availableIds={npAvailableIds} /> :
-                <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />}
-              </div>
-            )}
-            
-            {step === "execution" && (
-              <div key="ex" className="animate-in fade-in duration-500">
-                {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
-                category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} /> :
-                <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
-              </div>
-            )}
-            
-            {step === "result" && (
-              <div key="rs" className="animate-in fade-in duration-500">
-                <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
-              </div>
+            {loading && step === "execution" ? (
+              <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <SovereignLoader />
+              </motion.div>
+            ) : (
+              <>
+                {step === "select_asset" && (
+                  <motion.div key="sa" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                    {category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
+                    category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep availableIds={npAvailableIds} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
+                    <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />}
+                  </motion.div>
+                )}
+                
+                {step === "select_network" && (
+                  <motion.div key="sn" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
+                    <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />
+                  </motion.div>
+                )}
+                
+                {step === "execution" && (
+                  <motion.div key="ex" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                    {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
+                    category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} walletAddress={walletAddress} loading={loading} /> :
+                    <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
+                  </motion.div>
+                )}
+                
+                {step === "result" && (
+                  <motion.div key="rs" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                    <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
+                  </motion.div>
+                )}
+              </>
             )}
           </AnimatePresence>
         </main>
