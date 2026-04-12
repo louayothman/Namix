@@ -1,11 +1,12 @@
+
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
 
 /**
- * @fileOverview مراقب الإيداع الآلي المطور v3.0 - NOWPayments Multi-Wallet Monitor
- * محرك مراقبة ذكي يتحقق من العملة والعنوان ويقوم بحساب المكافآت آلياً لتنبيه المستثمر فوراً.
+ * @fileOverview مراقب الإيداع الآلي المطور v4.0 - Global Mapping Lookup
+ * تم تحويل آلية البحث لتعتمد على wallet_mappings لضمان إضافة الرصيد اللحظية للمستثمر.
  */
 
 export async function POST(req: Request) {
@@ -27,13 +28,14 @@ export async function POST(req: Request) {
     const data = JSON.parse(body);
     const { payment_status, pay_address, actually_paid, pay_currency } = data;
 
-    if (payment_status === 'finished') {
-      const usersRef = collection(firestore, "users");
-      const q = query(usersRef, where(`assignedWallets.${pay_currency}`, "==", pay_address));
-      const userSnap = await getDocs(q);
-
-      if (!userSnap.empty) {
-        const userDoc = userSnap.docs[0];
+    // دعم حالات النجاح المختلفة لضمان وصول الرصيد
+    if (payment_status === 'finished' || payment_status === 'confirmed' || payment_status === 'partially_paid') {
+      
+      // استخدام مخطط الربط العالمي للتعرف الفوري على المستثمر
+      const mappingSnap = await getDoc(doc(firestore, "wallet_mappings", pay_address.toLowerCase()));
+      
+      if (mappingSnap.exists()) {
+        const { userId, userName } = mappingSnap.data();
         const amount = Number(actually_paid);
 
         // حساب المكافآت من إعدادات الخزنة
@@ -49,13 +51,15 @@ export async function POST(req: Request) {
           }
         }
 
-        await updateDoc(doc(firestore, "users", userDoc.id), {
+        // تنفيذ الإضافة المالية
+        await updateDoc(doc(firestore, "users", userId), {
           totalBalance: increment(amount + bonus)
         });
 
+        // توثيق المعاملة
         await addDoc(collection(firestore, "deposit_requests"), {
-          userId: userDoc.id,
-          userName: userDoc.data().displayName,
+          userId,
+          userName,
           amount,
           approvedAmount: amount,
           bonusApplied: bonus,
@@ -66,8 +70,9 @@ export async function POST(req: Request) {
           createdAt: new Date().toISOString()
         });
 
+        // إرسال التنبيه اللحظي
         await addDoc(collection(firestore, "notifications"), {
-          userId: userDoc.id,
+          userId,
           title: "تم تأكيد الإيداع الآلي ✅",
           message: `تم رصد إيداع بقيمة $${amount} عبر محفظتك المخصصة. تم تحديث رصيدك بنجاح ${bonus > 0 ? `مع مكافأة $${bonus}` : ''}.`,
           type: "success",
@@ -79,6 +84,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error("Webhook Logic Error:", e.message);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

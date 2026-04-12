@@ -2,12 +2,12 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 /**
- * @fileOverview NOWPayments Multi-Currency Identity Protocol v5.0
- * يدعم توليد حزمة شاملة من المحافظ (15+ عملة) لضمان هوية مالية متكاملة للمستثمر.
+ * @fileOverview NOWPayments Multi-Currency Identity Protocol v6.0
+ * تم إضافة بروتوكول "wallet_mappings" لضمان التعرف اللحظي والآلي على إيداعات المستخدمين.
  */
 
 async function getNPConfig() {
@@ -19,7 +19,6 @@ async function getNPConfig() {
 
 /**
  * جلب أو إنشاء عنوان محفظة دائم للمستخدم لعملة وشبكة محددة
- * @param currencyId المعرف الخاص بـ NOWPayments (مثل: usdttrc20, usdtbsc, btc)
  */
 export async function getOrCreateUserWallet(userId: string, currencyId: string) {
   try {
@@ -57,9 +56,18 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
 
     const address = response.data.pay_address;
     
+    // 1. تحديث ملف المستخدم
     await updateDoc(userRef, {
       [`assignedWallets.${currencyId}`]: address,
       updatedAt: new Date().toISOString()
+    });
+
+    // 2. تسجيل المحفظة في مخطط الربط العالمي لضمان المزامنة الآلية فور وصول الإيداع
+    await setDoc(doc(firestore, "wallet_mappings", address.toLowerCase()), {
+      userId,
+      userName: userData.displayName || "مستثمر",
+      currencyId,
+      createdAt: new Date().toISOString()
     });
 
     return { success: true, address };
@@ -74,23 +82,9 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
  * توليد حزمة المحافظ السيادية الشاملة (15 عملة رئيسية)
  */
 export async function generateBaseUserWallets(userId: string) {
-  // قائمة موسعة تشمل أشهر العملات والشبكات لضمان تغطية كاملة
   const baseCurrencies = [
-    'usdttrc20', // USDT (Tron)
-    'usdtbsc',   // USDT (BSC)
-    'usdteth',   // USDT (Ethereum)
-    'btc',       // Bitcoin
-    'eth',       // Ethereum
-    'sol',       // Solana
-    'trx',       // TRON
-    'ltc',       // Litecoin
-    'doge',      // Dogecoin
-    'shib',      // Shiba Inu
-    'matic',     // Polygon
-    'bnbbsc',    // BNB (BSC)
-    'xrp',       // Ripple
-    'ada',       // Cardano
-    'dot'        // Polkadot
+    'usdttrc20', 'usdtbsc', 'usdteth', 'btc', 'eth', 'sol', 
+    'trx', 'ltc', 'doge', 'shib', 'matic', 'bnbbsc', 'xrp', 'ada', 'dot'
   ];
   
   const results = [];
