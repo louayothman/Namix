@@ -7,7 +7,7 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { Icon } from "@iconify/react";
-import { ChevronLeft, Search, X } from "lucide-react";
+import { ChevronLeft, Search, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAvailableNowPaymentsCurrencies } from "@/app/actions/nowpayments-actions";
 import { getBinanceCoinsConfig, getBinanceDepositAddress, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
@@ -26,6 +26,7 @@ import { ManualCurrencyStep } from "@/components/deposit/categories/manual/Manua
 import { ManualExecutionStep } from "@/components/deposit/categories/manual/ManualExecutionStep";
 
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
+import { Logo } from "@/components/layout/Logo";
 
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
@@ -36,18 +37,30 @@ const NamixDotsIcon = () => (
   </div>
 );
 
+/**
+ * Sovereign Power Ring Loader
+ * أيقونة ناميكس المركزية يحيط بها حلقة طاقية دورانية فخمة.
+ */
 const SovereignLoader = () => (
-  <div className="flex flex-col items-center justify-center py-20 gap-6">
+  <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
+      {/* الحلقة الطاقية */}
       <motion.div 
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full shadow-[0_0_20px_rgba(0,45,77,0.05)]"
+        animate={{ rotate: 360, opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="h-24 w-24 border-[1px] border-[#f9a885]/20 border-t-[#f9a885] rounded-full shadow-[0_0_30px_rgba(249,168,133,0.1)]"
       />
+      {/* أيقونة ناميكس المركزية */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <NamixDotsIcon />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Logo size="sm" className="opacity-80" />
+        </motion.div>
       </div>
     </div>
+    <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] animate-pulse">Syncing Network</p>
   </div>
 );
 
@@ -101,7 +114,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setWalletAddress("");
     
     if (category?.type === 'nowpayments') {
-      // مسار ناوبايمنتس: اختيار مباشر -> جلب العنوان -> تنفيذ
       setStep("execution");
       setLoading(true);
       const res = await createNowPayment(dbUser.id, asset.id, 10);
@@ -157,8 +169,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setTxid("");
     if (step === "result") { router.push("/home"); return; }
     if (step === "execution") { 
-      if (category?.type === 'nowpayments') setStep("select_asset");
-      else setStep(category?.type === 'binance' ? "select_network" : "select_asset");
+      setStep("select_asset");
       return; 
     }
     if (step === "select_network") { setStep("select_asset"); return; }

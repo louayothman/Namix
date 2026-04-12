@@ -34,7 +34,7 @@ export function NowPaymentsExecutionStep({
                <CryptoIcon name={selectedAsset?.icon} size={48} />
             </div>
             <div className="text-right space-y-0.5">
-               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.label || selectedAsset?.name}</h3>
+               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.label}</h3>
                <p className="text-[10px] text-gray-400 uppercase tracking-widest">{networkLabel}</p>
             </div>
          </div>

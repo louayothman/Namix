@@ -33,15 +33,18 @@ export function BinanceCurrencyStep({
       const q = searchQuery.toLowerCase();
       list = list.filter(a => (a.name || "").toLowerCase().includes(q) || (a.coin || "").toLowerCase().includes(q));
     }
-    // Sort popular first
+    
+    // الترتيب: الأكثر شعبية أولاً ثم أبجدياً
     return list.sort((a, b) => {
       const aSymbol = (a.coin || "").toUpperCase();
       const bSymbol = (b.coin || "").toUpperCase();
       const aPop = POPULAR_COINS.indexOf(aSymbol);
       const bPop = POPULAR_COINS.indexOf(bSymbol);
+      
       if (aPop !== -1 && bPop !== -1) return aPop - bPop;
       if (aPop !== -1) return -1;
       if (bPop !== -1) return 1;
+      
       return aSymbol.localeCompare(bSymbol);
     });
   }, [assets, searchQuery]);
@@ -65,7 +68,7 @@ export function BinanceCurrencyStep({
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع المعتمدة</h3>
+        <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع</h3>
         <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase">Live Pulse</Badge>
       </div>
 

@@ -69,14 +69,14 @@ export function ManualExecutionStep({
          <div className="space-y-6">
             <div className="space-y-2">
                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">مبلغ الإيداع ($)</Label>
-               <div className="relative h-18 rounded-[24px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner">
+               <div className="relative h-18 rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner">
                   <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-normal text-2xl text-[#002d4d] outline-none" placeholder="0.00" />
                   <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
                </div>
             </div>
             <div className="space-y-2">
                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">معرف العملية (TXID) / رقم الحوالة</Label>
-               <div className="relative h-18 rounded-[24px] bg-gray-50 border border-gray-100 shadow-inner">
+               <div className="relative h-18 rounded-[32px] bg-gray-50 border border-gray-100 shadow-inner">
                   <input value={txid} onChange={e => setTxid(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-normal text-sm text-[#002d4d] outline-none px-12" placeholder="أدخل المرجع الرقمي..." />
                   <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
                </div>
