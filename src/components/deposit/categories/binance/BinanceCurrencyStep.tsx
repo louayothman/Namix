@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
@@ -21,8 +22,7 @@ export function BinanceCurrencyStep({
   assets,
   onSelect,
   loading,
-  searchQuery,
-  isSearchOpen
+  searchQuery
 }: BinanceCurrencyStepProps) {
   const [visibleCount, setVisibleCount] = useState(24);
   const observerRef = useRef<HTMLDivElement>(null);
@@ -65,8 +65,8 @@ export function BinanceCurrencyStep({
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع (Binance)</h3>
-        <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-md">LIVE SYNC</Badge>
+        <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع المعتمدة</h3>
+        <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase">Live Pulse</Badge>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

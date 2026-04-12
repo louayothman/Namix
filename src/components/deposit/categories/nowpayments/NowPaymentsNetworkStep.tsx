@@ -1,18 +1,17 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { ChevronLeft, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getAvailableNowPaymentsCurrencies } from "@/app/actions/nowpayments-actions";
 
 interface NowPaymentsNetworkStepProps {
   selectedAsset: any;
   onSelect: (network: any) => void;
-  loading: boolean;
+  availableIds: string[];
 }
 
 const NETWORK_MAP: Record<string, any[]> = {
@@ -39,23 +38,16 @@ const NETWORK_MAP: Record<string, any[]> = {
   MATIC: [{ id: 'maticpolygon', name: 'Polygon (Native)', network: 'POLYGON' }],
 };
 
-export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: parentLoading }: NowPaymentsNetworkStepProps) {
-  const [availableIds, setAvailableIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      const res = await getAvailableNowPaymentsCurrencies();
-      if (res.success && res.currencies) setAvailableIds(res.currencies);
-    };
-    fetchAvailability();
-  }, []);
-
+export function NowPaymentsNetworkStep({ selectedAsset, onSelect, availableIds }: NowPaymentsNetworkStepProps) {
   const filteredNetworks = useMemo(() => {
     const allPossible = NETWORK_MAP[selectedAsset?.symbol] || [
       { id: selectedAsset?.symbol.toLowerCase(), name: selectedAsset?.name, network: 'Mainnet' }
     ];
-    // Filter silently if data is available, otherwise show all
+    
+    // إذا لم تتوفر بيانات الجرد بعد، نعرض القائمة كاملة للسماح للمستخدم بالمتابعة
     if (availableIds.length === 0) return allPossible;
+    
+    // فلترة الشبكات المتاحة فعلياً بصمت
     return allPossible.filter(net => availableIds.includes(net.id));
   }, [selectedAsset, availableIds]);
 
@@ -66,7 +58,7 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: paren
           <CryptoIcon name={selectedAsset?.icon} size={36} />
         </div>
         <div className="text-right">
-          <h3 className="text-base font-black text-[#002d4d] leading-none">حدد شبكة التحويل</h3>
+          <h3 className="text-base font-black text-[#002d4d] leading-none">حدد شبكة الإرسال</h3>
           <p className="text-[8px] font-bold text-gray-400 uppercase mt-1.5">Asset: {selectedAsset?.symbol}</p>
         </div>
       </div>
@@ -76,7 +68,6 @@ export function NowPaymentsNetworkStep({ selectedAsset, onSelect, loading: paren
           <button 
             key={net.id} 
             onClick={() => onSelect(net)}
-            disabled={parentLoading}
             className="h-[80px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
           >
             <div className="h-10 w-10 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center transition-all shrink-0 shadow-inner group-hover:bg-blue-50 group-hover:text-blue-600">

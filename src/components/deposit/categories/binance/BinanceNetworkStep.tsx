@@ -1,18 +1,18 @@
+
 "use client";
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface BinanceNetworkStepProps {
   selectedAsset: any;
   onSelect: (network: any) => void;
-  loading: boolean;
 }
 
-export function BinanceNetworkStep({ selectedAsset, onSelect, loading }: BinanceNetworkStepProps) {
+export function BinanceNetworkStep({ selectedAsset, onSelect }: BinanceNetworkStepProps) {
   if (!selectedAsset) return null;
 
   const networks = selectedAsset.networkList?.filter((n: any) => n.depositEnable) || [];
@@ -24,7 +24,7 @@ export function BinanceNetworkStep({ selectedAsset, onSelect, loading }: Binance
           <CryptoIcon name={selectedAsset.icon || selectedAsset.coin} size={36} />
         </div>
         <div className="text-right">
-          <h3 className="text-base font-black text-[#002d4d] leading-none">حدد شبكة الإيداع</h3>
+          <h3 className="text-base font-black text-[#002d4d] leading-none">حدد شبكة الإرسال المعتمدة</h3>
           <p className="text-[8px] font-bold text-gray-400 uppercase mt-1.5">Asset: {selectedAsset.coin}</p>
         </div>
       </div>
@@ -34,7 +34,6 @@ export function BinanceNetworkStep({ selectedAsset, onSelect, loading }: Binance
           <button 
             key={net.network} 
             onClick={() => onSelect(net)}
-            disabled={loading}
             className="h-[72px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
           >
             <div className="flex-1 space-y-0.5 min-w-0">

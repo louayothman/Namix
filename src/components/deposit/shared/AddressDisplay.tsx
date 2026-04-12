@@ -21,8 +21,8 @@ interface AddressDisplayProps {
 }
 
 /**
- * @fileOverview مكون عرض الهوية الرقمية المطور - Flash Reveal Version
- * تم حذف إشارات التحميل؛ يظهر الباركود بلون خافت جداً حتى وصول البيانات لضمان النقاء البصري.
+ * @fileOverview مكون عرض الهوية الرقمية المطور - Instant Reveal Node
+ * تم إلغاء كافة إشارات التحميل؛ يظهر الباركود بنقائه الكامل فور توفر البيانات.
  */
 export function AddressDisplay({
   walletAddress,
@@ -42,30 +42,39 @@ export function AddressDisplay({
   };
 
   return (
-    <div className="w-full space-y-10 animate-in fade-in zoom-in-95 duration-500">
+    <div className="w-full space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col items-center gap-8">
+        
+        {/* الباركود النقي - يظهر مباشرة فوق الخلفية */}
         <div className="relative h-56 w-56 md:h-64 md:w-64 flex items-center justify-center">
-          <div className="relative w-full h-full animate-in fade-in duration-700">
-            <QRCodeSVG 
-              value={walletAddress || "pending_namix_node"} 
-              size={256} 
-              bgColor={"transparent"} 
-              fgColor={walletAddress ? "#002d4d" : "rgba(0,45,77,0.05)"} 
-              level={"H"} 
-              includeMargin={false} 
-              className="w-full h-full" 
-            />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-               <div className={cn("bg-white p-1 rounded-sm shadow-sm transition-opacity", !walletAddress && "opacity-10")}>
-                  <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
-               </div>
+          {walletAddress ? (
+            <div className="relative w-full h-full animate-in zoom-in duration-700">
+              <QRCodeSVG 
+                value={walletAddress} 
+                size={256} 
+                bgColor={"transparent"} 
+                fgColor={"#002d4d"} 
+                level={"H"} 
+                includeMargin={false} 
+                className="w-full h-full" 
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <div className="bg-white p-1 rounded-sm shadow-sm">
+                    <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
+                 </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="h-full w-full bg-gray-50/50 rounded-[48px] animate-pulse" />
+          )}
         </div>
 
         <div className="flex flex-col items-center gap-4 w-full">
           <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-            <p className={cn("flex-1 font-normal text-xs break-all text-center leading-relaxed font-mono transition-all", walletAddress ? "text-[#002d4d] opacity-80" : "text-gray-200")}>
+            <p className={cn(
+              "flex-1 font-normal text-xs break-all text-center leading-relaxed font-mono transition-all",
+              walletAddress ? "text-[#002d4d] opacity-80" : "text-gray-200"
+            )}>
               {walletAddress || "........................................"}
             </p>
             <button 

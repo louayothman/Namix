@@ -5,16 +5,17 @@ import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
-import { doc, onSnapshot, collection } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getAvailableNowPaymentsCurrencies } from "@/app/actions/nowpayments-actions";
+import { getBinanceCoinsConfig, getBinanceDepositAddress, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
 import { createNowPayment } from "@/app/actions/nowpayments-actions";
-import { getBinanceDepositAddress, getBinanceCoinsConfig, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Categorized Modular Steps
+// Categorized Modular Steps (Dumb Components now, just props)
 import { BinanceCurrencyStep } from "@/components/deposit/categories/binance/BinanceCurrencyStep";
 import { BinanceNetworkStep } from "@/components/deposit/categories/binance/BinanceNetworkStep";
 import { BinanceExecutionStep } from "@/components/deposit/categories/binance/BinanceExecutionStep";
@@ -32,8 +33,6 @@ interface DepositPageProps {
   params: Promise<{ categoryId: string }>;
 }
 
-type Step = "select_asset" | "select_network" | "execution" | "result";
-
 const NamixDotsIcon = () => (
   <div className="grid grid-cols-2 gap-1 scale-110">
     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
@@ -48,9 +47,12 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   const router = useRouter();
   const db = useFirestore();
   
-  const [step, setStep] = useState<Step>("select_asset");
+  const [step, setStep] = useState<string>("select_asset");
   const [loading, setLoading] = useState(false);
+  
+  // Data Cache - Pre-fetched
   const [binanceConfig, setBinanceConfig] = useState<any[]>([]);
+  const [npAvailableIds, setNpAvailableIds] = useState<string[]>([]);
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   const categoryRef = useMemoFirebase(() => doc(db, "deposit_methods", categoryId), [db, categoryId]);
   const { data: category } = useDoc(categoryRef);
 
+  // 1. Initial Session & Pre-fetch Data
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
     if (session) {
@@ -80,12 +83,21 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   }, [db]);
 
   useEffect(() => {
-    if (category?.type === 'binance' && binanceConfig.length === 0) {
+    if (!category) return;
+    
+    // جلب بيانات بينانس مسبقاً بصمت
+    if (category.type === 'binance' && binanceConfig.length === 0) {
       getBinanceCoinsConfig().then(res => { if (res.success) setBinanceConfig(res.coins); });
     }
-  }, [category, binanceConfig.length]);
+    
+    // جلب شبكات ناوبايمنتس مسبقاً بصمت
+    if (category.type === 'nowpayments' && npAvailableIds.length === 0) {
+      getAvailableNowPaymentsCurrencies().then(res => { if (res.success) setNpAvailableIds(res.currencies); });
+    }
+  }, [category, binanceConfig.length, npAvailableIds.length]);
 
-  const handleAssetSelect = async (asset: any) => {
+  // 2. Navigation Logic
+  const handleAssetSelect = (asset: any) => {
     setSelectedAsset(asset);
     setSearchQuery("");
     setWalletAddress("");
@@ -98,21 +110,26 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
-    setWalletAddress("");
+    setWalletAddress(""); // تصفير العنوان القديم فوراً
     setStep("execution");
     setLoading(true);
     setError(null);
 
-    if (category?.type === 'binance') {
-      const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-      if (addrRes.success) setWalletAddress(addrRes.address);
-      else setError(addrRes.error);
-    } else if (category?.type === 'nowpayments') {
-      const res = await createNowPayment(dbUser.id, network.id, 10);
-      if (res.success) setWalletAddress(res.address);
-      else setError(res.error);
+    try {
+      if (category?.type === 'binance') {
+        const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
+        if (addrRes.success) setWalletAddress(addrRes.address);
+        else setError(addrRes.error);
+      } else if (category?.type === 'nowpayments') {
+        const res = await createNowPayment(dbUser.id, network.id, 10);
+        if (res.success) setWalletAddress(res.address);
+        else setError(res.error);
+      }
+    } catch (e) {
+      setError("فشل في مزامنة العنوان.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleFinalSubmit = async () => {
@@ -132,7 +149,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     try {
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id, userName: dbUser.displayName, amount: Number(amount),
-        methodName: `${category?.name} - ${selectedAsset?.name}`,
+        methodName: `${category?.name} - ${selectedAsset?.name || selectedAsset?.symbol}`,
         transactionId: txid || "MANUAL_REVIEW_PENDING",
         status: "pending", createdAt: new Date().toISOString()
       });
@@ -160,7 +177,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Active</span></div>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Direct Sync</span></div>
               </div>
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
@@ -190,24 +207,30 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
           )}
 
           <AnimatePresence mode="wait">
-            {step === "select_asset" ? (
+            {step === "select_asset" && (
               <div key="sa" className="animate-in fade-in duration-500">
                 {category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
                 category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
                 <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />}
               </div>
-            ) : step === "select_network" ? (
+            )}
+            
+            {step === "select_network" && (
               <div key="sn" className="animate-in fade-in duration-500">
-                {category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} /> :
-                <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />}
+                {category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} availableIds={npAvailableIds} /> :
+                <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />}
               </div>
-            ) : step === "execution" ? (
+            )}
+            
+            {step === "execution" && (
               <div key="ex" className="animate-in fade-in duration-500">
                 {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
-                category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} onSubmit={handleFinalSubmit} error={error} /> :
+                category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} /> :
                 <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
               </div>
-            ) : (
+            )}
+            
+            {step === "result" && (
               <div key="rs" className="animate-in fade-in duration-500">
                 <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
               </div>

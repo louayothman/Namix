@@ -2,7 +2,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -76,12 +75,12 @@ export function BinanceExecutionStep({
            </div>
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
-              <p>أودع الأموال إلى العنوان أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
+              <p>أودع الأموال إلى العنوان الموضح أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
               <div className="space-y-3 pt-6 border-t border-gray-200">
                  <p className="font-black text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
                  <ul className="space-y-3 pr-2 list-none text-[11px]">
-                    <li>تأكد من اختيار شبكة <span className="font-black text-red-600">{networkLabel}</span> حصراً.</li>
-                    <li>تحقق من صحة العنوان قبل تنفيذ العملية.</li>
+                    <li>تأكد من اختيار شبكة <span className="font-black text-red-600">{networkLabel}</span> حصراً عند الإرسال.</li>
+                    <li>تحقق من صحة العنوان قبل تنفيذ العملية لضمان وصول الأصول.</li>
                  </ul>
               </div>
            </div>
@@ -90,17 +89,26 @@ export function BinanceExecutionStep({
          <div className="space-y-4 pt-2">
            <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-4">إثبات المزامنة (TXID)</Label>
            <div className="relative h-18 rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner">
-              <input value={txid} onChange={e => setTxid(e.target.value)} className="h-full w-full bg-transparent border-none text-center font-black text-sm px-14 outline-none text-[#002d4d]" placeholder="ألصق معرف العملية هنا..." />
+              <input 
+                value={txid} 
+                onChange={e => setTxid(e.target.value)} 
+                className="h-full w-full bg-transparent border-none text-center font-black text-sm px-14 outline-none text-[#002d4d]" 
+                placeholder="ألصق معرف العملية هنا..." 
+              />
               <button onClick={handlePaste} type="button" className="absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] active:scale-90"><ClipboardPaste size={20} /></button>
               <Hash className="absolute right-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-200" />
            </div>
          </div>
 
          <div className="pt-4">
-            <Button onClick={onSubmit} disabled={loading || !txid || !walletAddress} className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3">
+            <button 
+              onClick={onSubmit} 
+              disabled={loading || !txid || !walletAddress} 
+              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3 disabled:opacity-20"
+            >
                <span>المتابعة</span>
                <ShieldCheck size={24} className="text-[#f9a885]" />
-            </Button>
+            </button>
          </div>
       </section>
     </div>
