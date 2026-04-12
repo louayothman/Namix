@@ -5,8 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 /**
- * @fileOverview مراقب الإيداع الآلي السيادي v11.0 - Dynamic Amount Sync
- * تم تحديث المنطق ليعتمد على المبلغ الحقيقي الواصل (actually_paid) بالدولار لضمان دقة الرصيد.
+ * @fileOverview مراقب الإيداع الآلي السيادي v12.0 - Outcome Price Logic
+ * تم تحديث المنطق ليعتمد على المبلغ النهائي (outcome_amount) كما طلب المستخدم لضمان عدالة الرصيد.
  */
 
 export async function POST(req: Request) {
@@ -43,7 +43,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const { payment_id, payment_status, pay_amount, actually_paid, price_amount, pay_currency, purchase_id } = data;
+    const { 
+      payment_id, 
+      payment_status, 
+      pay_amount, 
+      actually_paid, 
+      price_amount, 
+      outcome_amount, // المبلغ النهائي الناتج في الفاتورة
+      pay_currency, 
+      purchase_id 
+    } = data;
 
     // 2. البحث عن طلب الإيداع المسجل
     const depQuery = query(collection(firestore, "deposit_requests"), where("paymentId", "==", payment_id.toString()), limit(1));
@@ -60,50 +69,54 @@ export async function POST(req: Request) {
     if (payment_status === 'failed' || payment_status === 'expired') newStatus = "rejected";
     if (payment_status === 'confirming') newStatus = "confirming";
 
-    // إذا كانت الحالة "approved" ولم يتم معالجتها مسبقاً -> إضافة الرصيد الحقيقي
+    // إذا كانت الحالة "approved" ولم يتم معالجتها مسبقاً -> إضافة الرصيد بناءً على Outcome Price
     if (newStatus === "approved" && depositData.status !== "approved") {
       
-      // حساب المبلغ الحقيقي بالدولار بناءً على النسبة بين ما طُلب وما دُفع فعلياً
-      const requestedCrypto = Number(pay_amount);
-      const receivedCrypto = Number(actually_paid || pay_amount);
-      const requestedUSD = Number(price_amount);
-      
-      // النسبة = ما دُفع / ما طُلب
-      const ratio = receivedCrypto / requestedCrypto;
-      const finalAmountUSD = requestedUSD * ratio;
+      // الاعتماد الكلي على Outcome Amount (سعر المخرج) لضمان الدقة كما طلب المستخدم
+      // في حال عدم توفره يتم العودة للسعر الأصلي كاحتياط تقني
+      const finalAmountUSD = Number(outcome_amount || price_amount);
 
-      // جلب مكافآت الإيداع
+      // جلب إعدادات مكافآت الإيداع من الخزنة
       const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
       let bonus = 0;
+      let bonusPercent = 0;
       if (vaultSnap.exists()) {
         const bonuses = vaultSnap.data().depositBonuses || [];
         const tier = bonuses.find((t: any) => finalAmountUSD >= t.min && finalAmountUSD <= (t.max || Infinity));
-        if (tier) bonus = (finalAmountUSD * tier.percent) / 100;
+        if (tier) {
+          bonusPercent = tier.percent;
+          bonus = (finalAmountUSD * bonusPercent) / 100;
+        }
       }
 
+      // تحديث رصيد المستخدم بالمبلغ النهائي (Outcome) + المكافأة إن وجدت
       await updateDoc(doc(firestore, "users", userId), {
         totalBalance: increment(finalAmountUSD + bonus),
         updatedAt: timestamp
       });
 
+      // توثيق المعاملة في سجل الإيداعات
       await updateDoc(depositDoc.ref, {
         status: "approved",
         amount: finalAmountUSD,
         approvedAmount: finalAmountUSD,
         bonusApplied: bonus,
+        bonusPercent: bonusPercent,
         transactionId: purchase_id || data.payment_id.toString(),
         updatedAt: timestamp
       });
 
+      // إرسال تنبيه تأكيد الإيداع اللحظي
       await addDoc(collection(firestore, "notifications"), {
         userId,
         title: "تم تأكيد الإيداع الآلي ✅",
-        message: `تمت مزامنة مبلغ $${finalAmountUSD.toFixed(2)} مع محفظتك بنجاح. القناة: ${pay_currency.toUpperCase()}.`,
+        message: `تمت مزامنة مبلغ $${finalAmountUSD.toFixed(2)} مع محفظتك بنجاح وفقاً لقيمة الفاتورة النهائية. القناة: ${pay_currency.toUpperCase()}.`,
         type: "success",
         isRead: false,
         createdAt: timestamp
       });
     } else {
+      // تحديث الحالة فقط للطلبات غير المكتملة (معلقة، ملغاة، إلخ)
       await updateDoc(depositDoc.ref, { status: newStatus, updatedAt: timestamp });
     }
 
