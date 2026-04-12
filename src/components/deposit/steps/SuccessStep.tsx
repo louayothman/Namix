@@ -1,9 +1,10 @@
+
 "use client";
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Coins, Gift, ShieldCheck, RefreshCcw, ChevronLeft } from "lucide-react";
-import { motion } from "framer-motion";
+import { Check, X, Gift, ShieldCheck, RefreshCcw, ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface SuccessStepProps {
@@ -18,10 +19,6 @@ interface SuccessStepProps {
   onRetry: () => void;
 }
 
-/**
- * @fileOverview مفاعل نتائج التحقق المطور v12.0 - Radiant Result Engine
- * يدعم النجاح والفشل بتنسيق بصري موحد وتطهير لغوي كامل من الكلمات المحظورة.
- */
 export function SuccessStep({ categoryType, successData, error, onBackHome, onRetry }: SuccessStepProps) {
   const isNowPayments = categoryType === 'nowpayments';
   const isBinance = categoryType === 'binance';
@@ -35,8 +32,6 @@ export function SuccessStep({ categoryType, successData, error, onBackHome, onRe
       className="space-y-10 text-center py-6 font-body"
       dir="rtl"
     >
-      
-      {/* 1. المفاعل البصري المتوهج (Visual Pulse) */}
       <div className="relative inline-flex mb-2">
         <AnimatePresence mode="wait">
           {isSuccess ? (
@@ -71,26 +66,24 @@ export function SuccessStep({ categoryType, successData, error, onBackHome, onRe
         </AnimatePresence>
       </div>
       
-      {/* 2. نصوص الحالة الاستراتيجية */}
       <div className="space-y-3 px-4">
         <h3 className={cn(
           "text-2xl md:text-4xl font-black tracking-normal",
           isSuccess ? "text-[#002d4d]" : "text-red-600"
         )}>
-          {isSuccess ? "تم اعتماد الإيداع" : "تعذر التحقق من العملية"}
+          {isSuccess ? "تم اعتماد الإيداع" : "تعذر التحقق"}
         </h3>
         <p className="text-gray-400 font-bold text-xs md:text-base max-w-sm mx-auto leading-loose tracking-normal">
           {isSuccess 
             ? (isBinance 
-                ? "لقد تم التحقق من المعرف الرقمي بنجاح. أضيف الرصيد المعتمد لمحفظتك فورياً."
+                ? "لقد تم التحقق بنجاح. أضيف الرصيد المعتمد لمحفظتك فورياً."
                 : isNowPayments 
                 ? "آلية المراقبة الذكية فعالة الآن. سيتم إضافة الرصيد تلقائياً بمجرد رصد العملية." 
-                : "لقد تم استلام بيانات الإيداع بنجاح. سيقوم نظام التدقيق بمراجعة العملية خلال دقائق.")
-            : error || "المعذرة، لم نتمكن من العثور على بيانات مطابقة للمعرف المدخل. يرجى التأكد من الـ TXID والمحاولة مجدداً."}
+                : "لقد تم استلام بيانات الإيداع بنجاح. سيقوم نظام التدقيق بمراجعة العملية.")
+            : error || "المعذرة، لم نتمكن من العثور على بيانات مطابقة. يرجى التأكد والمحاولة مجدداً."}
         </p>
       </div>
 
-      {/* 3. ملخص الرصيد (فقط عند النجاح في Binance) */}
       {isSuccess && isBinance && successData && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -121,32 +114,16 @@ export function SuccessStep({ categoryType, successData, error, onBackHome, onRe
         </motion.div>
       )}
 
-      {/* 4. أزرار التحكم النهائي (Action Bar) */}
       <div className="grid gap-4 w-full max-w-[320px] mx-auto pt-4">
         {isSuccess ? (
-          <Button 
-            onClick={onBackHome} 
-            className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all"
-          >
-            العودة للرئيسية
-          </Button>
+          <Button onClick={onBackHome} className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all">العودة للرئيسية</Button>
         ) : (
-          <Button 
-            onClick={onRetry} 
-            className="w-full h-16 rounded-full bg-red-600 hover:bg-red-700 text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 group"
-          >
+          <Button onClick={onRetry} className="w-full h-16 rounded-full bg-red-600 hover:bg-red-700 text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 group">
             <RefreshCcw className="h-5 w-5 transition-transform group-hover:rotate-180 duration-700" />
             <span>تصحيح البيانات</span>
           </Button>
         )}
-        
-        <div className="flex items-center justify-center gap-3 opacity-20 mt-2">
-           <ShieldCheck size={12} className="text-emerald-500" />
-           <p className="text-[8px] font-black text-[#002d4d] uppercase tracking-widest leading-none">Automated System Node v12.0</p>
-        </div>
       </div>
     </motion.div>
   );
 }
-
-import { AnimatePresence } from "framer-motion";

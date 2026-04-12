@@ -33,42 +33,41 @@ export async function getOrCreateUserWallet(userId: string, currencyId: string) 
     const userData = userSnap.data();
     const assignedWallets = userData.assignedWallets || {};
 
-    if (assignedWallets[currencyId]) {
-      return { success: true, address: assignedWallets[currencyId] };
+    let address = assignedWallets[currencyId];
+
+    if (!address) {
+      const response = await axios.post(
+        'https://api.nowpayments.io/v1/payment',
+        {
+          price_amount: 1, 
+          price_currency: 'usd',
+          pay_currency: currencyId,
+          order_id: `ADDR_GEN_${userId}_${currencyId}`,
+          ipn_callback_url: `https://${process.env.NEXT_PUBLIC_DOMAIN}/api/webhooks/nowpayments`
+        },
+        {
+          headers: {
+            'x-api-key': config.nowPaymentsApiKey,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      address = response.data.pay_address;
+      
+      // تحديث ملف المستخدم
+      await updateDoc(userRef, {
+        [`assignedWallets.${currencyId}`]: address,
+        updatedAt: new Date().toISOString()
+      });
     }
 
-    const response = await axios.post(
-      'https://api.nowpayments.io/v1/payment',
-      {
-        price_amount: 1, 
-        price_currency: 'usd',
-        pay_currency: currencyId,
-        order_id: `ADDR_GEN_${userId}_${currencyId}`,
-        ipn_callback_url: `https://${process.env.NEXT_PUBLIC_DOMAIN}/api/webhooks/nowpayments`
-      },
-      {
-        headers: {
-          'x-api-key': config.nowPaymentsApiKey,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const address = response.data.pay_address;
-    
-    // 1. تحديث ملف المستخدم
-    await updateDoc(userRef, {
-      [`assignedWallets.${currencyId}`]: address,
-      updatedAt: new Date().toISOString()
-    });
-
-    // 2. تسجيل المحفظة في مخطط الربط العالمي لضمان المزامنة الآلية فور وصول الإيداع
+    // تسجيل أو تحديث المحفظة في مخطط الربط العالمي لضمان المزامنة الآلية اللحظية
     await setDoc(doc(firestore, "wallet_mappings", address.toLowerCase()), {
       userId,
       userName: userData.displayName || "مستثمر",
       currencyId,
-      createdAt: new Date().toISOString()
-    });
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
 
     return { success: true, address };
   } catch (e: any) {

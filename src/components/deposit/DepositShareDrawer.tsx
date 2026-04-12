@@ -33,8 +33,8 @@ interface DepositShareDrawerProps {
 }
 
 /**
- * @fileOverview مفاعل تصدير المعاملات v18.0 - Sovereign Minimalist Edition
- * تم تصغير التوقيع، نقل الشعار لليسار، وفصل حروف NAMIX لتباعد هندسي مثالي.
+ * @fileOverview مفاعل تصدير المعاملات v19.0 - Sovereign Minimalist Edition
+ * تم تصغير التوقيع في الأسفل، نقل الشعار لليسار، وفصل حروف الاسم لتباعد هندسي مثالي.
  */
 export function DepositShareDrawer({
   open,
@@ -51,7 +51,7 @@ export function DepositShareDrawer({
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      // بروتوكول انتظار نانوي لضمان ثبات العناصر في الـ DOM
+      // تأخير بسيط لضمان رندر العناصر قبل الالتقاط
       const timer = setTimeout(() => {
         captureProtocol();
       }, 1500);
@@ -124,7 +124,6 @@ export function DepositShareDrawer({
                    </p>
                 </div>
              </div>
-             {/* Namix Dots Icon on the LEFT as requested */}
              <div className="grid grid-cols-2 gap-1 opacity-20">
                 <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
                 <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
@@ -133,7 +132,6 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* QR Code - Pure Placement */}
           <div className="py-8 flex items-center justify-center">
              {walletAddress && (
                <div className="relative">
@@ -162,18 +160,16 @@ export function DepositShareDrawer({
                 </p>
              </div>
              
-             {/* Network Capsule */}
              <div className="inline-flex items-center gap-2 px-6 py-2 bg-gray-50 rounded-full border border-gray-100">
                 <span className="text-[11px] font-normal text-[#002d4d]">
-                  الشبكة : {selectedAsset?.coin || 'Asset'} - {selectedNetwork?.name || selectedAsset?.network || 'Default'}
+                  الشبكة : {selectedAsset?.coin || 'Asset'} - {selectedNetwork?.name || selectedAsset?.network}
                 </span>
              </div>
           </div>
 
-          {/* Tiny Sovereign Footer - Re-engineered Signature */}
+          {/* Sovereign Footer Signature */}
           <div className="mt-auto pt-10 w-full border-t border-gray-50 flex flex-col items-center gap-3 opacity-30" dir="ltr">
              <div className="flex items-center gap-4">
-                {/* Logo on the LEFT of the name as requested */}
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.6] origin-center">
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                    <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
@@ -181,8 +177,7 @@ export function DepositShareDrawer({
                    <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 </div>
                 
-                {/* Individual Words for perfect spacing */}
-                <div className="flex items-center gap-3 text-[#002d4d] font-normal text-[9px] tracking-normal">
+                <div className="flex items-center gap-3 text-[#002d4d] font-normal text-[9px]">
                    <span>N</span>
                    <span>A</span>
                    <span>M</span>
@@ -190,7 +185,7 @@ export function DepositShareDrawer({
                    <span>X</span>
                 </div>
              </div>
-             <p className="text-[5px] font-normal text-gray-400 uppercase tracking-[0.3em]">Institutional Asset Node</p>
+             <p className="text-[5px] font-normal text-gray-400 uppercase tracking-widest">Authorized Identity Node</p>
           </div>
         </div>
       </div>

@@ -20,7 +20,8 @@ export async function POST(req: Request) {
 
     if (ipnSecret && sig) {
       const hmac = crypto.createHmac('sha512', ipnSecret);
-      hmac.update(JSON.stringify(JSON.parse(body), Object.keys(JSON.parse(body)).sort()));
+      const sortedBody = JSON.stringify(JSON.parse(body), Object.keys(JSON.parse(body)).sort());
+      hmac.update(sortedBody);
       const signature = hmac.digest('hex');
       if (signature !== sig) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     const { payment_status, pay_address, actually_paid, pay_currency } = data;
 
     // دعم حالات النجاح المختلفة لضمان وصول الرصيد
-    if (payment_status === 'finished' || payment_status === 'confirmed' || payment_status === 'partially_paid') {
+    if (['finished', 'confirmed', 'partially_paid'].includes(payment_status)) {
       
       // استخدام مخطط الربط العالمي للتعرف الفوري على المستثمر
       const mappingSnap = await getDoc(doc(firestore, "wallet_mappings", pay_address.toLowerCase()));
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
         const { userId, userName } = mappingSnap.data();
         const amount = Number(actually_paid);
 
-        // حساب المكافآت من إعدادات الخزنة
+        // جلب إعدادات المكافآت
         const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
         let bonus = 0;
         let bonusPercent = 0;
