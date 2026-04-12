@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -21,6 +22,7 @@ import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import * as htmlToImage from 'html-to-image';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { QRCodeSVG } from "qrcode.react";
 
 interface DepositShareDrawerProps {
   open: boolean;
@@ -30,11 +32,6 @@ interface DepositShareDrawerProps {
   walletAddress: string;
 }
 
-/**
- * @fileOverview مفاعل تصدير المعاملات المطور v25.0 - Ultimate Reliability
- * تم تطهير حلقة التحميل من النصوص، وإعادة هندسة الختم ليكون أصغر وفي الأسفل مع لوجو لليسار.
- * المكون الآن لا يلتقط الصورة إلا بعد تأكيد بروتوكولي باستقرار الصورة في الـ DOM.
- */
 export function DepositShareDrawer({
   open,
   onOpenChange,
@@ -44,31 +41,26 @@ export function DepositShareDrawer({
 }: DepositShareDrawerProps) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [qrLoaded, setQrLoaded] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
-  const qrCodeUrl = walletAddress 
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(walletAddress)}&bgcolor=ffffff&color=002d4d`
-    : null;
-
-  // ريسيت كامل عند الفتح لضمان دورة حياة نظيفة
   useEffect(() => {
     if (open) {
       setImgUrl(null);
       setIsProcessing(true);
-      setQrLoaded(false);
+      // Initiate capture after a brief rendering delay
+      const timer = setTimeout(() => {
+        captureProtocol();
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
-  // مفاعل الالتقاط السيادي - يعمل فقط بعد ثبات الموارد
   const captureProtocol = async () => {
     if (!captureRef.current) return;
     
     try {
-      // انتظار استقرار المتصفح والخطوط
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 1000));
-
+      
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
@@ -82,13 +74,6 @@ export function DepositShareDrawer({
       setIsProcessing(false);
     }
   };
-
-  // مراقب الجاهزية: يطلق الالتقاط بمجرد تأكيد تحميل الباركود
-  useEffect(() => {
-    if (open && qrLoaded && !imgUrl && isProcessing) {
-      captureProtocol();
-    }
-  }, [open, qrLoaded, imgUrl, isProcessing]);
 
   const handleDownload = () => {
     if (!imgUrl) return;
@@ -118,7 +103,7 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* القالب المخفي للالتقاط - Off-screen Source */}
+      {/* Hidden Template for Image Generation */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
@@ -144,16 +129,18 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* QR Code */}
+          {/* QR Code (Generated Locally) */}
           <div className="py-4 flex items-center justify-center">
-             {qrCodeUrl && (
+             {walletAddress && (
                <div className="p-4 bg-white rounded-[40px] border border-gray-50 shadow-sm relative">
-                  <img 
-                    src={qrCodeUrl} 
-                    alt="QR" 
-                    className="w-64 h-64" 
-                    crossOrigin="anonymous" 
-                    onLoad={() => setQrLoaded(true)}
+                  <QRCodeSVG 
+                    value={walletAddress}
+                    size={300}
+                    bgColor={"#ffffff"}
+                    fgColor={"#002d4d"}
+                    level={"H"}
+                    includeMargin={false}
+                    className="w-64 h-64"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                      <div className="bg-white p-1.5 rounded-xl">
@@ -167,7 +154,7 @@ export function DepositShareDrawer({
           {/* Data Node */}
           <div className="w-full text-center space-y-6" dir="rtl">
              <div className="space-y-2">
-                <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">DEPOSIT ADDRESS</p>
+                <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
                 <p className="text-[13px] font-normal text-[#002d4d] break-all leading-loose px-4" dir="ltr">
                   {walletAddress}
                 </p>
@@ -180,21 +167,21 @@ export function DepositShareDrawer({
              </div>
           </div>
 
-          {/* Footer Signature - Tiny, Bottom, Logo Left */}
+          {/* Footer Signature - Compact, Bottom, Logo Left of Name */}
           <div className="mt-auto pt-10 w-full border-t border-gray-50 flex items-center justify-center gap-5 opacity-30">
+             {/* Name on the RIGHT */}
+             <div className="flex items-center gap-4">
+                {['N', 'A', 'M', 'I', 'X'].map((char, i) => (
+                  <span key={i} className="text-[10px] font-normal text-[#002d4d]">{char}</span>
+                ))}
+             </div>
+
              {/* Logo on the LEFT */}
              <div className="grid grid-cols-2 gap-0.5 scale-75">
                 <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                 <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
-             </div>
-             
-             {/* Characters on the RIGHT */}
-             <div className="flex items-center gap-4">
-                {['N', 'A', 'M', 'I', 'X'].map((char, i) => (
-                  <span key={i} className="text-[10px] font-normal text-[#002d4d]">{char}</span>
-                ))}
              </div>
           </div>
         </div>

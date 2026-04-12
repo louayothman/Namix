@@ -1,9 +1,9 @@
+
 "use client";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Info, 
@@ -14,12 +14,11 @@ import {
   ShieldCheck, 
   ClipboardPaste,
   Sparkles,
-  ChevronLeft,
   AlertCircle
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { cn } from "@/lib/utils";
 import { DepositShareDrawer } from "../DepositShareDrawer";
+import { QRCodeSVG } from "qrcode.react";
 
 interface ExecutionStepProps {
   instructions: string;
@@ -36,10 +35,6 @@ interface ExecutionStepProps {
   selectedNetwork?: any;
 }
 
-/**
- * @fileOverview مكون التنفيذ المطور v15.0 - Clean Interface Edition
- * تم إصلاح مشكلة تداخل الحواف في حقل TXID وتبسيط لغة التصميم.
- */
 export function ExecutionStep({
   instructions,
   walletAddress,
@@ -72,10 +67,6 @@ export function ExecutionStep({
     } catch (err) {}
   };
 
-  const qrCodeUrl = walletAddress 
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(walletAddress)}&bgcolor=ffffff&color=002d4d`
-    : null;
-
   return (
     <div className="w-full space-y-8 text-right" dir="rtl">
       {/* 1. Asset Header Identity */}
@@ -89,14 +80,24 @@ export function ExecutionStep({
          </div>
       </section>
 
-      {/* 2. Visual QR Center */}
+      {/* 2. Visual QR Center (Local Generation) */}
       <section className="flex justify-center relative py-2">
          <div className="relative p-6 bg-white rounded-[48px] border border-gray-100 shadow-inner">
-            {qrCodeUrl ? (
-              <div className="relative h-48 w-48 md:h-56 md:w-56">
-                 <img src={qrCodeUrl} alt="QR" className="w-full h-full rounded-3xl" />
+            {walletAddress ? (
+              <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
+                 <QRCodeSVG 
+                   value={walletAddress}
+                   size={256}
+                   bgColor={"#ffffff"}
+                   fgColor={"#002d4d"}
+                   level={"L"}
+                   includeMargin={false}
+                   className="w-full h-full"
+                 />
                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white p-0.5"><CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} /></div>
+                    <div className="bg-white p-1 rounded-xl">
+                       <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={28} />
+                    </div>
                  </div>
               </div>
             ) : <Loader2 className="animate-spin text-gray-200" />}
@@ -139,7 +140,6 @@ export function ExecutionStep({
                 <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">تنسيق آلي</Badge>
              </div>
              
-             {/* حقل TXID المصحح هندسياً لمنع تداخل الحواف */}
              <div className="relative group">
                <div className="relative flex items-center h-16 md:h-20 bg-gray-50/50 rounded-[28px] border border-gray-100 transition-all duration-300 group-within:bg-white group-within:border-[#002d4d] group-within:shadow-xl group-within:ring-4 group-within:ring-blue-500/5 overflow-hidden">
                  <div className="absolute right-6 pointer-events-none opacity-20 group-within:opacity-100 transition-opacity">
