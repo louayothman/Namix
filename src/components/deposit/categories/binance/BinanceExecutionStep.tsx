@@ -87,7 +87,7 @@ export function BinanceExecutionStep({
 
          <div className="space-y-4 pt-2">
            <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-4">إثبات المزامنة (TXID)</Label>
-           <div className="relative h-18 rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner">
+           <div className="relative h-[72px] rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner group/input">
               <input 
                 value={txid} 
                 onChange={e => setTxid(e.target.value)} 
@@ -103,7 +103,7 @@ export function BinanceExecutionStep({
             <button 
               onClick={onSubmit} 
               disabled={loading || !txid || !walletAddress} 
-              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3"
+              className="w-full h-[72px] rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3 transition-all"
             >
                <span>المتابعة</span>
                <ShieldCheck size={24} className="text-[#f9a885]" />

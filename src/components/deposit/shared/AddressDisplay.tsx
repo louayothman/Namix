@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -20,10 +19,6 @@ interface AddressDisplayProps {
   loading?: boolean;
 }
 
-/**
- * @fileOverview مكون عرض الهوية الرقمية المطور - Instant Reveal Node
- * تم إلغاء كافة إشارات التحميل؛ يظهر الباركود بنقائه الكامل فور توفر البيانات.
- */
 export function AddressDisplay({
   walletAddress,
   selectedAsset,
@@ -45,7 +40,6 @@ export function AddressDisplay({
     <div className="w-full space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col items-center gap-8">
         
-        {/* الباركود النقي - يظهر مباشرة فوق الخلفية */}
         <div className="relative h-56 w-56 md:h-64 md:w-64 flex items-center justify-center">
           {walletAddress ? (
             <div className="relative w-full h-full animate-in zoom-in duration-700">
@@ -60,12 +54,12 @@ export function AddressDisplay({
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                  <div className="bg-white p-1 rounded-sm shadow-sm">
-                    <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={32} />
+                    <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || selectedAsset?.symbol} size={32} />
                  </div>
               </div>
             </div>
           ) : (
-            <div className="h-full w-full bg-gray-50/50 rounded-[48px] animate-pulse" />
+            <div className="h-full w-full bg-gray-50/50 rounded-[48px] animate-pulse border border-dashed border-gray-200" />
           )}
         </div>
 

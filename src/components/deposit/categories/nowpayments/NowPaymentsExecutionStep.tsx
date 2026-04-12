@@ -32,10 +32,10 @@ export function NowPaymentsExecutionStep({
       <section className="flex items-center justify-between px-2">
          <div className="flex items-center gap-4">
             <div className="shrink-0 flex items-center justify-center">
-               <CryptoIcon name={selectedAsset?.icon} size={48} />
+               <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={48} />
             </div>
             <div className="text-right space-y-0.5">
-               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.label}</h3>
+               <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.label || selectedAsset?.coin}</h3>
                <p className="text-[10px] text-gray-400 uppercase tracking-widest">{networkLabel}</p>
             </div>
          </div>
@@ -62,7 +62,7 @@ export function NowPaymentsExecutionStep({
                  <p className="font-bold text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
                  <ul className="space-y-3 pr-2 list-none text-[11px]">
                     <li>تأكد من اختيار شبكة <span className="font-bold text-red-600">{networkLabel}</span> حصراً عند الإرسال.</li>
-                    <li>أي إيداع عبر شبكة غير مدعومة أو عنوان خاطئ قد يؤدي لفقدان الأصول بشكل دائم.</li>
+                    <li>أي إيداع عبر شبكة غير مدعومة قد يؤدي لفقدان الأصول بشكل دائم.</li>
                  </ul>
               </div>
            </div>
@@ -71,7 +71,7 @@ export function NowPaymentsExecutionStep({
          <div className="pt-4">
             <button 
               onClick={() => window.location.href = '/home'} 
-              className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
+              className="w-full h-[72px] rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
             >
                <span>العودة للرئيسية</span>
                <ChevronLeft className="h-6 w-6 text-[#f9a885]" />

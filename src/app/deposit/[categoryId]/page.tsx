@@ -19,6 +19,7 @@ import { BinanceNetworkStep } from "@/components/deposit/categories/binance/Bina
 import { BinanceExecutionStep } from "@/components/deposit/categories/binance/BinanceExecutionStep";
 
 import { NowPaymentsCurrencyStep } from "@/components/deposit/categories/nowpayments/NowPaymentsCurrencyStep";
+import { NowPaymentsNetworkStep } from "@/components/deposit/categories/nowpayments/NowPaymentsNetworkStep";
 import { NowPaymentsExecutionStep } from "@/components/deposit/categories/nowpayments/NowPaymentsExecutionStep";
 
 import { ManualCurrencyStep } from "@/components/deposit/categories/manual/ManualCurrencyStep";
@@ -53,7 +54,6 @@ const SovereignLoader = () => (
         </motion.div>
       </div>
     </div>
-    <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] animate-pulse">Syncing Network</p>
   </div>
 );
 
@@ -76,6 +76,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<any>(null);
+  const [slowNetworkId, setSlowNetworkId] = useState<string | null>(null);
 
   const categoryRef = useMemoFirebase(() => doc(db, "deposit_methods", categoryId), [db, categoryId]);
   const { data: category } = useDoc(categoryRef);
@@ -91,6 +92,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     }
   }, [db]);
 
+  // الحقن المسبق للبيانات لضمان انتقال وميضي
   useEffect(() => {
     if (!category) return;
     if (category.type === 'binance' && binanceConfig.length === 0) {
@@ -105,19 +107,10 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSelectedAsset(asset);
     setSearchQuery("");
     setWalletAddress("");
+    setError(null);
+    setSlowNetworkId(null);
     
-    if (category?.type === 'nowpayments') {
-      setStep("execution");
-      setLoading(true);
-      const res = await createNowPayment(dbUser.id, asset.id, 10);
-      if (res.success) {
-        setWalletAddress(res.address);
-        // التخزين للشبكة المختارة ضمنياً
-        setSelectedNetwork({ name: asset.network, network: asset.id });
-      }
-      else setError(res.error);
-      setLoading(false);
-    } else if (category?.type === 'binance') {
+    if (category?.type === 'nowpayments' || category?.type === 'binance') {
       setStep("select_network");
     } else {
       setWalletAddress(asset.walletAddress || "");
@@ -128,14 +121,44 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
     setWalletAddress("");
-    setStep("execution");
+    setError(null);
+    setSlowNetworkId(null);
     setLoading(true);
-    if (category?.type === 'binance') {
-      const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-      if (addrRes.success) setWalletAddress(addrRes.address);
-      else setError(addrRes.error);
+
+    // محرك رصد الـ 1s
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("TIMEOUT")), 1000)
+    );
+
+    try {
+      if (category?.type === 'nowpayments') {
+        const paymentPromise = createNowPayment(dbUser.id, network.id, 10);
+        const res: any = await Promise.race([paymentPromise, timeoutPromise]);
+        
+        if (res.success) {
+          setWalletAddress(res.address);
+          setStep("execution");
+        } else {
+          setError(res.error);
+        }
+      } else if (category?.type === 'binance') {
+        const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
+        if (addrRes.success) {
+          setWalletAddress(addrRes.address);
+          setStep("execution");
+        } else {
+          setError(addrRes.error);
+        }
+      }
+    } catch (err: any) {
+      if (err.message === "TIMEOUT") {
+        setSlowNetworkId(network.id || network.network);
+      } else {
+        setError("فشل بروتوكول التوليد.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleFinalSubmit = async () => {
@@ -164,9 +187,10 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setError(null);
     setWalletAddress("");
     setTxid("");
+    setSlowNetworkId(null);
     if (step === "result") { router.push("/home"); return; }
     if (step === "execution") { 
-      setStep("select_asset");
+      setStep("select_network");
       return; 
     }
     if (step === "select_network") { setStep("select_asset"); return; }
@@ -183,7 +207,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Direct Sync</span></div>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Live Nexus</span></div>
               </div>
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
@@ -207,7 +231,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
           )}
 
           <AnimatePresence mode="wait">
-            {loading && step === "execution" ? (
+            {loading ? (
               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <SovereignLoader />
               </motion.div>
@@ -223,7 +247,11 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                 
                 {step === "select_network" && (
                   <motion.div key="sn" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                    <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />
+                    {category?.type === 'binance' ? (
+                      <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />
+                    ) : (
+                      <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} availableIds={npAvailableIds} slowNetworkId={slowNetworkId} />
+                    )}
                   </motion.div>
                 )}
                 
