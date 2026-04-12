@@ -75,12 +75,26 @@ export function BinanceExecutionStep({
            </div>
            
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
-              <p>أودع الأموال إلى العنوان الموضح أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
+              <div className="space-y-4">
+                <p>أودِع الأموال إلى العنوان أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
+                <p>سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرّف العملية (TXID) والتحقق منها.</p>
+              </div>
+
               <div className="space-y-3 pt-6 border-t border-gray-200">
                  <p className="font-bold text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
                  <ul className="space-y-3 pr-2 list-none text-[11px]">
-                    <li>تأكد من اختيار شبكة <span className="font-bold text-red-600">{networkLabel}</span> حصراً عند الإرسال.</li>
-                    <li>تحقق من صحة العنوان قبل تنفيذ العملية لضمان وصول الأصول.</li>
+                    <li className="flex items-start gap-2">
+                      <div className="h-1 w-1 rounded-full bg-red-400 mt-2 shrink-0" />
+                      <span>تأكد من اختيار شبكة <span className="font-bold text-red-600">{networkLabel}</span> حصراً عند الإرسال.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="h-1 w-1 rounded-full bg-red-400 mt-2 shrink-0" />
+                      <span>تحقق من صحة العنوان قبل تنفيذ العملية.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="h-1 w-1 rounded-full bg-red-400 mt-2 shrink-0" />
+                      <span>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</span>
+                    </li>
                  </ul>
               </div>
            </div>
