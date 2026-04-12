@@ -37,6 +37,10 @@ interface ExecutionStepProps {
   selectedNetwork?: any;
 }
 
+/**
+ * @fileOverview مكون التنفيذ المطور v12.0 - Precision Input & Logic
+ * تم إصلاح كافة أخطاء المتغيرات المفقودة وتطهير حقل الـ TXID هندسياً.
+ */
 export function ExecutionStep({
   instructions,
   walletAddress,
@@ -74,7 +78,7 @@ export function ExecutionStep({
   return (
     <div className="w-full space-y-8 text-right font-body animate-in fade-in duration-700" dir="rtl">
       
-      {/* 1. Asset Identity & Status */}
+      {/* 1. Asset Identity */}
       <section className="flex items-center justify-between px-2">
          <div className="flex items-center gap-4">
             <div className="shrink-0 flex items-center justify-center">
@@ -90,7 +94,7 @@ export function ExecutionStep({
          </Badge>
       </section>
 
-      {/* 2. QR Code - Pure Minimalist (No Container) */}
+      {/* 2. QR Code - Pure Minimalist */}
       <section className="flex justify-center py-4">
          {walletAddress ? (
            <div className="relative h-48 w-48 md:h-56 md:w-56 flex items-center justify-center">
@@ -116,7 +120,7 @@ export function ExecutionStep({
          )}
       </section>
 
-      {/* 3. Address Strip & Share */}
+      {/* 3. Address Strip */}
       <section className="space-y-6">
          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
@@ -135,7 +139,7 @@ export function ExecutionStep({
          </Button>
       </section>
 
-      {/* 4. Instructions & Guidance (Re-styled for Clarity) */}
+      {/* 4. Dynamic Instructions */}
       <section className="space-y-6">
          <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-5">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
@@ -149,13 +153,11 @@ export function ExecutionStep({
                   <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
                   <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية.</p>
                 </div>
-              ) : isBinance ? (
+              ) : (
                 <div className="space-y-2">
                   <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> عبر شبكة <span className="font-black text-blue-900">{networkName}</span> فقط.</p>
                   <p className="font-black text-blue-900">سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID.</p>
                 </div>
-              ) : (
-                <p>أودع الأموال إلى العنوان <span className="font-black text-blue-900">أعلاه</span> واتبع التعليمات الموضحة.</p>
               )}
 
               <div className="space-y-2 pt-4 border-t border-blue-100/50">
@@ -165,7 +167,7 @@ export function ExecutionStep({
                  <ul className="list-disc pr-4 space-y-2 text-[10px]">
                     <li>تأكد من اختيار شبكة <span className="font-black">{networkName}</span> حصراً عند الإرسال.</li>
                     <li>تحقق من صحة العنوان قبل تنفيذ العملية.</li>
-                    <li>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</li>
+                    <li>أي إيداع عبر شبكة غير مدعومة قد يؤدي إلى فقدان الأموال بشكل دائم.</li>
                  </ul>
               </div>
            </div>
@@ -188,7 +190,7 @@ export function ExecutionStep({
                 <button 
                   onClick={handlePaste} 
                   type="button" 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 active:scale-90 transition-all shadow-sm"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] hover:bg-gray-50 transition-all shadow-sm"
                 >
                    <ClipboardPaste size={18} />
                 </button>
@@ -198,7 +200,7 @@ export function ExecutionStep({
          )}
 
          <div className="pt-2">
-            {(isNowPayments) ? (
+            {isNowPayments ? (
               <button onClick={() => window.location.href = '/home'} className="w-full h-16 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group">
                  <span>العودة للرئيسية</span>
                  <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1" />

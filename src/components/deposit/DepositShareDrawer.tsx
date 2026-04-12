@@ -33,8 +33,8 @@ interface DepositShareDrawerProps {
 }
 
 /**
- * @fileOverview مفاعل تصدير المعاملات v23.0 - Pure Minimalist & Correct Signature
- * تم تجريد الباركود من الحاويات، وفصل حروف الختم لضمان التباعد مع شعار النقاط على اليسار.
+ * @fileOverview مفاعل تصدير المعاملات v25.0 - Sovereign Precise Signature
+ * هندسة فخمة للختم السفلي: N A M I X (كلمات منفصلة) مع شعار النقاط على اليسار (LTR).
  */
 export function DepositShareDrawer({
   open,
@@ -53,7 +53,7 @@ export function DepositShareDrawer({
       setIsProcessing(true);
       const timer = setTimeout(() => {
         captureProtocol();
-      }, 1200);
+      }, 1500); // زيادة المهلة لضمان استقرار الباركود
       return () => clearTimeout(timer);
     }
   }, [open]);
@@ -103,6 +103,7 @@ export function DepositShareDrawer({
 
   return (
     <>
+      {/* Hidden Capture Node */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
@@ -162,6 +163,7 @@ export function DepositShareDrawer({
              </div>
           </div>
 
+          {/* Sovereign Stamp - LTR Signature with separated letters */}
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4 opacity-30" dir="ltr">
              <div className="flex items-center gap-5">
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">
