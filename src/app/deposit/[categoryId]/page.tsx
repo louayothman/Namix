@@ -116,9 +116,9 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSlowNetworkId(null);
     setLoading(true);
 
-    // بروتوكول رصد الـ 3 ثوانٍ المطور
+    // بروتوكول رصد عدم التوافر اللحظي (3 ثوانٍ كحد أقصى أو فشل الـ API)
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("TIMEOUT")), 3000)
+      setTimeout(() => reject(new Error("UNAVAILABLE")), 3000)
     );
 
     try {
@@ -130,7 +130,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
           setWalletAddress(res.address);
           setStep("execution");
         } else {
-          setError(res.error);
+          // في حال فشل الـ API صراحة، نعتبرها غير متاحة ونظهر التنويه ببطاقة الشبكة
+          setSlowNetworkId(network.id || network.network);
         }
       } else if (category?.type === 'binance') {
         const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
@@ -142,11 +143,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         }
       }
     } catch (err: any) {
-      if (err.message === "TIMEOUT") {
-        setSlowNetworkId(network.id || network.network);
-      } else {
-        setError("فشل بروتوكول التوليد.");
-      }
+      // في حال حدوث Timeout أو خطأ بروتوكول، يتم وسم الشبكة بـ "غير متاحة"
+      setSlowNetworkId(network.id || network.network);
     } finally {
       setLoading(false);
     }

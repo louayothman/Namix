@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -41,7 +42,7 @@ export function BinanceExecutionStep({
     } catch (err) {}
   };
 
-  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "الرئيسية";
+  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "الشبكة المختارة";
 
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">

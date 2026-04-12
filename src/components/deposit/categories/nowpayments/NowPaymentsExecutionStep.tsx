@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -24,7 +25,7 @@ export function NowPaymentsExecutionStep({
   walletAddress,
   loading
 }: NowPaymentsExecutionStepProps) {
-  const networkLabel = selectedNetwork?.name || selectedAsset?.network || "الرئيسية";
+  const networkLabel = selectedNetwork?.name || selectedAsset?.network || "الشبكة المختارة";
 
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">
