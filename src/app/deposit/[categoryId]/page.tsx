@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -37,26 +36,20 @@ const NamixDotsIcon = () => (
   </div>
 );
 
-/**
- * Sovereign Power Ring Loader
- * أيقونة ناميكس المركزية يحيط بها حلقة طاقية دورانية فخمة.
- */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
-      {/* الحلقة الطاقية */}
       <motion.div 
         animate={{ rotate: 360, opacity: [0.3, 0.6, 0.3] }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         className="h-24 w-24 border-[1px] border-[#f9a885]/20 border-t-[#f9a885] rounded-full shadow-[0_0_30px_rgba(249,168,133,0.1)]"
       />
-      {/* أيقونة ناميكس المركزية */}
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Logo size="sm" className="opacity-80" />
+          <Logo size="md" hideText className="opacity-80" />
         </motion.div>
       </div>
     </div>
@@ -117,7 +110,11 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
       setStep("execution");
       setLoading(true);
       const res = await createNowPayment(dbUser.id, asset.id, 10);
-      if (res.success) setWalletAddress(res.address);
+      if (res.success) {
+        setWalletAddress(res.address);
+        // التخزين للشبكة المختارة ضمنياً
+        setSelectedNetwork({ name: asset.network, network: asset.id });
+      }
       else setError(res.error);
       setLoading(false);
     } else if (category?.type === 'binance') {
@@ -233,7 +230,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                 {step === "execution" && (
                   <motion.div key="ex" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
-                    category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} walletAddress={walletAddress} loading={loading} /> :
+                    category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} /> :
                     <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
                   </motion.div>
                 )}

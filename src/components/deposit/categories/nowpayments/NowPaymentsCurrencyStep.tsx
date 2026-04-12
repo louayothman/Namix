@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from "react";
@@ -15,6 +14,22 @@ interface NowPaymentsCurrencyStepProps {
 }
 
 const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL'];
+
+/**
+ * خوارزمية الأفضلية لاختيار أفضل شبكة متاحة لكل عملة
+ */
+const PREFERRED_NETWORKS: Record<string, string[]> = {
+  'USDT': ['usdttrc20', 'usdtbsc', 'usdteth', 'usdtsol', 'usdtmatic'],
+  'ETH': ['eth', 'ethbsc'],
+  'BNB': ['bnbbsc'],
+  'BTC': ['btc'],
+  'SOL': ['sol'],
+  'TRX': ['trx'],
+  'MATIC': ['maticpolygon'],
+  'LTC': ['ltc'],
+  'DOGE': ['doge'],
+  'XRP': ['xrp']
+};
 
 const NP_ASSET_METADATA: Record<string, { label: string, icon: string, network: string, coin: string }> = {
   'usdttrc20': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'TRON (TRC20)' },
@@ -40,10 +55,31 @@ export function NowPaymentsCurrencyStep({
   searchQuery
 }: NowPaymentsCurrencyStepProps) {
   const filtered = useMemo(() => {
-    // 1. فلترة العملات المتاحة فعلياً فقط
-    let list = availableIds
-      .filter(id => !!NP_ASSET_METADATA[id])
-      .map(id => ({ id, ...NP_ASSET_METADATA[id] }));
+    // 1. تجميع الأفضل: اختيار أفضل شبكة واحدة لكل عملة
+    const bestAssets: any[] = [];
+    const coinsProcessed = new Set<string>();
+
+    // أولاً: تصفية العملات بناءً على قائمة الأفضلية
+    Object.keys(PREFERRED_NETWORKS).forEach(coin => {
+      const networkIds = PREFERRED_NETWORKS[coin];
+      // البحث عن أول شبكة متوفرة ضمن قائمة التفضيل
+      const bestId = networkIds.find(id => availableIds.includes(id));
+      if (bestId) {
+        bestAssets.push({ id: bestId, ...NP_ASSET_METADATA[bestId] });
+        coinsProcessed.add(coin);
+      }
+    });
+
+    // ثانياً: إضافة أي عملات أخرى متوفرة وليست في قائمة التفضيل (إضافية)
+    availableIds.forEach(id => {
+      const meta = NP_ASSET_METADATA[id];
+      if (meta && !coinsProcessed.has(meta.coin)) {
+        bestAssets.push({ id, ...meta });
+        coinsProcessed.add(meta.coin);
+      }
+    });
+
+    let list = [...bestAssets];
 
     // 2. تطبيق البحث
     if (searchQuery.trim()) {

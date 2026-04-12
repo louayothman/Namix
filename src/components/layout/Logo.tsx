@@ -8,9 +8,10 @@ interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   lightText?: boolean;
+  hideText?: boolean;
 }
 
-export function Logo({ className, size = 'md', lightText = false }: LogoProps) {
+export function Logo({ className, size = 'md', lightText = false, hideText = false }: LogoProps) {
   const isSmall = size === 'sm';
   const isLarge = size === 'lg';
   const dotSize = isSmall ? 4 : isLarge ? 10 : 7;
@@ -19,7 +20,7 @@ export function Logo({ className, size = 'md', lightText = false }: LogoProps) {
 
   return (
     <div className={cn("relative flex items-center group cursor-pointer", className)} dir="ltr">
-      <div className="relative mr-3 flex items-center justify-center">
+      <div className="relative flex items-center justify-center">
         <motion.div 
           animate={{ rotate: [0, 90, 180, 270, 360] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -33,13 +34,15 @@ export function Logo({ className, size = 'md', lightText = false }: LogoProps) {
         </motion.div>
       </div>
       
-      <h1 className={cn(
-        "font-normal tracking-tight leading-none select-none",
-        textSize,
-        lightText ? "text-white" : "text-[#002d4d]"
-      )}>
-        NAMIX
-      </h1>
+      {!hideText && (
+        <h1 className={cn(
+          "font-normal tracking-tight leading-none select-none ml-3",
+          textSize,
+          lightText ? "text-white" : "text-[#002d4d]"
+        )}>
+          NAMIX
+        </h1>
+      )}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -9,7 +8,8 @@ import {
   Info, 
   Loader2, 
   Hash, 
-  Coins 
+  Coins,
+  ShieldCheck
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { AddressDisplay } from "../../shared/AddressDisplay";
@@ -84,8 +84,13 @@ export function ManualExecutionStep({
          </div>
 
          <div className="pt-2">
-            <Button onClick={onSubmit} disabled={loading || !amount || !txid} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all">
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "إرسال طلب الإيداع"}
+            <Button onClick={onSubmit} disabled={loading || !amount || !txid} className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-3">
+              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                <>
+                  <span>إرسال طلب الإيداع</span>
+                  <ShieldCheck size={20} className="text-[#f9a885]" />
+                </>
+              )}
             </Button>
          </div>
       </section>

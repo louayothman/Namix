@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -42,7 +41,7 @@ export function BinanceExecutionStep({
     } catch (err) {}
   };
 
-  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "الأساسية";
+  const networkLabel = selectedNetwork?.name || selectedNetwork?.network || "الرئيسية";
 
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">
@@ -77,9 +76,9 @@ export function BinanceExecutionStep({
            <div className="space-y-6 text-[12px] font-normal leading-loose text-gray-500">
               <p>أودع الأموال إلى العنوان الموضح أعلاه عبر شبكة <span className="font-black text-[#002d4d]">{networkLabel}</span> فقط.</p>
               <div className="space-y-3 pt-6 border-t border-gray-200">
-                 <p className="font-black text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
+                 <p className="font-bold text-red-500 flex items-center gap-2"><AlertCircle size={14} /> تحذير:</p>
                  <ul className="space-y-3 pr-2 list-none text-[11px]">
-                    <li>تأكد من اختيار شبكة <span className="font-black text-red-600">{networkLabel}</span> حصراً عند الإرسال.</li>
+                    <li>تأكد من اختيار شبكة <span className="font-bold text-red-600">{networkLabel}</span> حصراً عند الإرسال.</li>
                     <li>تحقق من صحة العنوان قبل تنفيذ العملية لضمان وصول الأصول.</li>
                  </ul>
               </div>
