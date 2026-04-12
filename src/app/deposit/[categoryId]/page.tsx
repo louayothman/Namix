@@ -93,8 +93,10 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
+    setLoading(true);
+    setError(null);
+
     if (category?.type === 'binance') {
-      setLoading(true);
       const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (addrRes.success) {
         setWalletAddress(addrRes.address);
@@ -102,11 +104,17 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       } else {
         setError(addrRes.error);
       }
-      setLoading(false);
-    } else {
-      // NowPayments case
-      setStep("execution");
+    } else if (category?.type === 'nowpayments') {
+      // Automatic Generation for NowPayments
+      const res = await createNowPayment(dbUser.id, network.id, 10);
+      if (res.success) {
+        setWalletAddress(res.address);
+        setStep("execution");
+      } else {
+        setError(res.error);
+      }
     }
+    setLoading(false);
   };
 
   const handleFinalSubmit = async () => {
@@ -114,18 +122,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
     setLoading(true);
     setError(null);
     
-    if (category?.type === 'nowpayments') {
-      // استخدام مبلغ افتراضي (10 دولار) لتوليد العنوان، وسيقوم الـ IPN بمزامنة المبلغ الحقيقي
-      const res = await createNowPayment(dbUser.id, selectedNetwork.id, 10);
-      if (res.success) {
-        setWalletAddress(res.address);
-      } else {
-        setError(res.error);
-      }
-      setLoading(false);
-      return;
-    }
-
     if (category?.type === 'binance') {
       setStep("verifying");
       const res = await verifyAndProcessBinanceDeposit(dbUser.id, txid, selectedAsset.coin);
@@ -184,7 +180,15 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
         <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
           <AnimatePresence mode="wait">
-            {step === "verifying" ? (
+            {loading ? (
+              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col items-center justify-center py-24 gap-8">
+                 <div className="relative">
+                    <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center"><Check className="h-6 w-6 text-[#002d4d] animate-pulse" /></div>
+                 </div>
+                 <p className="text-xl font-black text-[#002d4d]">جاري تهيئة القناة...</p>
+              </motion.div>
+            ) : step === "verifying" ? (
               <motion.div key="v" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center py-24 gap-8">
                  <div className="relative"><div className="h-24 w-24 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" /><div className="absolute inset-0 flex items-center justify-center"><Check className="h-8 w-8 text-[#002d4d] animate-pulse" /></div></div>
                  <p className="text-xl font-black text-[#002d4d]">جاري مطابقة البيانات...</p>
