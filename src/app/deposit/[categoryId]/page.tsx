@@ -27,23 +27,39 @@ import { ManualCurrencyStep } from "@/components/deposit/categories/manual/Manua
 import { ManualExecutionStep } from "@/components/deposit/categories/manual/ManualExecutionStep";
 
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
-import { Logo } from "@/components/layout/Logo";
 
+/**
+ * @fileOverview مُفاعل التحميل السيادي المطور v2.0 - Sovereign Dynamic Pulse
+ * تم تحديث الأيقونة لتنبض وتدور (Scale & Rotate) داخل الحلقة الطاقية لضمان تجربة بصرية حية وفخمة.
+ */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
+      {/* الحلقة الطاقية الخارجية */}
       <motion.div 
         animate={{ rotate: 360 }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         className="h-24 w-24 border-[1px] border-[#f9a885]/20 border-t-[#f9a885] rounded-full shadow-[0_0_30px_rgba(249,168,133,0.1)]"
       />
+      {/* أيقونة ناميكس المركزية المتحركة (تنبض وتدور) */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="grid grid-cols-2 gap-1 scale-110">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.25, 1],
+            rotate: [0, 360]
+          }}
+          transition={{ 
+            duration: 4, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+          className="grid grid-cols-2 gap-1.5"
+        >
           <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
           <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
           <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
           <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-        </div>
+        </motion.div>
       </div>
     </div>
   </div>
@@ -116,7 +132,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSlowNetworkId(null);
     setLoading(true);
 
-    // بروتوكول رصد عدم التوافر اللحظي (3 ثوانٍ كحد أقصى أو فشل الـ API)
+    // بروتوكول رصد عدم التوافر اللحظي (3 ثوانٍ)
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error("UNAVAILABLE")), 3000)
     );
@@ -130,7 +146,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
           setWalletAddress(res.address);
           setStep("execution");
         } else {
-          // في حال فشل الـ API صراحة، نعتبرها غير متاحة ونظهر التنويه ببطاقة الشبكة
           setSlowNetworkId(network.id || network.network);
         }
       } else if (category?.type === 'binance') {
@@ -143,7 +158,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         }
       }
     } catch (err: any) {
-      // في حال حدوث Timeout أو خطأ بروتوكول، يتم وسم الشبكة بـ "غير متاحة"
       setSlowNetworkId(network.id || network.network);
     } finally {
       setLoading(false);
@@ -200,7 +214,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Live Nexus</span></div>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Live Pulse</span></div>
               </div>
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
@@ -214,15 +228,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         </header>
 
         <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
-          {isSearchOpen && step === "select_asset" && (
-            <div className="pb-4">
-              <div className="relative">
-                <input autoFocus placeholder="ابحث عن العملة..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-[72px] w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner outline-none focus:ring-2 focus:ring-[#002d4d]/10 transition-all" />
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
-              </div>
-            </div>
-          )}
-
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
