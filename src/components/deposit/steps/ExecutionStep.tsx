@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -67,6 +68,9 @@ export function ExecutionStep({
     } catch (err) {}
   };
 
+  // محرك اختيار اسم الشبكة الفعلي للعرض
+  const networkName = isBinance ? (selectedNetwork?.name || "المعتمدة") : (selectedAsset?.network || "المعتمدة");
+
   return (
     <div className="w-full space-y-8 text-right font-body" dir="rtl">
       {/* 1. Asset Identity Header */}
@@ -76,7 +80,7 @@ export function ExecutionStep({
          </div>
          <div className="text-right space-y-0.5">
             <h3 className="text-xl font-normal text-[#002d4d] leading-none">{selectedAsset?.name || selectedAsset?.coin}</h3>
-            <p className="text-[10px] text-gray-400 uppercase">{selectedNetwork?.name || selectedAsset?.network}</p>
+            <p className="text-[10px] text-gray-400 uppercase">{networkName}</p>
          </div>
       </section>
 
@@ -127,17 +131,38 @@ export function ExecutionStep({
 
       {/* 4. Submission & Data Input */}
       <section className="space-y-6">
-         <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-2">
+         <div className="p-6 bg-blue-50/40 rounded-[32px] border border-blue-100/50 space-y-4">
            <div className="flex items-center gap-2 text-blue-600 mb-1">
              <Info size={14} />
              <h4 className="text-[10px] font-normal uppercase">تعليمات الإيداع</h4>
            </div>
-           <p className="text-[11px] font-normal leading-relaxed text-blue-800/70">
-             يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر الشبكة المعتمدة حصراً. 
-             {isBinance ? " بعد اكتمال التحويل، يرجى لصق معرف العملية (TXID) في الحقل أدناه لبدء التدقيق الفوري والمزامنة." : 
-              isNowPayments ? " نظام المراقبة الذكي سيتعرف على الإيداع ويضيفه لمحفظتك تلقائياً فور تأكيد المعاملة." : 
-              " بعد التحويل، يرجى تزويدنا بالبيانات المطلوبة للتدقيق والاعتماد."}
-           </p>
+           
+           <div className="space-y-4 text-[11px] font-normal leading-relaxed text-blue-800/70">
+              {isNowPayments ? (
+                <>
+                  <p>أودع الأموال إلى العنوان أعلاه عبر شبكة {networkName} فقط.</p>
+                  <p>سيتم إضافة الرصيد إلى محفظتك بعد اتمام العملية</p>
+                </>
+              ) : isBinance ? (
+                <>
+                  <p>أودع الأموال إلى العنوان أعلاه عبر شبكة {networkName} فقط.</p>
+                  <p>سيتم إضافة الرصيد إلى محفظتك بعد تزويدنا بمعرف العملية TXID</p>
+                </>
+              ) : (
+                <p>{instructions}</p>
+              )}
+
+              <div className="space-y-2 pt-3 border-t border-blue-100/50">
+                 <p className="font-black text-red-500/70 flex items-center gap-1.5">
+                    <AlertCircle size={10} /> تحذير:
+                 </p>
+                 <ul className="list-disc pr-4 space-y-1.5">
+                    <li>تأكد من اختيار شبكة {networkName} حصراً عند الإرسال.</li>
+                    <li>تحقق من صحة العنوان قبل تنفيذ العملية.</li>
+                    <li>أي إيداع عبر شبكة غير مدعومة أو إلى عنوان غير صحيح قد يؤدي إلى فقدان الأموال بشكل دائم.</li>
+                 </ul>
+              </div>
+           </div>
          </div>
 
          {isBinance && (
@@ -147,7 +172,6 @@ export function ExecutionStep({
                 <Badge className="bg-orange-50 text-orange-600 border-none font-normal text-[8px] px-2 py-0.5 rounded-full">تنسيق آلي</Badge>
              </div>
              
-             {/* حقل TXID معدل لمنع تداخل الحواف */}
              <div className="relative h-16 md:h-20 rounded-[28px] border border-gray-100 bg-gray-50/50 overflow-hidden flex items-center focus-within:bg-white focus-within:border-[#002d4d] transition-all px-4">
                 <div className="absolute right-6 pointer-events-none opacity-20">
                    <Hash size={18} className="text-[#002d4d]" />
@@ -169,7 +193,7 @@ export function ExecutionStep({
            </div>
          )}
 
-         {isNowPayments && (
+         {(isNowPayments || step === "success") && (
            <div className="pt-2">
              <button onClick={() => window.location.href = '/home'} className="w-full h-20 rounded-[40px] bg-[#002d4d] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98]">
                 <span>العودة للرئيسية</span>
