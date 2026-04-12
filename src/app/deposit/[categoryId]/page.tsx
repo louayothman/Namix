@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -27,15 +28,6 @@ import { ManualExecutionStep } from "@/components/deposit/categories/manual/Manu
 
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 import { Logo } from "@/components/layout/Logo";
-
-const NamixDotsIcon = () => (
-  <div className="grid grid-cols-2 gap-1 scale-110">
-    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-    <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-  </div>
-);
 
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
@@ -92,7 +84,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     }
   }, [db]);
 
-  // الحقن المسبق للبيانات لضمان انتقال وميضي
   useEffect(() => {
     if (!category) return;
     if (category.type === 'binance' && binanceConfig.length === 0) {
@@ -125,9 +116,9 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSlowNetworkId(null);
     setLoading(true);
 
-    // محرك رصد الـ 1s
+    // بروتوكول رصد الـ 3s المطور لضمان استقرار التوليد
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("TIMEOUT")), 1000)
+      setTimeout(() => reject(new Error("TIMEOUT")), 3000)
     );
 
     try {
@@ -203,7 +194,14 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
               <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
-                 {category?.type === 'binance' ? <Icon icon="cryptocurrency-color:bnb" width={32} height={32} /> : <NamixDotsIcon />}
+                 {category?.type === 'binance' ? <Icon icon="cryptocurrency-color:bnb" width={32} height={32} /> : (
+                   <div className="grid grid-cols-2 gap-1 scale-110">
+                     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                     <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                     <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                   </div>
+                 )}
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>

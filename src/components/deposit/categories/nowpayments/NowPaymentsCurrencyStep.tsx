@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from "react";
@@ -15,37 +16,21 @@ interface NowPaymentsCurrencyStepProps {
 
 const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL'];
 
-/**
- * خوارزمية الأفضلية لاختيار أفضل شبكة متاحة لكل عملة
- */
-const PREFERRED_NETWORKS: Record<string, string[]> = {
-  'USDT': ['usdttrc20', 'usdtbsc', 'usdteth', 'usdtsol', 'usdtmatic'],
-  'ETH': ['eth', 'ethbsc'],
-  'BNB': ['bnbbsc'],
-  'BTC': ['btc'],
-  'SOL': ['sol'],
-  'TRX': ['trx'],
-  'MATIC': ['maticpolygon'],
-  'LTC': ['ltc'],
-  'DOGE': ['doge'],
-  'XRP': ['xrp']
-};
-
-const NP_ASSET_METADATA: Record<string, { label: string, icon: string, network: string, coin: string }> = {
-  'usdttrc20': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'TRON (TRC20)' },
-  'usdtbsc': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'BSC (BEP20)' },
-  'usdteth': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'Ethereum (ERC20)' },
-  'usdtsol': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'Solana' },
-  'usdtmatic': { label: 'Tether', coin: 'USDT', icon: 'USDT', network: 'Polygon' },
-  'btc': { label: 'Bitcoin', coin: 'BTC', icon: 'BTC', network: 'Bitcoin Native' },
-  'eth': { label: 'Ethereum', coin: 'ETH', icon: 'ETH', network: 'Ethereum Native' },
-  'trx': { label: 'TRON', coin: 'TRX', icon: 'TRX', network: 'TRON Native' },
-  'sol': { label: 'Solana', coin: 'SOL', icon: 'SOL', network: 'Solana Native' },
-  'ltc': { label: 'Litecoin', coin: 'LTC', icon: 'LTC', network: 'Litecoin Native' },
-  'bnbbsc': { label: 'BNB', coin: 'BNB', icon: 'BNB', network: 'BSC (BEP20)' },
-  'doge': { label: 'Dogecoin', coin: 'DOGE', icon: 'DOGE', network: 'Doge Native' },
-  'xrp': { label: 'Ripple', coin: 'XRP', icon: 'XRP', network: 'Ripple Native' },
-  'maticpolygon': { label: 'Polygon', coin: 'MATIC', icon: 'MATIC', network: 'Polygon Native' }
+const NP_ASSET_METADATA: Record<string, { label: string, icon: string, coin: string }> = {
+  'usdttrc20': { label: 'Tether', coin: 'USDT', icon: 'USDT' },
+  'usdtbsc': { label: 'Tether', coin: 'USDT', icon: 'USDT' },
+  'usdteth': { label: 'Tether', coin: 'USDT', icon: 'USDT' },
+  'usdtsol': { label: 'Tether', coin: 'USDT', icon: 'USDT' },
+  'usdtmatic': { label: 'Tether', coin: 'USDT', icon: 'USDT' },
+  'btc': { label: 'Bitcoin', coin: 'BTC', icon: 'BTC' },
+  'eth': { label: 'Ethereum', coin: 'ETH', icon: 'ETH' },
+  'trx': { label: 'TRON', coin: 'TRX', icon: 'TRX' },
+  'sol': { label: 'Solana', coin: 'SOL', icon: 'SOL' },
+  'ltc': { label: 'Litecoin', coin: 'LTC', icon: 'LTC' },
+  'bnbbsc': { label: 'BNB', coin: 'BNB', icon: 'BNB' },
+  'doge': { label: 'Dogecoin', coin: 'DOGE', icon: 'DOGE' },
+  'xrp': { label: 'Ripple', coin: 'XRP', icon: 'XRP' },
+  'maticpolygon': { label: 'Polygon', coin: 'MATIC', icon: 'MATIC' }
 };
 
 export function NowPaymentsCurrencyStep({
@@ -55,39 +40,25 @@ export function NowPaymentsCurrencyStep({
   searchQuery
 }: NowPaymentsCurrencyStepProps) {
   const filtered = useMemo(() => {
-    // 1. تجميع الأفضل: اختيار أفضل شبكة واحدة لكل عملة
-    const bestAssets: any[] = [];
-    const coinsProcessed = new Set<string>();
+    // تجميع العملات بشكل فريد دون تكرار الشبكات في هذه الخطوة
+    const uniqueCoins: any[] = [];
+    const coinsSeen = new Set<string>();
 
-    // أولاً: تصفية العملات بناءً على قائمة الأفضلية
-    Object.keys(PREFERRED_NETWORKS).forEach(coin => {
-      const networkIds = PREFERRED_NETWORKS[coin];
-      // البحث عن أول شبكة متوفرة ضمن قائمة التفضيل
-      const bestId = networkIds.find(id => availableIds.includes(id));
-      if (bestId) {
-        bestAssets.push({ id: bestId, ...NP_ASSET_METADATA[bestId] });
-        coinsProcessed.add(coin);
-      }
-    });
-
-    // ثانياً: إضافة أي عملات أخرى متوفرة وليست في قائمة التفضيل (إضافية)
     availableIds.forEach(id => {
       const meta = NP_ASSET_METADATA[id];
-      if (meta && !coinsProcessed.has(meta.coin)) {
-        bestAssets.push({ id, ...meta });
-        coinsProcessed.add(meta.coin);
+      if (meta && !coinsSeen.has(meta.coin)) {
+        uniqueCoins.push({ ...meta, sampleId: id });
+        coinsSeen.add(meta.coin);
       }
     });
 
-    let list = [...bestAssets];
+    let list = [...uniqueCoins];
 
-    // 2. تطبيق البحث
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(a => a.label.toLowerCase().includes(q) || a.coin.toLowerCase().includes(q));
     }
     
-    // 3. الترتيب: الأكثر شعبية أولاً ثم أبجدياً
     return list.sort((a, b) => {
       const aSymbol = a.coin.toUpperCase();
       const bSymbol = b.coin.toUpperCase();
@@ -115,10 +86,10 @@ export function NowPaymentsCurrencyStep({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((asset) => (
           <button 
-            key={asset.id} 
+            key={asset.coin} 
             onClick={() => onSelect(asset)} 
             disabled={loading}
-            className="h-[88px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
+            className="h-[72px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
           >
             <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
               <CryptoIcon name={asset.icon} size={36} />
@@ -128,24 +99,12 @@ export function NowPaymentsCurrencyStep({
                 <p className="font-black text-[13px] text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{asset.label}</p>
                 {POPULAR_COINS.includes(asset.coin.toUpperCase()) && <Sparkles size={8} className="text-orange-400 animate-pulse" />}
               </div>
-              <div className="flex flex-col gap-1">
-                 <p className="text-[10px] font-black text-gray-400 uppercase leading-none">{asset.coin}</p>
-                 <Badge className="font-black text-[7px] px-1.5 py-0.5 rounded-md shadow-sm uppercase border-none bg-blue-50 text-blue-600 w-fit">
-                   {asset.network}
-                 </Badge>
-              </div>
+              <p className="text-[10px] font-black text-gray-400 uppercase leading-none">{asset.coin}</p>
             </div>
             <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
           </button>
         ))}
       </div>
-
-      {filtered.length === 0 && availableIds.length > 0 && (
-        <div className="py-20 text-center opacity-20 flex flex-col items-center gap-4 border-2 border-dashed border-gray-100 rounded-[48px]">
-           <X size={40} />
-           <p className="text-[10px] font-black uppercase">لم يتم العثور على العملة المطلوبة</p>
-        </div>
-      )}
     </motion.div>
   );
 }
