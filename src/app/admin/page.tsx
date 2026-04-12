@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -20,7 +19,7 @@ const MarketPulseReactor = dynamic(() => import("@/components/admin/dashboard/Ma
 const ReactorLoader = () => (
   <div className="h-[200px] flex flex-col items-center justify-center gap-3 bg-gray-50/50 rounded-[48px] border border-gray-100 border-dashed opacity-40">
     <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
-    <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Initializing Reactor...</p>
+    <p className="text-[9px] font-normal text-gray-300 uppercase tracking-widest">تهيئة المحرك...</p>
   </div>
 );
 
@@ -106,85 +105,45 @@ export default function AdminDashboard() {
 
   return (
     <Shell isAdmin>
-      <div className="space-y-8 pb-32 px-6 max-w-[1600px] mx-auto pt-10 font-body">
-        
+      <div className="space-y-8 pb-32 px-6 max-w-[1600px] mx-auto pt-10">
         <Suspense fallback={<div className="h-16 w-full bg-gray-50 rounded-full animate-pulse" />}>
           <AdminHeader />
         </Suspense>
 
         <div className="grid gap-6 lg:grid-cols-12">
-          
           <div className="lg:col-span-8 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Suspense fallback={<ReactorLoader />}>
-                <TreasuryReactor 
-                  totalUserBalances={totalUserBalances}
-                  activeVolume={activeVolume}
-                  liquidityEfficiency={liquidityEfficiency}
-                  confidenceIndex={confidenceIndex}
-                  totalApprovedDeposits={totalApprovedDeposits}
-                  totalApprovedWithdrawals={totalApprovedWithdrawals}
-                  userCount={allUsers?.length || 0}
-                />
+                <TreasuryReactor totalUserBalances={totalUserBalances} activeVolume={activeVolume} liquidityEfficiency={liquidityEfficiency} confidenceIndex={confidenceIndex} totalApprovedDeposits={totalApprovedDeposits} totalApprovedWithdrawals={totalApprovedWithdrawals} userCount={allUsers?.length || 0} />
               </Suspense>
-
               <Suspense fallback={<ReactorLoader />}>
-                <LiabilityReactor 
-                  totalLiabilities={totalLiabilities}
-                  solvencyRatio={solvencyRatio}
-                  totalLiveAccruedProfits={totalLiveAccruedProfits}
-                  totalUserBalances={totalUserBalances}
-                  next7DaysOutflow={next7DaysOutflow}
-                  pendingWithdrawalsCount={allWithdrawals?.filter(w => w.status === 'pending').length || 0}
-                  totalApprovedDeposits={totalApprovedDeposits}
-                />
+                <LiabilityReactor totalLiabilities={totalLiabilities} solvencyRatio={solvencyRatio} totalLiveAccruedProfits={totalLiveAccruedProfits} totalUserBalances={totalUserBalances} next7DaysOutflow={next7DaysOutflow} pendingWithdrawalsCount={allWithdrawals?.filter(w => w.status === 'pending').length || 0} totalApprovedDeposits={totalApprovedDeposits} />
               </Suspense>
             </div>
-
             <Suspense fallback={<ReactorLoader />}>
-              <OperationalTerminal 
-                activeInvestments={activeInvestments}
-                now={now}
-              />
+              <OperationalTerminal activeInvestments={activeInvestments} now={now} />
             </Suspense>
           </div>
 
           <div className="lg:col-span-4 space-y-6">
             <Suspense fallback={<ReactorLoader />}>
-              <MarketPulseReactor 
-                symbolsCount={allSymbols?.filter(s => s.isActive).length || 0}
-                globalProfitRate={tradingGlobal?.defaultProfitRate || 80}
-                aiEnabled={!!tradingGlobal?.aiEnabled}
-              />
+              <MarketPulseReactor symbolsCount={allSymbols?.filter(s => s.isActive).length || 0} globalProfitRate={tradingGlobal?.defaultProfitRate || 80} aiEnabled={!!tradingGlobal?.aiEnabled} />
             </Suspense>
-
             <Suspense fallback={<ReactorLoader />}>
-              <GrowthReactor 
-                reinvestmentRate={reinvestmentRate}
-                pendingDepositsCount={allDeposits?.filter(d => d.status === 'pending').length || 0}
-                pendingWithdrawalsCount={allWithdrawals?.filter(w => w.status === 'pending').length || 0}
-              />
+              <GrowthReactor reinvestmentRate={reinvestmentRate} pendingDepositsCount={allDeposits?.filter(d => d.status === 'pending').length || 0} pendingWithdrawalsCount={allWithdrawals?.filter(w => w.status === 'pending').length || 0} />
             </Suspense>
-
             <Suspense fallback={<ReactorLoader />}>
-              <UserIntelligenceReactor 
-                newUsersCount={allUsers?.filter(u => new Date(u.createdAt) > new Date(Date.now() - 7*24*60*60*1000)).length || 0}
-                onlineUsersCount={allUsers?.filter(u => u.lastActive && new Date().getTime() - new Date(u.lastActive).getTime() < 300000).length || 0}
-              />
+              <UserIntelligenceReactor newUsersCount={allUsers?.filter(u => new Date(u.createdAt) > new Date(Date.now() - 7*24*60*60*1000)).length || 0} onlineUsersCount={allUsers?.filter(u => u.lastActive && new Date().getTime() - new Date(u.lastActive).getTime() < 300000).length || 0} />
             </Suspense>
           </div>
-
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-12 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Sovereign Engine v2.0.4</p>
+           <p className="text-[11px] font-normal text-[#002d4d] uppercase tracking-widest text-center">محرك ناميكس للتحكم المتقدم</p>
            <div className="flex gap-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-              ))}
+              {[...Array(3)].map((_, i) => <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />)}
            </div>
         </div>
-
       </div>
     </Shell>
   );

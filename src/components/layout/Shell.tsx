@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useMemo, memo } from "react";
@@ -18,7 +17,6 @@ import {
   Activity,
   Settings,
   BarChart3,
-  Loader2,
   ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,13 +24,12 @@ import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 
 const NavItem = memo(({ item, active }: { item: any, active: boolean }) => (
   <Link 
     href={item.href}
     className={cn(
-      "flex items-center gap-1.5 px-4 py-2 rounded-full text-[9px] font-black transition-all whitespace-nowrap shadow-sm",
+      "flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] transition-all whitespace-nowrap shadow-sm",
       active 
         ? "bg-[#002d4d] text-[#f9a885] shadow-md scale-105" 
         : "bg-white/10 text-white hover:bg-white/20"
@@ -62,7 +59,6 @@ export function Shell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [authorized, setAuthorized] = useState(false);
   const db = useFirestore();
 
@@ -71,7 +67,6 @@ export function Shell({
     const parsedUser = userSession ? JSON.parse(userSession) : null;
     
     if (isPublic) {
-      setUser(parsedUser);
       setAuthorized(true);
       return;
     }
@@ -86,7 +81,6 @@ export function Shell({
       return;
     }
 
-    setUser(parsedUser);
     setAuthorized(true);
 
     const uid = managedUserId || parsedUser.id;
@@ -104,38 +98,26 @@ export function Shell({
     { name: "طلبات الإيداع", href: "/admin/deposits", icon: ArrowUpCircle },
     { name: "طلبات السحب", href: "/admin/withdrawals", icon: ArrowDownCircle },
     { name: "الدعم الفني", href: "/admin/support", icon: Headset },
-    { name: "الخطط الاستثمارية", href: "/admin/plans", icon: TrendingUp },
+    { name: "خطط الاستثمار", href: "/admin/plans", icon: TrendingUp },
     { name: "تداول ناميكس", href: "/admin/trade", icon: Activity },
     { name: "المستخدمين", href: "/admin/users", icon: Users },
     { name: "الإشعارات", href: "/admin/notifications", icon: Bell },
     { name: "إعدادات المنصة", href: "/admin/settings", icon: Settings },
   ], []);
 
-  if (!authorized) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-6 font-body">
-         <div className="relative">
-            <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-               <ShieldCheck className="h-8 w-8 text-[#002d4d] animate-pulse" />
-            </div>
-         </div>
-         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] animate-pulse">Verifying Access...</p>
-      </div>
-    );
-  }
+  if (!authorized) return null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fcfdfe] font-body text-[12px] selection:bg-[#f9a885]/30" dir="rtl">
+    <div className="flex min-h-screen flex-col bg-[#fcfdfe] text-[13px]" dir="rtl">
       {managedUserId && (
         <div className="w-full bg-orange-50 text-white px-6 py-2 flex items-center justify-between sticky top-0 z-[200] shadow-md border-b border-white/10">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 animate-pulse" />
-            <span className="font-black text-[10px] tracking-tight">إدارة الهوية النخبوية: {managedUserName || managedUserId}</span>
+            <span className="text-[11px]">إدارة الحساب الاحترافي: {managedUserName || managedUserId}</span>
           </div>
           <Link href="/admin/users">
-            <button className="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full font-black text-[9px] flex items-center gap-1 transition-all shadow-inner">
-              <ArrowRight className="h-3 w-3" /> لوحة الإدارة
+            <button className="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-[10px] flex items-center gap-1 transition-all shadow-inner">
+              <ArrowRight className="h-3 w-3" /> لوحة التحكم
             </button>
           </Link>
         </div>
@@ -146,7 +128,7 @@ export function Shell({
           <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
             <div className="flex items-center justify-between w-full lg:w-auto">
               <Logo size="sm" className="text-white scale-90 shrink-0" />
-              <Badge className="lg:hidden bg-[#002d4d] text-[#f9a885] border-none text-[8px] font-black uppercase tracking-widest">Admin Console</Badge>
+              <Badge className="lg:hidden bg-[#002d4d] text-[#f9a885] border-none text-[9px] uppercase">إدارة النظام</Badge>
             </div>
             
             <nav className="flex-1 w-full overflow-x-auto scrollbar-none py-1">
@@ -156,7 +138,7 @@ export function Shell({
                  ))}
                  <button 
                    onClick={() => { localStorage.removeItem("namix_user"); router.push("/login"); }}
-                   className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[9px] font-black bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap shadow-sm"
+                   className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] bg-red-500/20 text-red-100 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap shadow-sm"
                  >
                    <LogOut className="h-3 w-3" /> خروج
                  </button>
