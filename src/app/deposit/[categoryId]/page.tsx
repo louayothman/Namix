@@ -87,14 +87,19 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleAssetSelect = async (asset: any) => {
     setSelectedAsset(asset);
-    setSearchQuery(""); // Clear search on selection
+    setSearchQuery("");
+    setWalletAddress(""); // تصفير العنوان القديم
     if (category?.type === 'binance' || category?.type === 'nowpayments') setStep("select_network");
-    else setStep("execution");
+    else {
+      setWalletAddress(asset.walletAddress || "");
+      setStep("execution");
+    }
   };
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
-    setStep("execution"); // Instant visual transition
+    setWalletAddress(""); // تصفير فوري لمنع الوميض
+    setStep("execution");
     setLoading(true);
     setError(null);
 
@@ -147,6 +152,9 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
   };
 
   const handleBack = () => {
+    setError(null);
+    setWalletAddress(""); // تصفير العنوان عند الرجوع
+    setTxid("");
     if (step === "result") { router.push("/home"); return; }
     if (step === "execution") { setStep("select_network"); return; }
     if (step === "select_network") { setStep("select_asset"); return; }
@@ -201,18 +209,26 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
                  <p className="text-xl font-black text-[#002d4d]">جاري مطابقة البيانات...</p>
               </motion.div>
             ) : step === "select_asset" ? (
-              category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
-              category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
-              <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />
+              <div key="sa" className="animate-in fade-in duration-500">
+                {category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
+                category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
+                <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />}
+              </div>
             ) : step === "select_network" ? (
-              category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} /> :
-              <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />
+              <div key="sn" className="animate-in fade-in duration-500">
+                {category?.type === 'nowpayments' ? <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} /> :
+                <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} loading={loading} />}
+              </div>
             ) : step === "execution" ? (
-              category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
-              category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} onSubmit={handleFinalSubmit} error={error} /> :
-              <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />
+              <div key="ex" className="animate-in fade-in duration-500">
+                {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
+                category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} onSubmit={handleFinalSubmit} error={error} /> :
+                <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
+              </div>
             ) : (
-              <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
+              <div key="rs" className="animate-in fade-in duration-500">
+                <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />
+              </div>
             )}
           </AnimatePresence>
         </main>

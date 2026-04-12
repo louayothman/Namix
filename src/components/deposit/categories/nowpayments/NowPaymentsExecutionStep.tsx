@@ -1,22 +1,16 @@
 
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { 
   Info, 
-  Check, 
-  Copy, 
   ShieldCheck, 
   AlertCircle,
-  ChevronLeft,
-  Share2,
-  Loader2
+  ChevronLeft
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { QRCodeSVG } from "qrcode.react";
-import { DepositShareDrawer } from "../../DepositShareDrawer";
+import { AddressDisplay } from "../../shared/AddressDisplay";
 
 interface NowPaymentsExecutionStepProps {
   selectedAsset: any;
@@ -35,17 +29,6 @@ export function NowPaymentsExecutionStep({
   onSubmit,
   error
 }: NowPaymentsExecutionStepProps) {
-  const [copyStatus, setCopyStatus] = useState<string | null>(null);
-  const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
-
-  const handleCopy = () => {
-    if (!walletAddress) return;
-    navigator.clipboard.writeText(walletAddress).then(() => {
-      setCopyStatus("تم النسخ");
-      setTimeout(() => setCopyStatus(null), 2000);
-    });
-  };
-
   const networkLabel = selectedNetwork?.network || "المعتمدة";
 
   return (
@@ -65,42 +48,13 @@ export function NowPaymentsExecutionStep({
       </section>
 
       <section className="space-y-10">
-         <div className="flex flex-col items-center gap-8">
-            <div className="relative h-56 w-56 md:h-64 md:w-64 flex items-center justify-center">
-               <QRCodeSVG 
-                 value={walletAddress || "Generating..."} 
-                 size={256} 
-                 bgColor={"transparent"} 
-                 fgColor={"#002d4d"} 
-                 level={"H"} 
-                 includeMargin={false} 
-                 className="w-full h-full" 
-               />
-               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  {!walletAddress && <Loader2 className="animate-spin text-gray-200" size={32} />}
-               </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-4 w-full">
-               <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-                  <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed font-mono opacity-80" dir="ltr">
-                    {walletAddress || "جاري توليد العنوان..."}
-                  </p>
-                  <button onClick={handleCopy} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90">
-                    {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
-                  </button>
-               </div>
-
-               <Button 
-                 onClick={() => setIsShareDrawerOpen(true)} 
-                 variant="ghost" 
-                 className="h-11 rounded-full bg-gray-50 text-[#002d4d] font-black text-[10px] px-8 border border-gray-100 shadow-sm active:scale-95 transition-all flex items-center gap-2"
-               >
-                  <Share2 size={14} className="text-blue-500" />
-                  حفظ ومشاركة العنوان
-               </Button>
-            </div>
-         </div>
+         {/* مكون عرض العنوان والباركود المعزول */}
+         <AddressDisplay 
+           walletAddress={walletAddress} 
+           selectedAsset={selectedAsset} 
+           selectedNetwork={selectedNetwork}
+           loading={loading}
+         />
 
          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
@@ -145,14 +99,6 @@ export function NowPaymentsExecutionStep({
             </button>
          </div>
       </section>
-
-      <DepositShareDrawer 
-        open={isShareDrawerOpen} 
-        onOpenChange={setIsShareDrawerOpen} 
-        selectedAsset={selectedAsset} 
-        selectedNetwork={selectedNetwork} 
-        walletAddress={walletAddress} 
-      />
     </div>
   );
 }

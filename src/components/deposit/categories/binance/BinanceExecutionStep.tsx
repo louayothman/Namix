@@ -1,24 +1,20 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Info, 
   Loader2, 
-  Check, 
-  Copy, 
   Hash, 
   ShieldCheck, 
   ClipboardPaste,
-  AlertCircle,
-  Share2
+  AlertCircle
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { QRCodeSVG } from "qrcode.react";
-import { DepositShareDrawer } from "../../DepositShareDrawer";
+import { AddressDisplay } from "../../shared/AddressDisplay";
 
 interface BinanceExecutionStepProps {
   selectedAsset: any;
@@ -41,17 +37,6 @@ export function BinanceExecutionStep({
   onSubmit,
   error
 }: BinanceExecutionStepProps) {
-  const [copyStatus, setCopyStatus] = useState<string | null>(null);
-  const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
-
-  const handleCopy = () => {
-    if (!walletAddress) return;
-    navigator.clipboard.writeText(walletAddress).then(() => {
-      setCopyStatus("تم النسخ");
-      setTimeout(() => setCopyStatus(null), 2000);
-    });
-  };
-
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -78,42 +63,13 @@ export function BinanceExecutionStep({
       </section>
 
       <section className="space-y-10">
-         <div className="flex flex-col items-center gap-8">
-            <div className="relative h-56 w-56 md:h-64 md:w-64 flex items-center justify-center">
-               <QRCodeSVG 
-                 value={walletAddress || "Generating..."} 
-                 size={256} 
-                 bgColor={"transparent"} 
-                 fgColor={"#002d4d"} 
-                 level={"H"} 
-                 includeMargin={false} 
-                 className="w-full h-full" 
-               />
-               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  {!walletAddress && <Loader2 className="animate-spin text-gray-200" size={32} />}
-               </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-4 w-full">
-               <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-                  <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed font-mono opacity-80" dir="ltr">
-                    {walletAddress || "جاري جلب العنوان..."}
-                  </p>
-                  <button onClick={handleCopy} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90">
-                    {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
-                  </button>
-               </div>
-               
-               <Button 
-                 onClick={() => setIsShareDrawerOpen(true)} 
-                 variant="ghost" 
-                 className="h-11 rounded-full bg-gray-50 text-[#002d4d] font-black text-[10px] px-8 border border-gray-100 shadow-sm active:scale-95 transition-all flex items-center gap-2"
-               >
-                  <Share2 size={14} className="text-blue-500" />
-                  حفظ ومشاركة العنوان
-               </Button>
-            </div>
-         </div>
+         {/* مكون عرض العنوان والباركود المعزول */}
+         <AddressDisplay 
+           walletAddress={walletAddress} 
+           selectedAsset={selectedAsset} 
+           selectedNetwork={selectedNetwork}
+           loading={loading}
+         />
 
          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
@@ -152,7 +108,7 @@ export function BinanceExecutionStep({
               <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">إثبات المزامنة (TXID)</Label>
               <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-full uppercase">TXID Required</Badge>
            </div>
-           <div className="relative h-16 md:h-18 rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner focus-within:ring-2 focus-within:ring-[#002d4d]/10 transition-all">
+           <div className="relative h-18 rounded-[32px] bg-gray-50 border border-gray-100 overflow-hidden shadow-inner focus-within:ring-2 focus-within:ring-[#002d4d]/10 transition-all">
               <input 
                 value={txid} 
                 onChange={e => setTxid(e.target.value)} 
@@ -162,7 +118,7 @@ export function BinanceExecutionStep({
               <button 
                 onClick={handlePaste} 
                 type="button" 
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] shadow-sm hover:bg-gray-50 transition-all active:scale-90"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-[#f9a885] shadow-sm hover:bg-gray-50 transition-all active:scale-90"
               >
                  <ClipboardPaste size={20} />
               </button>
@@ -185,14 +141,6 @@ export function BinanceExecutionStep({
             </Button>
          </div>
       </section>
-
-      <DepositShareDrawer 
-        open={isShareDrawerOpen} 
-        onOpenChange={setIsShareDrawerOpen} 
-        selectedAsset={selectedAsset} 
-        selectedNetwork={selectedNetwork} 
-        walletAddress={walletAddress} 
-      />
     </div>
   );
 }
