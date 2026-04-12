@@ -156,14 +156,14 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
         const res = await getOrCreateUserWallet(dbUser.id, asset.id);
         if (res.success) {
           setWalletAddress(res.address);
-          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أدناه عبر شبكة ${asset.network} فقط. تأكد من اختيار الشبكة الصحيحة؛ إرسال الأموال عبر شبكة غير مدعومة يؤدي إلى فقدانها نهائياً.`);
+          setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${asset.network} فقط. لا حاجة لإرفاق إثبات؛ سيقوم نظام المزامنة الذكي برصد الإيداع وإضافته لمحفظتك تلقائياً فور تأكيد المعاملة في البلوكشين.`);
           setStep("execution");
         } else setError(res.error);
       } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }
     } else if (category?.type === 'binance') setStep("select_network");
     else if (category?.type === 'manual') {
       setWalletAddress(asset.walletAddress);
-      setInstructions(asset.instructions?.replace("أعلاه", "أدناه") || `يرجى إرسال الرصيد إلى العنوان الموضح أدناه.`);
+      setInstructions(asset.instructions || `يرجى إرسال الرصيد إلى العنوان الموضح أعلاه. بعد إتمام العملية، يرجى تزويدنا بالبيانات المطلوبة أدناه للتحقق من الإيداع واعتماده.`);
       setStep("execution");
     }
   };
@@ -177,7 +177,7 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const res = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (res.success) {
         setWalletAddress(res.address);
-        setInstructions(`يرجى إرسال المبلغ إلى عنوان الاستلام الموضح أدناه عبر شبكة ${network.name}. انتبه: إرسال الأموال عبر شبكة غير مطابقة يؤدي إلى فقدانها بشكل نهائي. يرجى تزويدنا بمعرف العملية (TXID) بعد الإرسال.`);
+        setInstructions(`يرجى إرسال العملات إلى العنوان الموضح أعلاه عبر شبكة ${network.name}. بعد اكتمال التحويل، يرجى لصق معرف العملية (TXID) في الحقل أدناه لبدء بروتوكول التدقيق الفوري والمزامنة مع محفظتك.`);
         setStep("execution");
       } else setError(res.error);
     } catch (e) { setError("خطأ في الاتصال."); } finally { setLoading(false); }

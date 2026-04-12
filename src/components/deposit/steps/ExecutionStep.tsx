@@ -14,7 +14,8 @@ import {
   ShieldCheck, 
   ClipboardPaste,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { DepositShareDrawer } from "../DepositShareDrawer";
