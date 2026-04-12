@@ -10,7 +10,9 @@ import {
   Copy, 
   ShieldCheck, 
   AlertCircle,
-  ChevronLeft
+  ChevronLeft,
+  Share2,
+  Loader2
 } from "lucide-react";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { QRCodeSVG } from "qrcode.react";
@@ -25,10 +27,6 @@ interface NowPaymentsExecutionStepProps {
   error: string | null;
 }
 
-/**
- * @fileOverview بروتوكول تعليمات Namix النخبوية v17.0 - Silent Open Inflow
- * تم تحديث الواجهة لتكون بلسان ناميكس الرسمي مع تعليمات مطهرة بالكامل.
- */
 export function NowPaymentsExecutionStep({
   selectedAsset,
   selectedNetwork,
@@ -53,7 +51,6 @@ export function NowPaymentsExecutionStep({
   return (
     <div className="w-full space-y-10 text-right font-body animate-in fade-in duration-700" dir="rtl">
       
-      {/* Asset Identity Header */}
       <section className="flex items-center justify-between px-2">
          <div className="flex items-center gap-4">
             <div className="shrink-0 flex items-center justify-center">
@@ -67,12 +64,11 @@ export function NowPaymentsExecutionStep({
          <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full animate-pulse">ACTIVE NODE</Badge>
       </section>
 
-      {/* Pure QR & Address Section */}
       <section className="space-y-10">
-         <div className="flex justify-center">
+         <div className="flex flex-col items-center gap-8">
             <div className="relative h-56 w-56 md:h-64 md:w-64 flex items-center justify-center">
                <QRCodeSVG 
-                 value={walletAddress} 
+                 value={walletAddress || "Generating..."} 
                  size={256} 
                  bgColor={"transparent"} 
                  fgColor={"#002d4d"} 
@@ -81,25 +77,31 @@ export function NowPaymentsExecutionStep({
                  className="w-full h-full" 
                />
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-white p-1 rounded-sm shadow-sm">
-                    <CryptoIcon name={selectedAsset?.icon} size={28} />
-                  </div>
+                  {!walletAddress && <Loader2 className="animate-spin text-gray-200" size={32} />}
                </div>
             </div>
-         </div>
 
-         <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
-               <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed font-mono opacity-80" dir="ltr">
-                 {walletAddress}
-               </p>
-               <button onClick={handleCopy} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90">
-                 {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
-               </button>
+            <div className="flex flex-col items-center gap-4 w-full">
+               <div className="flex items-center justify-center gap-4 w-full max-w-sm px-4">
+                  <p className="flex-1 font-normal text-xs text-[#002d4d] break-all text-center leading-relaxed font-mono opacity-80" dir="ltr">
+                    {walletAddress || "جاري توليد العنوان..."}
+                  </p>
+                  <button onClick={handleCopy} className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90">
+                    {copyStatus ? <Check size={22} className="text-emerald-500" /> : <Copy size={22} />}
+                  </button>
+               </div>
+
+               <Button 
+                 onClick={() => setIsShareDrawerOpen(true)} 
+                 variant="ghost" 
+                 className="h-11 rounded-full bg-gray-50 text-[#002d4d] font-black text-[10px] px-8 border border-gray-100 shadow-sm active:scale-95 transition-all flex items-center gap-2"
+               >
+                  <Share2 size={14} className="text-blue-500" />
+                  حفظ ومشاركة العنوان
+               </Button>
             </div>
          </div>
 
-         {/* Native Namix Instructions */}
          <div className="p-8 bg-gray-50 rounded-[40px] border border-gray-100 shadow-inner space-y-6">
            <div className="flex items-center gap-2 text-[#002d4d] mb-1">
              <Info size={16} />
@@ -132,15 +134,15 @@ export function NowPaymentsExecutionStep({
            </div>
          </div>
 
-         <div className="grid gap-4">
+         <div className="pt-4">
             <button 
               onClick={() => window.location.href = '/home'} 
-              className="w-full h-18 rounded-[40px] bg-[#002d4d] hover:bg-[#001d33] text-white font-normal text-base shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group"
+              className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl flex items-center justify-center gap-4 transition-all active:scale-[0.98] group relative overflow-hidden"
             >
-               <span>العودة للرئيسية</span>
-               <ChevronLeft className="h-6 w-6 text-[#f9a885] group-hover:-translate-x-1 transition-transform" />
+               <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
+               <span className="relative z-10">العودة للرئيسية</span>
+               <ChevronLeft className="h-6 w-6 text-[#f9a885] transition-transform group-hover:-translate-x-1 relative z-10" />
             </button>
-            <Button onClick={() => setIsShareDrawerOpen(true)} variant="ghost" className="h-12 rounded-full text-gray-400 font-bold text-[10px] uppercase tracking-widest">حفظ تفاصيل المعاملة</Button>
          </div>
       </section>
 

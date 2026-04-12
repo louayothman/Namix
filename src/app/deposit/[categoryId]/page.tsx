@@ -87,12 +87,14 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
 
   const handleAssetSelect = async (asset: any) => {
     setSelectedAsset(asset);
+    setSearchQuery(""); // Clear search on selection
     if (category?.type === 'binance' || category?.type === 'nowpayments') setStep("select_network");
     else setStep("execution");
   };
 
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
+    setStep("execution"); // Instant visual transition
     setLoading(true);
     setError(null);
 
@@ -100,16 +102,13 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
       if (addrRes.success) {
         setWalletAddress(addrRes.address);
-        setStep("execution");
       } else {
         setError(addrRes.error);
       }
     } else if (category?.type === 'nowpayments') {
-      // Automatic Generation for NowPayments - Silent without text
       const res = await createNowPayment(dbUser.id, network.id, 10);
       if (res.success) {
         setWalletAddress(res.address);
-        setStep("execution");
       } else {
         setError(res.error);
       }
@@ -136,7 +135,6 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
       return;
     }
 
-    // Manual Logic
     try {
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id, userName: dbUser.displayName, amount: Number(amount),
@@ -172,24 +170,32 @@ export default function CategoryDepositPage({ params }: DepositPageProps) {
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
               {step === "select_asset" && (
-                <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent", isSearchOpen ? "text-[#002d4d]" : "text-gray-400")}>{isSearchOpen ? <X size={16} /> : <Search size={16} />}</button>
+                <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-transparent transition-all", isSearchOpen ? "text-[#002d4d] bg-white shadow-sm" : "text-gray-400")}>
+                  {isSearchOpen ? <X size={16} /> : <Search size={16} />}
+                </button>
               )}
-              <button onClick={handleBack} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d]"><ChevronLeft size={18} /></button>
+              <button onClick={handleBack} className="h-9 w-9 rounded-xl bg-transparent flex items-center justify-center text-[#002d4d] active:scale-90 transition-all"><ChevronLeft size={18} /></button>
            </div>
         </header>
 
         <main className="flex-1 max-w-4xl mx-auto w-full space-y-8 px-6 pt-8 pb-32">
+          {isSearchOpen && step === "select_asset" && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden pb-4">
+              <div className="relative">
+                <input 
+                  autoFocus
+                  placeholder="ابحث عن العملة..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="h-14 w-full rounded-[24px] bg-gray-50 border-none font-black text-xs px-12 text-right shadow-inner focus:ring-2 focus:ring-[#002d4d]/10 transition-all outline-none"
+                />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+              </div>
+            </motion.div>
+          )}
+
           <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col items-center justify-center py-24 gap-8">
-                 <div className="relative">
-                    <div className="h-20 w-20 border-[3px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center"><Check className="h-6 w-6 text-[#002d4d] animate-pulse" /></div>
-                 </div>
-                 {/* No Text for NowPayments per user request */}
-                 {category?.type !== 'nowpayments' && <p className="text-xl font-black text-[#002d4d]">جاري تهيئة القناة...</p>}
-              </motion.div>
-            ) : step === "verifying" ? (
+            {step === "verifying" ? (
               <motion.div key="v" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center py-24 gap-8">
                  <div className="relative"><div className="h-24 w-24 border-[4px] border-gray-100 border-t-[#002d4d] rounded-full animate-spin" /><div className="absolute inset-0 flex items-center justify-center"><Check className="h-8 w-8 text-[#002d4d] animate-pulse" /></div></div>
                  <p className="text-xl font-black text-[#002d4d]">جاري مطابقة البيانات...</p>
