@@ -111,7 +111,7 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* صك الإيداع الرقمي النخبوي - مخفي ومصمم للتصدير الصافي */}
+      {/* معاملة الإيداع الرقمية الاحترافية - مخفية ومصممة للتصدير الصافي */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0">
         <div 
           ref={shareCardRef}
@@ -139,10 +139,10 @@ export function DepositShareDrawer({
                 <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin} size={42} />
              </div>
              <div className="text-right space-y-0.5">
-                <h2 className="text-sm font-black text-[#002d4d] leading-none" style={{ fontFamily: 'Tajawal' }}>
+                <h2 className="text-sm font-normal text-[#002d4d] leading-none" style={{ fontFamily: 'Tajawal' }}>
                   {selectedAsset?.name || selectedAsset?.coin}
                 </h2>
-                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none" style={{ fontFamily: 'Cairo' }}>
+                <p className="text-[8px] font-normal text-gray-400 uppercase tracking-widest leading-none" style={{ fontFamily: 'Cairo' }}>
                   {selectedNetwork?.name || selectedAsset?.network}
                 </p>
              </div>
@@ -170,24 +170,31 @@ export function DepositShareDrawer({
 
           {/* العنوان الرقمي الموحد - سطر واحد بخط Cairo */}
           <div className="w-full text-center px-4">
-             <p className="text-[7px] font-black text-gray-300 uppercase tracking-[0.4em] mb-3" style={{ fontFamily: 'Cairo' }}>DEPOSIT ADDRESS</p>
-             <p className="text-[10px] font-black text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontFamily: 'Cairo' }}>
+             <p className="text-[7px] font-normal text-gray-300 uppercase tracking-[0.4em] mb-3" style={{ fontFamily: 'Cairo' }}>DEPOSIT ADDRESS</p>
+             <p className="text-[10px] font-normal text-[#002d4d] whitespace-nowrap overflow-hidden" dir="ltr" style={{ fontFamily: 'Cairo' }}>
                {walletAddress}
              </p>
           </div>
 
-          {/* التوقيع السيادي الفخم: خط ممتد وتباعد حروف واسع */}
+          {/* التوقيع الاحترافي الفخم: حروف منفصلة مع لوجو النقاط على اليسار */}
           <div className="w-full space-y-8 pt-6">
              <div className="h-[0.5px] w-full bg-gray-100" />
-             <div className="flex items-center justify-center gap-6" dir="ltr">
-                <span className="text-[18px] font-black text-[#002d4d] uppercase" style={{ fontFamily: 'Cairo', letterSpacing: '1.2em', marginRight: '-1.2em' }}>
-                  NAMIX
-                </span>
-                <div className="grid grid-cols-2 gap-0.5 scale-90">
-                   <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
-                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                   <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
+             <div className="flex items-center justify-center gap-8" dir="ltr">
+                {/* لوجو النقاط على الجهة اليسرى */}
+                <div className="grid grid-cols-2 gap-0.5 scale-110">
+                   <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                   <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                   <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                   <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                </div>
+                
+                {/* حروف الاسم منفصلة لتطبيق مسافات تباعد دقيقة بوزن Regular */}
+                <div className="flex items-center gap-6">
+                   {['N', 'A', 'M', 'I', 'X'].map((letter, idx) => (
+                     <span key={idx} className="text-[22px] font-normal text-[#002d4d]" style={{ fontFamily: 'Cairo' }}>
+                       {letter}
+                     </span>
+                   ))}
                 </div>
              </div>
           </div>
@@ -199,7 +206,7 @@ export function DepositShareDrawer({
           <DrawerOverlay className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[65dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden" dir="rtl">
             <VisuallyHidden.Root>
-              <DrawerTitle>مشاركة صك الإيداع</DrawerTitle>
+              <DrawerTitle>مشاركة معاملة الإيداع</DrawerTitle>
             </VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center gap-8 scrollbar-none">
@@ -213,7 +220,7 @@ export function DepositShareDrawer({
                      className="flex flex-col items-center gap-4"
                    >
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري تجهيز الصورة...</p>
+                      <p className="text-[10px] font-normal text-gray-400 uppercase tracking-widest">جاري تجهيز الصورة...</p>
                    </motion.div>
                  ) : (
                    <motion.div 
@@ -238,7 +245,7 @@ export function DepositShareDrawer({
                   <Button 
                     onClick={handleDownload} 
                     disabled={!imgUrl || generating || saving}
-                    className="h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-normal text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                     {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Download size={16} className="text-[#f9a885]" />}
                     <span>حفظ</span>
@@ -247,7 +254,7 @@ export function DepositShareDrawer({
                   <Button 
                     onClick={handleNativeShare} 
                     disabled={!imgUrl || generating || sharing}
-                    className="h-14 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="h-14 rounded-full bg-gray-100 hover:bg-gray-200 text-[#002d4d] font-normal text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                     {sharing ? <Loader2 className="animate-spin h-4 w-4" /> : <Share2 size={16} className="text-blue-500" />}
                     <span>مشاركة</span>
@@ -257,7 +264,7 @@ export function DepositShareDrawer({
 
             <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-20 shrink-0">
                <ShieldCheck size={12} className="text-emerald-500" />
-               <p className="text-[8px] font-black uppercase tracking-widest text-[#002d4d]">Secure Asset Node v2.0</p>
+               <p className="text-[8px] font-normal uppercase tracking-widest text-[#002d4d]">Secure Asset Node</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
