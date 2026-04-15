@@ -17,7 +17,6 @@ import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Globe, Zap, BarChart3,
 import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
 import { SettingsMenu } from "@/components/admin/settings/SettingsMenu";
 import { WithdrawLogicSection } from "@/components/admin/settings/WithdrawLogicSection";
-import { WithdrawMethodsSection } from "@/components/admin/settings/WithdrawMethodsSection";
 import { TiersSection } from "@/components/admin/settings/TiersSection";
 import { MarketingSection } from "@/components/admin/settings/MarketingSection";
 import { ContentSection } from "@/components/admin/settings/ContentSection";
@@ -27,11 +26,11 @@ import { VaultBonusSection } from "@/components/admin/settings/VaultBonusSection
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
 
 /**
- * @fileOverview صفحة إعدادات المنصة المحدثة v8.0
- * تم تطهير الصفحة من إعدادات الإيداع والـ API بعد نقلها لمركز تدفقات الخزينة.
+ * @fileOverview صفحة إعدادات المنصة المحدثة v10.0
+ * تم استئصال بوابات الدفع والسحب من هنا نهائياً بناءً على رغبة المشرف وتمركزها في صفحات الطلبات.
  */
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'withdraw_methods' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'landing_page';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -120,20 +119,15 @@ export default function AdminSettingsPage() {
 
         {activeSection === 'menu' && (
           <SettingsMenu onSelect={(id) => {
-            if (id === 'deposit_logic') {
-              window.location.href = "/admin/deposits";
-              return;
-            }
+            // توجيه ذكي للأقسام التي تم نقلها
+            if (id === 'deposit_logic') { window.location.href = "/admin/deposits"; return; }
+            if (id === 'withdraw_methods') { window.location.href = "/admin/withdrawals"; return; }
             setActiveSection(id as any);
           }} />
         )}
 
         {activeSection === 'withdraw_logic' && (
           <WithdrawLogicSection data={withdrawRulesData} onChange={setWithdrawRulesData} onSave={() => handleSaveDoc(withdrawRulesRef, withdrawRulesData, "قوانين السحب")} saving={saving} />
-        )}
-
-        {activeSection === 'withdraw_methods' && (
-          <WithdrawMethodsSection />
         )}
 
         {activeSection === 'tiers' && (
@@ -179,7 +173,6 @@ export default function AdminSettingsPage() {
                 <div className="p-10 bg-gray-50 rounded-[48px] border border-gray-100 shadow-inner flex flex-col items-center gap-6">
                    <Label className="text-sm font-black text-[#002d4d]">رصيد التجربة المجاني عند التسجيل ($)</Label>
                    <Input type="number" value={onboardingData.trialCreditAmount ?? ""} onChange={e => setOnboardingData({...onboardingData, trialCreditAmount: Number(e.target.value)})} className="h-20 rounded-[32px] bg-white border-none font-black text-center text-5xl text-blue-600 shadow-lg max-w-[240px]" />
-                   <p className="text-[11px] font-bold text-gray-400 text-center leading-relaxed">يتم منح هذا المبلغ تلقائياً لكل حساب جديد بمجرد تأكيد الهوية لبدء تجربة محركات التداول والعقود.</p>
                 </div>
                 <Button onClick={() => handleSaveDoc(onboardingRef, onboardingData, "رصيد الترحيب")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95">
                   {saving ? <Loader2 className="animate-spin h-6 w-6" /> : "اعتماد ميزانية الترحيب"}
@@ -205,7 +198,7 @@ export default function AdminSettingsPage() {
                    <div className="p-10 bg-emerald-50/50 rounded-[48px] border border-emerald-100 space-y-6">
                       <div className="flex items-center justify-between">
                          <Label className="font-black text-[#002d4d]">تنشيط شارة التأمين في الهيرو</Label>
-                         <Switch checked={!!insuranceData.isFundVisible} onCheckedChange={val => setInsuranceConfig({...insuranceData, isFundVisible: val})} className="data-[state=checked]:bg-emerald-500" />
+                         <Switch checked={!!insuranceData.isFundVisible} onCheckedChange={val => setInsuranceData({...insuranceData, isFundVisible: val})} className="data-[state=checked]:bg-emerald-500" />
                       </div>
                       <div className="space-y-2">
                          <p className="text-[10px] font-black text-emerald-600 uppercase pr-4">حجم الصندوق المعلن ($)</p>
@@ -216,7 +209,7 @@ export default function AdminSettingsPage() {
                       <h4 className="font-black text-base text-[#002d4d] flex items-center gap-3">
                          <Zap className="h-5 w-5 text-orange-500" /> ميثاق الحماية
                       </h4>
-                      <p className="text-[11px] font-bold text-gray-500 leading-relaxed">يعمل صندوق التأمين كضمانة نفسية وتقنية للمستثمرين؛ عرض حجم الصندوق في الواجهة الرئيسية يزيد من معدلات الثقة والتحويل بنسبة تصل لـ 40%.</p>
+                      <p className="text-[11px] font-bold text-gray-500 leading-relaxed">يعمل صندوق التأمين كضمانة نفسية وتقنية للمستثمرين؛ عرض حجم الصندوق في الواجهة الرئيسية يزيد من معدلات الثقة والتحويل.</p>
                    </div>
                 </div>
                 <Button onClick={() => handleSaveDoc(insuranceRef, insuranceData, "صندوق التأمين")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95">
@@ -232,11 +225,9 @@ export default function AdminSettingsPage() {
         )}
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-30">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v8.0.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v10.0.0</p>
            <div className="flex gap-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-200" />
-              ))}
+              {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-200" />))}
            </div>
         </div>
       </div>

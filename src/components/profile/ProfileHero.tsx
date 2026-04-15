@@ -15,14 +15,25 @@ interface ProfileHeroProps {
 
 export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: ProfileHeroProps) {
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
-  const [copied, setCopied] = useState(false);
 
   const handleCopyId = () => {
     if (!user?.namixId) return;
-    navigator.clipboard.writeText(user.namixId);
-    setCopied(true);
-    toast({ title: "تم النسخ", description: "تم نسخ Namix ID الخاص بك بنجاح." });
-    setTimeout(() => setCopied(false), 2000);
+    
+    // محرك النسخ السيادي
+    navigator.clipboard.writeText(user.namixId).then(() => {
+      // إطلاق تنبيه Toast المعتمد بدلاً من التنويهات الصغيرة
+      toast({ 
+        title: "تم نسخ المعرف بنجاح", 
+        description: `المعرف ${user.namixId} جاهز الآن للمشاركة في عمليات التحويل.`,
+        variant: "default"
+      });
+    }).catch(() => {
+      toast({ 
+        variant: "destructive",
+        title: "فشل النسخ", 
+        description: "يرجى المحاولة مجدداً أو نسخ المعرف يدوياً."
+      });
+    });
   };
 
   return (
@@ -61,14 +72,14 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: P
                   </Badge>
                 </div>
                 
-                {/* عرض Namix ID السيادي */}
+                {/* زر Namix ID السيادي المطور */}
                 <button 
                   onClick={handleCopyId}
-                  className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all group/id"
+                  className="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all group/id active:scale-95"
                 >
-                  <Hash className="h-3 w-3 text-[#f9a885]" />
-                  <span className="text-[10px] font-black tabular-nums tracking-widest">NAMIX ID: {user?.namixId || "..."}</span>
-                  <Copy className={cn("h-2.5 w-2.5 opacity-40 group-hover/id:opacity-100 transition-opacity", copied && "text-emerald-400 opacity-100")} />
+                  <Hash className="h-3.5 w-3.5 text-[#f9a885]" />
+                  <span className="text-[11px] font-black tabular-nums tracking-widest">NAMIX ID: {user?.namixId || "..."}</span>
+                  <Copy className="h-3 w-3 opacity-40 group-hover/id:opacity-100 transition-opacity" />
                 </button>
               </div>
             </div>

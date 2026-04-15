@@ -6,6 +6,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview قائمة إعدادات المنصة v10.0
+ * تم إزالة بوابات الإيداع والسحب من هنا ونقلها إلى مراكز طلبات الخزينة المختصة.
+ */
+
 interface MenuItem {
   id: string;
   title: string;
@@ -22,8 +27,6 @@ export function SettingsMenu({ onSelect }: { onSelect: (id: string) => void }) {
     { id: 'insurance', title: "صندوق التأمين", desc: "حوكمة وحماية رؤوس أموال المنصة", icon: ShieldCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
     { id: 'withdraw_logic', title: "قوانين السحب", desc: "إدارة قيود وفترات انتظار سحب الأموال", icon: Clock, color: "text-orange-500", bg: "bg-orange-50" },
     { id: 'voucher_logic', title: "قوانين القسائم", desc: "شروط إصدار وتفعيل صكوك الهدايا", icon: Gift, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { id: 'withdraw_methods', title: "بوابات السحب", desc: "تخصيص قنوات صرف الأرباح للمستثمرين", icon: Landmark, color: "text-blue-600", bg: "bg-blue-50" },
-    { id: 'deposit_logic', title: "بوابات الإيداع", desc: "تخصيص محافظ الاستلام وتعليمات الشحن", icon: Wallet, color: "text-emerald-500", bg: "bg-emerald-50" },
     { id: 'vault_bonus', title: "الخزنة والمكافآت", desc: "إعداد أرباح الرصيد الخامل ومكافآت الشحن", icon: Coins, color: "text-yellow-600", bg: "bg-yellow-50" },
     { id: 'partnership', title: "نظام الشركاء", desc: "نظام العمولات ونمو الشبكة الاستراتيجي", icon: Share2, color: "text-[#f9a885]", bg: "bg-orange-50" },
     { id: 'tiers', title: "نظام الرتب", desc: "تعريف مستويات المستثمرين والمكافآت", icon: Award, color: "text-blue-500", bg: "bg-blue-50" },
