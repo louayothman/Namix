@@ -12,13 +12,14 @@ import {
   Fingerprint, TrendingDown, Briefcase, Gift, Timer, Navigation, 
   KeyRound, FileText, UserCheck, Search, CheckCircle2, AlertTriangle, 
   Radar, Droplets, Building2, Apple, Bitcoin, Heart, Crown, Medal,
-  Flag, Anchor, Navigation2, Compass, Trophy, MousePointerClick, MessageSquare
+  Flag, Anchor, Navigation2, Compass, Trophy, MousePointerClick, MessageSquare,
+  Hash
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v65.0
- * تم تحديث المحرك لدعم Cryptocurrency Color بشكل كامل مع نظام التعرف الذكي للرموز.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v66.0
+ * إضافة أيقونة NAMIX_ID لدعم التحويلات الداخلية عبر المعرف الرقمي.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -38,11 +39,11 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   NAMIX_STAR: Star,
   NAMIX_SPARKLES: Sparkles,
   NAMIX_REFRESH: RefreshCcw,
+  NAMIX_ID: Hash, // أيقونة الهاش لتمثيل الـ ID الرقمي
 };
 
-// قائمة موسعة من الأصول الرقمية والأسهم المعتمدة عالمياً للاختيار في لوحة الإدارة
 export const ICON_OPTIONS = [
-  // عملات رقمية قيادية
+  { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'USDT', label: 'Tether (USDT)' },
   { id: 'BTC', label: 'Bitcoin (BTC)' },
   { id: 'ETH', label: 'Ethereum (ETH)' },
@@ -96,7 +97,6 @@ export const ICON_OPTIONS = [
   { id: 'JUP', label: 'Jupiter (JUP)' },
   { id: 'STRK', label: 'Starknet (STRK)' },
   { id: 'PYTH', label: 'Pyth Network (PYTH)' },
-  // أسهم وعلامات تجارية
   { id: 'APPLE', label: 'Apple Inc.' },
   { id: 'GOOGLE', label: 'Google / Alphabet' },
   { id: 'MICROSOFT', label: 'Microsoft' },
@@ -107,19 +107,11 @@ export const ICON_OPTIONS = [
   { id: 'VISA', label: 'Visa' },
   { id: 'MASTERCARD', label: 'Mastercard' },
   { id: 'NETFLIX', label: 'Netflix' },
-  // أيقونات نظام ناميكس
-  { id: 'NAMIX_GEM', label: 'Sovereign Gem' },
-  { id: 'NAMIX_WALLET', label: 'Digital Wallet' },
-  { id: 'NAMIX_SHIELD', label: 'Asset Shield' },
-  { id: 'NAMIX_ZAP', label: 'Flash Execute' },
-  { id: 'NAMIX_CPU', label: 'AI Processor' },
-  { id: 'NAMIX_STAR', label: 'Elite Star' },
 ];
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
   
-  // 1. التحقق من أيقونات النظام الأساسية (Lucide)
   const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
   if (LucideIcon && typeof LucideIcon !== 'string') {
     return (
@@ -129,10 +121,8 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. محرك جلب الأيقونات العالمية الملونة
   let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
   
-  // تخصيص استثنائي لبعض الرموز التي تختلف في Iconify
   const overrides: Record<string, string> = {
     'USDT': 'cryptocurrency-color:usdt',
     'BTC': 'cryptocurrency-color:btc',
@@ -162,7 +152,6 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
         height={size} 
         style={color ? { color } : undefined}
         onError={(e) => {
-          // في حال فشل جلب الأيقونة الملونة، يتم العودة لأيقونة العملات العامة
           const target = e.target as any;
           if (target && target.setAttribute) {
             target.setAttribute('icon', 'lucide:coins');

@@ -1,9 +1,11 @@
 
 "use client";
 
-import { UserCircle, ShieldCheck, ShieldAlert, Briefcase, Users } from "lucide-react";
+import { UserCircle, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface ProfileHeroProps {
   user: any;
@@ -13,16 +15,24 @@ interface ProfileHeroProps {
 
 export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: ProfileHeroProps) {
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = () => {
+    if (!user?.namixId) return;
+    navigator.clipboard.writeText(user.namixId);
+    setCopied(true);
+    toast({ title: "تم النسخ", description: "تم نسخ Namix ID الخاص بك بنجاح." });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-top-6 duration-1000">
-      {/* Sovereign Identity Card */}
       <div className="bg-[#002d4d] rounded-[48px] md:rounded-[64px] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/20">
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
            <div className="absolute left-[-5%] top-1/2 -translate-y-1/2 text-[300px] md:text-[400px] font-black text-white/[0.03] leading-none tracking-tighter italic rounded-[100px]">
               iX
            </div>
-           <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 rounded-full blur-[120px]" />
+           <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-50/10 rounded-full blur-[120px]" />
         </div>
 
         <div className="relative z-10 flex flex-col gap-10">
@@ -50,9 +60,16 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: P
                     {isVerified ? "VERIFIED" : "PENDING"}
                   </Badge>
                 </div>
-                <div className="flex flex-wrap gap-2 opacity-60">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-200">Investor Node: {user?.id?.slice(-8).toUpperCase()}</span>
-                </div>
+                
+                {/* عرض Namix ID السيادي */}
+                <button 
+                  onClick={handleCopyId}
+                  className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all group/id"
+                >
+                  <Hash className="h-3 w-3 text-[#f9a885]" />
+                  <span className="text-[10px] font-black tabular-nums tracking-widest">NAMIX ID: {user?.namixId || "..."}</span>
+                  <Copy className={cn("h-2.5 w-2.5 opacity-40 group-hover/id:opacity-100 transition-opacity", copied && "text-emerald-400 opacity-100")} />
+                </button>
               </div>
             </div>
           </div>

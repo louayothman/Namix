@@ -112,8 +112,21 @@ function LoginContent() {
     try {
       const onboardSnap = await getDoc(doc(db, "system_settings", "onboarding"));
       const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
+      
       const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
-      const newUser = { id: userId, email: formData.email, displayName: formData.fullName, role: "user", password: formData.password, totalBalance: trialAmount, createdAt: new Date().toISOString() };
+      // توليد Namix ID الفريد (10 أرقام)
+      const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+      const newUser = { 
+        id: userId, 
+        namixId: namixId,
+        email: formData.email, 
+        displayName: formData.fullName, 
+        role: "user", 
+        password: formData.password, 
+        totalBalance: trialAmount, 
+        createdAt: new Date().toISOString() 
+      };
       
       await setDoc(doc(db, "users", userId), newUser);
       

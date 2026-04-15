@@ -7,6 +7,7 @@
       "description": "Represents a user of the Namix platform.",
       "properties": {
         "id": { "type": "string" },
+        "namixId": { "type": "string", "description": "Unique 10-digit identification number for internal transfers." },
         "email": { "type": "string" },
         "phoneNumber": { "type": "string" },
         "role": { "type": "string", "enum": ["user", "admin"] },
@@ -28,7 +29,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "email", "role"]
+      "required": ["id", "email", "role", "namixId"]
     },
     "MarketConnectivity": {
       "title": "MarketConnectivity",

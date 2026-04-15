@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,14 +21,14 @@ import {
   ListFilter, 
   Type,
   X,
-  ClipboardPaste
+  ClipboardPaste,
+  Fingerprint
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useMemoFirebase } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,26 +39,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CryptoIcon } from "@/lib/crypto-icons";
+import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 
-export const ICON_OPTIONS = [
-  { id: 'USDT', label: 'Tether (USDT)' },
-  { id: 'BTC', label: 'Bitcoin (BTC)' },
-  { id: 'ETH', label: 'Ethereum (ETH)' },
-  { id: 'SOL', label: 'Solana (SOL)' },
-  { id: 'TRX', label: 'Tron (TRX)' },
-  { id: 'BNB', label: 'Binance Coin (BNB)' },
-  { id: 'LTC', label: 'Litecoin (LTC)' },
-  { id: 'CircleDollarSign', label: 'Dollar / Fiat' },
-  { id: 'Landmark', label: 'Bank Transfer' },
-  { id: 'Banknote', label: 'Cash / Bill' },
-  { id: 'Wallet', label: 'Digital Wallet' },
-  { id: 'Globe', label: 'International' },
-  { id: 'Zap', label: 'Flash / Instant' },
-  { id: 'ShieldCheck', label: 'Secured' },
-  { id: 'Gem', label: 'Premium' },
-  { id: 'Award', label: 'Verified' }
-];
+/**
+ * @fileOverview هندسة بوابات السحب v9.0
+ * تم تحديث القائمة لتشمل "Namix Internal Transfer" لدعم السحب إلى ID مستخدم آخر.
+ */
 
 export function WithdrawMethodsSection() {
   const db = useFirestore();
@@ -72,9 +58,9 @@ export function WithdrawMethodsSection() {
   const [catToDeleteId, setCatToDeleteId] = useState<string | null>(null);
 
   const [newPortal, setNewPortal] = useState({
-    name: "",
-    instructions: "",
-    icon: "USDT"
+    name: "Namix Internal Payout",
+    instructions: "يرجى إدخال Namix ID الخاص بالمستلم والمكون من 10 أرقام.",
+    icon: "NAMIX_ID"
   });
 
   const categoriesQuery = useMemoFirebase(() => collection(db, "withdraw_methods"), [db]);
@@ -103,12 +89,14 @@ export function WithdrawMethodsSection() {
         instructions: newPortal.instructions,
         icon: newPortal.icon,
         isActive: true,
-        fields: [{ label: "عنوان محفظة الاستلام", placeholder: "أدخل عنوان محفظتك هنا...", type: "text", hasPasteButton: true }]
+        fields: [
+          { label: "Namix ID المستلم", placeholder: "أدخل الـ ID المكون من 10 أرقام...", type: "text", hasPasteButton: true }
+        ]
       };
       await updateDoc(doc(db, "withdraw_methods", activeCatId), {
         portals: arrayUnion(portalData)
       });
-      setNewPortal({ name: "", instructions: "", icon: "USDT" });
+      setNewPortal({ name: "Namix Internal Payout", instructions: "يرجى إدخال Namix ID الخاص بالمستلم والمكون من 10 أرقام.", icon: "NAMIX_ID" });
       setIsAddPortalOpen(false);
       toast({ title: "تمت إضافة بوابة السحب" });
     } catch (e) { toast({ variant: "destructive", title: "خطأ" }); }
@@ -188,7 +176,7 @@ export function WithdrawMethodsSection() {
                        <Badge className={cn("text-[8px] font-black border-none px-3 py-1 rounded-full", category.isActive ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400")}>
                          {category.isActive ? "ACTIVE SECTION" : "MAINTENANCE"}
                        </Badge>
-                       <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">{category.portals?.length || 0} Withdrawal Channels</span>
+                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{category.portals?.length || 0} Withdrawal Channels</span>
                     </div>
                   </div>
                 </div>
@@ -250,7 +238,7 @@ export function WithdrawMethodsSection() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                  {ICON_OPTIONS.map(opt => (
+                                  {ICON_OPTIONS.slice(0, 40).map(opt => (
                                     <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                                       <div className="flex items-center gap-3">
                                         <CryptoIcon name={opt.id} size={16} />
@@ -344,57 +332,6 @@ export function WithdrawMethodsSection() {
                                             />
                                          </div>
                                        )}
-
-                                       {f.type === 'select' && (
-                                         <div className="space-y-3 animate-in slide-in-from-top-1">
-                                            <Label className="text-[8px] font-black text-gray-400 pr-2 uppercase">إدارة خيارات القائمة</Label>
-                                            <div className="flex items-center gap-2">
-                                               <Input 
-                                                 id={`new-opt-with-${fIdx}`}
-                                                 placeholder="أدخل خياراً جديداً..."
-                                                 className="h-8 rounded-lg border-none bg-white font-bold text-[9px] px-3 shadow-sm flex-1"
-                                                 onKeyDown={(e) => {
-                                                   if (e.key === 'Enter') {
-                                                     e.preventDefault();
-                                                     const val = (e.target as HTMLInputElement).value.trim();
-                                                     if (val) {
-                                                       const fields = [...portal.fields];
-                                                       fields[fIdx].options = [...(fields[fIdx].options || []), val];
-                                                       updatePortalFields(category.id, portal.id, fields);
-                                                       (e.target as HTMLInputElement).value = "";
-                                                     }
-                                                   }
-                                                 }}
-                                               />
-                                               <Button size="sm" variant="ghost" className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 p-0" onClick={() => {
-                                                  const input = document.getElementById(`new-opt-with-${fIdx}`) as HTMLInputElement;
-                                                  const val = input.value.trim();
-                                                  if (val) {
-                                                     const fields = [...portal.fields];
-                                                     fields[fIdx].options = [...(fields[fIdx].options || []), val];
-                                                     updatePortalFields(category.id, portal.id, fields);
-                                                     input.value = "";
-                                                  }
-                                               }}>
-                                                  <Plus size={14} />
-                                               </Button>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2 pt-1">
-                                               {f.options?.map((opt: string, oIdx: number) => (
-                                                 <Badge key={oIdx} className="bg-white border-gray-100 text-[#002d4d] font-bold text-[8px] px-2 py-1 flex items-center gap-2 shadow-sm border">
-                                                   {opt}
-                                                   <button onClick={() => {
-                                                     const fields = [...portal.fields];
-                                                     fields[fIdx].options = fields[fIdx].options.filter((_: any, i: number) => i !== oIdx);
-                                                     updatePortalFields(category.id, portal.id, fields);
-                                                   }}>
-                                                     <X size={10} className="text-red-400 hover:text-red-600" />
-                                                   </button>
-                                                 </Badge>
-                                               ))}
-                                            </div>
-                                         </div>
-                                       )}
                                     </div>
                                   ))}
                                </div>
@@ -416,75 +353,13 @@ export function WithdrawMethodsSection() {
         ))}
       </div>
 
-      <AlertDialog open={!!portalToDelete} onOpenChange={(open) => !open && setPortalToDelete(null)}>
-        <AlertDialogContent className="rounded-[48px] border-none shadow-2xl p-10 max-w-[420px] font-body text-right" dir="rtl">
-          <AlertDialogHeader className="items-center gap-6">
-            <div className="h-20 w-20 rounded-[32px] bg-red-50 text-red-500 flex items-center justify-center animate-bounce shadow-inner">
-              <AlertTriangle className="h-10 w-10" />
-            </div>
-            <div className="space-y-2 text-center">
-              <AlertDialogTitle className="text-2xl font-black text-[#002d4d]">حذف قناة السحب</AlertDialogTitle>
-              <div className="flex items-center justify-center gap-2 text-red-400 font-black text-[9px] uppercase tracking-[0.3em]">
-                <ShieldAlert className="h-3 w-3" />
-                Security Access Protocol
-              </div>
-            </div>
-            <AlertDialogDescription className="text-[13px] font-bold text-gray-500 leading-[2.2] px-2">
-              أنت على وشك حذف قناة <strong>{portalToDelete?.portal.name}</strong> نهائياً. لن يتمكن المستثمرون من تقديم طلبات سحب عبر هذه القناة بعد الآن.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col mt-8">
-            <AlertDialogAction 
-              onClick={confirmRemovePortal}
-              className="w-full h-14 rounded-full bg-red-500 hover:bg-red-600 text-white font-black text-base shadow-xl active:scale-95 transition-all"
-            >
-              تأكيد الحذف النهائي
-            </AlertDialogAction>
-            <AlertDialogCancel className="w-full h-14 rounded-full bg-gray-50 text-gray-400 border-none font-black text-xs hover:bg-gray-100">
-              إلغاء والعودة
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!catToDeleteId} onOpenChange={(open) => !open && setCatToDeleteId(null)}>
-        <AlertDialogContent className="rounded-[48px] border-none shadow-2xl p-10 max-w-[420px] font-body text-right" dir="rtl">
-          <AlertDialogHeader className="items-center gap-6">
-            <div className="h-20 w-20 rounded-[32px] bg-red-50 text-red-500 flex items-center justify-center animate-pulse shadow-inner">
-              <Trash2 className="h-10 w-10" />
-            </div>
-            <div className="space-y-2 text-center">
-              <AlertDialogTitle className="text-2xl font-black text-[#002d4d]">حذف قسم السحب بالكامل</AlertDialogTitle>
-              <div className="flex items-center justify-center gap-2 text-red-400 font-black text-[9px] uppercase tracking-[0.3em]">
-                <ShieldAlert className="h-3 w-3" />
-                Total Deletion Protocol
-              </div>
-            </div>
-            <AlertDialogDescription className="text-[13px] font-bold text-gray-500 leading-[2.2] px-2">
-              تحذير: سيؤدي هذا الإجراء إلى حذف القسم وكافة قنوات السحب المندرجة تحته بشكل نهائي. لا يمكن التراجع عن هذه العملية.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col mt-8">
-            <AlertDialogAction 
-              onClick={confirmRemoveCategory}
-              className="w-full h-14 rounded-full bg-red-600 hover:bg-red-700 text-white font-black text-base shadow-xl"
-            >
-              تأكيد الحذف الشامل
-            </AlertDialogAction>
-            <AlertDialogCancel className="w-full h-14 rounded-full bg-gray-50 text-gray-400 border-none font-black text-xs hover:bg-gray-100">
-              إلغاء العملية
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <Dialog open={isAddCatOpen} onOpenChange={setIsAddCatOpen}>
         <DialogContent className="rounded-[40px] border-none p-10 max-w-[380px] font-body text-right" dir="rtl">
           <DialogHeader className="items-center">
             <DialogTitle className="text-2xl font-black text-[#002d4d]">إنشاء قسم سحب</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-6">
-            <Input placeholder="اسم القسم (مثلاً: بنوك محلية)..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center" />
+            <Input placeholder="اسم القسم (مثلاً: تحويل داخلي)..." value={newCatName} onChange={e => setNewCatName(e.target.value)} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center" />
           </div>
           <DialogFooter>
             <Button onClick={handleAddCategory} className="w-full h-14 rounded-full bg-[#002d4d] text-white font-black shadow-xl">تفعيل القسم</Button>
@@ -496,7 +371,7 @@ export function WithdrawMethodsSection() {
         <DialogContent className="rounded-[48px] border-none p-10 max-w-[420px] font-body text-right" dir="rtl">
           <DialogHeader className="items-center gap-4">
             <div className="h-14 w-14 rounded-[22px] bg-blue-50 text-blue-600 flex items-center justify-center">
-               <CryptoIcon name="Landmark" size={28} />
+               <CryptoIcon name="NAMIX_ID" size={28} />
             </div>
             <DialogTitle className="text-2xl font-black text-[#002d4d]">إضافة بوابة سحب</DialogTitle>
           </DialogHeader>
@@ -508,7 +383,7 @@ export function WithdrawMethodsSection() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl">
-                    {ICON_OPTIONS.map(opt => (
+                    {ICON_OPTIONS.slice(0, 40).map(opt => (
                       <SelectItem key={opt.id} value={opt.id} className="font-bold text-right py-2">
                         <div className="flex items-center gap-3">
                           <CryptoIcon name={opt.id} size={16} />
@@ -520,7 +395,7 @@ export function WithdrawMethodsSection() {
                </Select>
             </div>
             <div className="space-y-2 text-right">
-               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">اسم البوابة (مثلاً: التحويل البنكي المباشر)</Label>
+               <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تسمية البوابة</Label>
                <Input value={newPortal.name} onChange={e => setNewPortal({...newPortal, name: e.target.value})} className="h-12 rounded-2xl bg-gray-50 border-none font-black px-6" />
             </div>
             <div className="space-y-2 text-right">
