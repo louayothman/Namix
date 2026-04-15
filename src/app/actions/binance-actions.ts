@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview آلية التحقق من إيداعات بينانس v10.0
- * محرك فحص ذكي يطابق المعرفات الرقمية ويقوم باعتماد المبالغ آلياً.
+ * @fileOverview آلية التحقق من إيداعات بينانس v11.0 - Real-time Valuation Engine
+ * تم تحديث المحرك ليقوم بتقييم العملات المودعة بالدولار (USDT) بناءً على سعر السوق اللحظي.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -43,6 +43,21 @@ async function binanceSignedRequest(endpoint: string, params: Record<string, str
   }
 }
 
+/**
+ * جلب السعر اللحظي للعملة مقابل USDT
+ */
+async function getLivePriceInUSDT(coin: string) {
+  if (coin.toUpperCase() === 'USDT') return 1;
+  try {
+    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.toUpperCase()}USDT`);
+    const data = await res.json();
+    return parseFloat(data.price) || 0;
+  } catch (e) {
+    console.error("Price Fetch Error:", e);
+    return 0;
+  }
+}
+
 async function getActiveBinanceNodes() {
   const { firestore } = initializeFirebase();
   const configSnap = await getDoc(doc(firestore, "system_settings", "connectivity"));
@@ -61,7 +76,7 @@ async function getActiveBinanceNodes() {
 }
 
 /**
- * التحقق من العملية واعتماد الرصيد فوراً
+ * التحقق من العملية وحساب قيمتها بالدولار اللحظي ثم اعتماد الرصيد
  */
 export async function verifyAndProcessBinanceDeposit(userId: string, txid: string, asset: string = "USDT") {
   try {
@@ -91,24 +106,32 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
 
     if (!match) return { success: false, error: "لم يتم العثور على عملية إرسال مطابقة في السجلات العالمية." };
 
-    const amount = Number(match.amount);
+    const coinAmount = Number(match.amount);
     
-    // 2. جلب إعدادات المكافآت من الخزنة
+    // 2. محرك التقييم اللحظي: حساب القيمة بالدولار (USDT)
+    const livePrice = await getLivePriceInUSDT(asset);
+    if (livePrice === 0) return { success: false, error: "تعذر جلب سعر العملة اللحظي، يرجى المحاولة لاحقاً." };
+    
+    const amountInUSD = coinAmount * livePrice;
+    
+    // 3. جلب إعدادات المكافآت من الخزنة بناءً على القيمة الدولارية
     const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
     let bonus = 0;
     let bonusPercent = 0;
     if (vaultSnap.exists()) {
       const bonuses = vaultSnap.data().depositBonuses || [];
-      const tier = bonuses.find((t: any) => amount >= t.min && amount <= (t.max || Infinity));
+      const tier = bonuses.find((t: any) => amountInUSD >= t.min && amountInUSD <= (t.max || Infinity));
       if (tier) {
         bonusPercent = tier.percent;
-        bonus = (amount * bonusPercent) / 100;
+        bonus = (amountInUSD * bonusPercent) / 100;
       }
     }
 
-    // 3. تحديث الرصيد وتسجيل العملية
+    const totalToCredit = amountInUSD + bonus;
+
+    // 4. تحديث الرصيد وتسجيل العملية
     await updateDoc(doc(firestore, "users", userId), {
-      totalBalance: increment(amount + bonus)
+      totalBalance: increment(totalToCredit)
     });
 
     const userSnap = await getDoc(doc(firestore, "users", userId));
@@ -117,8 +140,11 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
     await addDoc(collection(firestore, "deposit_requests"), {
       userId,
       userName,
-      amount,
-      approvedAmount: amount,
+      coinAmount,
+      coinAsset: asset.toUpperCase(),
+      livePriceAtDeposit: livePrice,
+      amount: amountInUSD, // القيمة بالدولار التي اعتمدت
+      approvedAmount: amountInUSD,
       bonusApplied: bonus,
       bonusPercent,
       transactionId: txid.trim(),
@@ -128,11 +154,11 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
       createdAt: new Date().toISOString()
     });
 
-    // 4. إرسال تنبيه
+    // 5. إرسال تنبيه مفصل
     await addDoc(collection(firestore, "notifications"), {
       userId,
-      title: "تم اعتماد الإيداع آلياً",
-      message: `تم التحقق من العملية بنجاح. أضيف لمخططك مبلغ $${amount} ${bonus > 0 ? `بالإضافة لمكافأة $${bonus}` : ''}.`,
+      title: "تم اعتماد الإيداع وتقييمه آلياً",
+      message: `تم رصد ${coinAmount} ${asset}. القيمة المعتمدة بسعر السوق الحالي هي $${amountInUSD.toFixed(2)} ${bonus > 0 ? `بالإضافة لمكافأة $${bonus.toFixed(2)}` : ''}.`,
       type: "success",
       isRead: false,
       createdAt: new Date().toISOString()
@@ -141,9 +167,9 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
     return { 
       success: true, 
       data: {
-        amount,
+        amount: amountInUSD,
         bonus,
-        totalAdded: amount + bonus
+        totalAdded: totalToCredit
       } 
     };
   } catch (e: any) {
