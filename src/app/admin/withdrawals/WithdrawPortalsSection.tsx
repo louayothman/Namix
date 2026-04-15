@@ -21,13 +21,17 @@ import {
   Settings2,
   Loader2
 } from "lucide-react";
-import { useFirestore, useCollection } from "@/firebase";
-import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { useMemoFirebase } from "@/firebase";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+/**
+ * @fileOverview هندسة بوابات السحب السيادية v1.1
+ * تم إصلاح خطأ استيراد query و orderBy لضمان استقرار مزامنة البيانات.
+ */
 
 export function WithdrawPortalsSection() {
   const db = useFirestore();
@@ -108,7 +112,7 @@ export function WithdrawPortalsSection() {
              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Scanning Repository...</p>
           </div>
         ) : categories?.map(category => (
-          <Card key={category.id} className="border-none shadow-sm rounded-[44px] bg-white overflow-hidden border border-gray-50">
+          <Card key={category.id} className="border-none shadow-sm rounded-[44px] bg-white overflow-hidden border border-gray-100">
             <CardContent className="p-0">
               <div className="p-6 md:p-8 flex items-center justify-between border-b border-gray-50">
                 <div className="flex items-center gap-5">
