@@ -1,11 +1,10 @@
 
 "use client";
 
-import { UserCircle, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy } from "lucide-react";
+import { UserCircle, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
 
 interface ProfileHeroProps {
   user: any;
@@ -14,25 +13,17 @@ interface ProfileHeroProps {
 }
 
 export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: ProfileHeroProps) {
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
 
   const handleCopyId = () => {
     if (!user?.namixId) return;
-    
-    // محرك النسخ السيادي
     navigator.clipboard.writeText(user.namixId).then(() => {
-      // إطلاق تنبيه Toast المعتمد بدلاً من التنويهات الصغيرة
-      toast({ 
-        title: "تم نسخ المعرف بنجاح", 
-        description: `المعرف ${user.namixId} جاهز الآن للمشاركة في عمليات التحويل.`,
-        variant: "default"
-      });
+      setCopyStatus("تم النسخ ✅");
+      setTimeout(() => setCopyStatus(null), 2000);
     }).catch(() => {
-      toast({ 
-        variant: "destructive",
-        title: "فشل النسخ", 
-        description: "يرجى المحاولة مجدداً أو نسخ المعرف يدوياً."
-      });
+      setCopyStatus("فشل النسخ ❌");
+      setTimeout(() => setCopyStatus(null), 2000);
     });
   };
 
@@ -72,15 +63,21 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: P
                   </Badge>
                 </div>
                 
-                {/* زر Namix ID السيادي المطور */}
-                <button 
-                  onClick={handleCopyId}
-                  className="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all group/id active:scale-95"
-                >
-                  <Hash className="h-3.5 w-3.5 text-[#f9a885]" />
-                  <span className="text-[11px] font-black tabular-nums tracking-widest">NAMIX ID: {user?.namixId || "..."}</span>
-                  <Copy className="h-3 w-3 opacity-40 group-hover/id:opacity-100 transition-opacity" />
-                </button>
+                <div className="flex flex-col items-start gap-2">
+                  <button 
+                    onClick={handleCopyId}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all group/id active:scale-95"
+                  >
+                    <Hash className="h-3.5 w-3.5 text-[#f9a885]" />
+                    <span className="text-[11px] font-black tabular-nums tracking-widest">NAMIX ID: {user?.namixId || "..."}</span>
+                    {copyStatus ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3 opacity-40 group-hover/id:opacity-100 transition-opacity" />}
+                  </button>
+                  {copyStatus && (
+                    <span className="text-[9px] font-black text-[#f9a885] px-2 animate-in fade-in slide-in-from-top-1">
+                      {copyStatus}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
