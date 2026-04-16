@@ -16,12 +16,12 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
         onClick={onLogout}
         className="w-full flex items-center justify-between p-8 bg-red-50 border border-red-100 rounded-[48px] hover:bg-red-100/50 transition-all group active:scale-[0.98] relative overflow-hidden shadow-sm"
       >
-        <div className="absolute top-0 right-0 p-10 opacity-[0.03] -rotate-12 pointer-events-none group-hover:rotate-0 group-hover:scale-125 transition-transform duration-1000">
+        <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12 pointer-events-none group-hover:rotate-0 group-hover:scale-125 transition-transform duration-1000">
            <LogOut className="h-32 w-32 text-red-600" />
         </div>
         
         <div className="flex items-center gap-6 relative z-10">
-          <div className="h-14 w-14 rounded-[22px] bg-white text-red-500 flex items-center justify-center shadow-lg shadow-red-900/10 group-hover:scale-110 transition-transform duration-500">
+          <div className="h-14 w-14 rounded-2xl bg-white text-red-500 flex items-center justify-center shadow-lg shadow-red-900/10 group-hover:scale-110 transition-transform duration-500">
             <LogOut className="h-7 w-7" />
           </div>
           <div className="text-right space-y-0.5">
@@ -39,7 +39,7 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
       </motion.button>
       
       <div className="mt-10 flex flex-col items-center gap-4 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Sovereign Core v4.8.5</p>
+         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Sovereign Core v5.0</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />

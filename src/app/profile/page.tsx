@@ -9,7 +9,9 @@ import {
   Settings, 
   Loader2, 
   Sparkles,
-  ArrowRight
+  ShieldCheck,
+  Zap,
+  ZapOff
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
@@ -19,16 +21,19 @@ import { GrowthSection } from "@/components/profile/GrowthSection";
 import { FinancialSection } from "@/components/profile/FinancialSection";
 import { SupportSection } from "@/components/profile/SupportSection";
 import { LogoutButton } from "@/components/profile/LogoutButton";
+import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v15.0 - Stable Isolated Edition
- * تم تجريد الصفحة من النوافذ المنبثقة المعقدة لحل مشكلة التعطل (RangeError).
- * زر الإعدادات يوجه الآن لصفحة مستقلة.
+ * @fileOverview صفحة الملف الشخصي v20.0 - Stability & Speed Edition
+ * تم تطهير كافة مسببات التعطل (RangeError) والتخلص من النوافذ المنبثقة المزدحمة.
  */
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
   const [referralCount, setReferralCount] = useState(0);
+  const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
+  const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
+  
   const router = useRouter();
   const db = useFirestore();
 
@@ -91,7 +96,7 @@ function ProfileContent() {
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-12 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Header with Nav Capsule */}
+        {/* Header with Nav Capsule - Transparent & Minimalist */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight leading-none">ملفي الشخصي</h1>
@@ -101,8 +106,7 @@ function ProfileContent() {
             </div>
           </div>
 
-          {/* Transparent Controls Capsule */}
-          <div className="flex items-center gap-2 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100">
+          <div className="flex items-center gap-4 bg-gray-50/50 p-2 rounded-2xl border border-gray-100 shadow-inner">
              <button 
                onClick={() => router.push("/settings")} 
                className="h-10 w-10 flex items-center justify-center text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none"
@@ -131,7 +135,7 @@ function ProfileContent() {
               </div>
            </div>
            <div className="lg:col-span-8 space-y-10">
-              <GrowthSection dbUser={dbUser} onToggleSuccess={() => {}} />
+              <GrowthSection dbUser={dbUser} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
               <FinancialSection />
               <SupportSection />
               <div className="lg:hidden pt-4">
@@ -139,6 +143,9 @@ function ProfileContent() {
               </div>
            </div>
         </div>
+
+        <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
+        <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل بروتوكول إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />
       </div>
     </Shell>
   );

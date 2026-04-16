@@ -15,7 +15,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -24,8 +24,8 @@ import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog"
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
 
 /**
- * @fileOverview صفحة إعدادات الحساب المستقلة v1.0
- * تم عزل الإعدادات في هذه الصفحة لمنع تعطل تطبيق NextJS الناتج عن تداخل النوافذ.
+ * @fileOverview صفحة إعدادات الحساب المستقلة v2.0 - Stability Edition
+ * تم إزالة كافة قيم tracking الاعتباطية لمنع تعطل المحرك (RangeError).
  */
 
 type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
@@ -76,7 +76,7 @@ function SettingsContent() {
             </div>
             <div className="space-y-0.5">
                <h1 className="text-2xl font-black text-[#002d4d] tracking-tight">{getTitle()}</h1>
-               <div className="flex items-center gap-2 text-blue-500 font-black text-[8px] uppercase tracking-widest mt-1">
+               <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-widest mt-1">
                   <Sparkles size={10} className="text-[#f9a885]" />
                   Security Protocol Hub
                </div>
@@ -106,7 +106,7 @@ function SettingsContent() {
                     onClick={() => setActiveView(item.id as any)}
                     className="w-full relative overflow-hidden flex items-center justify-between p-8 bg-white hover:bg-gray-50/50 border border-gray-100 rounded-[44px] transition-all group active:scale-[0.98] shadow-sm hover:shadow-xl"
                   >
-                     <div className={cn("absolute -bottom-6 -left-6 opacity-[0.03] transition-all duration-700 pointer-events-none", item.color)}>
+                     <div className={cn("absolute -bottom-6 -left-6 opacity-5 transition-all duration-700 pointer-events-none", item.color)}>
                         <item.icon size={120} />
                      </div>
 
@@ -159,7 +159,7 @@ function SettingsContent() {
       </div>
 
       <div className="flex flex-col items-center gap-4 pt-16 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Security Nexus v1.0.0</p>
+         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Security Nexus v2.0</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />

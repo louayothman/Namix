@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * @fileOverview مكون الهوية الصريح v3.0
+ * تم تطهير كافة قيم tracking الاعتباطية لمنع تعطل المحرك.
+ */
+
 interface ProfileHeroProps {
   user: any;
   referralCount: number;
@@ -46,7 +51,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
                 "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
                 calculatedTier.color === 'blue' ? "bg-blue-50 text-blue-500" :
                 calculatedTier.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
-                calculatedTier.color === 'orange' ? "bg-orange-50 text-orange-500" :
+                calculatedTier.color === 'orange' ? "bg-orange-50 text-orange-600" :
                 calculatedTier.color === 'yellow' ? "bg-yellow-50 text-yellow-500" :
                 "bg-gray-50 text-gray-400"
               )}>
@@ -99,7 +104,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
 
       <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex items-stretch h-28 divide-x divide-x-reverse divide-gray-50/60">
          <div className="flex-1 p-6 relative group/stat overflow-hidden flex flex-col justify-center">
-            <div className="absolute -bottom-6 -left-6 opacity-[0.05] group-hover/stat:opacity-[0.1] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-blue-600">
+            <div className="absolute -bottom-6 -left-6 opacity-5 group-hover/stat:opacity-10 group-hover/stat:scale-125 transition-all duration-1000 pointer-events-none text-blue-600">
                <Briefcase size={100} />
             </div>
             <div className="relative z-10 space-y-0.5 text-right">
@@ -109,7 +114,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
          </div>
 
          <div className="flex-1 p-6 relative group/stat overflow-hidden flex flex-col justify-center">
-            <div className="absolute -bottom-6 -left-6 opacity-[0.05] group-hover/stat:opacity-[0.1] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-orange-500">
+            <div className="absolute -bottom-6 -left-6 opacity-5 group-hover/stat:opacity-10 group-hover/stat:scale-125 transition-all duration-1000 pointer-events-none text-orange-500">
                <Users size={100} />
             </div>
             <div className="relative z-10 space-y-0.5 text-right">
