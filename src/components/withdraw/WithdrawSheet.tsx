@@ -215,11 +215,11 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                       onClick={() => handleSelectCategory(cat.id)} 
                       className="w-full p-6 rounded-[32px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-6 text-right group active:scale-[0.99] relative overflow-hidden"
                     >
-                      <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shrink-0">
-                        {cat.type === 'binance' ? <Cpu size={28} /> : 
-                         cat.type === 'nowpayments' ? <Zap size={28} /> :
+                      <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner transition-all shrink-0">
+                        {cat.type === 'binance' ? <Cpu size={28} className="text-[#002d4d]" /> : 
+                         cat.type === 'nowpayments' ? <Zap size={28} className="text-[#002d4d]" /> :
                          cat.type === 'internal' ? <NamixDotsIcon /> :
-                         <Wallet size={28} />}
+                         <Wallet size={28} className="text-[#002d4d]" />}
                       </div>
                       <div className="flex-1 space-y-1">
                          <p className="font-black text-base text-[#002d4d] group-hover:text-blue-600 transition-colors">{cat.name}</p>
