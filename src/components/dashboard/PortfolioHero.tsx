@@ -34,6 +34,13 @@ export function PortfolioHero({
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
   const prices = useMarketStore(state => state.prices);
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "صباح الخير";
+    if (hour >= 12 && hour < 18) return "طاب يومك";
+    return "مساء الخير";
+  }, []);
+
   const approximateBalance = useMemo(() => {
     const balance = user?.totalBalance || 0;
     if (selectedCurrency === 'USDT') return balance;
@@ -68,15 +75,14 @@ export function PortfolioHero({
 
         <CardContent className="p-8 md:p-12 pt-10 md:pt-12 space-y-10 relative z-10">
           
-          {/* Header Strip */}
+          {/* Header Strip - Identity Focused */}
           <div className="flex items-center justify-between">
-            <Logo size="sm" lightText className="scale-100" />
+            <div className="text-right space-y-0.5">
+               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{greeting}</p>
+               <h1 className="text-lg font-black tracking-tight text-white">{user?.displayName || '...'}</h1>
+            </div>
 
             <div className="flex items-center gap-3">
-              <div className="text-left space-y-0.5 mr-2">
-                <h1 className="text-xs font-normal tracking-tight text-white/90">{user?.displayName || '...'}</h1>
-              </div>
-              
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
                 <Link href="/notifications" className="relative h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all">
                   <Bell className="h-4 w-4 text-[#f9a885]" />
@@ -93,22 +99,23 @@ export function PortfolioHero({
                   </button>
                 </Link>
               </div>
+              <Logo size="sm" hideText className="scale-110 brightness-200" />
             </div>
           </div>
 
           {/* Main Financial Row: Balance (Right) vs Stats (Left) */}
           <div className="flex flex-row items-center justify-between w-full">
             
-            {/* Right Side: Primary Balance */}
-            <div className="flex flex-col items-start text-right space-y-0.5">
-              <span className="text-[9px] text-white/40 uppercase tracking-widest">الرصيد المتاح</span>
-              <h2 className="text-4xl md:text-6xl font-normal leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
-                <span className="text-white/20 text-xl md:text-2xl">$</span>
+            {/* Right Side: Primary Balance (Larger) */}
+            <div className="flex flex-col items-start text-right space-y-1">
+              <span className="text-[10px] text-white/40 font-black uppercase tracking-widest">الرصيد المتاح</span>
+              <h2 className="text-5xl md:text-7xl font-black leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
+                <span className="text-white/20 text-2xl md:text-3xl font-bold">$</span>
                 {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h2>
               
-              <div className="flex items-center gap-1.5 mt-1 px-1">
-                 <p className="text-[10px] font-black text-white/60 tabular-nums tracking-tight" dir="ltr">
+              <div className="flex items-center gap-1.5 px-1">
+                 <p className="text-[11px] font-black text-white/50 tabular-nums tracking-tight" dir="ltr">
                     ≈ {selectedCurrency === 'BTC' ? approximateBalance.toFixed(8) : approximateBalance.toFixed(selectedCurrency === 'USDT' ? 2 : 6)} {selectedCurrency}
                  </p>
                  <DropdownMenu>
@@ -135,20 +142,17 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Vertical Stats Stack */}
-            <div className="flex flex-col items-end gap-5">
-               <div className="text-right space-y-0.5">
-                  <p className="text-[8px] text-white/30 uppercase tracking-tighter leading-none">الاستثمارات</p>
-                  <p className="text-xl font-normal text-white tabular-nums tracking-tighter leading-none">
+            {/* Left Side: Clean Vertical Stats (Text next to Value) */}
+            <div className="flex flex-col items-end gap-6 border-r border-white/10 pr-6">
+               <div className="text-right flex items-center gap-3">
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
+                  <p className="text-xl font-black text-white tabular-nums tracking-tighter leading-none">
                     ${(user?.activeInvestmentsTotal || 0).toLocaleString()}
                   </p>
                </div>
-               <div className="text-right space-y-0.5">
-                  <div className="flex items-center gap-1 justify-end">
-                    <TrendingUp size={10} className="text-[#f9a885] opacity-40" />
-                    <p className="text-[8px] text-[#f9a885]/40 uppercase tracking-tighter leading-none">الأرباح</p>
-                  </div>
-                  <p className="text-xl font-normal text-[#f9a885] tabular-nums tracking-tighter leading-none">
+               <div className="text-right flex items-center gap-3">
+                  <p className="text-[9px] font-black text-[#f9a885]/40 uppercase tracking-widest leading-none">الأرباح</p>
+                  <p className="text-xl font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
                     +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                </div>
