@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
@@ -12,7 +11,8 @@ import {
   Fingerprint, 
   Sparkles,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  X
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -24,8 +24,8 @@ import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog"
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
 
 /**
- * @fileOverview صفحة إعدادات الحساب المستقلة v2.0 - Stability Edition
- * تم إزالة كافة قيم tracking الاعتباطية لمنع تعطل المحرك (RangeError).
+ * @fileOverview صفحة إعدادات الحساب المستقلة v4.0 - Critical Stability Fix
+ * تم تجريد كافة قيم التباعد (Letter Spacing) والعمليات الحسابية المسببة لخطأ RangeError.
  */
 
 type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
@@ -39,7 +39,11 @@ function SettingsContent() {
   useEffect(() => {
     const userSession = localStorage.getItem("namix_user");
     if (userSession) {
-      setUser(JSON.parse(userSession));
+      try {
+        setUser(JSON.parse(userSession));
+      } catch (e) {
+        router.push("/login");
+      }
     } else {
       router.push("/login");
     }
@@ -49,9 +53,9 @@ function SettingsContent() {
   const { data: dbUser } = useDoc(userDocRef);
 
   const menuItems = [
-    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات", icon: UserCircle, color: "text-blue-500" },
-    { id: 'password', title: "تغيير كلمة المرور", desc: "تحديث شفرة الدخول وبروتوكولات الأمان", icon: KeyRound, color: "text-[#f9a885]" },
-    { id: 'pin', title: "رمز PIN الخزنة", desc: "تأمين العمليات المالية برمز حماية حيوي", icon: Fingerprint, color: "text-emerald-500" },
+    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات", icon: UserCircle, color: "text-blue-500", bg: "bg-blue-50" },
+    { id: 'password', title: "تغيير كلمة المرور", desc: "تحديث شفرة الدخول وبروتوكولات الأمان", icon: KeyRound, color: "text-orange-500", bg: "bg-orange-50" },
+    { id: 'pin', title: "رمز PIN الخزنة", desc: "تأمين العمليات المالية برمز حماية حيوي", icon: Fingerprint, color: "text-emerald-500", bg: "bg-emerald-50" },
   ];
 
   const getTitle = () => {
@@ -66,19 +70,19 @@ function SettingsContent() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
+    <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right select-none" dir="rtl">
       
-      {/* Header Strip */}
+      {/* Clean Header */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-8">
-         <div className="flex items-center gap-4 text-right">
-            <div className="h-12 w-12 rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl">
+         <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-[22px] bg-[#002d4d] text-white flex items-center justify-center shadow-xl">
                {activeView === 'menu' ? <Settings size={24} /> : <ChevronRight size={24} onClick={() => setActiveView('menu')} className="cursor-pointer" />}
             </div>
             <div className="space-y-0.5">
-               <h1 className="text-2xl font-black text-[#002d4d] tracking-tight">{getTitle()}</h1>
-               <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-widest mt-1">
+               <h1 className="text-2xl font-black text-[#002d4d]">{getTitle()}</h1>
+               <div className="flex items-center gap-2 text-blue-500 font-bold text-[10px] mt-1">
                   <Sparkles size={10} className="text-[#f9a885]" />
-                  Security Protocol Hub
+                  <span>Security Control</span>
                </div>
             </div>
          </div>
@@ -97,14 +101,14 @@ function SettingsContent() {
                 key="menu" 
                 initial={{ opacity: 0, y: 10 }} 
                 animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, x: -20 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="space-y-4"
               >
                 {menuItems.map((item) => (
                   <button 
                     key={item.id}
                     onClick={() => setActiveView(item.id as any)}
-                    className="w-full relative overflow-hidden flex items-center justify-between p-8 bg-white hover:bg-gray-50/50 border border-gray-100 rounded-[44px] transition-all group active:scale-[0.98] shadow-sm hover:shadow-xl"
+                    className="w-full relative overflow-hidden flex items-center justify-between p-8 bg-white hover:bg-gray-50 border border-gray-100 rounded-[40px] transition-all group active:scale-[0.98] shadow-sm hover:shadow-xl"
                   >
                      <div className={cn("absolute -bottom-6 -left-6 opacity-5 transition-all duration-700 pointer-events-none", item.color)}>
                         <item.icon size={120} />
@@ -124,46 +128,57 @@ function SettingsContent() {
             ) : (
               <motion.div 
                 key="form-view" 
-                initial={{ opacity: 0, x: 20 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                exit={{ opacity: 0, x: -20 }}
-                className="bg-white p-10 rounded-[56px] border border-gray-100 shadow-xl"
+                initial={{ opacity: 0, scale: 0.98 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="bg-white p-8 md:p-12 rounded-[56px] border border-gray-100 shadow-2xl relative"
               >
-                {activeView === 'profile' && (
-                  <EditProfileDialog 
-                    open={true} 
-                    onOpenChange={() => setActiveView('menu')} 
-                    user={user} 
-                    dbUser={dbUser} 
-                    onSuccess={() => { router.push("/profile"); }} 
-                  />
-                )}
-                {activeView === 'password' && (
-                  <ChangePasswordDialog 
-                    open={true} 
-                    onOpenChange={() => setActiveView('menu')} 
-                    userId={user.id} 
-                    dbUser={dbUser} 
-                  />
-                )}
-                {activeView === 'pin' && (
-                  <PinSetupDialog 
-                    open={true} 
-                    onOpenChange={() => setActiveView('menu')} 
-                    dbUser={dbUser} 
-                  />
-                )}
+                <div className="absolute top-6 left-6 z-20">
+                   <button 
+                     onClick={() => setActiveView('menu')}
+                     className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all"
+                   >
+                     <X size={16} />
+                   </button>
+                </div>
+
+                <div className="relative z-10">
+                  {activeView === 'profile' && (
+                    <EditProfileDialog 
+                      open={true} 
+                      onOpenChange={() => setActiveView('menu')} 
+                      user={user} 
+                      dbUser={dbUser} 
+                      onSuccess={() => { router.push("/profile"); }} 
+                    />
+                  )}
+                  {activeView === 'password' && (
+                    <ChangePasswordDialog 
+                      open={true} 
+                      onOpenChange={() => setActiveView('menu')} 
+                      userId={user.id} 
+                      dbUser={dbUser} 
+                    />
+                  )}
+                  {activeView === 'pin' && (
+                    <PinSetupDialog 
+                      open={true} 
+                      onOpenChange={() => setActiveView('menu')} 
+                      dbUser={dbUser} 
+                    />
+                  )}
+                </div>
               </motion.div>
             )}
          </AnimatePresence>
       </div>
 
-      <div className="flex flex-col items-center gap-4 pt-16 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Security Nexus v2.0</p>
+      <div className="flex flex-col items-center gap-4 pt-16 opacity-20">
+         <p className="text-[10px] font-black text-[#002d4d] text-center uppercase">Namix Security Hub</p>
          <div className="flex gap-2">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-            ))}
+            <div className="h-1 w-1 rounded-full bg-gray-300" />
+            <div className="h-1 w-1 rounded-full bg-gray-300" />
+            <div className="h-1 w-1 rounded-full bg-gray-300" />
          </div>
       </div>
     </div>
