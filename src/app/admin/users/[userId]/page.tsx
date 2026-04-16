@@ -96,7 +96,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
 
   const calculatedTier = useMemo(() => {
     if (!dbUser || !tiersData?.list) return null;
-    const list = tiersData.list;
+    const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
     const currentStats = {
       balance: dbUser.totalBalance || 0,
       profits: dbUser.totalProfits || 0,
@@ -104,16 +104,21 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
       invites: referralCount
     };
 
-    const sortedTiers = [...list].sort((a,b) => (b.minBalance || 0) - (a.minBalance || 0));
-    
-    const achieved = sortedTiers.find(t => 
-      currentStats.balance >= (t.minBalance || 0) &&
-      currentStats.profits >= (t.minTotalProfits || 0) &&
-      currentStats.historical >= (t.minHistoricalInvest || 0) &&
-      currentStats.invites >= (t.minInvites || 0)
-    );
+    let currentTier = list[0];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const t = list[i];
+      if (
+        currentStats.balance >= (t.minBalance || 0) &&
+        currentStats.profits >= (t.minTotalProfits || 0) &&
+        currentStats.historical >= (t.minHistoricalInvest || 0) &&
+        currentStats.invites >= (t.minInvites || 0)
+      ) {
+        currentTier = t;
+        break;
+      }
+    }
 
-    return achieved || null;
+    return currentTier;
   }, [dbUser, tiersData, referralCount]);
 
   const totalLiveProfits = dbUser ? (dbUser.totalProfits || 0) + liveStats.accruedProfit : 0;
@@ -162,7 +167,6 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   const processMaturedInvestments = useCallback(async () => {
     if (!activeInvestments || activeInvestments.length === 0 || processingPayouts || !userId) return;
     const currentTime = now.getTime();
-    // تأخير معالجة المستحقات لـ 5 ثوانٍ بعد انتهاء الوقت لضمان الشفافية البصرية للمستثمر
     const matured = activeInvestments.filter(inv => 
       !inv.isProcessed && 
       currentTime >= new Date(inv.endTime).getTime() + 5000

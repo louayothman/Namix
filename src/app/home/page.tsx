@@ -108,11 +108,48 @@ export default function HomePage() {
 
   const calculatedTier = useMemo(() => {
     if (!displayUser || !tiersData?.list) return null;
-    const list = tiersData.list;
-    const currentStats = { balance: displayUser.totalBalance || 0, profits: displayUser.totalProfits || 0, historical: (displayUser.activeInvestmentsTotal || 0) + (displayUser.totalProfits || 0), invites: referralCount };
-    const achievedTier = [...list].sort((a,b) => (b.minBalance + b.minTotalProfits) - (a.minBalance + a.minTotalProfits)).find(t => currentStats.balance >= t.minBalance && currentStats.profits >= (t.minTotalProfits || 0) && currentStats.historical >= (t.minHistoricalInvest || 0) && currentStats.invites >= (t.minInvites || 0));
-    const nextTier = [...list].sort((a,b) => a.minBalance - b.minBalance).find(t => currentStats.balance < t.minBalance || currentStats.invites < (t.minInvites || 0));
-    return { current: achievedTier || list[0], next: nextTier, progress: nextTier ? (currentStats.balance / nextTier.minBalance) * 100 : 100, remaining: {} };
+    const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
+    const currentStats = { 
+      balance: displayUser.totalBalance || 0, 
+      profits: displayUser.totalProfits || 0, 
+      historical: (displayUser.activeInvestmentsTotal || 0) + (displayUser.totalProfits || 0), 
+      invites: referralCount 
+    };
+
+    // Find current tier (highest where ALL requirements met)
+    let currentTier = list[0];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const t = list[i];
+      if (
+        currentStats.balance >= (t.minBalance || 0) &&
+        currentStats.profits >= (t.minTotalProfits || 0) &&
+        currentStats.historical >= (t.minHistoricalInvest || 0) &&
+        currentStats.invites >= (t.minInvites || 0)
+      ) {
+        currentTier = t;
+        break;
+      }
+    }
+
+    const currentIndex = list.findIndex(t => t.id === currentTier.id);
+    const nextTier = list[currentIndex + 1] || null;
+    
+    let remaining = { balance: 0, profits: 0, invites: 0, historical: 0 };
+    let progress = 100;
+
+    if (nextTier) {
+      remaining = {
+        balance: Math.max(0, (nextTier.minBalance || 0) - currentStats.balance),
+        profits: Math.max(0, (nextTier.minTotalProfits || 0) - currentStats.profits),
+        invites: Math.max(0, (nextTier.minInvites || 0) - currentStats.invites),
+        historical: Math.max(0, (nextTier.minHistoricalInvest || 0) - currentStats.historical)
+      };
+      
+      const balanceProg = (currentStats.balance / (nextTier.minBalance || 1)) * 100;
+      progress = Math.min(Math.max(balanceProg, 0), 100);
+    }
+
+    return { current: currentTier, next: nextTier, progress, remaining };
   }, [tiersData, displayUser, referralCount]);
 
   useEffect(() => {
@@ -132,7 +169,6 @@ export default function HomePage() {
   const processMaturedInvestments = useCallback(async () => {
     if (!investments || !localUser?.id) return;
     const currentTime = now.getTime();
-    // تفعيل نافذة الانتظار لـ 5 ثوانٍ بعد بلوغ موعد الاستحقاق لضمان بقاء العقد ظاهراً للمستثمر
     const matured = investments.filter(inv => 
       inv.status === 'active' && 
       !inv.isProcessed && 
