@@ -19,7 +19,8 @@ import {
   Lock,
   CheckCircle2,
   AlertCircle,
-  Coins
+  Coins,
+  ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.1 - Fixed Missing Imports
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.2 - Navigation Correction
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -94,7 +95,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
       return;
     }
     if (amt > withdrawableMax) {
-      setError("رصيدك المتاح (بدون الهدية) لا يكفي لتغطية هذا المبلغ.");
+      setError("رصيدك المتاح لا يكفي لتغطية هذا المبلغ.");
       return;
     }
     setError(null);
@@ -135,9 +136,11 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
            <div className="flex items-center gap-4">
               <div className="flex items-center gap-3 px-4 h-10 bg-gray-50/50 rounded-2xl border border-gray-100 shadow-inner">
                  <p className="text-[11px] font-black text-[#002d4d] tabular-nums">${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                 <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">رصيدك</span>
+                 <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
-              <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm"><ChevronRight size={20} /></button>
+              <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
+                <ChevronRight size={20} />
+              </button>
            </div>
         </header>
 
@@ -269,7 +272,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
         </main>
 
         <footer className="p-10 flex flex-col items-center gap-4 opacity-10 select-none mt-auto">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Transfer Protocol v5.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Transfer System v5.0</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />))}
            </div>
