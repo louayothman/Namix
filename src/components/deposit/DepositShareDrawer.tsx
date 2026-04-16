@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as htmlToImage from 'html-to-image';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QRCodeSVG } from "qrcode.react";
+import { Logo } from "@/components/layout/Logo";
 
 interface DepositShareDrawerProps {
   open: boolean;
@@ -40,14 +41,14 @@ export function DepositShareDrawer({
 }: DepositShareDrawerProps) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+  const isInternal = selectedAsset?.coin === 'Internal';
 
   useEffect(() => {
     if (open) {
       setImgUrl(null);
-      // التحويل الفوري بمجرد فتح النافذة بصمت
       setTimeout(() => {
         captureProtocol();
-      }, 500); 
+      }, 800); 
     }
   }, [open, walletAddress]);
 
@@ -69,7 +70,7 @@ export function DepositShareDrawer({
   const handleDownload = () => {
     if (!imgUrl) return;
     const link = document.createElement('a');
-    link.download = `namix-deposit.png`;
+    link.download = `namix-${isInternal ? 'id' : 'deposit'}.png`;
     link.href = imgUrl;
     link.click();
   };
@@ -79,12 +80,12 @@ export function DepositShareDrawer({
     try {
       const response = await fetch(imgUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'deposit.png', { type: 'image/png' });
+      const file = new File([blob], 'namix_card.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'معاملة إيداع ناميكس',
-          text: `عنوان إيداع ${selectedAsset?.coin || selectedAsset?.symbol}`
+          title: isInternal ? 'Namix ID' : 'عنوان إيداع ناميكس',
+          text: isInternal ? `المعرف الرقمي الخاص بي في ناميكس: ${walletAddress}` : `عنوان إيداع ${selectedAsset?.coin || selectedAsset?.symbol}`
         });
       } else {
         handleDownload();
@@ -94,7 +95,6 @@ export function DepositShareDrawer({
 
   return (
     <>
-      {/* منطقة التصوير المخفية - النقاء المطلق */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div 
           ref={captureRef}
@@ -124,8 +124,8 @@ export function DepositShareDrawer({
                <div className="relative">
                   <QRCodeSVG value={walletAddress} size={280} bgColor={"#ffffff"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="bg-white p-1.5 rounded-sm shadow-sm">
-                        <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || selectedAsset?.symbol} size={36} />
+                     <div className="bg-white p-2 rounded-xl shadow-lg">
+                        <Logo size="sm" hideText />
                      </div>
                   </div>
                </div>
@@ -134,17 +134,20 @@ export function DepositShareDrawer({
 
           <div className="w-full text-center space-y-8" dir="rtl">
              <div className="space-y-3">
-                <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">عنوان الإيداع</p>
-                <p className="text-[14px] font-normal text-[#002d4d] break-all leading-loose px-4 font-mono" dir="ltr">{walletAddress}</p>
+                <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">
+                  {isInternal ? "معرف ناميكس (Namix ID)" : "عنوان الإيداع الموثق"}
+                </p>
+                <p className="text-[20px] font-black text-[#002d4d] break-all leading-loose px-4 tabular-nums tracking-widest" dir="ltr">
+                  {isInternal ? walletAddress : walletAddress}
+                </p>
              </div>
              <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
                 <span className="text-[12px] font-normal text-[#002d4d]">
-                  الشبكة : {selectedAsset?.coin || selectedAsset?.symbol} - {selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}
+                  {isInternal ? "بروتوكول التحويل المباشر" : `الشبكة : ${selectedAsset?.coin || selectedAsset?.symbol} - ${selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}`}
                 </span>
              </div>
           </div>
 
-          {/* الختم السيادي المحدث - ترتيب LTR صحيح */}
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4" dir="ltr">
              <div className="flex items-center gap-5">
                 <div className="grid grid-cols-2 gap-0.5 scale-[0.7]">

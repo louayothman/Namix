@@ -7,7 +7,7 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { Icon } from "@iconify/react";
-import { ChevronLeft, Search, X, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Search, X, ShieldCheck, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAvailableNowPaymentsCurrencies } from "@/app/actions/nowpayments-actions";
 import { getBinanceCoinsConfig, getBinanceDepositAddress, verifyAndProcessBinanceDeposit } from "@/app/actions/binance-actions";
@@ -26,22 +26,22 @@ import { NowPaymentsExecutionStep } from "@/components/deposit/categories/nowpay
 import { ManualCurrencyStep } from "@/components/deposit/categories/manual/ManualCurrencyStep";
 import { ManualExecutionStep } from "@/components/deposit/categories/manual/ManualExecutionStep";
 
+import { InternalExecutionStep } from "@/components/deposit/categories/internal/InternalExecutionStep";
+
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 
 /**
- * @fileOverview مُفاعل التحميل السيادي المطور v2.1 - Sovereign Dynamic Pulse
- * أيقونة ناميكس المركزية تنبض وتدور داخل الحلقة الطاقية لضمان تجربة تكنولوجية فاخرة.
+ * @fileOverview مُفاعل التحميل السيادي المطور v2.2 - Sovereign Dynamic Pulse
+ * تم إضافة دعم كامل للنمط الداخلي (Namix ID) مع أيقونة User المخصصة.
  */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
-      {/* الحلقة الطاقية الخارجية */}
       <motion.div 
         animate={{ rotate: 360 }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         className="h-24 w-24 border-[1px] border-[#f9a885]/20 border-t-[#f9a885] rounded-full shadow-[0_0_30px_rgba(249,168,133,0.1)]"
       />
-      {/* أيقونة ناميكس المركزية المتحركة (تنبض وتدور) */}
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.div 
           animate={{ 
@@ -102,6 +102,12 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
 
   useEffect(() => {
     if (!category) return;
+    
+    // إذا كان النمط داخلي، انتقل مباشرة للتنفيذ
+    if (category.type === 'internal') {
+      setStep("execution");
+    }
+
     if (category.type === 'binance' && binanceConfig.length === 0) {
       getBinanceCoinsConfig().then(res => { if (res.success) setBinanceConfig(res.coins); });
     }
@@ -125,10 +131,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     }
   };
 
-  /**
-   * محرك رصد التوافر اللحظي v2.0
-   * تم إلغاء مهلة الثواني والاعتماد كلياً على نجاح أو فشل الـ API.
-   */
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
     setWalletAddress("");
@@ -139,12 +141,10 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     try {
       if (category?.type === 'nowpayments') {
         const res = await createNowPayment(dbUser.id, network.id, 10);
-        
         if (res.success) {
           setWalletAddress(res.address);
           setStep("execution");
         } else {
-          // رصد عدم التوافر التقني من المزود
           setSlowNetworkId(network.id || network.network);
         }
       } else if (category?.type === 'binance') {
@@ -157,7 +157,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         }
       }
     } catch (err: any) {
-      // رصد فشل الاتصال العام
       setSlowNetworkId(network.id || network.network);
     } finally {
       setLoading(false);
@@ -192,7 +191,11 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setTxid("");
     setSlowNetworkId(null);
     if (step === "result") { router.push("/home"); return; }
-    if (step === "execution") { setStep("select_network"); return; }
+    if (step === "execution") { 
+      if (category?.type === 'internal') { router.back(); return; }
+      setStep("select_network"); 
+      return; 
+    }
     if (step === "select_network") { setStep("select_asset"); return; }
     router.back();
   };
@@ -203,7 +206,14 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-4">
               <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
-                 {category?.type === 'binance' ? <Icon icon="cryptocurrency-color:bnb" width={32} height={32} /> : (
+                 {category?.type === 'binance' ? (
+                   <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
+                 ) : category?.type === 'internal' ? (
+                   <div className="relative">
+                      <User size={32} />
+                      <div className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#f9a885] border border-white" />
+                   </div>
+                 ) : (
                    <div className="grid grid-cols-2 gap-1 scale-110">
                      <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
                      <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
@@ -239,7 +249,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                   <motion.div key="sa" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     {category?.type === 'binance' ? <BinanceCurrencyStep assets={binanceConfig} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} isSearchOpen={isSearchOpen} /> :
                     category?.type === 'nowpayments' ? <NowPaymentsCurrencyStep availableIds={npAvailableIds} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
-                    <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} />}
+                    category?.type === 'manual' ? <ManualCurrencyStep portals={category?.portals || []} onSelect={handleAssetSelect} loading={loading} searchQuery={searchQuery} /> :
+                    null}
                   </motion.div>
                 )}
                 
@@ -257,6 +268,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                   <motion.div key="ex" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
                     category?.type === 'nowpayments' ? <NowPaymentsExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} /> :
+                    category?.type === 'internal' ? <InternalExecutionStep dbUser={dbUser} /> :
                     <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
                   </motion.div>
                 )}

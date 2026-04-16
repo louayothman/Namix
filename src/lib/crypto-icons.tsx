@@ -13,13 +13,13 @@ import {
   KeyRound, FileText, UserCheck, Search, CheckCircle2, AlertTriangle, 
   Radar, Droplets, Building2, Apple, Bitcoin, Heart, Crown, Medal,
   Flag, Anchor, Navigation2, Compass, Trophy, MousePointerClick, MessageSquare,
-  Hash
+  Hash, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v66.0
- * إضافة أيقونة NAMIX_ID لدعم التحويلات الداخلية عبر المعرف الرقمي.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v67.0
+ * إضافة أيقونة NAMIX_INTERNAL_USER المخصصة (User + Namix Dot).
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -39,10 +39,17 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   NAMIX_STAR: Star,
   NAMIX_SPARKLES: Sparkles,
   NAMIX_REFRESH: RefreshCcw,
-  NAMIX_ID: Hash, // أيقونة الهاش لتمثيل الـ ID الرقمي
+  NAMIX_ID: Hash,
+  NAMIX_INTERNAL_USER: (props: any) => (
+    <div className="relative inline-flex">
+      <User {...props} />
+      <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#f9a885] border-2 border-white shadow-sm" />
+    </div>
+  ),
 };
 
 export const ICON_OPTIONS = [
+  { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' },
   { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'USDT', label: 'Tether (USDT)' },
   { id: 'BTC', label: 'Bitcoin (BTC)' },
