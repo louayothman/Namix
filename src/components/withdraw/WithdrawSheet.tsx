@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useFirestore, useMemoFirebase, useCollection, useDoc } from "@/firebase";
 import { doc, collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
 import { 
-  ArrowDownCircle, 
+  ChevronUp, 
   ChevronLeft,
   Sparkles,
   Loader2,
@@ -150,10 +150,10 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
           <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-4">
             <div className="flex items-center gap-4 text-right">
                <div className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl">
-                  <ArrowDownCircle size={24} className="rotate-180" />
+                  <ChevronUp size={28} strokeWidth={3} />
                </div>
                <div className="space-y-0">
-                 <DrawerTitle className="text-xl font-black text-[#002d4d]">سحب المبالغ</DrawerTitle>
+                 <DrawerTitle className="text-xl font-black text-[#002d4d]">ارسال الاموال</DrawerTitle>
                  <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Outflow Gateway</p>
                </div>
             </div>

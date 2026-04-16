@@ -9,7 +9,7 @@ import { useFirestore, useMemoFirebase, useCollection, useDoc } from "@/firebase
 import { doc, collection, query, where } from "firebase/firestore";
 import { Icon } from "@iconify/react";
 import { 
-  ArrowUpCircle, 
+  ChevronDown,
   ChevronLeft,
   Sparkles,
   Gift,
@@ -59,9 +59,11 @@ export function DepositSheet({ open, onOpenChange }: DepositSheetProps) {
           
           <DrawerHeader className="px-8 pt-6 shrink-0 flex flex-row items-center justify-between border-b border-gray-50 pb-4">
             <div className="flex items-center gap-4 text-right">
-               <div className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl"><ArrowUpCircle size={24} /></div>
+               <div className="h-11 w-11 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl">
+                  <ChevronDown size={28} strokeWidth={3} />
+               </div>
                <div className="space-y-0">
-                 <DrawerTitle className="text-xl font-black text-[#002d4d]">إضافة رصيد</DrawerTitle>
+                 <DrawerTitle className="text-xl font-black text-[#002d4d]">استلام الاموال</DrawerTitle>
                  <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Inflow Gateway</p>
                </div>
             </div>
