@@ -224,7 +224,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
             )}
 
             {step === 'amount' && (
-              <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-10">
+              <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-10">
                  <div className="flex items-center gap-5 text-right px-4">
                     <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm border border-gray-50 text-[#f9a885]">
                        <User size={32} />
@@ -353,7 +353,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
         </main>
 
         <footer className="p-10 flex flex-col items-center gap-4 opacity-10 select-none mt-auto">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Transfer System v5.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Transfer System</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />))}
            </div>
