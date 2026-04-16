@@ -150,7 +150,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
               <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
-                <ChevronRight size={20} />
+                <ChevronLeft size={20} />
               </button>
            </div>
         </header>
