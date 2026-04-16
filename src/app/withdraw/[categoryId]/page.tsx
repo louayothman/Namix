@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -32,7 +31,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.3 - UI Layout Refinement
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.5 - Minimalist Identity Layout
+ * تم تطهير واجهة عرض المستلم من الحاويات الصناعية لتظهر مباشرة على سطح الصفحة بأسلوب نقي.
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -181,13 +181,17 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
             {step === 'amount' && (
               <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-10">
-                 <div className="p-8 bg-gray-50 rounded-[48px] border border-gray-100 shadow-inner flex items-center gap-6 text-right">
-                    <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm text-[#f9a885]">
+                 {/* Recipient Identity - Minimalist Layout */}
+                 <div className="flex items-center gap-5 text-right px-2">
+                    <div className="h-16 w-16 rounded-[24px] bg-gray-50 flex items-center justify-center shadow-inner text-[#f9a885]">
                        <User size={32} />
                     </div>
                     <div className="space-y-1">
-                       <h3 className="text-xl font-black text-[#002d4d]">{recipient?.displayName}</h3>
-                       <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] px-3 py-1 rounded-full uppercase">ID: {recipient?.namixId}</Badge>
+                       <h3 className="text-xl font-black text-[#002d4d] leading-none">{recipient?.displayName}</h3>
+                       <div className="flex items-center gap-2 mt-1">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">ID: {recipient?.namixId}</p>
+                       </div>
                     </div>
                  </div>
 
