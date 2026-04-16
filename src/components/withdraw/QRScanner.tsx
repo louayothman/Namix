@@ -14,31 +14,34 @@ interface QRScannerProps {
 }
 
 /**
- * @fileOverview مُفاعل مسح الباركود التكتيكي v2.0 - Hybrid Capture Engine
- * يدعم المسح الحي عبر الكاميرا والالتقاط من ملفات الصور.
+ * @fileOverview مُفاعل مسح الباركود التكتيكي v2.1 - Strict Camera Shutdown
+ * تم تعزيز المكون ببروتوكول إيقاف صارم للمسارات لضمان عدم بقاء الكاميرا نشطة بعد الالتقاط.
  */
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const isScanningActive = useRef(true);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
     let animationFrame: number;
 
     const startCamera = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment" }
         });
         
+        streamRef.current = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setHasPermission(true);
           setIsProcessing(false);
-          requestAnimationFrame(tick);
+          animationFrame = requestAnimationFrame(tick);
         }
       } catch (err) {
         console.error("Camera Access Denied:", err);
@@ -48,6 +51,8 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     };
 
     const tick = () => {
+      if (!isScanningActive.current) return;
+
       if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
         const canvas = canvasRef.current;
         const video = videoRef.current;
@@ -63,6 +68,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
             });
 
             if (code) {
+              stopCameraProtocol();
               processResult(code.data);
               return; 
             }
@@ -74,14 +80,23 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
     startCamera();
 
-    // بروتوكول تحرير الموارد: إيقاف الكاميرا فوراً عند الخروج
+    // بروتوكول التحرير عند إلغاء المكون
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      stopCameraProtocol();
       cancelAnimationFrame(animationFrame);
     };
   }, []);
+
+  const stopCameraProtocol = () => {
+    isScanningActive.current = false;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      streamRef.current = null;
+    }
+  };
 
   const processResult = (rawData: string) => {
     let finalId = rawData;
@@ -114,6 +129,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
+          stopCameraProtocol();
           processResult(code.data);
         } else {
           toast({
@@ -126,6 +142,11 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCloseManual = () => {
+    stopCameraProtocol();
+    onClose();
   };
 
   return (
@@ -161,7 +182,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
                  <p className="text-white/40 font-bold text-[7px] uppercase tracking-widest mt-1">Sovereign Scanning Node</p>
               </div>
            </div>
-           <button onClick={onClose} className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-all border border-white/20">
+           <button onClick={handleCloseManual} className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-all border border-white/20">
               <X size={20} />
            </button>
         </div>
@@ -204,7 +225,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
                 className="h-14 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs px-8 shadow-2xl active:scale-95 transition-all flex items-center gap-3"
               >
                 <ImageIcon size={18} className="text-[#f9a885]" />
-                رفع صورة الباركود
+                رفع صورة QR
               </Button>
 
               <div className="flex items-center justify-center gap-4 py-2 opacity-40">
@@ -229,7 +250,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
               <h4 className="text-white text-xl font-black">تعذر الوصول للكاميرا</h4>
               <p className="text-blue-200/60 font-bold text-sm leading-loose">يرجى منح تطبيق ناميكس صلاحية الوصول للكاميرا من إعدادات المتصفح لمتابعة عملية المسح.</p>
            </div>
-           <Button onClick={onClose} className="w-full h-14 rounded-full bg-white text-[#002d4d] font-black">إلغاء والمتابعة يدوياً</Button>
+           <Button onClick={handleCloseManual} className="w-full h-14 rounded-full bg-white text-[#002d4d] font-black">إلغاء والمتابعة يدوياً</Button>
         </div>
       )}
     </motion.div>
