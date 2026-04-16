@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useMemo, Suspense } from "react";
@@ -23,11 +22,6 @@ import { SupportSection } from "@/components/profile/SupportSection";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SettingsHubDialog } from "@/components/profile/SettingsHubDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
-
-/**
- * @fileOverview صفحة الملف الشخصي السيادي v12.0 - Stability & Speed Update
- * تم إعادة بناء الصفحة لتكون خالية من القيم الاعتباطية التي قد تسبب تعطل النظام.
- */
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
@@ -103,19 +97,18 @@ function ProfileContent() {
 
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
-      <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-12 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
         
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight leading-none">ملفي الشخصي</h1>
-            <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-widest mt-1">
+            <div className="flex items-center gap-2 text-blue-50 font-black text-[9px] uppercase tracking-widest mt-1">
                <Sparkles size={10} className="text-[#f9a885]" />
                Sovereign Account Control
             </div>
           </div>
 
-          {/* كبسولة التحكم الشفافة */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100">
              <button 
                onClick={() => setSettingsOpen(true)} 
                className="h-10 w-10 flex items-center justify-center text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none"

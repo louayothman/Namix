@@ -1,13 +1,11 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
-import { Settings, UserCircle, Lock, ChevronLeft, Fingerprint, KeyRound, Sparkles, ChevronRight, X } from "lucide-react";
+import { Settings, UserCircle, ChevronLeft, Fingerprint, KeyRound, Sparkles, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Import raw logic views
 import { EditProfileDialog } from "./EditProfileDialog";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 import { PinSetupDialog } from "./PinSetupDialog";
@@ -22,10 +20,6 @@ interface SettingsHubDialogProps {
 
 type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
 
-/**
- * @fileOverview مركز التحكم بالهوية المدمج v6.5 - Stability Focus
- * تم تطهير المكون من القيم الاعتباطية لضمان استقرار محرك الرندرة.
- */
 export function SettingsHubDialog({ open, onOpenChange, user, dbUser, onProfileUpdate }: SettingsHubDialogProps) {
   const [activeView, setActiveView] = useState<SettingsView>('menu');
 

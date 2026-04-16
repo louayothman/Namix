@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Award, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy, Check } from "lucide-react";
@@ -14,10 +13,6 @@ interface ProfileHeroProps {
   calculatedTier?: any;
 }
 
-/**
- * @fileOverview مُفاعل الهوية v13.0 - Elegant Copy Update
- * تم دمج رأس المال والشركاء في كبسولة موحدة مع أيقونات خلفية حيوية.
- */
 export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, calculatedTier }: ProfileHeroProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
@@ -101,10 +96,9 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
         </div>
       </div>
 
-      {/* كبسولة الإحصائيات الموحدة */}
       <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex items-stretch h-28 divide-x divide-x-reverse divide-gray-50/60">
          <div className="flex-1 p-6 relative group/stat overflow-hidden flex flex-col justify-center">
-            <div className="absolute -bottom-6 -left-6 opacity-[0.04] group-hover/stat:opacity-[0.12] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-blue-600">
+            <div className="absolute -bottom-6 -left-6 opacity-[0.05] group-hover/stat:opacity-[0.1] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-blue-600">
                <Briefcase size={100} />
             </div>
             <div className="relative z-10 space-y-0.5 text-right">
@@ -114,7 +108,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
          </div>
 
          <div className="flex-1 p-6 relative group/stat overflow-hidden flex flex-col justify-center">
-            <div className="absolute -bottom-6 -left-6 opacity-[0.04] group-hover/stat:opacity-[0.12] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-orange-500">
+            <div className="absolute -bottom-6 -left-6 opacity-[0.05] group-hover/stat:opacity-[0.1] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-orange-500">
                <Users size={100} />
             </div>
             <div className="relative z-10 space-y-0.5 text-right">
