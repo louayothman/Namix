@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, Sparkles, Loader2, Coins, UserPlus, Globe, Zap, BarChart3, TrendingUp, Lock } from "lucide-react";
+import { ShieldCheck, Loader2, UserPlus } from "lucide-react";
 
 // Modular Components
 import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
@@ -25,12 +24,7 @@ import { PartnershipSection } from "@/components/admin/settings/PartnershipSecti
 import { VaultBonusSection } from "@/components/admin/settings/VaultBonusSection";
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
 
-/**
- * @fileOverview صفحة إعدادات المنصة المحدثة v11.0
- * تم إزالة صندوق التأمين وحماية رأس المال نهائياً بناءً على رغبة المستخدم.
- */
-
-type SettingSection = 'menu' | 'withdraw_logic' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'voucher_logic' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'landing_page';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -70,10 +64,6 @@ export default function AdminSettingsPage() {
   const { data: remoteOnboarding } = useDoc(onboardingRef);
   const [onboardingData, setOnboardingData] = useState<any>({});
 
-  const voucherRulesRef = useMemoFirebase(() => doc(db, "system_settings", "voucher_rules"), [db]);
-  const { data: remoteVoucherRules } = useDoc(voucherRulesRef);
-  const [voucherRulesData, setVoucherRulesData] = useState<any>({});
-
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: remoteLanding } = useDoc(landingRef);
   const [landingData, setLandingData] = useState<any>({});
@@ -87,9 +77,8 @@ export default function AdminSettingsPage() {
     if (remoteVaultBonus) setVaultBonusData(remoteVaultBonus);
     if (remoteAcademy) setAcademyData(remoteAcademy);
     if (remoteOnboarding) setOnboardingData(remoteOnboarding);
-    if (remoteVoucherRules) setVoucherRulesData(remoteVoucherRules);
     if (remoteLanding) setLandingData(remoteLanding);
-  }, [remoteWithdrawRules, remoteTiers, remoteMarketing, remoteLegal, remotePartnership, remoteVaultBonus, remoteAcademy, remoteOnboarding, remoteVoucherRules, remoteLanding]);
+  }, [remoteWithdrawRules, remoteTiers, remoteMarketing, remoteLegal, remotePartnership, remoteVaultBonus, remoteAcademy, remoteOnboarding, remoteLanding]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -174,10 +163,6 @@ export default function AdminSettingsPage() {
               </CardContent>
             </Card>
           </div>
-        )}
-
-        {activeSection === 'voucher_logic' && (
-          <WithdrawLogicSection data={voucherRulesData} onChange={setVoucherRulesData} onSave={() => handleSaveDoc(voucherRulesRef, voucherRulesData, "قوانين القسائم")} saving={saving} />
         )}
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-30">

@@ -2,13 +2,13 @@
 "use client";
 
 import { 
-  Clock, Landmark, Wallet, Coins, Share2, Award, Activity, Edit2, Gavel, ArrowRight, LucideIcon, UserPlus, ShieldCheck, Gift, Cpu, Layout, Zap
+  Clock, Share2, Award, Activity, Edit2, Gavel, ArrowRight, LucideIcon, UserPlus, Coins, Layout
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * @fileOverview قائمة إعدادات المنصة v11.0
- * تم إزالة "صندوق التأمين" نهائياً بناءً على طلب المستخدم.
+ * تم تطهير القائمة من نظام الصكوك والقسائم.
  */
 
 interface MenuItem {
@@ -25,7 +25,6 @@ export function SettingsMenu({ onSelect }: { onSelect: (id: string) => void }) {
     { id: 'landing_page', title: "صفحة الهبوط", desc: "تعديل النصوص الترحيبية وروابط التواصل", icon: Layout, color: "text-blue-600", bg: "bg-blue-50" },
     { id: 'onboarding', title: "رصيد الترحيب", desc: "إدارة الحوافز النقدية للمستثمرين الجدد", icon: UserPlus, color: "text-blue-600", bg: "bg-blue-50" },
     { id: 'withdraw_logic', title: "قوانين السحب", desc: "إدارة قيود وفترات انتظار سحب الأموال", icon: Clock, color: "text-orange-500", bg: "bg-orange-50" },
-    { id: 'voucher_logic', title: "قوانين القسائم", desc: "شروط إصدار وتفعيل صكوك الهدايا", icon: Gift, color: "text-emerald-600", bg: "bg-emerald-50" },
     { id: 'vault_bonus', title: "الخزنة والمكافآت", desc: "إعداد أرباح الرصيد الخامل ومكافآت الشحن", icon: Coins, color: "text-yellow-600", bg: "bg-yellow-50" },
     { id: 'partnership', title: "نظام الشركاء", desc: "نظام العمولات ونمو الشبكة الاستراتيجي", icon: Share2, color: "text-[#f9a885]", bg: "bg-orange-50" },
     { id: 'tiers', title: "نظام الرتب", desc: "تعريف مستويات المستثمرين والمكافآت", icon: Award, color: "text-blue-500", bg: "bg-blue-50" },

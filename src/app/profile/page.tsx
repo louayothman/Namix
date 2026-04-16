@@ -11,9 +11,7 @@ import {
   Sparkles, 
   ShieldCheck, 
   Zap, 
-  ZapOff, 
-  Gift, 
-  Coins 
+  ZapOff 
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
@@ -27,7 +25,6 @@ import { SettingsHubDialog } from "@/components/profile/SettingsHubDialog";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
-import { GiftVoucherDialog } from "@/components/profile/GiftVoucherDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 function ProfileContent() {
@@ -37,14 +34,9 @@ function ProfileContent() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [pinSetupOpen, setPinSetupOpen] = useState(false);
-  const [giftVoucherOpen, setGiftVoucherOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
-  const [voucherCreateSuccess, setVoucherCreateSuccess] = useState(false);
-  const [voucherRedeemSuccess, setVoucherRedeemSuccess] = useState(false);
-  const [redeemedAmount, setRedeemAmount] = useState(0);
-  const [voucherCode, setVoucherCode] = useState("");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,7 +61,6 @@ function ProfileContent() {
 
   useEffect(() => {
     const action = searchParams.get("action");
-    if (action === "issue-voucher") setGiftVoucherOpen(true);
     if (action === "setup-pin") setPinSetupOpen(true);
     if (action === "verify") setEditProfileOpen(true);
   }, [searchParams]);
@@ -83,7 +74,7 @@ function ProfileContent() {
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
-        {/* Header with Unified Capsule */}
+        {/* Header with Nano Capsule */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
@@ -93,16 +84,16 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-gray-100/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner">
+          <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-full border border-gray-100 shadow-inner">
              <button 
                onClick={() => setSettingsOpen(true)} 
-               className="h-10 w-10 md:h-11 md:w-11 rounded-xl md:rounded-[18px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all hover:bg-[#001d33]"
+               className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:text-blue-600"
              >
                <Settings className="h-5 w-5 md:h-5 md:w-5" />
              </button>
              <button 
                onClick={() => router.back()} 
-               className="h-10 w-10 md:h-11 md:w-11 rounded-xl md:rounded-[18px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
+               className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:text-blue-600"
              >
                <ChevronLeft className="h-6 w-6 md:h-6 md:w-6" />
              </button>
@@ -117,7 +108,7 @@ function ProfileContent() {
               </div>
            </div>
            <div className="lg:col-span-8 space-y-10 md:space-y-14">
-              <GrowthSection dbUser={dbUser} onOpenVouchers={() => setGiftVoucherOpen(true)} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
+              <GrowthSection dbUser={dbUser} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
               <FinancialSection />
               <SupportSection />
               <div className="lg:hidden pt-4">
@@ -130,13 +121,10 @@ function ProfileContent() {
         <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
         <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
         <PinSetupDialog open={pinSetupOpen} onOpenChange={setPinSetupOpen} dbUser={dbUser} />
-        <GiftVoucherDialog open={giftVoucherOpen} onOpenChange={setGiftVoucherOpen} user={user} dbUser={dbUser} onIssueSuccess={(code) => { setVoucherCode(code); setVoucherCreateSuccess(true); }} onRedeemSuccess={(amt) => { setRedeemAmount(amt); setVoucherRedeemSuccess(true); }} />
 
         <SuccessDialog open={profileSuccess} onOpenChange={setProfileSuccess} title="تم تحديث الهوية" description="تم تأمين وحفظ بياناتك الشخصية المحدثة بنجاح." icon={ShieldCheck} type="profile" />
         <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
         <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل بروتوكول إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />
-        <SuccessDialog open={voucherCreateSuccess} onOpenChange={setVoucherCreateSuccess} title="تم إصدار الصك" description="تم إصدار قسيمة الهدية بنجاح وتم خصم المبلغ من رصيدك." icon={Gift} type="voucher-create" extraData={voucherCode} />
-        <SuccessDialog open={voucherRedeemSuccess} onOpenChange={setVoucherRedeemSuccess} title="اكتمال تدفق السيولة" description={`تم التحقق من الصك الاستثمار بنجاح. تمت إضافة مبلغ $${redeemedAmount} إلى محفظتك.`} icon={Coins} type="voucher-redeem" />
       </div>
     </Shell>
   );
