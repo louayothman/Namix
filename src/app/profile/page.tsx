@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { 
@@ -51,6 +51,9 @@ function ProfileContent() {
   const userDocRef = useMemoFirebase(() => user?.id ? doc(db, "users", user.id) : null, [db, user?.id]);
   const { data: dbUser } = useDoc(userDocRef);
 
+  const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
+  const { data: tiersData } = useDoc(tiersDocRef);
+
   useEffect(() => {
     if (user?.id) {
       const q = query(collection(db, "users"), where("referredBy", "==", user.id));
@@ -58,6 +61,33 @@ function ProfileContent() {
       return () => unsub();
     }
   }, [user?.id, db]);
+
+  // محرك احتساب الرتبة اللحظي للملف الشخصي
+  const calculatedTier = useMemo(() => {
+    if (!dbUser || !tiersData?.list) return null;
+    const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
+    const currentStats = {
+      balance: dbUser.totalBalance || 0,
+      profits: dbUser.totalProfits || 0,
+      historical: (dbUser.activeInvestmentsTotal || 0) + (dbUser.totalProfits || 0),
+      invites: referralCount
+    };
+
+    let currentTier = list[0];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const t = list[i];
+      if (
+        currentStats.balance >= (t.minBalance || 0) &&
+        currentStats.profits >= (t.minTotalProfits || 0) &&
+        currentStats.historical >= (t.minHistoricalInvest || 0) &&
+        currentStats.invites >= (t.minInvites || 0)
+      ) {
+        currentTier = t;
+        break;
+      }
+    }
+    return currentTier;
+  }, [dbUser, tiersData, referralCount]);
 
   useEffect(() => {
     const action = searchParams.get("action");
@@ -74,7 +104,7 @@ function ProfileContent() {
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
-        {/* Header with Nano Capsule */}
+        
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
@@ -84,7 +114,7 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-full border border-gray-100 shadow-inner">
+          <div className="flex items-center gap-4 bg-gray-100/50 p-1.5 rounded-full border border-gray-100">
              <button 
                onClick={() => setSettingsOpen(true)} 
                className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:text-blue-600"
@@ -102,7 +132,12 @@ function ProfileContent() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
            <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-              <ProfileHero user={dbUser || user} referralCount={referralCount} totalInvestments={dbUser?.activeInvestmentsTotal || 0} />
+              <ProfileHero 
+                user={dbUser || user} 
+                referralCount={referralCount} 
+                totalInvestments={dbUser?.activeInvestmentsTotal || 0} 
+                calculatedTier={calculatedTier}
+              />
               <div className="hidden lg:block">
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>

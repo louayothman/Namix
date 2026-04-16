@@ -10,7 +10,6 @@ export function FinancialSection() {
     { title: "استثماراتي النشطة", desc: "متابعة عقود التشغيل والارباح الحية", href: "/my-investments" },
     { title: "سجل الإيداعات", desc: "مراجعة كافة عمليات شحن الرصيد المعتمدة", href: "/my-deposits" },
     { title: "سجل السحوبات", desc: "تتبع حوالات الأرباح المحولة لمحفظتك", href: "/my-withdrawals" },
-    { title: "سجل القسائم", desc: "مراجعة الصكوك الاستثمارية الصادرة والمستلمة", href: "/my-vouchers" },
   ];
 
   return (

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { UserCircle, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy, Check } from "lucide-react";
+import { Award, ShieldCheck, ShieldAlert, Briefcase, Users, Hash, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -11,13 +11,14 @@ interface ProfileHeroProps {
   user: any;
   referralCount: number;
   totalInvestments: number;
+  calculatedTier?: any;
 }
 
 /**
- * @fileOverview مكون الهوية المباشرة v7.0 - Unified Capsule Edition
- * تم دمج الإحصائيات في كبسولة واحدة وتطوير نظام التنبيه عند النسخ ليصبح أكثر أناقة.
+ * @fileOverview مكون الهوية المباشرة v8.0 - Raw Identity Edition
+ * تم إزالة أيقونة المستخدم ووضع الرتبة والرمز الخاص بها تحت الاسم مباشرة بأسلوب مينيماليست.
  */
-export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: ProfileHeroProps) {
+export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, calculatedTier }: ProfileHeroProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
 
@@ -26,77 +27,80 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0 }: P
     navigator.clipboard.writeText(user.namixId).then(() => {
       setCopyStatus("COPIED");
       setTimeout(() => setCopyStatus(null), 2000);
-    }).catch(() => {
-      setCopyStatus("ERROR");
-      setTimeout(() => setCopyStatus(null), 2000);
-    });
+    }).catch(() => {});
   };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-top-4 duration-1000 text-right font-body" dir="rtl">
       
-      {/* 1. Identity Node - Ultra Clean */}
-      <div className="flex flex-col items-start gap-6">
-        <div className="flex items-center gap-6">
-          <div className="relative shrink-0">
-            <div className="h-20 w-20 rounded-[32px] bg-gray-50 flex items-center justify-center shadow-inner border border-gray-100 text-[#002d4d] group-hover:scale-105 transition-transform duration-700">
-              <UserCircle className="h-12 w-12" />
-            </div>
-            <div className={cn(
-              "absolute -bottom-1 -right-1 h-7 w-7 rounded-[12px] border-[3px] border-white flex items-center justify-center shadow-lg z-20 transition-all duration-500",
-              isVerified ? "bg-emerald-500" : "bg-orange-400"
-            )}>
-              {isVerified ? <ShieldCheck className="h-3.5 w-3.5 text-white fill-white" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
-            </div>
+      {/* 1. Raw Identity Node - No Avatar */}
+      <div className="space-y-5 px-2">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-black text-[#002d4d] tracking-tight">{user?.displayName || '...'}</h2>
+            {isVerified ? (
+              <ShieldCheck className="h-5 w-5 text-emerald-500 fill-emerald-50" />
+            ) : (
+              <ShieldAlert className="h-5 w-5 text-orange-400" />
+            )}
           </div>
           
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-black text-[#002d4d] tracking-tight">{user?.displayName || '...'}</h2>
-              <Badge className={cn(
-                "font-black text-[8px] px-3 py-1 rounded-full border-none shadow-sm tracking-widest",
-                isVerified ? "bg-emerald-50 text-emerald-600" : "bg-orange-50 text-orange-400"
+          {/* شارة الرتبة والرمز تحت الاسم */}
+          {calculatedTier && (
+            <div className="flex items-center gap-2 pt-0.5">
+              <div className={cn(
+                "h-5 w-5 rounded-lg flex items-center justify-center shadow-inner",
+                calculatedTier.color === 'blue' ? "bg-blue-50 text-blue-500" :
+                calculatedTier.color === 'emerald' ? "bg-emerald-50 text-emerald-500" :
+                calculatedTier.color === 'orange' ? "bg-orange-50 text-orange-500" :
+                calculatedTier.color === 'yellow' ? "bg-yellow-50 text-yellow-500" :
+                "bg-gray-50 text-gray-400"
               )}>
-                {isVerified ? "VERIFIED" : "PENDING"}
-              </Badge>
+                <Award size={12} />
+              </div>
+              <span className={cn(
+                "text-[10px] font-black uppercase tracking-widest",
+                calculatedTier.color === 'blue' ? "text-blue-600" :
+                calculatedTier.color === 'emerald' ? "text-emerald-600" :
+                calculatedTier.color === 'orange' ? "text-orange-600" :
+                calculatedTier.color === 'yellow' ? "text-yellow-600" :
+                "text-gray-400"
+              )}>
+                {calculatedTier.name}
+              </span>
             </div>
-            
-            {/* Elegant ID Action Row */}
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleCopyId}
-                className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full border border-gray-100 hover:bg-gray-100 transition-all group/id active:scale-95 outline-none"
-              >
-                <Hash className="h-3 w-3 text-[#f9a885]" />
-                <span className="text-[10px] font-black text-[#002d4d] tabular-nums tracking-widest uppercase">ID: {user?.namixId || "..."}</span>
-                <AnimatePresence mode="wait">
-                  {!copyStatus && (
-                    <motion.div 
-                      key="copy-icon"
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
-                      exit={{ opacity: 0 }}
-                    >
-                      <Copy className="h-3 w-3 opacity-20 group-hover/id:opacity-100 transition-opacity" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </button>
+          )}
+        </div>
+        
+        {/* Elegant ID Action Row */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleCopyId}
+            className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full border border-gray-100 hover:bg-gray-100 transition-all group/id active:scale-95 outline-none"
+          >
+            <Hash className="h-3 w-3 text-[#f9a885]" />
+            <span className="text-[10px] font-black text-[#002d4d] tabular-nums tracking-widest uppercase">ID: {user?.namixId || "..."}</span>
+            <AnimatePresence mode="wait">
+              {!copyStatus && (
+                <motion.div key="copy-icon" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <Copy className="h-3 w-3 opacity-20 group-hover/id:opacity-100 transition-opacity" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
 
-              <AnimatePresence>
-                {copyStatus && (
-                  <motion.span 
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="text-[9px] font-black text-emerald-600 tracking-widest uppercase"
-                  >
-                    {copyStatus}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+          <AnimatePresence>
+            {copyStatus && (
+              <motion.span 
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="text-[9px] font-black text-emerald-600 tracking-widest uppercase"
+              >
+                {copyStatus}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
