@@ -26,8 +26,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview مركز الاستلام الداخلي المطور v2.0 - محتوى مطهر
- * تم حذف كلمات (بروتوكول، ميثاق، سيادة، أرباح، سيولة) واستبدالها بمصطلحات مباشرة.
+ * @fileOverview مركز الاستلام الداخلي المطور v2.1 - تطهير الواجهة
+ * تم إزالة الأيقونة المتكررة من الهيدر وتبسيط لغة المحتوى.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -52,21 +52,11 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-700 font-body text-right" dir="rtl">
       
-      {/* 1. Header Section */}
+      {/* 1. Header Section - Minimalist */}
       <section className="flex items-center justify-between px-2">
-         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-[18px] bg-[#002d4d] text-white flex items-center justify-center shadow-lg">
-               <div className="grid grid-cols-2 gap-0.5">
-                  <div className="h-1 w-1 rounded-full bg-white" />
-                  <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-                  <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
-                  <div className="h-1 w-1 rounded-full bg-white" />
-               </div>
-            </div>
-            <div className="space-y-0.5">
-               <h3 className="text-xl font-black text-[#002d4d]">استلام مباشر</h3>
-               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
-            </div>
+         <div className="space-y-0.5">
+            <h3 className="text-xl font-black text-[#002d4d]">استلام مباشر</h3>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
          </div>
          <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">
             ACTIVE ID
