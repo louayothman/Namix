@@ -19,12 +19,13 @@ import {
   ArrowDown, 
   Wallet,
   ShieldAlert,
-  Coins
+  Coins,
+  Lock
 } from "lucide-react";
 
 /**
- * @fileOverview بروتوكول حوكمة السحب v1.0
- * يتضمن منطق حماية الرصيد الترحيبي (Welcome Bonus Protection) لضمان نزاهة العمليات.
+ * @fileOverview بروتوكول حوكمة السحب v1.1
+ * يتضمن منطق حماية الرصيد الترحيبي (Locked Welcome Bonus) لضمان نزاهة العمليات المالية.
  */
 
 export function WithdrawSettingsSection() {
@@ -37,10 +38,11 @@ export function WithdrawSettingsSection() {
     withdrawalFee: 5,
     minWithdrawalAmount: 10,
     maxWithdrawalAmount: 1000,
-    minTotalDeposits: 50, // هذا الحقل يحمي من سحب الرصيد الترحيبي فقط
+    minTotalDeposits: 50,
     requireVerificationToWithdraw: true,
     minTimeValue: 24,
-    minTimeUnit: 'hours'
+    minTimeUnit: 'hours',
+    lockWelcomeBonus: true // تفعيل قفل المكافأة برمجياً بشكل دائم
   });
 
   useEffect(() => {
@@ -92,16 +94,19 @@ export function WithdrawSettingsSection() {
             </div>
 
             <div className="p-10 bg-emerald-50/50 rounded-[40px] border border-emerald-100 space-y-8">
-               <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm"><ShieldCheck size={20} /></div>
-                  <div className="text-right">
-                    <h4 className="font-black text-[#002d4d]">حماية الرصيد الترحيبي</h4>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase">Anti-Abuse Protocol</p>
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm"><Lock size={20} /></div>
+                    <div className="text-right">
+                      <h4 className="font-black text-[#002d4d]">قفل الرصيد الترحيبي (Sovereign Lock)</h4>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Anti-Withdrawal Protocol</p>
+                    </div>
                   </div>
+                  <Badge className="bg-emerald-600 text-white border-none font-black text-[9px] px-3 py-1 rounded-full shadow-lg">HARD LOCKED</Badge>
                </div>
                
                <div className="space-y-4">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4">الحد الأدنى لمجموع الإيداعات قبل السحب ($)</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4">الحد الأدنى لمجموع الإيداعات قبل أول سحب ($)</Label>
                   <Input 
                     type="number" 
                     value={data.minTotalDeposits} 
@@ -109,7 +114,7 @@ export function WithdrawSettingsSection() {
                     className="h-16 rounded-[24px] bg-white border-none font-black text-center text-3xl text-emerald-600 shadow-md"
                   />
                   <p className="text-[10px] font-bold text-emerald-700/60 leading-relaxed px-4">
-                    يمنع هذا الشرط المستثمرين الجدد من سحب "رصيد التجربة" مباشرة دون القيام بعملية إيداع حقيقية في المنصة.
+                    ملاحظة: الرصيد الترحيبي الممنوح للمستخدم يتم استبعاده تلقائياً من المبلغ القابل للسحب. لا يمكن للمستثمر سحب أي سنت من "الهدية"؛ السحب متاح فقط لإيداعاته الشخصية وأرباحه المحققة بعد استيفاء الشرط أعلاه.
                   </p>
                </div>
             </div>
@@ -117,7 +122,7 @@ export function WithdrawSettingsSection() {
             <Button onClick={handleSave} disabled={saving} className="w-full h-20 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-2xl active:scale-95 group transition-all">
               {saving ? <Loader2 className="animate-spin h-8 w-8" /> : (
                 <div className="flex items-center gap-4">
-                  <span>تثبيت ميثاق السحب السيادي</span>
+                  <span>تثبيت ميثاق السحب والحماية</span>
                   <ShieldCheck className="h-6 w-6 text-[#f9a885]" />
                 </div>
               )}
@@ -131,8 +136,8 @@ export function WithdrawSettingsSection() {
             <div className="absolute top-0 left-0 p-8 opacity-10"><Zap size={160} /></div>
             <div className="relative z-10 space-y-6">
                <div className="h-16 w-16 rounded-[24px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner"><ShieldCheck size={32} /></div>
-               <h4 className="text-2xl font-black">أمان السيولة</h4>
-               <p className="text-[13px] font-bold text-blue-50 leading-[2.2]">تفعيل بروتوكول حماية الرصيد يضمن عدم استنزاف سيولة المنصة من قبل الحسابات الوهمية.</p>
+               <h4 className="text-2xl font-black">حوكمة السيولة</h4>
+               <p className="text-[13px] font-bold text-blue-50 leading-[2.2]">لقد تم حقن منطق "الرصيد المحجوز" برمجياً؛ النظام الآن لا يحسب المكافأة الترحيبية ضمن سقف السحب المتاح للمستثمر إطلاقاً.</p>
             </div>
          </div>
       </div>

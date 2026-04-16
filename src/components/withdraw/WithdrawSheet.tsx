@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -115,10 +116,26 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
         setRuleError({ title: "التوثيق مطلوب", message: "يرجى إكمال ملفك الشخصي وتوثيق بياناتك لتفعيل السحب.", icon: ShieldCheck, action: 'setup-profile' });
         return;
       }
-      
-      if ((u?.totalBalance || 0) < (rules?.minAccountBalance || 0)) { 
-        setRuleError({ title: "تعزيز السيولة", message: `رصيدك المتاح ($${u?.totalBalance?.toLocaleString()}) أقل من الحد الأدنى للبقاء في الحساب ($${rules?.minAccountBalance}).`, icon: Wallet, action: 'deposit' }); 
+
+      // --- بروتوكول حماية الرصيد الترحيبي المطور ---
+      const bonusAmount = u?.welcomeBonus || 0;
+      const currentBalance = u?.totalBalance || 0;
+      const withdrawableMax = Math.max(0, currentBalance - bonusAmount);
+
+      if (currentBalance < (rules?.minAccountBalance || 0)) { 
+        setRuleError({ title: "تعزيز السيولة", message: `رصيدك المتاح ($${currentBalance.toLocaleString()}) أقل من الحد الأدنى للبقاء في الحساب ($${rules?.minAccountBalance}).`, icon: Wallet, action: 'deposit' }); 
         return; 
+      }
+
+      // التحقق مما إذا كان رصيد المستخدم (بدون البونص) يغطي حتى الحد الأدنى للسحب
+      if (withdrawableMax < (rules?.minWithdrawalAmount || 10)) {
+        setRuleError({ 
+          title: "سيادة الرصيد الترحيبي", 
+          message: `عذراً، الرصيد الممنوح كهدية ($${bonusAmount}) مخصص للاستثمار وتوليد الأرباح فقط ولا يمكن سحبه. يجب أن يتجاوز رصيدك الفعلي (بدون الهدية) مبلغ $${rules?.minWithdrawalAmount} لتتمكن من السحب.`, 
+          icon: ShieldAlert, 
+          action: 'invest' 
+        });
+        return;
       }
       
       if ((u?.totalProfits || 0) < (rules?.minTotalProfits || 0)) { 
@@ -129,7 +146,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       const depSnap = await getDocs(query(collection(db, "deposit_requests"), where("userId", "==", userId), where("status", "==", "approved")));
       const totalDeposited = depSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
       if (totalDeposited < (rules?.minTotalDeposits || 0)) {
-        setRuleError({ title: "متطلب إيداع", message: `يجب أن يكون مجموع إيداعتك المعتمدة $${rules?.minTotalDeposits} على الأقل.`, icon: ArrowUpRight, action: 'deposit' });
+        setRuleError({ title: "متطلب إيداع", message: `يجب أن يكون مجموع إيداعتك المعتمدة $${rules?.minTotalDeposits} على الأقل قبل السماح بأول عملية سحب.`, icon: ArrowUpRight, action: 'deposit' });
         return;
       }
 
@@ -144,7 +161,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
         else diff = differenceInDays(now, lastDepDate);
 
         if (diff < rules.minTimeValue) {
-          setRuleError({ title: "انتظار الإيداع", message: `يرجى الانتظار لمدة ${rules.minTimeValue} ${unit} بعد آخر إيداع قبل السحب.`, icon: Clock });
+          setRuleError({ title: "انتظار الإيداع", message: `يرجى الانتظار لمدة ${rules.minTimeValue} ${unit} بعد آخر إيداع قبل السحب لضمان استقرار السيولة.`, icon: Clock });
           return;
         }
       }
@@ -159,14 +176,17 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
   const amountValidationHint = useMemo(() => {
     const amt = Number(formData.amount);
     if (!amt) return null;
+    
+    const bonusAmount = dbUser?.welcomeBonus || 0;
     const balance = dbUser?.totalBalance || 0;
+    const withdrawableLimit = Math.max(0, balance - bonusAmount);
     
-    if (amt > balance) return { type: 'error', message: 'المبلغ يتجاوز رصيدك.' };
+    if (amt > withdrawableLimit) return { type: 'error', message: `الحد الأقصى المتاح للسحب بدون الهدية هو $${withdrawableLimit.toFixed(2)}.` };
     if (amt < (rules?.minWithdrawalAmount || 1)) return { type: 'error', message: `الحد الأدنى $${rules?.minWithdrawalAmount || 1}.` };
-    if (amt > (rules?.maxWithdrawalAmount || Infinity)) return { type: 'error', message: `الحد الأقصى $${rules?.maxWithdrawalAmount}.` };
+    if (amt > (rules?.maxWithdrawalAmount || Infinity)) return { type: 'error', message: `الحد الأقصى للمركز الواحد $${rules?.maxWithdrawalAmount}.` };
     
-    return { type: 'success', message: 'المبلغ متاح للسحب.' };
-  }, [formData.amount, dbUser?.totalBalance, rules]);
+    return { type: 'success', message: 'المبلغ متاح للسحب وفق بروتوكول الحماية.' };
+  }, [formData.amount, dbUser, rules]);
 
   const handleNext = () => {
     if (amountValidationHint?.type === 'error') return;
@@ -292,7 +312,6 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                       <div className="grid grid-cols-2 gap-2.5">
                         {activePortals.map((p: any) => (
                           <button key={p.id} onClick={() => setSelectedPortalId(p.id)} className={cn("flex flex-col items-center justify-center gap-2 p-4 rounded-[36px] border transition-all duration-500 active:scale-[0.98] text-center relative group overflow-hidden min-h-[110px]", selectedPortalId === p.id ? "border-[#002d4d] bg-[#002d4d]/[0.02] shadow-xl" : "border-gray-50 bg-white")}>
-                            {/* Background Watermark */}
                             <div className="absolute -bottom-2 -left-2 opacity-[0.03] transition-all duration-700 pointer-events-none group-hover:opacity-[0.08] group-hover:scale-125">
                                <CryptoIcon name={p.icon} size={80} />
                             </div>

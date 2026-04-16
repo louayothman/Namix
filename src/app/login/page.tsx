@@ -114,7 +114,6 @@ function LoginContent() {
       const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
       
       const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
-      // توليد Namix ID الفريد (10 أرقام)
       const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
       const newUser = { 
@@ -125,6 +124,7 @@ function LoginContent() {
         role: "user", 
         password: formData.password, 
         totalBalance: trialAmount, 
+        welcomeBonus: trialAmount, // بصمة المكافأة الترحيبية للقفل البرمجي
         createdAt: new Date().toISOString() 
       };
       
@@ -170,7 +170,7 @@ function LoginContent() {
               {step === "otp" && <OTPStep key="o" otp={formData.otp} onChange={v => setFormData({ ...formData, otp: v })} onBack={() => setStep("email")} onSubmit={handleOTPSubmit} loading={loading} error={error} />}
               {step === "signup" && <SignupStep key="s" formData={formData} setFormData={setFormData} onBack={() => setStep("email")} onSubmit={handleSignupSubmit} loading={loading} error={error} />}
               {step === "password" && <PasswordStep key="p" password={formData.password} onChange={v => setFormData({ ...formData, password: v })} onBack={() => setStep("email")} onForgotPassword={() => {}} onSubmit={handleLoginSubmit} loading={loading} error={error} />}
-            </AnimatePresence>
+            </AnPresence>
             <div className="pt-8">
               <LegalLinks terms={legal?.termsAndConditions || ""} privacy={legal?.privacyPolicy || ""} />
             </div>
