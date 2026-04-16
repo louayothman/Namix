@@ -24,7 +24,8 @@ import {
   Plus,
   Minus,
   Copy,
-  ScanQrCode
+  ScanQrCode,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,10 +35,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { QRScanner } from "@/components/withdraw/QRScanner";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.9 - Home Navigation Update
- * تم تحديث زر العودة ليوجه المستخدم مباشرة إلى الصفحة الرئيسية (/home).
+ * @fileOverview محطة إرسال المبالغ الداخلية v6.0 - Advanced Capture Update
+ * تم دمج مُفاعل مسح الباركود التكتيكي لالتقاط المعرفات الرقمية آلياً.
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -49,7 +51,8 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
   const [dbUser, setDbUser] = useState<any>(null);
   const [step, setStep] = useState<'search' | 'amount' | 'verify' | 'success'>('search');
   
-  // Form State
+  // UI & Capture States
+  const [isScanning, setIsScanning] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [recipient, setRecipient] = useState<any>(null);
   const [amount, setAmount] = useState("");
@@ -116,6 +119,12 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     }
   };
 
+  const handleQRScan = (scannedId: string) => {
+    setIsScanning(false);
+    setIdentifier(scannedId);
+    handleFindUser(scannedId);
+  };
+
   const handleValidateAmount = () => {
     const amt = Number(amount);
     if (!amt || amt < (rules?.minWithdrawalAmount || 10)) {
@@ -166,7 +175,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
       setIdentifier("");
       return;
     }
-    // العودة دوماً للصفحة الرئيسية عند الخروج من الصفحة
     router.push('/home');
   };
 
@@ -194,7 +202,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
               <button onClick={handleBack} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
-                <ChevronLeft size={20} />
+                <ChevronRight size={20} />
               </button>
            </div>
         </header>
@@ -220,15 +228,20 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                           <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-200" />
                        </div>
                        
-                       <button className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:scale-110">
-                            <path d="M2 9V2h7m6 0h7v7m0 6v7h-7m-6 0H2v-7" strokeWidth="2" />
-                            <rect x="6" y="6" width="4" height="4" strokeWidth="1.5" />
-                            <rect x="14" y="6" width="4" height="4" strokeWidth="1.5" />
-                            <rect x="6" y="14" width="4" height="4" strokeWidth="1.5" />
-                            <path d="M14 14h1v1h-1zM17 14h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1z" fill="currentColor" stroke="none" />
-                            <line x1="4" y1="12" x2="20" y2="12" stroke="#f9a885" strokeWidth="1.5" className="animate-pulse" />
-                          </svg>
+                       <button 
+                         onClick={() => setIsScanning(true)}
+                         className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group"
+                       >
+                          <div className="relative flex items-center justify-center">
+                             {/* Tactical Scan Icon */}
+                             <div className="absolute inset-0 border-2 border-gray-300 rounded-lg scale-[0.6]" />
+                             <Scan size={24} className="text-[#002d4d] group-hover:scale-110 transition-transform" />
+                             <motion.div 
+                               animate={{ y: [-8, 8, -8] }} 
+                               transition={{ duration: 2, repeat: Infinity }}
+                               className="absolute h-[1px] w-5 bg-[#f9a885] shadow-[0_0_8px_#f9a885]" 
+                             />
+                          </div>
                        </button>
                     </div>
                     {error && <p className="text-red-500 text-[10px] font-bold pr-4">{error}</p>}
@@ -330,7 +343,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  {error && <p className="text-red-500 text-[11px] font-bold">{error}</p>}
 
                  <div className="grid gap-4">
-                    <Button onClick={handleFinalizeExecute} disabled={loading || pin.length < 6} className="h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-3">
+                    <Button onClick={handleFinalExecute} disabled={loading || pin.length < 6} className="h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-3">
                        {loading ? <Loader2 className="animate-spin" /> : <><span>تأكيد وإرسال المبالغ</span> <ShieldCheck size={24} /></>}
                     </Button>
                     <button onClick={() => setStep('amount')} className="text-[10px] font-black text-gray-300 uppercase tracking-widest py-4">رجوع</button>
@@ -379,6 +392,12 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
         </footer>
 
       </div>
+
+      <AnimatePresence>
+        {isScanning && (
+          <QRScanner onScan={handleQRScan} onClose={() => setIsScanning(false)} />
+        )}
+      </AnimatePresence>
     </Shell>
   );
 }
