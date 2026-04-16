@@ -36,8 +36,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.8 - Auto-Inflow Protocol
- * تم إضافة منطق الكشف التلقائي عن معرف المستلم من الرابط (id query param) لتجاوز البحث.
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.9 - Home Navigation Update
+ * تم تحديث زر العودة ليوجه المستخدم مباشرة إلى الصفحة الرئيسية (/home).
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -151,6 +151,25 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     setTimeout(() => setCopyStatus(null), 2000);
   };
 
+  const handleBack = () => {
+    if (step === 'success') {
+      router.push('/home');
+      return;
+    }
+    if (step === 'verify') {
+      setStep('amount');
+      return;
+    }
+    if (step === 'amount') {
+      setStep('search');
+      setRecipient(null);
+      setIdentifier("");
+      return;
+    }
+    // العودة دوماً للصفحة الرئيسية عند الخروج من الصفحة
+    router.push('/home');
+  };
+
   if (loadingCat) return <div className="h-screen w-full flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d] opacity-20" /></div>;
 
   return (
@@ -174,7 +193,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <p className="text-[11px] font-black text-[#002d4d] tabular-nums">${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
-              <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
+              <button onClick={handleBack} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
                 <ChevronLeft size={20} />
               </button>
            </div>
@@ -311,7 +330,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  {error && <p className="text-red-500 text-[11px] font-bold">{error}</p>}
 
                  <div className="grid gap-4">
-                    <Button onClick={handleFinalExecute} disabled={loading || pin.length < 6} className="h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-3">
+                    <Button onClick={handleFinalizeExecute} disabled={loading || pin.length < 6} className="h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-3">
                        {loading ? <Loader2 className="animate-spin" /> : <><span>تأكيد وإرسال المبالغ</span> <ShieldCheck size={24} /></>}
                     </Button>
                     <button onClick={() => setStep('amount')} className="text-[10px] font-black text-gray-300 uppercase tracking-widest py-4">رجوع</button>
