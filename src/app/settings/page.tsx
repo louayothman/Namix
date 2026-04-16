@@ -4,8 +4,8 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { 
-  ChevronRight, 
   Settings, 
+  ChevronRight, 
   UserCircle, 
   KeyRound, 
   Fingerprint, 
@@ -22,11 +22,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
-
-/**
- * @fileOverview صفحة إعدادات الحساب المستقلة v4.0 - Critical Stability Fix
- * تم تجريد كافة قيم التباعد (Letter Spacing) والعمليات الحسابية المسببة لخطأ RangeError.
- */
 
 type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
 
@@ -53,9 +48,9 @@ function SettingsContent() {
   const { data: dbUser } = useDoc(userDocRef);
 
   const menuItems = [
-    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات", icon: UserCircle, color: "text-blue-500", bg: "bg-blue-50" },
-    { id: 'password', title: "تغيير كلمة المرور", desc: "تحديث شفرة الدخول وبروتوكولات الأمان", icon: KeyRound, color: "text-orange-500", bg: "bg-orange-50" },
-    { id: 'pin', title: "رمز PIN الخزنة", desc: "تأمين العمليات المالية برمز حماية حيوي", icon: Fingerprint, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات", icon: UserCircle, color: "text-blue-500" },
+    { id: 'password', title: "تغيير كلمة المرور", desc: "تحديث شفرة الدخول وبروتوكولات الأمان", icon: KeyRound, color: "text-orange-500" },
+    { id: 'pin', title: "رمز PIN الخزنة", desc: "تأمين العمليات المالية برمز حماية حيوي", icon: Fingerprint, color: "text-emerald-500" },
   ];
 
   const getTitle = () => {
@@ -72,14 +67,14 @@ function SettingsContent() {
   return (
     <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right select-none" dir="rtl">
       
-      {/* Clean Header */}
+      {/* Header Capsule */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-8">
          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-[22px] bg-[#002d4d] text-white flex items-center justify-center shadow-xl">
+            <div className="h-12 w-12 rounded-2xl bg-[#002d4d] text-white flex items-center justify-center shadow-xl">
                {activeView === 'menu' ? <Settings size={24} /> : <ChevronRight size={24} onClick={() => setActiveView('menu')} className="cursor-pointer" />}
             </div>
             <div className="space-y-0.5">
-               <h1 className="text-2xl font-black text-[#002d4d]">{getTitle()}</h1>
+               <h1 className="text-2xl font-black text-[#002d4d] tracking-normal">{getTitle()}</h1>
                <div className="flex items-center gap-2 text-blue-500 font-bold text-[10px] mt-1">
                   <Sparkles size={10} className="text-[#f9a885]" />
                   <span>Security Control</span>
@@ -90,7 +85,7 @@ function SettingsContent() {
            onClick={() => activeView === 'menu' ? router.push("/profile") : setActiveView('menu')}
            className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm"
          >
-           <ChevronLeft size={20} className="rotate-180" />
+           <ChevronLeft size={20} />
          </button>
       </div>
 
@@ -128,17 +123,17 @@ function SettingsContent() {
             ) : (
               <motion.div 
                 key="form-view" 
-                initial={{ opacity: 0, scale: 0.98 }} 
-                animate={{ opacity: 1, scale: 1 }} 
-                exit={{ opacity: 0, scale: 0.98 }}
-                className="bg-white p-8 md:p-12 rounded-[56px] border border-gray-100 shadow-2xl relative"
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -10 }}
+                className="relative px-2 pt-4"
               >
-                <div className="absolute top-6 left-6 z-20">
+                <div className="absolute -top-12 left-0 z-20">
                    <button 
                      onClick={() => setActiveView('menu')}
-                     className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all"
+                     className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all shadow-sm border border-gray-100"
                    >
-                     <X size={16} />
+                     <X size={18} />
                    </button>
                 </div>
 
@@ -149,7 +144,7 @@ function SettingsContent() {
                       onOpenChange={() => setActiveView('menu')} 
                       user={user} 
                       dbUser={dbUser} 
-                      onSuccess={() => { router.push("/profile"); }} 
+                      onSuccess={() => { setActiveView('menu'); }} 
                     />
                   )}
                   {activeView === 'password' && (
