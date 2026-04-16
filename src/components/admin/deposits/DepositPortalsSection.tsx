@@ -49,8 +49,8 @@ import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview مركز هندسة بوابات الإيداع الشمولية v9.0 - Quad-Mode Protocol
- * دعم 4 أنماط تشغيل: يدوي، ناوبايمنتس، بينانس، والتحويل الداخلي.
+ * @fileOverview مركز هندسة بوابات الإيداع الشمولية v10.0 - Sovereign ID Protocol
+ * تم تحديث محرك التوليد ليمنح الأقسام معرفات سيادية ثابتة (مثل internal, binance) بدلاً من الأرقام العشوائية.
  */
 
 export function DepositPortalsSection() {
@@ -72,8 +72,11 @@ export function DepositPortalsSection() {
     if (!newCat.name.trim()) return;
     setCreating(true);
     try {
-      const randomNum = Math.floor(Math.random() * 90 + 10);
-      const customId = `deposit${randomNum}`;
+      // توليد معرف سيادي نظيف بدلاً من العشوائي
+      // إذا كان النمط داخلي أو بينانس، نستخدم النوع كمعرف ثابت لضمان نظافة الروابط
+      const customId = newCat.type === 'manual' 
+        ? `manual_${Date.now().toString().slice(-4)}` 
+        : newCat.type;
       
       await setDoc(doc(db, "deposit_methods", customId), { 
         name: newCat.name, 
@@ -85,7 +88,7 @@ export function DepositPortalsSection() {
 
       setNewCat({ name: "", description: "", type: "manual" });
       setIsCreatorOpen(false);
-      toast({ title: "تم تأسيس القسم بنجاح", description: `المعرف الممنوح: ${customId}` });
+      toast({ title: "تم تأسيس القسم بنجاح", description: `المعرف المعتمد: ${customId}` });
     } catch (e) { 
       toast({ variant: "destructive", title: "خطأ في القاعدة" }); 
     } finally {

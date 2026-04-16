@@ -30,7 +30,7 @@ import {
   Users
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy } from "firebase/firestore";
+import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, setDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
@@ -38,8 +38,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview هندسة بوابات السحب السيادية v13.0 - Quad-Mode Forge
- * تم تحديث الواجهة لتشمل 4 أنماط تشغيل: يدوي، بينانس، ناوبايمنتس، وتحويل داخلي.
+ * @fileOverview هندسة بوابات السحب السيادية v14.0 - Sovereign ID Protocol
+ * تم تحديث محرك التوليد ليمنح الأقسام معرفات سيادية ثابتة (مثل internal, binance) لضمان نظافة الروابط.
  */
 
 export function WithdrawPortalsSection() {
@@ -70,16 +70,22 @@ export function WithdrawPortalsSection() {
     if (!newCat.name.trim()) return;
     setCreating(true);
     try {
-      await addDoc(collection(db, "withdraw_methods"), { 
+      // توليد معرف سيادي نظيف بدلاً من العشوائي
+      const customId = newCat.type === 'manual' 
+        ? `manual_${Date.now().toString().slice(-4)}` 
+        : newCat.type;
+
+      await setDoc(doc(db, "withdraw_methods", customId), { 
         name: newCat.name, 
         description: newCat.description,
         type: newCat.type,
         isActive: true,
         portals: [] 
       });
+
       setNewCat({ name: "", description: "", type: "manual" });
       setIsCreatorOpen(false);
-      toast({ title: "تم تفعيل القسم بنجاح" });
+      toast({ title: "تم تفعيل القسم بنجاح", description: `المعرف المعتمد: ${customId}` });
     } catch (e) { 
       toast({ variant: "destructive", title: "خطأ في التفعيل" }); 
     } finally {
