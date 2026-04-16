@@ -4,7 +4,17 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { ChevronLeft, Settings, Loader2, Sparkles } from "lucide-react";
+import { 
+  ChevronLeft, 
+  Settings, 
+  Loader2, 
+  Sparkles, 
+  ShieldCheck, 
+  Zap, 
+  ZapOff, 
+  Gift, 
+  Coins 
+} from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
