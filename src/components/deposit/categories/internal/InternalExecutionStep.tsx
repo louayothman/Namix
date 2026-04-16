@@ -23,8 +23,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview محطة الاستلام المباشر v2.5 - Dynamic Share Data
- * تم تحديث المكون ليمرر اسم المستخدم ورابط الدفع الكامل لمحرك المشاركة والباركود.
+ * @fileOverview محطة الاستلام المباشر v3.0 - Integrated Action Matrix
+ * تم دمج أزرار المشاركة والنسخ في مصفوفة واحدة لسهولة الوصول وتقليل طول الصفحة.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -51,20 +51,20 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
       
       {/* 1. Header Section */}
       <section className="flex items-center justify-between px-2">
-         <div className="space-y-0.5">
-            <h3 className="text-xl font-black text-[#002d4d]">الاستلام المباشر من مستخدمي Namix</h3>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
+         <div className="space-y-0.5 text-right">
+            <h3 className="text-xl font-black text-[#002d4d] tracking-normal">الاستلام المباشر من مستخدمي Namix</h3>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest tracking-normal">Namix Internal Transfer</p>
          </div>
-         <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">
+         <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner tracking-normal">
             ACTIVE ID
          </Badge>
       </section>
 
-      {/* 2. QR Core - الآن يحتوي على رابط الدفع الكامل */}
-      <section className="flex flex-col items-center gap-10">
+      {/* 2. QR Core & Action Hub */}
+      <section className="flex flex-col items-center gap-8">
          <NamixIdQR namixId={paymentLink} size={220} />
 
-         <div className="flex flex-col items-center gap-4 w-full">
+         <div className="flex flex-col items-center gap-6 w-full">
             <div className="flex items-center justify-center gap-3 group">
                <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-[0.2em]">{namixId}</p>
                <button 
@@ -76,19 +76,31 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
             </div>
             
             {copyStatus && (
-              <p className="text-[9px] font-black text-emerald-600 animate-in fade-in slide-in-from-top-1">
+              <p className="text-[9px] font-black text-emerald-600 animate-in fade-in slide-in-from-top-1 tracking-normal">
                 {copyStatus}
               </p>
             )}
 
-            <Button 
-              onClick={() => setIsShareOpen(true)}
-              variant="ghost" 
-              className="h-12 rounded-full bg-white text-[#002d4d] font-black text-[10px] px-8 border border-gray-100 shadow-sm active:scale-95 transition-all flex items-center gap-3"
-            >
-               <Share2 size={16} className="text-blue-500" />
-               حفظ ومشاركة عنوان الدفع
-            </Button>
+            {/* Unified Action Matrix */}
+            <div className="grid grid-cols-2 gap-3 w-full max-w-[340px]">
+                <Button 
+                  onClick={() => setIsShareOpen(true)}
+                  variant="ghost" 
+                  className="h-14 rounded-3xl bg-white text-[#002d4d] font-black text-[9px] px-4 border border-gray-100 shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1 group/btn"
+                >
+                   <Share2 size={16} className="text-blue-500 group-hover/btn:scale-110 transition-transform" />
+                   <span className="truncate tracking-normal">مشاركة عنوان الدفع</span>
+                </Button>
+
+                <Button 
+                  onClick={() => setIsLinkOpen(true)}
+                  variant="ghost" 
+                  className="h-14 rounded-3xl bg-white text-[#002d4d] font-black text-[9px] px-4 border border-gray-100 shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1 group/btn"
+                >
+                   <LinkIcon size={16} className="text-[#f9a885] group-hover/btn:scale-110 transition-transform" />
+                   <span className="truncate tracking-normal">نسخ رابط الدفع</span>
+                </Button>
+            </div>
          </div>
       </section>
 
@@ -102,46 +114,30 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
                   <ShieldCheck size={20} className="text-[#f9a885]" />
                </div>
-               <h4 className="text-base font-black">دليل الاستلام</h4>
+               <h4 className="text-base font-black tracking-normal">دليل الاستلام</h4>
             </div>
-            <p className="text-[11px] font-bold text-blue-100/60 leading-[2.2]">
+            <p className="text-[11px] font-bold text-blue-100/60 leading-[2.2] tracking-normal">
               هذا المعرف الرقمي هو عنوان حسابك. يمكن للمستخدمين الآخرين إرسال المبالغ لك فورياً عبر مسح رمز QR أعلاه أو استخدام رابط الدفع المباشر الخاص بك.
             </p>
          </div>
       </section>
 
-      {/* 4. Payment Link */}
-      <section className="pt-4 pb-20">
-         <button 
-           onClick={() => setIsLinkOpen(true)}
-           className="w-full h-18 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-between px-8 group hover:bg-white hover:shadow-xl transition-all active:scale-[0.98]"
-         >
-            <div className="flex items-center gap-4">
-               <div className="h-10 w-10 rounded-2xl bg-white flex items-center justify-center text-blue-500 shadow-sm group-hover:bg-blue-50 transition-colors">
-                  <LinkIcon size={18} />
-               </div>
-               <div className="text-right">
-                  <p className="font-black text-sm text-[#002d4d]">رابط التحويل المباشر</p>
-                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Generate URL</p>
-               </div>
-            </div>
-            <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all" />
-         </button>
-      </section>
+      <div className="pb-20" />
 
+      {/* Payment Link Dialog */}
       <Dialog open={isLinkOpen} onOpenChange={setIsLinkOpen}>
-         <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[400px] overflow-hidden font-body text-right outline-none" dir="rtl">
+         <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[400px] overflow-hidden font-body text-right outline-none z-[1200]" dir="rtl">
             <div className="bg-[#002d4d] p-8 text-white relative text-center">
                <div className="absolute top-0 right-0 p-6 opacity-[0.05] -rotate-12 pointer-events-none"><LinkIcon size={120} /></div>
                <div className="h-16 w-16 rounded-3xl bg-white/10 flex items-center justify-center backdrop-blur-2xl border border-white/20 shadow-inner mx-auto mb-4">
                   <LinkIcon size={24} className="text-[#f9a885]" />
                </div>
-               <DialogTitle className="text-2xl font-black">رابط التحويل</DialogTitle>
-               <p className="text-[9px] font-black text-blue-200/60 uppercase tracking-[0.3em] mt-1">Direct Checkout Link</p>
+               <DialogTitle className="text-2xl font-black tracking-normal">رابط التحويل</DialogTitle>
+               <p className="text-[9px] font-black text-blue-200/60 uppercase tracking-[0.3em] mt-1 tracking-normal">Direct Checkout Link</p>
             </div>
             
             <div className="p-10 space-y-8 bg-white">
-               <p className="text-gray-500 font-bold text-xs text-center leading-relaxed">انسخ الرابط وأرسله للآخرين ليتمكنوا من إرسال الرصيد لك بلمسة واحدة.</p>
+               <p className="text-gray-500 font-bold text-xs text-center leading-relaxed tracking-normal">انسخ الرابط وأرسله للآخرين ليتمكنوا من إرسال الرصيد لك بلمسة واحدة.</p>
                
                <div className="p-4 bg-gray-50 rounded-[28px] border border-gray-100 shadow-inner flex flex-col gap-4">
                   <p className="text-[10px] font-mono text-blue-600 break-all text-left" dir="ltr">{paymentLink}</p>
@@ -160,7 +156,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                   </Button>
                </div>
                
-               <button onClick={() => setIsLinkOpen(false)} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">إغلاق</button>
+               <button onClick={() => setIsLinkOpen(false)} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest text-center tracking-normal">إغلاق</button>
             </div>
          </DialogContent>
       </Dialog>
