@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -35,29 +36,21 @@ import {
   Edit3,
   Save,
   ArrowRight,
-  Activity
+  Activity,
+  Fingerprint,
+  Users
 } from "lucide-react";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "firebase/firestore";
 import { useMemoFirebase } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { CryptoIcon, ICON_OPTIONS } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview مركز هندسة بوابات الإيداع الشمولية v8.0 - Sovereign ID Protocol
- * تم تحديث آلية منح الـ ID لتتبع النمط depositXX لضمان هوية برمجية منظمة لكل قسم.
+ * @fileOverview مركز هندسة بوابات الإيداع الشمولية v9.0 - Quad-Mode Protocol
+ * دعم 4 أنماط تشغيل: يدوي، ناوبايمنتس، بينانس، والتحويل الداخلي.
  */
 
 export function DepositPortalsSection() {
@@ -66,7 +59,7 @@ export function DepositPortalsSection() {
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   
   // Create State
-  const [newCat, setNewCat] = useState({ name: "", description: "", type: "manual" as any });
+  const [newCat, setNewCat] = useState({ name: "", description: "", type: "manual" as 'manual' | 'nowpayments' | 'binance' | 'internal' });
   const [creating, setCreating] = useState(false);
 
   // Categories Hook
@@ -79,11 +72,9 @@ export function DepositPortalsSection() {
     if (!newCat.name.trim()) return;
     setCreating(true);
     try {
-      // توليد معرف سيادي: deposit + رقمين عشوائيين
-      const randomNum = Math.floor(Math.random() * 90 + 10); // يولد رقماً بين 10 و 99
+      const randomNum = Math.floor(Math.random() * 90 + 10);
       const customId = `deposit${randomNum}`;
       
-      // استخدام setDoc لمنح المعرف المخصص للوثيقة
       await setDoc(doc(db, "deposit_methods", customId), { 
         name: newCat.name, 
         description: newCat.description,
@@ -154,7 +145,7 @@ export function DepositPortalsSection() {
                     <div className="space-y-6">
                        <div className="space-y-2">
                           <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">اسم القسم الاستراتيجي</Label>
-                          <Input value={newCat.name} onChange={e => setNewCat({...newCat, name: e.target.value})} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-lg shadow-inner" placeholder="مثلاً: عملات رقمية (آلي)..." />
+                          <Input value={newCat.name} onChange={e => setNewCat({...newCat, name: e.target.value})} className="h-14 rounded-[24px] bg-gray-50 border-none font-black text-center text-lg shadow-inner" placeholder="مثلاً: تحويل داخلي..." />
                        </div>
                        <div className="space-y-2">
                           <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">نمط التشغيل (Operational Mode)</Label>
@@ -166,6 +157,7 @@ export function DepositPortalsSection() {
                                 <SelectItem value="manual" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>يدوي (بوابات مخصصة)</span><Wallet size={14}/></div></SelectItem>
                                 <SelectItem value="nowpayments" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>آلي (NOWPayments Sync)</span><Zap size={14} className="text-purple-500 fill-current"/></div></SelectItem>
                                 <SelectItem value="binance" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>شبه آلي (Binance Sync)</span><Cpu size={14} className="text-orange-500"/></div></SelectItem>
+                                <SelectItem value="internal" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>داخلي (مستخدمي ناميكس)</span><Fingerprint size={14} className="text-blue-500"/></div></SelectItem>
                              </SelectContent>
                           </Select>
                        </div>
@@ -216,7 +208,10 @@ export function DepositPortalsSection() {
                       <div className="flex items-start justify-between">
                          <div className="flex items-center gap-5">
                             <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center text-[#002d4d] shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500">
-                               {category.type === 'manual' ? <Wallet size={28}/> : category.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current" /> : <Cpu size={28} className="text-orange-500"/>}
+                               {category.type === 'manual' ? <Wallet size={28}/> : 
+                                category.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current" /> : 
+                                category.type === 'internal' ? <Fingerprint size={28} className="text-blue-500" /> :
+                                <Cpu size={28} className="text-orange-500"/>}
                             </div>
                             <div className="text-right space-y-1">
                                <h4 className="font-black text-lg text-[#002d4d]">{category.name}</h4>
@@ -224,7 +219,9 @@ export function DepositPortalsSection() {
                                   <Badge className={cn(
                                     "text-[7px] font-black border-none px-2.5 py-0.5 rounded-full",
                                     category.type === 'nowpayments' ? "bg-purple-50 text-purple-600" : 
-                                    category.type === 'binance' ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                                    category.type === 'binance' ? "bg-orange-50 text-orange-600" : 
+                                    category.type === 'internal' ? "bg-emerald-50 text-emerald-600" :
+                                    "bg-blue-50 text-blue-600"
                                   )}>
                                     {category.type?.toUpperCase()}
                                   </Badge>
@@ -369,6 +366,7 @@ function CategoryEditor({ category, onBack }: { category: any, onBack: () => voi
                               <SelectItem value="manual" className="font-bold text-right py-3">يدوي (Manual)</SelectItem>
                               <SelectItem value="nowpayments" className="font-bold text-right py-3">آلي (NOWPayments)</SelectItem>
                               <SelectItem value="binance" className="font-bold text-right py-3">شبه آلي (Binance)</SelectItem>
+                              <SelectItem value="internal" className="font-bold text-right py-3">داخلي (Internal)</SelectItem>
                            </SelectContent>
                         </Select>
                      </div>
@@ -483,7 +481,7 @@ function CategoryEditor({ category, onBack }: { category: any, onBack: () => voi
 
       {/* Sovereign Signature */}
       <div className="flex flex-col items-center gap-4 pt-10 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Category Governance Node v8.0</p>
+         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Category Governance Node v9.0</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />))}
          </div>
@@ -491,3 +489,4 @@ function CategoryEditor({ category, onBack }: { category: any, onBack: () => voi
     </motion.div>
   );
 }
+

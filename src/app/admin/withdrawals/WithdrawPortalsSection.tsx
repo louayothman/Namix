@@ -25,7 +25,9 @@ import {
   ChevronLeft,
   X,
   Sparkles,
-  Activity
+  Activity,
+  Fingerprint,
+  Users
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy } from "firebase/firestore";
@@ -36,8 +38,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview هندسة بوابات السحب السيادية v12.0 - Inline Forge & Logic Control
- * تم تحديث الواجهة لتكون مدمجة بالكامل مع حوكمة منطقية تمنع إضافة بوابات للأنماط الآلية.
+ * @fileOverview هندسة بوابات السحب السيادية v13.0 - Quad-Mode Forge
+ * تم تحديث الواجهة لتشمل 4 أنماط تشغيل: يدوي، بينانس، ناوبايمنتس، وتحويل داخلي.
  */
 
 export function WithdrawPortalsSection() {
@@ -51,7 +53,7 @@ export function WithdrawPortalsSection() {
   const [newCat, setNewCat] = useState({
     name: "",
     description: "",
-    type: "manual" as 'manual' | 'binance' | 'nowpayments'
+    type: "manual" as 'manual' | 'binance' | 'nowpayments' | 'internal'
   });
   const [creating, setCreating] = useState(false);
 
@@ -164,6 +166,7 @@ export function WithdrawPortalsSection() {
                                 <SelectItem value="manual" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>يدوي (بوابات مخصصة)</span><Wallet size={14}/></div></SelectItem>
                                 <SelectItem value="nowpayments" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>آلي (NOWPayments Sync)</span><Zap size={14} className="text-purple-500 fill-current"/></div></SelectItem>
                                 <SelectItem value="binance" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>شبه آلي (Binance Sync)</span><Cpu size={14} className="text-orange-500"/></div></SelectItem>
+                                <SelectItem value="internal" className="font-bold text-right py-3"><div className="flex items-center gap-3 justify-end"><span>داخلي (مستخدمي ناميكس)</span><Users size={14} className="text-blue-500"/></div></SelectItem>
                              </SelectContent>
                           </Select>
                        </div>
@@ -211,7 +214,10 @@ export function WithdrawPortalsSection() {
                 <div className="p-6 md:p-8 flex items-center justify-between border-b border-gray-50">
                   <div className="flex items-center gap-5">
                     <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center text-[#002d4d] shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all duration-500">
-                      {category.type === 'manual' ? <Wallet size={28}/> : category.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current" /> : <Cpu size={28} className="text-orange-500"/>}
+                      {category.type === 'manual' ? <Wallet size={28}/> : 
+                       category.type === 'nowpayments' ? <Zap size={28} className="text-purple-500 fill-current" /> : 
+                       category.type === 'internal' ? <Users size={28} className="text-blue-500" /> :
+                       <Cpu size={28} className="text-orange-500"/>}
                     </div>
                     <div className="text-right space-y-1">
                       <h4 className="font-black text-lg text-[#002d4d]">{category.name}</h4>
@@ -221,7 +227,9 @@ export function WithdrawPortalsSection() {
                          </Badge>
                          <Badge variant="outline" className={cn(
                            "text-[7px] font-black border-gray-100 px-2.5 py-0.5 rounded-md",
-                           category.type === 'manual' ? "text-blue-500" : "text-orange-500"
+                           category.type === 'manual' ? "text-blue-500" : 
+                           category.type === 'internal' ? "text-emerald-500" :
+                           "text-orange-500"
                          )}>
                            {category.type?.toUpperCase()}
                          </Badge>
@@ -283,10 +291,18 @@ export function WithdrawPortalsSection() {
                       </div>
                     ) : (
                       <div className="p-8 bg-blue-50/20 rounded-[32px] border border-blue-100/30 flex flex-col items-center text-center gap-4">
-                         <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm"><Zap className="animate-pulse" /></div>
+                         <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
+                            {category.type === 'internal' ? <Users className="animate-pulse" /> : <Zap className="animate-pulse" />}
+                         </div>
                          <div className="space-y-1">
-                            <p className="font-black text-sm text-[#002d4d]">المزامنة الآلية نشطة</p>
-                            <p className="text-[10px] font-bold text-gray-400 leading-relaxed max-w-sm">هذا القسم يعتمد على بروتوكولات API العالمية لتنفيذ السحوبات؛ لا حاجة لتعريف بوابات يدوية فرعية.</p>
+                            <p className="font-black text-sm text-[#002d4d]">
+                               {category.type === 'internal' ? "بروتوكول ناميكس الداخلي نشط" : "المزامنة الآلية نشطة"}
+                            </p>
+                            <p className="text-[10px] font-bold text-gray-400 leading-relaxed max-w-sm">
+                               {category.type === 'internal' 
+                                 ? "يتم تنفيذ السحوبات بين مستخدمي ناميكس عبر المعرف الرقمي (Namix ID) بشكل سيادي ومؤمن." 
+                                 : "هذا القسم يعتمد على بروتوكولات API العالمية لتنفيذ السحوبات؛ لا حاجة لتعريف بوابات يدوية فرعية."}
+                            </p>
                          </div>
                       </div>
                     )}
@@ -336,3 +352,4 @@ export function WithdrawPortalsSection() {
     </div>
   );
 }
+
