@@ -52,7 +52,7 @@ export function PortfolioHero({
     return () => clearInterval(greetingInterval);
   }, [timeGreeting]);
 
-  // محرك تبادل المؤشرات (كل 8 ثوانٍ) كما طلب المستخدم
+  // محرك تبادل المؤشرات (كل 8 ثوانٍ) - فيزياء الرفع الرأسي
   useEffect(() => {
     const metricInterval = setInterval(() => {
       setActiveMetric(prev => prev === 'yield' ? 'invest' : 'yield');
