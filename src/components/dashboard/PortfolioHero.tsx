@@ -1,10 +1,20 @@
+
 "use client";
 
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ShieldCheck } from "lucide-react";
+import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ShieldCheck, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useMarketStore } from "@/store/use-market-store";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface PortfolioHeroProps {
   user: any;
@@ -23,35 +33,30 @@ export function PortfolioHero({
   onDeposit, 
   onWithdraw 
 }: PortfolioHeroProps) {
+  const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
+  const prices = useMarketStore(state => state.prices);
+
+  const approximateBalance = useMemo(() => {
+    const balance = user?.totalBalance || 0;
+    if (selectedCurrency === 'USDT') return balance;
+    
+    // البحث عن سعر BTC و ETH في المستودع
+    const btcPrice = Object.entries(prices).find(([id]) => id.toUpperCase().includes('BTC'))?.[1] || 60000;
+    const ethPrice = Object.entries(prices).find(([id]) => id.toUpperCase().includes('ETH'))?.[1] || 3000;
+
+    if (selectedCurrency === 'BTC') return balance / btcPrice;
+    if (selectedCurrency === 'ETH') return balance / ethPrice;
+    return balance;
+  }, [user?.totalBalance, selectedCurrency, prices]);
+
   return (
     <div className="relative w-full">
       <Card className="border-none shadow-none rounded-t-none rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group">
         
+        {/* Sovereign Backdrop: Static iX Branding */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
-              {[...Array(3)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  animate={{ 
-                    borderRadius: [
-                      "40% 60% 70% 30% / 40% 40% 60% 60%",
-                      "60% 40% 30% 70% / 60% 30% 70% 40%",
-                      "30% 70% 70% 30% / 50% 60% 40% 50%",
-                      "40% 60% 70% 30% / 40% 40% 60% 60%"
-                    ],
-                    scale: [1, 1.5, 1],
-                    opacity: [0.1, 0, 0.1],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{ 
-                    duration: 8 + (i * 2), 
-                    repeat: Infinity, 
-                    ease: "easeInOut",
-                    delay: i * 1.5
-                  }}
-                  className="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] border border-white/10 bg-white/5 backdrop-blur-3xl"
-                />
-              ))}
+           <div className="absolute left-[-5%] top-1/2 -translate-y-1/2 text-[300px] md:text-[400px] font-black text-white/[0.03] leading-none tracking-tighter italic rounded-[100px]">
+              iX
            </div>
         </div>
 
@@ -73,7 +78,6 @@ export function PortfolioHero({
             <div className="flex items-center gap-3">
               <div className="text-left space-y-0.5 mr-2">
                 <h1 className="text-sm font-normal tracking-tight text-white">{user?.displayName || '...'}</h1>
-                <p className="text-[8px] text-white/40 uppercase mt-1">حساب موثق</p>
               </div>
               
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
@@ -102,6 +106,35 @@ export function PortfolioHero({
               {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
 
+            {/* Approximate Balance Multi-Currency Selector */}
+            <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md mt-2 group/approx active:scale-95 transition-all">
+               <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tight" dir="ltr">
+                  ≈ {selectedCurrency === 'BTC' ? approximateBalance.toFixed(8) : approximateBalance.toFixed(selectedCurrency === 'USDT' ? 2 : 6)} {selectedCurrency}
+               </p>
+               
+               <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="h-5 w-5 rounded-md hover:bg-white/10 flex items-center justify-center transition-all outline-none">
+                       <ChevronDown size={14} className="text-[#f9a885]" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="rounded-2xl border-none shadow-2xl p-1.5 min-w-[90px] bg-white/95 backdrop-blur-xl z-[1002]" dir="rtl">
+                     {(['BTC', 'USDT', 'ETH'] as const).map(curr => (
+                       <DropdownMenuItem 
+                         key={curr} 
+                         onClick={() => setSelectedCurrency(curr)}
+                         className={cn(
+                           "text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer justify-center transition-all mb-1",
+                           selectedCurrency === curr ? "bg-[#002d4d] text-white" : "text-gray-400 hover:bg-gray-50"
+                         )}
+                       >
+                         {curr}
+                       </DropdownMenuItem>
+                     ))}
+                  </DropdownMenuContent>
+               </DropdownMenu>
+            </div>
+
             <div className="grid grid-cols-2 gap-0 mt-8 pt-2 w-full relative">
                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-[0.5px] bg-white/10" />
                <div className="flex flex-col items-center">
@@ -119,14 +152,14 @@ export function PortfolioHero({
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
-            <button onClick={onDeposit} className="h-16 rounded-[28px] bg-[#f9a885] text-[#002d4d] font-normal text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl relative overflow-hidden group">
+            <button onClick={onDeposit} className="h-16 rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
               <ArrowDown className="h-4 w-4 relative z-10" />
-              <span className="relative z-10">إيداع الرصيد</span>
+              <span className="relative z-10">استلام</span>
             </button>
-            <button onClick={onWithdraw} className="h-16 rounded-[28px] bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-normal text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl group">
+            <button onClick={onWithdraw} className="h-16 rounded-[28px] bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl group">
               <ArrowDownCircle className="h-4 w-4 rotate-180 text-[#f9a885]" />
-              <span>سحب الأرباح</span>
+              <span>إرسال</span>
             </button>
           </div>
         </CardContent>
