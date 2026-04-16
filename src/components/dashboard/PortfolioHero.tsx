@@ -133,6 +133,12 @@ export function PortfolioHero({
               <div className="flex items-baseline gap-1.5">
                  <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد</span>
                  <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">balance</span>
+                 <button 
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90 ml-1"
+                >
+                  {showBalance ? <Eye size={12} /> : <EyeOff size={12} />}
+                </button>
               </div>
               
               <div className="flex items-center gap-4">
@@ -143,12 +149,6 @@ export function PortfolioHero({
                     : "••••••"
                   }
                 </h2>
-                <button 
-                  onClick={() => setShowBalance(!showBalance)}
-                  className="h-10 w-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90"
-                >
-                  {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
               </div>
               
               <div className="flex items-center gap-1.5 px-1">
@@ -179,18 +179,18 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Vertical Stats (No Separator) */}
+            {/* Left Side: Vertical Stats (Aligned Grid Style) */}
             <div className="flex flex-col items-end gap-6 pr-6">
-               <div className="text-right flex items-center gap-3">
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
+               <div className="text-right flex items-center justify-end gap-3 w-full">
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none w-16">الاستثمارات</p>
                   <p className="text-xl font-black text-white tabular-nums tracking-tighter leading-none">
                     ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                </div>
-               <div className="text-right flex items-center gap-3">
-                  <p className="text-[9px] font-black text-[#f9a885]/40 uppercase tracking-widest leading-none">الأرباح</p>
+               <div className="text-right flex items-center justify-end gap-3 w-full">
+                  <p className="text-[9px] font-black text-[#f9a885]/60 uppercase tracking-widest leading-none w-16">الأرباح</p>
                   <p className="text-xl font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
-                    +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                </div>
             </div>
