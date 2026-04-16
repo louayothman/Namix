@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -37,7 +38,7 @@ interface EditProfileDialogProps {
 
 type VerificationStep = 'identity' | 'covenant' | 'success';
 
-export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess }: EditProfileDialogProps) {
+export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialogProps) {
   const db = useFirestore();
   const [step, setStep] = useState<VerificationStep>('identity');
   const [saving, setSaving] = useState(false);
@@ -50,7 +51,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
   });
 
   useEffect(() => {
-    if (dbUser && open) {
+    if (dbUser) {
       setEditData({
         displayName: dbUser.displayName || "",
         birthDate: dbUser.birthDate || "",
@@ -59,7 +60,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
       });
       setStep('identity');
     }
-  }, [dbUser, open]);
+  }, [dbUser]);
 
   const handleSave = async () => {
     if (!user?.id) return;
@@ -95,7 +96,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
   }, [editData]);
 
   return (
-    <div className="text-right space-y-6 animate-in fade-in duration-700" dir="rtl">
+    <div className="text-right space-y-8 animate-in fade-in duration-500" dir="rtl">
         <style jsx global>{`
           .PhoneInput {
             display: flex;
@@ -122,7 +123,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
           {step === 'identity' && (
             <motion.div key="id" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">الاسم القانوني المعتمد</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الاسم القانوني</Label>
                 <div className="relative">
                   <Input value={editData.displayName} onChange={e => setEditData({...editData, displayName: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none px-12 text-sm font-black shadow-inner" placeholder="كما في الهوية..." />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -131,7 +132,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">الجنس</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الجنس</Label>
                   <Select value={editData.gender} onValueChange={val => setEditData({...editData, gender: val})}>
                     <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none px-6 font-black shadow-inner"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -141,7 +142,7 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">تاريخ الميلاد</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تاريخ الميلاد</Label>
                   <div className="relative">
                     <Input type="date" value={editData.birthDate} onChange={e => setEditData({...editData, birthDate: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none px-12 text-sm font-black shadow-inner" />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -150,41 +151,41 @@ export function EditProfileDialog({ open, onOpenChange, user, dbUser, onSuccess 
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">رقم الهاتف الدولي</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">رقم الهاتف</Label>
                 <PhoneInput international defaultCountry="SA" value={editData.phoneNumber} onChange={(val) => setEditData({ ...editData, phoneNumber: val || "" })} dir="ltr" />
               </div>
 
-              <Button onClick={() => setStep('covenant')} disabled={!isIdentityComplete} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black shadow-2xl active:scale-95 group transition-all">
-                المتابعة لميثاق التوثيق
-                <ChevronLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+              <Button onClick={() => setStep('covenant')} disabled={!isIdentityComplete} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black shadow-xl active:scale-95 transition-all">
+                متابعة
               </Button>
             </motion.div>
           )}
 
           {step === 'covenant' && (
             <motion.div key="cov" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-8 text-center py-10">
-              <div className="h-24 w-24 rounded-[32px] bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner border border-blue-100 animate-pulse"><Zap className="h-12 w-12" /></div>
-              <div className="space-y-3 px-4">
-                 <h4 className="font-black text-2xl text-[#002d4d] tracking-normal">إقرار الملاءة المالية</h4>
-                 <p className="text-xs text-gray-500 font-bold leading-relaxed px-2 tracking-normal">أنت تقر بمسؤوليتك الكاملة عن دقة البيانات المقدمة، وتتعهد بالالتزام بميثاق الاستثمار لضمان نمو الأصول وحمايتها.</p>
+              <div className="h-20 w-20 rounded-[32px] bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100 animate-pulse"><Zap className="h-10 w-10" /></div>
+              <div className="space-y-3 px-4 text-right">
+                 <h4 className="font-black text-xl text-[#002d4d]">إقرار الملاءة</h4>
+                 <p className="text-[11px] text-gray-500 font-bold leading-relaxed pr-2">أنت تقر بمسؤوليتك عن دقة البيانات، وتتعهد بالالتزام بميثاق ناميكس لحماية الأصول والنمو.</p>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="w-full h-18 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95">
-                {saving ? <Loader2 className="animate-spin h-6 w-6" /> : <>توثيق وختم الحساب <ShieldCheck className="h-6 w-6" /></>}
+              <Button onClick={handleSave} disabled={saving} className="w-full h-18 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                {saving ? <Loader2 className="animate-spin h-6 w-6" /> : <>توثيق الحساب <ShieldCheck className="h-6 w-6" /></>}
               </Button>
+              <button onClick={() => setStep('identity')} className="text-[10px] font-black text-gray-400 uppercase">رجوع</button>
             </motion.div>
           )}
 
           {step === 'success' && (
             <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 text-center py-12">
-              <div className="h-28 w-28 bg-emerald-50 rounded-[40px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100 relative">
-                 <CheckCircle2 className="h-14 w-14 text-emerald-500" />
+              <div className="h-24 w-24 bg-emerald-50 rounded-[40px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100 relative">
+                 <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                  <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-emerald-400/20 rounded-[40px] blur-2xl -z-10" />
               </div>
               <div className="space-y-2">
-                 <h3 className="text-3xl font-black text-[#002d4d] tracking-normal">اكتمل التوثيق السيادي</h3>
-                 <p className="text-gray-400 font-bold text-xs px-6 tracking-normal">تم ختم حسابك بشارة التوثيق المعتمدة في قاعدة البيانات.</p>
+                 <h3 className="text-2xl font-black text-[#002d4d]">اكتمل التوثيق</h3>
+                 <p className="text-gray-400 font-bold text-xs px-6">تم تحديث هويتك الرقمية بنجاح في قاعدة البيانات.</p>
               </div>
-              <Button onClick={onSuccess} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black shadow-xl active:scale-95">العودة للإعدادات</Button>
+              <Button onClick={onSuccess} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black shadow-xl active:scale-95">العودة</Button>
             </motion.div>
           )}
         </AnimatePresence>
