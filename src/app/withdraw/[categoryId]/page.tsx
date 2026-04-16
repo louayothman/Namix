@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
@@ -19,7 +20,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Coins,
-  ChevronLeft
+  ChevronLeft,
+  Plus,
+  Minus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,8 +34,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.5 - Minimalist Identity Layout
- * تم تطهير واجهة عرض المستلم من الحاويات الصناعية لتظهر مباشرة على سطح الصفحة بأسلوب نقي.
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.6 - Tactical Amount Controller
+ * تم تحديث حقل المبلغ ليدعم التحكم الجانبي (+/-) ومنع القيم السالبة مع تصميم أكثر رشاقة.
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -73,6 +76,14 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     if (!dbUser) return 0;
     return Math.max(0, dbUser.totalBalance - (dbUser.welcomeBonus || 0));
   }, [dbUser]);
+
+  const adjustAmount = (val: number) => {
+    setAmount(prev => {
+      const current = Number(prev) || 0;
+      const next = Math.max(0, current + val);
+      return next.toString();
+    });
+  };
 
   const handleFindUser = async () => {
     if (!identifier.trim()) return;
@@ -197,15 +208,36 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
                  <div className="space-y-4">
                     <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-widest">المبلغ المراد إرساله ($)</Label>
-                    <div className="relative">
-                       <Input 
-                         type="number" 
-                         value={amount} 
-                         onChange={e => {setAmount(e.target.value); setError(null);}} 
-                         className="h-20 rounded-[32px] bg-white border-gray-100 shadow-inner text-center font-black text-4xl text-[#002d4d] tabular-nums" 
-                         placeholder="0.00" 
-                       />
-                       <Coins className="absolute left-8 top-1/2 -translate-y-1/2 h-8 w-8 text-blue-50" />
+                    <div className="flex items-center gap-3">
+                       <button 
+                         onClick={() => adjustAmount(-10)}
+                         className="h-14 w-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all active:scale-90 shadow-sm"
+                       >
+                          <Minus size={20} />
+                       </button>
+
+                       <div className="flex-1 relative">
+                          <Input 
+                            type="number" 
+                            value={amount} 
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (Number(val) < 0) return;
+                              setAmount(val); 
+                              setError(null);
+                            }} 
+                            className="h-14 rounded-[24px] bg-white border-gray-100 shadow-inner text-center font-black text-2xl text-[#002d4d] tabular-nums" 
+                            placeholder="0.00" 
+                          />
+                          <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-50" />
+                       </div>
+
+                       <button 
+                         onClick={() => adjustAmount(10)}
+                         className="h-14 w-14 rounded-2xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center transition-all active:scale-90 shadow-xl"
+                       >
+                          <Plus size={20} />
+                       </button>
                     </div>
                     <div className="flex justify-between px-6">
                        <p className="text-[10px] font-bold text-gray-400">الحد الأقصى القابل للإرسال: <span className="text-[#002d4d] font-black">${withdrawableMax.toLocaleString()}</span></p>
