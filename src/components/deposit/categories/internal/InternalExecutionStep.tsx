@@ -11,14 +11,11 @@ import {
   Link as LinkIcon, 
   ShieldCheck, 
   Sparkles,
-  Info,
-  ChevronLeft,
-  X
+  ChevronLeft
 } from "lucide-react";
 import { NamixIdQR } from "../../shared/NamixIdQR";
 import { DepositShareDrawer } from "../../DepositShareDrawer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface InternalExecutionStepProps {
@@ -26,8 +23,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview محطة الاستلام المباشر v2.4 - Pure UI Update
- * تم تبسيط عرض المعرف الرقمي وإلغاء الحاويات، مع تحديث نصوص الأزرار والتنبيهات.
+ * @fileOverview محطة الاستلام المباشر v2.5 - Dynamic Share Data
+ * تم تحديث المكون ليمرر اسم المستخدم ورابط الدفع الكامل لمحرك المشاركة والباركود.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -41,7 +38,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const handleCopy = (text: string, type: 'id' | 'link') => {
     navigator.clipboard.writeText(text);
     if (type === 'id') {
-      setCopyStatus("تم النسخ"); // تطهير النص من أي أيقونات
+      setCopyStatus("تم النسخ");
       setTimeout(() => setCopyStatus(null), 2000);
     } else {
       setLinkCopied(true);
@@ -52,7 +49,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-700 font-body text-right" dir="rtl">
       
-      {/* 1. Header Section - Clean & Direct */}
+      {/* 1. Header Section */}
       <section className="flex items-center justify-between px-2">
          <div className="space-y-0.5">
             <h3 className="text-xl font-black text-[#002d4d]">الاستلام المباشر من مستخدمي Namix</h3>
@@ -63,12 +60,11 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
          </Badge>
       </section>
 
-      {/* 2. QR Core */}
+      {/* 2. QR Core - الآن يحتوي على رابط الدفع الكامل */}
       <section className="flex flex-col items-center gap-10">
-         <NamixIdQR namixId={namixId} size={220} />
+         <NamixIdQR namixId={paymentLink} size={220} />
 
          <div className="flex flex-col items-center gap-4 w-full">
-            {/* المعرف يظهر مباشرة على الصفحة بدون حاوية وبخط أصغر */}
             <div className="flex items-center justify-center gap-3 group">
                <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-[0.2em]">{namixId}</p>
                <button 
@@ -109,7 +105,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                <h4 className="text-base font-black">دليل الاستلام</h4>
             </div>
             <p className="text-[11px] font-bold text-blue-100/60 leading-[2.2]">
-              هذا المعرف الرقمي هو عنوان حسابك في ناميكس. يمكن للمستخدمين الآخرين تحويل الرصيد لك فورياً من محافظهم الجارية عبر مسح هذا الرمز أو استخدام الرابط المخصص.
+              هذا المعرف الرقمي هو عنوان حسابك. يمكن للمستخدمين الآخرين إرسال المبالغ لك فورياً عبر مسح رمز QR أعلاه أو استخدام رابط الدفع المباشر الخاص بك.
             </p>
          </div>
       </section>
@@ -172,9 +168,10 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
       <DepositShareDrawer 
         open={isShareOpen} 
         onOpenChange={setIsShareOpen} 
-        selectedAsset={{ name: 'Namix User', coin: 'Internal', icon: 'USDT' }} 
+        selectedAsset={{ name: dbUser?.displayName || 'Namix User', coin: 'Internal', icon: 'USDT' }} 
         selectedNetwork={{ name: 'تحويل داخلي' }} 
         walletAddress={namixId} 
+        qrValue={paymentLink}
       />
     </div>
   );

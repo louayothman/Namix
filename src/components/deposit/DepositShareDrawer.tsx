@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -29,6 +30,7 @@ interface DepositShareDrawerProps {
   selectedAsset: any;
   selectedNetwork: any;
   walletAddress: string;
+  qrValue?: string;
 }
 
 export function DepositShareDrawer({
@@ -36,7 +38,8 @@ export function DepositShareDrawer({
   onOpenChange,
   selectedAsset,
   selectedNetwork,
-  walletAddress
+  walletAddress,
+  qrValue
 }: DepositShareDrawerProps) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
@@ -49,7 +52,7 @@ export function DepositShareDrawer({
         captureProtocol();
       }, 800); 
     }
-  }, [open, walletAddress]);
+  }, [open, walletAddress, qrValue]);
 
   const captureProtocol = async () => {
     if (!captureRef.current || !walletAddress) return;
@@ -128,11 +131,13 @@ export function DepositShareDrawer({
           </div>
 
           <div className="py-10">
-             {walletAddress && (
+             {(qrValue || walletAddress) && (
                <div className="relative">
-                  <QRCodeSVG value={walletAddress} size={280} bgColor={"transparent"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                     <Logo size="sm" hideText animate={false} />
+                  <QRCodeSVG value={qrValue || walletAddress} size={280} bgColor={"transparent"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <div className="bg-white p-2 rounded-2xl shadow-sm">
+                        <Logo size="sm" hideText animate={false} />
+                     </div>
                   </div>
                </div>
              )}
@@ -147,11 +152,15 @@ export function DepositShareDrawer({
                   {walletAddress}
                 </p>
              </div>
-             <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
-                <span className="text-[12px] font-normal text-[#002d4d]">
-                  {isInternal ? "نظام التحويل المباشر" : `الشبكة : ${selectedAsset?.coin || selectedAsset?.symbol} - ${selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}`}
-                </span>
-             </div>
+             
+             {/* إظهار تفاصيل الشبكة فقط إذا لم يكن تحويلاً داخلياً بناءً على طلب المستخدم */}
+             {!isInternal && (
+               <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
+                  <span className="text-[12px] font-normal text-[#002d4d]">
+                    الشبكة : {selectedAsset?.coin || selectedAsset?.symbol} - {selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}
+                  </span>
+               </div>
+             )}
           </div>
 
           <div className="mt-auto pt-12 w-full border-t border-gray-50 flex flex-col items-center gap-4" dir="ltr">
