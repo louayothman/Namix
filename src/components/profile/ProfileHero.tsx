@@ -14,6 +14,10 @@ interface ProfileHeroProps {
   calculatedTier?: any;
 }
 
+/**
+ * @fileOverview مُفاعل الهوية v13.0 - Elegant Copy Update
+ * تم دمج رأس المال والشركاء في كبسولة موحدة مع أيقونات خلفية حيوية.
+ */
 export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, calculatedTier }: ProfileHeroProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const isVerified = !!(user?.displayName && user?.phoneNumber && user?.birthDate);
@@ -29,7 +33,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-top-4 duration-1000 text-right font-body" dir="rtl">
       
-      <div className="space-y-5 px-2">
+      <div className="space-y-4 px-2">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-black text-[#002d4d] tracking-tight">{user?.displayName || '...'}</h2>
@@ -45,7 +49,7 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
               <div className={cn(
                 "h-6 w-6 rounded-lg flex items-center justify-center shadow-inner",
                 calculatedTier.color === 'blue' ? "bg-blue-50 text-blue-500" :
-                calculatedTier.color === 'emerald' ? "bg-emerald-50 text-emerald-500" :
+                calculatedTier.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
                 calculatedTier.color === 'orange' ? "bg-orange-50 text-orange-500" :
                 calculatedTier.color === 'yellow' ? "bg-yellow-50 text-yellow-500" :
                 "bg-gray-50 text-gray-400"
@@ -66,34 +70,38 @@ export function ProfileHero({ user, referralCount = 0, totalInvestments = 0, cal
           )}
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="relative flex items-center">
+        <div className="flex items-center gap-4 relative h-8">
+          <button 
+            onClick={handleCopyId}
+            className="flex items-center gap-2.5 px-4 py-1.5 bg-gray-50 rounded-full border border-gray-100 hover:bg-gray-100 transition-all group/id active:scale-95 outline-none shadow-sm relative z-10"
+          >
+            <Hash className="h-3.5 w-3.5 text-[#f9a885]" />
+            <span className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-widest uppercase">ID: {user?.namixId || "..."}</span>
             <AnimatePresence mode="wait">
-              {copyStatus && (
-                <motion.span 
-                  key="status"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-[10px] font-black text-emerald-600 tracking-widest uppercase absolute left-[-60px] whitespace-nowrap"
-                >
-                  {copyStatus}
-                </motion.span>
-              )}
+               {!copyStatus && (
+                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <Copy className="h-3.5 w-3.5 opacity-20 group-hover/id:opacity-100 transition-opacity" />
+                 </motion.div>
+               )}
             </AnimatePresence>
+          </button>
 
-            <button 
-              onClick={handleCopyId}
-              className="flex items-center gap-2.5 px-4 py-1.5 bg-gray-50 rounded-full border border-gray-100 hover:bg-gray-100 transition-all group/id active:scale-95 outline-none shadow-sm"
-            >
-              <Hash className="h-3.5 w-3.5 text-[#f9a885]" />
-              <span className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-widest uppercase">ID: {user?.namixId || "..."}</span>
-              <Copy className="h-3.5 w-3.5 opacity-20 group-hover/id:opacity-100 transition-opacity" />
-            </button>
-          </div>
+          <AnimatePresence>
+            {copyStatus && (
+              <motion.span 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="text-[10px] font-black text-emerald-600 tracking-widest uppercase absolute left-0"
+              >
+                {copyStatus}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
+      {/* كبسولة الإحصائيات الموحدة */}
       <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex items-stretch h-28 divide-x divide-x-reverse divide-gray-50/60">
          <div className="flex-1 p-6 relative group/stat overflow-hidden flex flex-col justify-center">
             <div className="absolute -bottom-6 -left-6 opacity-[0.04] group-hover/stat:opacity-[0.12] group-hover/stat:scale-125 group-hover/stat:rotate-12 transition-all duration-1000 pointer-events-none text-blue-600">

@@ -26,7 +26,7 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
           </div>
           <div className="text-right space-y-0.5">
             <p className="font-black text-lg text-red-600">إنهاء الجلسة الآمنة</p>
-            <div className="flex items-center gap-2 text-red-400 font-black text-[8px] uppercase tracking-[0.3em]">
+            <div className="flex items-center gap-2 text-red-400 font-black text-[8px] uppercase tracking-widest">
                <ShieldAlert size={10} />
                Secure Exit Protocol
             </div>
@@ -39,7 +39,7 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
       </motion.button>
       
       <div className="mt-10 flex flex-col items-center gap-4 opacity-20 select-none">
-         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Sovereign Core v4.8.2</p>
+         <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest text-center">Namix Sovereign Core v4.8.5</p>
          <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />

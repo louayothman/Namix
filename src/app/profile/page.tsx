@@ -24,6 +24,11 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SettingsHubDialog } from "@/components/profile/SettingsHubDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
+/**
+ * @fileOverview صفحة الملف الشخصي السيادي v12.0 - Stability & Speed Update
+ * تم إعادة بناء الصفحة لتكون خالية من القيم الاعتباطية التي قد تسبب تعطل النظام.
+ */
+
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
   const [referralCount, setReferralCount] = useState(0);
@@ -98,35 +103,35 @@ function ProfileContent() {
 
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
-      <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
         
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
-            <div className="flex items-center gap-2 text-blue-500 font-black text-[7px] md:text-[9px] uppercase tracking-widest">
+            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight leading-none">ملفي الشخصي</h1>
+            <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-widest mt-1">
                <Sparkles size={10} className="text-[#f9a885]" />
                Sovereign Account Control
             </div>
           </div>
 
-          {/* الكبسولة الموحدة الشفافة - اقصى اليسار */}
-          <div className="flex items-center gap-6 px-2">
+          {/* كبسولة التحكم الشفافة */}
+          <div className="flex items-center gap-4">
              <button 
                onClick={() => setSettingsOpen(true)} 
-               className="text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none p-2"
+               className="h-10 w-10 flex items-center justify-center text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none"
              >
                <Settings className="h-6 w-6" />
              </button>
              <button 
                onClick={() => router.push("/home")} 
-               className="text-[#002d4d] hover:text-[#f9a885] transition-all active:scale-90 outline-none p-2"
+               className="h-10 w-10 flex items-center justify-center text-[#002d4d] hover:text-[#f9a885] transition-all active:scale-90 outline-none"
              >
                <ChevronLeft className="h-7 w-7" />
              </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
            <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
               <ProfileHero 
                 user={dbUser || user} 
@@ -138,7 +143,7 @@ function ProfileContent() {
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>
            </div>
-           <div className="lg:col-span-8 space-y-10 md:space-y-14">
+           <div className="lg:col-span-8 space-y-10">
               <GrowthSection dbUser={dbUser} onToggleSuccess={(val) => val ? setAutoInvestSuccess(true) : setAutoInvestOffSuccess(true)} />
               <FinancialSection />
               <SupportSection />

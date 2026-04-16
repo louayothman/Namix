@@ -7,7 +7,7 @@ import { Settings, UserCircle, Lock, ChevronLeft, Fingerprint, KeyRound, Sparkle
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Import raw logic views (without their own dialog wrappers)
+// Import raw logic views
 import { EditProfileDialog } from "./EditProfileDialog";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 import { PinSetupDialog } from "./PinSetupDialog";
@@ -23,8 +23,8 @@ interface SettingsHubDialogProps {
 type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
 
 /**
- * @fileOverview مركز التحكم بالهوية المدمج v6.0 - Robust In-Dialog Navigator
- * يحل مشكلة تعطل التطبيق عبر تجنب تداخل النوافذ وتبديل المكونات داخل حاوية واحدة صلبة.
+ * @fileOverview مركز التحكم بالهوية المدمج v6.5 - Stability Focus
+ * تم تطهير المكون من القيم الاعتباطية لضمان استقرار محرك الرندرة.
  */
 export function SettingsHubDialog({ open, onOpenChange, user, dbUser, onProfileUpdate }: SettingsHubDialogProps) {
   const [activeView, setActiveView] = useState<SettingsView>('menu');
@@ -34,7 +34,7 @@ export function SettingsHubDialog({ open, onOpenChange, user, dbUser, onProfileU
   }, [open]);
 
   const menuItems = [
-    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات القانونية", icon: UserCircle, color: "text-blue-500" },
+    { id: 'profile', title: "توثيق الهوية المعتمد", desc: "تحديث البيانات الشخصية والمستندات", icon: UserCircle, color: "text-blue-500" },
     { id: 'password', title: "تغيير كلمة المرور", desc: "تحديث شفرة الدخول وبروتوكولات الأمان", icon: KeyRound, color: "text-[#f9a885]" },
     { id: 'pin', title: "رمز PIN الخزنة", desc: "تأمين العمليات المالية برمز حماية حيوي", icon: Fingerprint, color: "text-emerald-500" },
   ];
@@ -51,12 +51,11 @@ export function SettingsHubDialog({ open, onOpenChange, user, dbUser, onProfileU
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1100]" />
+        <DialogOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1100]" />
         <DialogContent className="fixed left-[50%] top-[50%] z-[1101] translate-x-[-50%] translate-y-[-50%] rounded-[56px] border-none shadow-2xl p-0 max-w-[420px] w-[94vw] overflow-hidden font-body text-right flex flex-col max-h-[85vh] outline-none bg-white" dir="rtl">
           
-          {/* Header Section */}
           <div className="bg-[#002d4d] p-8 text-white relative shrink-0 overflow-hidden text-center">
-             <div className="absolute top-0 right-0 p-4 opacity-[0.05] -rotate-12 pointer-events-none">
+             <div className="absolute top-0 right-0 p-4 opacity-5 -rotate-12 pointer-events-none">
                 <Settings className="h-32 w-32" />
              </div>
              
@@ -154,7 +153,7 @@ export function SettingsHubDialog({ open, onOpenChange, user, dbUser, onProfileU
           </div>
           
           <div className="p-5 bg-gray-50/50 border-t border-gray-100 text-center shrink-0">
-             <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.4em]">Namix Sovereign Identity Protocol</p>
+             <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Namix Sovereign Identity Protocol</p>
           </div>
         </DialogContent>
       </DialogPortal>
