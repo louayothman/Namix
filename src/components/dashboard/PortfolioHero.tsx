@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ChevronDown } from "lucide-react";
+import { Bell, ArrowDown, ArrowDownCircle, UserCircle, ChevronDown, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -32,6 +32,7 @@ export function PortfolioHero({
 }: PortfolioHeroProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
   const [greeting, setGreeting] = useState("");
+  const [showBalance, setShowBalance] = useState(true);
   const prices = useMarketStore(state => state.prices);
 
   const timeGreeting = useMemo(() => {
@@ -42,15 +43,15 @@ export function PortfolioHero({
   }, []);
 
   useEffect(() => {
-    // تعيين التحية الزمنية فوراً عند التحميل
+    // تعيين التحية الأولية
     setGreeting(timeGreeting);
 
-    // تفعيل بروتوكول التبديل التلقائي بعد 10 ثوانٍ
-    const timer = setTimeout(() => {
-      setGreeting("Welcome Back");
+    // بروتوكول التبادل الدوري للتحية كل 10 ثوانٍ
+    const interval = setInterval(() => {
+      setGreeting(prev => prev === "Welcome Back" ? timeGreeting : "Welcome Back");
     }, 10000);
 
-    return () => clearTimeout(timer);
+    return () => clearInterval(interval);
   }, [timeGreeting]);
 
   const approximateBalance = useMemo(() => {
@@ -129,11 +130,26 @@ export function PortfolioHero({
             
             {/* Right Side: Primary Balance (Larger) */}
             <div className="flex flex-col items-start text-right space-y-1">
-              <span className="text-[10px] text-white/40 font-black uppercase tracking-widest">الرصيد المتاح</span>
-              <h2 className="text-5xl md:text-7xl font-black leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
-                <span className="text-white/20 text-2xl md:text-3xl font-bold">$</span>
-                {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h2>
+              <div className="flex items-baseline gap-1.5">
+                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد</span>
+                 <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">balance</span>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <h2 className="text-5xl md:text-7xl font-black leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
+                  <span className="text-white/20 text-2xl md:text-3xl font-bold">$</span>
+                  {showBalance 
+                    ? (user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : "••••••"
+                  }
+                </h2>
+                <button 
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="h-10 w-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90"
+                >
+                  {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
               
               <div className="flex items-center gap-1.5 px-1">
                  <p className="text-[11px] font-black text-white/50 tabular-nums tracking-tight" dir="ltr">
@@ -163,18 +179,18 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Clean Vertical Stats (Text next to Value) */}
-            <div className="flex flex-col items-end gap-6 border-r border-white/10 pr-6">
+            {/* Left Side: Vertical Stats (No Separator) */}
+            <div className="flex flex-col items-end gap-6 pr-6">
                <div className="text-right flex items-center gap-3">
                   <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
                   <p className="text-xl font-black text-white tabular-nums tracking-tighter leading-none">
-                    ${(user?.activeInvestmentsTotal || 0).toLocaleString()}
+                    ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                </div>
                <div className="text-right flex items-center gap-3">
                   <p className="text-[9px] font-black text-[#f9a885]/40 uppercase tracking-widest leading-none">الأرباح</p>
                   <p className="text-xl font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
-                    +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                </div>
             </div>
