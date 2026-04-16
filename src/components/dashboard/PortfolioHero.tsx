@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Bell, ArrowDown, ArrowDownCircle, UserCircle, ChevronDown, Eye, EyeOff, TrendingUp, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -33,6 +33,7 @@ export function PortfolioHero({
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
   const [greeting, setGreeting] = useState("");
   const [showBalance, setShowBalance] = useState(true);
+  const [activeMetric, setActiveMetric] = useState<'yield' | 'invest'>('yield');
   const prices = useMarketStore(state => state.prices);
 
   const timeGreeting = useMemo(() => {
@@ -42,10 +43,12 @@ export function PortfolioHero({
     return "مساء الخير";
   }, []);
 
+  // محرك تبادل التحية والمؤشرات (كل 10 ثوانٍ)
   useEffect(() => {
     setGreeting(timeGreeting);
     const interval = setInterval(() => {
       setGreeting(prev => prev === "Welcome Back" ? timeGreeting : "Welcome Back");
+      setActiveMetric(prev => prev === 'yield' ? 'invest' : 'yield');
     }, 10000);
     return () => clearInterval(interval);
   }, [timeGreeting]);
@@ -121,7 +124,7 @@ export function PortfolioHero({
             </div>
           </div>
 
-          {/* Main Financial Row: Balance (Right) vs Stats (Left) */}
+          {/* Main Financial Row: Balance (Right) vs Toggled Stats (Left) */}
           <div className="flex flex-row items-center justify-between w-full">
             
             {/* Right Side: Primary Balance (Larger) */}
@@ -174,20 +177,37 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Vertical Stats (Tightened font size) */}
-            <div className="flex flex-col items-end gap-5 pr-6">
-               <div className="text-right flex items-center justify-end gap-2 w-full">
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
-                  <p className="text-lg font-black text-white tabular-nums tracking-tighter leading-none">
-                    ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-               </div>
-               <div className="text-right flex items-center justify-end gap-2 w-full">
-                  <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-widest leading-none">الأرباح</p>
-                  <p className="text-lg font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
-                    ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-               </div>
+            {/* Left Side: Toggled Stats Matrix (Cycles every 10s) */}
+            <div className="flex flex-col items-end pr-6 min-w-[120px]">
+               <AnimatePresence mode="wait">
+                  {activeMetric === 'yield' ? (
+                    <motion.div 
+                      key="yield"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="text-right flex items-center justify-end gap-2 w-full"
+                    >
+                       <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-widest leading-none">الأرباح</p>
+                       <p className="text-lg font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
+                         ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       </p>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      key="invest"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="text-right flex items-center justify-end gap-2 w-full"
+                    >
+                       <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
+                       <p className="text-lg font-black text-white tabular-nums tracking-tighter leading-none">
+                         ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       </p>
+                    </motion.div>
+                  )}
+               </AnimatePresence>
             </div>
           </div>
 
