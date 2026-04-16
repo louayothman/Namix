@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, ChevronDown, Eye, EyeOff, TrendingUp, Briefcase } from "lucide-react";
+import { Bell, UserCircle, ChevronDown, Eye, EyeOff, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -43,7 +43,6 @@ export function PortfolioHero({
     return "مساء الخير";
   }, []);
 
-  // محرك تبادل التحية (كل 10 ثوانٍ)
   useEffect(() => {
     setGreeting(timeGreeting);
     const greetingInterval = setInterval(() => {
@@ -52,7 +51,6 @@ export function PortfolioHero({
     return () => clearInterval(greetingInterval);
   }, [timeGreeting]);
 
-  // محرك تبادل المؤشرات (كل 8 ثوانٍ) - فيزياء الرفع الرأسي
   useEffect(() => {
     const metricInterval = setInterval(() => {
       setActiveMetric(prev => prev === 'yield' ? 'invest' : 'yield');
@@ -76,7 +74,6 @@ export function PortfolioHero({
     <div className="relative w-full">
       <Card className="border-none shadow-none rounded-t-none rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group">
         
-        {/* Sovereign Backdrop: Huge Animated Namix Icon at Bottom-Left */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
            <motion.div 
              animate={{ rotate: [0, 360] }}
@@ -94,7 +91,6 @@ export function PortfolioHero({
 
         <CardContent className="p-8 md:p-12 pt-10 md:pt-12 space-y-10 relative z-10">
           
-          {/* Header Strip - Identity Focused */}
           <div className="flex items-center justify-between">
             <div className="text-right space-y-0.5">
                <AnimatePresence mode="wait">
@@ -131,10 +127,7 @@ export function PortfolioHero({
             </div>
           </div>
 
-          {/* Main Financial Row: Balance (Right) vs Cycling Metrics (Left) */}
           <div className="flex flex-row items-center justify-between w-full">
-            
-            {/* Right Side: Primary Balance Area */}
             <div className="flex flex-col items-start text-right space-y-1">
               <div className="flex items-baseline gap-1.5">
                  <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد <span className="text-[8px] opacity-60">balance</span></span>
@@ -184,7 +177,6 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Vertical Cycling Metrics (Earnings/Investments) */}
             <div className="flex flex-col items-end overflow-hidden h-[36px] min-w-[120px] justify-center relative">
                <AnimatePresence mode="wait">
                   {activeMetric === 'yield' ? (
@@ -220,21 +212,32 @@ export function PortfolioHero({
             </div>
           </div>
 
-          {/* Bottom Row: Controls Matrix */}
           <div className="grid grid-cols-2 gap-3 pt-2">
             <button 
               onClick={onDeposit}
-              className="h-11 rounded-[20px] bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg border-none"
+              className="h-11 rounded-[20px] bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg border-none relative overflow-hidden group/btn"
             >
-              <ArrowDown className="h-3 w-3" />
-              <span>استلام <span className="opacity-30">Receive</span></span>
+              <motion.div 
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute left-2 opacity-10 pointer-events-none"
+              >
+                <ChevronDown size={56} strokeWidth={3} />
+              </motion.div>
+              <span className="relative z-10">استلام <span className="opacity-30">Receive</span></span>
             </button>
             <button 
               onClick={onWithdraw}
-              className="h-11 rounded-[20px] bg-white/10 hover:bg-white/20 text-white backdrop-blur-3xl border border-white/20 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl"
+              className="h-11 rounded-[20px] bg-white/10 hover:bg-white/20 text-white backdrop-blur-3xl border border-white/20 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl relative overflow-hidden group/btn"
             >
-              <ArrowDownCircle className="h-3 w-3 rotate-180 text-[#f9a885]" />
-              <span>إرسال <span className="opacity-30">Send</span></span>
+              <motion.div 
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute right-2 opacity-10 pointer-events-none"
+              >
+                <ChevronUp size={56} strokeWidth={3} />
+              </motion.div>
+              <span className="relative z-10">إرسال <span className="opacity-30">Send</span></span>
             </button>
           </div>
 
