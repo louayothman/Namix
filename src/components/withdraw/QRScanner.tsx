@@ -14,8 +14,8 @@ interface QRScannerProps {
 }
 
 /**
- * @fileOverview مُفاعل مسح الباركود التكتيكي v2.2 - Advanced Capture Update
- * تم تحديث النصوص الإرشادية لتعزيز تجربة العثور على المستخدمين.
+ * @fileOverview مُفاعل مسح الباركود التكتيكي v2.3 - High-Precision Capture Node
+ * تم تحسين محرك الرصد اللحظي لضمان التقاط المعرفات فوراً من تدفق الفيديو.
  */
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,6 +28,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
   useEffect(() => {
     let animationFrame: number;
+    isScanningActive.current = true;
 
     const startCamera = async () => {
       try {
@@ -39,9 +40,12 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          setHasPermission(true);
-          setIsProcessing(false);
-          animationFrame = requestAnimationFrame(tick);
+          // التأكد من تشغيل الفيديو لبدء دورة المعالجة
+          videoRef.current.onloadedmetadata = () => {
+            setHasPermission(true);
+            setIsProcessing(false);
+            animationFrame = requestAnimationFrame(tick);
+          };
         }
       } catch (err) {
         console.error("Camera Access Denied:", err);
@@ -53,25 +57,28 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     const tick = () => {
       if (!isScanningActive.current) return;
 
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-        const canvas = canvasRef.current;
-        const video = videoRef.current;
-        if (canvas) {
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            canvas.height = video.videoHeight;
-            canvas.width = video.videoWidth;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: "dontInvert",
-            });
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
 
-            if (code) {
-              stopCameraProtocol();
-              processResult(code.data);
-              return; 
-            }
+      if (video && video.readyState === video.HAVE_ENOUGH_DATA && canvas) {
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (ctx) {
+          if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+          }
+          
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "attemptBoth", // تحسين الالتقاط في كافة ظروف الإضاءة
+          });
+
+          if (code) {
+            stopCameraProtocol();
+            processResult(code.data);
+            return; 
           }
         }
       }
@@ -91,7 +98,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        track.enabled = false;
       });
       streamRef.current = null;
     }
@@ -117,7 +123,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) return;
 
         canvas.width = img.width;
@@ -125,7 +131,9 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
         ctx.drawImage(img, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "attemptBoth"
+        });
 
         if (code) {
           stopCameraProtocol();
@@ -157,7 +165,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     >
       <video 
         ref={videoRef} 
-        className="absolute inset-0 h-full w-full object-cover grayscale-[0.3]" 
+        className="absolute inset-0 h-full w-full object-cover" 
         autoPlay 
         muted 
         playsInline 
