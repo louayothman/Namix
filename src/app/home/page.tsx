@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
@@ -58,9 +59,6 @@ export default function HomePage() {
 
   const vaultDocRef = useMemoFirebase(() => doc(db, "system_settings", "vault_bonus"), [db]);
   const { data: vaultConfig } = useDoc(vaultDocRef);
-
-  const insuranceRef = useMemoFirebase(() => doc(db, "system_settings", "insurance"), [db]);
-  const { data: insuranceConfig } = useDoc(insuranceRef);
 
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
   const { data: allSymbols } = useCollection(symbolsQuery);
@@ -153,7 +151,7 @@ export default function HomePage() {
     <Shell>
       <div className="pb-32 bg-[#fcfdfe] relative" dir="rtl">
         <Suspense fallback={<SectionLoader />}>
-          <PortfolioHero user={displayUser} totalLiveProfits={totalLiveProfits} vaultYield={0} unreadCount={unreadCount} isVaultEnabled={!!vaultConfig?.isVaultEnabled} calculatedTier={calculatedTier} insuranceConfig={insuranceConfig} onDeposit={() => setDepositOpen(true)} onWithdraw={() => setWithdrawOpen(true)} />
+          <PortfolioHero user={displayUser} totalLiveProfits={totalLiveProfits} unreadCount={unreadCount} onDeposit={() => setDepositOpen(true)} onWithdraw={() => setWithdrawOpen(true)} />
         </Suspense>
 
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">

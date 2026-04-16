@@ -26,11 +26,11 @@ import { VaultBonusSection } from "@/components/admin/settings/VaultBonusSection
 import { LandingPageSection } from "@/components/admin/settings/LandingPageSection";
 
 /**
- * @fileOverview صفحة إعدادات المنصة المحدثة v10.0
- * تم استئصال بوابات الدفع والسحب من هنا نهائياً بناءً على رغبة المشرف وتمركزها في صفحات الطلبات.
+ * @fileOverview صفحة إعدادات المنصة المحدثة v11.0
+ * تم إزالة صندوق التأمين وحماية رأس المال نهائياً بناءً على رغبة المستخدم.
  */
 
-type SettingSection = 'menu' | 'withdraw_logic' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'insurance' | 'voucher_logic' | 'landing_page';
+type SettingSection = 'menu' | 'withdraw_logic' | 'tiers' | 'marketing' | 'content' | 'legal' | 'partnership' | 'vault_bonus' | 'onboarding' | 'voucher_logic' | 'landing_page';
 
 export default function AdminSettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingSection>('menu');
@@ -70,10 +70,6 @@ export default function AdminSettingsPage() {
   const { data: remoteOnboarding } = useDoc(onboardingRef);
   const [onboardingData, setOnboardingData] = useState<any>({});
 
-  const insuranceRef = useMemoFirebase(() => doc(db, "system_settings", "insurance"), [db]);
-  const { data: remoteInsurance } = useDoc(insuranceRef);
-  const [insuranceData, setInsuranceData] = useState<any>({});
-
   const voucherRulesRef = useMemoFirebase(() => doc(db, "system_settings", "voucher_rules"), [db]);
   const { data: remoteVoucherRules } = useDoc(voucherRulesRef);
   const [voucherRulesData, setVoucherRulesData] = useState<any>({});
@@ -91,10 +87,9 @@ export default function AdminSettingsPage() {
     if (remoteVaultBonus) setVaultBonusData(remoteVaultBonus);
     if (remoteAcademy) setAcademyData(remoteAcademy);
     if (remoteOnboarding) setOnboardingData(remoteOnboarding);
-    if (remoteInsurance) setInsuranceData(remoteInsurance);
     if (remoteVoucherRules) setVoucherRulesData(remoteVoucherRules);
     if (remoteLanding) setLandingData(remoteLanding);
-  }, [remoteWithdrawRules, remoteTiers, remoteMarketing, remoteLegal, remotePartnership, remoteVaultBonus, remoteAcademy, remoteOnboarding, remoteInsurance, remoteVoucherRules, remoteLanding]);
+  }, [remoteWithdrawRules, remoteTiers, remoteMarketing, remoteLegal, remotePartnership, remoteVaultBonus, remoteAcademy, remoteOnboarding, remoteVoucherRules, remoteLanding]);
 
   const handleSaveDoc = async (ref: any, data: any, title: string) => {
     setSaving(true);
@@ -119,7 +114,6 @@ export default function AdminSettingsPage() {
 
         {activeSection === 'menu' && (
           <SettingsMenu onSelect={(id) => {
-            // توجيه ذكي للأقسام التي تم نقلها
             if (id === 'deposit_logic') { window.location.href = "/admin/deposits"; return; }
             if (id === 'withdraw_methods') { window.location.href = "/admin/withdrawals"; return; }
             setActiveSection(id as any);
@@ -182,50 +176,12 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        {activeSection === 'insurance' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-left-6">
-            <Card className="rounded-[48px] border-none shadow-xl overflow-hidden bg-white">
-              <CardHeader className="bg-emerald-600 p-10 text-white flex flex-row items-center justify-between">
-                <CardTitle className="text-2xl font-black flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-inner">
-                    <ShieldCheck className="h-8 w-8 text-white" />
-                  </div>
-                  إدارة صندوق التأمين السيادي
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-10 space-y-10">
-                <div className="grid gap-10 lg:grid-cols-2">
-                   <div className="p-10 bg-emerald-50/50 rounded-[48px] border border-emerald-100 space-y-6">
-                      <div className="flex items-center justify-between">
-                         <Label className="font-black text-[#002d4d]">تنشيط شارة التأمين في الهيرو</Label>
-                         <Switch checked={!!insuranceData.isFundVisible} onCheckedChange={val => setInsuranceData({...insuranceData, isFundVisible: val})} className="data-[state=checked]:bg-emerald-500" />
-                      </div>
-                      <div className="space-y-2">
-                         <p className="text-[10px] font-black text-emerald-600 uppercase pr-4">حجم الصندوق المعلن ($)</p>
-                         <Input type="number" value={insuranceData.fundSize ?? ""} onChange={e => setInsuranceData({...insuranceData, fundSize: Number(e.target.value)})} className="h-14 rounded-2xl bg-white border-none font-black text-center text-xl text-emerald-700 shadow-sm" />
-                      </div>
-                   </div>
-                   <div className="p-10 bg-gray-50 rounded-[48px] space-y-6 flex flex-col justify-center">
-                      <h4 className="font-black text-base text-[#002d4d] flex items-center gap-3">
-                         <Zap className="h-5 w-5 text-orange-500" /> ميثاق الحماية
-                      </h4>
-                      <p className="text-[11px] font-bold text-gray-500 leading-relaxed">يعمل صندوق التأمين كضمانة نفسية وتقنية للمستثمرين؛ عرض حجم الصندوق في الواجهة الرئيسية يزيد من معدلات الثقة والتحويل.</p>
-                   </div>
-                </div>
-                <Button onClick={() => handleSaveDoc(insuranceRef, insuranceData, "صندوق التأمين")} disabled={saving} className="w-full h-18 rounded-full bg-[#002d4d] text-white font-black text-lg shadow-xl active:scale-95">
-                  {saving ? <Loader2 className="animate-spin h-6 w-6" /> : "تثبيت ميزانية التأمين"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {activeSection === 'voucher_logic' && (
           <WithdrawLogicSection data={voucherRulesData} onChange={setVoucherRulesData} onSave={() => handleSaveDoc(voucherRulesRef, voucherRulesData, "قوانين القسائم")} saving={saving} />
         )}
 
         <div className="flex flex-col items-center gap-4 pt-10 opacity-30">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v10.0.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.6em]">Namix System v11.0.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (<div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-200" />))}
            </div>

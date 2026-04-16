@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ShieldCheck, ChevronDown } from "lucide-react";
+import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -20,7 +20,6 @@ interface PortfolioHeroProps {
   user: any;
   totalLiveProfits: number;
   unreadCount: number;
-  insuranceConfig: any;
   onDeposit: () => void;
   onWithdraw: () => void;
 }
@@ -29,7 +28,6 @@ export function PortfolioHero({
   user, 
   totalLiveProfits, 
   unreadCount, 
-  insuranceConfig,
   onDeposit, 
   onWithdraw 
 }: PortfolioHeroProps) {
@@ -40,7 +38,6 @@ export function PortfolioHero({
     const balance = user?.totalBalance || 0;
     if (selectedCurrency === 'USDT') return balance;
     
-    // البحث عن سعر BTC و ETH في المستودع
     const btcPrice = Object.entries(prices).find(([id]) => id.toUpperCase().includes('BTC'))?.[1] || 60000;
     const ethPrice = Object.entries(prices).find(([id]) => id.toUpperCase().includes('ETH'))?.[1] || 3000;
 
@@ -65,14 +62,6 @@ export function PortfolioHero({
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-start gap-3">
                <Logo size="sm" lightText className="scale-110" />
-               {insuranceConfig?.isFundVisible && (
-                 <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md shadow-inner">
-                    <ShieldCheck className="h-2.5 w-2.5 text-[#f9a885]" />
-                    <span className="text-[8px] text-white/80 uppercase tracking-widest">
-                      مغطى: ${insuranceConfig.fundSize?.toLocaleString()}
-                    </span>
-                 </div>
-               )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -106,7 +95,6 @@ export function PortfolioHero({
               {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
 
-            {/* Approximate Balance Multi-Currency Selector */}
             <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md mt-2 group/approx active:scale-95 transition-all">
                <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tight" dir="ltr">
                   ≈ {selectedCurrency === 'BTC' ? approximateBalance.toFixed(8) : approximateBalance.toFixed(selectedCurrency === 'USDT' ? 2 : 6)} {selectedCurrency}
