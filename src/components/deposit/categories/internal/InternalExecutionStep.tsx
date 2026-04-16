@@ -26,8 +26,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview محطة الاستلام المباشر v2.3 - Simplified UI
- * تم تبسيط العناوين وتطهير الواجهة من أيقونات الرأس المتكررة.
+ * @fileOverview محطة الاستلام المباشر v2.4 - Pure UI Update
+ * تم تبسيط عرض المعرف الرقمي وإلغاء الحاويات، مع تحديث نصوص الأزرار والتنبيهات.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const handleCopy = (text: string, type: 'id' | 'link') => {
     navigator.clipboard.writeText(text);
     if (type === 'id') {
-      setCopyStatus("تم النسخ ✅");
+      setCopyStatus("تم النسخ"); // تطهير النص من أي أيقونات
       setTimeout(() => setCopyStatus(null), 2000);
     } else {
       setLinkCopied(true);
@@ -68,17 +68,21 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
          <NamixIdQR namixId={namixId} size={220} />
 
          <div className="flex flex-col items-center gap-4 w-full">
-            <div className="flex items-center justify-center gap-3 bg-gray-50/80 px-8 py-3 rounded-full border border-gray-100 shadow-inner group">
-               <p className="text-xl font-black text-[#002d4d] tabular-nums tracking-[0.2em]">{namixId}</p>
+            {/* المعرف يظهر مباشرة على الصفحة بدون حاوية وبخط أصغر */}
+            <div className="flex items-center justify-center gap-3 group">
+               <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-[0.2em]">{namixId}</p>
                <button 
                  onClick={() => handleCopy(namixId, 'id')}
-                 className="h-10 w-10 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90"
+                 className="h-9 w-9 text-gray-300 hover:text-[#002d4d] transition-all shrink-0 active:scale-90"
                >
-                 {copyStatus ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
+                 {copyStatus ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} />}
                </button>
             </div>
+            
             {copyStatus && (
-              <p className="text-[9px] font-black text-emerald-600 animate-in fade-in slide-in-from-top-1">{copyStatus}</p>
+              <p className="text-[9px] font-black text-emerald-600 animate-in fade-in slide-in-from-top-1">
+                {copyStatus}
+              </p>
             )}
 
             <Button 
@@ -87,7 +91,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
               className="h-12 rounded-full bg-white text-[#002d4d] font-black text-[10px] px-8 border border-gray-100 shadow-sm active:scale-95 transition-all flex items-center gap-3"
             >
                <Share2 size={16} className="text-blue-500" />
-               حفظ ومشاركة المعرف الرقمي
+               حفظ ومشاركة عنوان الدفع
             </Button>
          </div>
       </section>
