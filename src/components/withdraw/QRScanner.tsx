@@ -14,8 +14,8 @@ interface QRScannerProps {
 }
 
 /**
- * @fileOverview مُفاعل مسح الباركود التكتيكي v2.1 - Strict Camera Shutdown
- * تم تعزيز المكون ببروتوكول إيقاف صارم للمسارات لضمان عدم بقاء الكاميرا نشطة بعد الالتقاط.
+ * @fileOverview مُفاعل مسح الباركود التكتيكي v2.2 - Advanced Capture Update
+ * تم تحديث النصوص الإرشادية لتعزيز تجربة العثور على المستخدمين.
  */
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -80,7 +80,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
     startCamera();
 
-    // بروتوكول التحرير عند إلغاء المكون
     return () => {
       stopCameraProtocol();
       cancelAnimationFrame(animationFrame);
@@ -156,7 +155,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[2000] bg-black flex flex-col font-body"
     >
-      {/* Video Layer */}
       <video 
         ref={videoRef} 
         className="absolute inset-0 h-full w-full object-cover grayscale-[0.3]" 
@@ -165,13 +163,10 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
         playsInline 
       />
       
-      {/* Canvas for processing (hidden) */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Interface Overlay */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-between p-10 pointer-events-none">
         
-        {/* Top Header */}
         <div className="w-full flex items-center justify-between pointer-events-auto">
            <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
@@ -187,7 +182,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
            </button>
         </div>
 
-        {/* Center Scanner Window */}
         <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
            <div className="absolute inset-0 border-2 border-white/20 rounded-[48px]" />
            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#f9a885] rounded-tr-[48px]" />
@@ -207,9 +201,8 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
            )}
         </div>
 
-        {/* Footer Actions */}
         <div className="w-full text-center space-y-6 pointer-events-auto">
-           <p className="text-white/60 font-bold text-xs px-6">ضع رمز QR داخل الإطار للالتقاط التلقائي.</p>
+           <p className="text-white/60 font-bold text-xs px-6">ضع رمز الدفع QR داخل الإطار للعثور على المستخدم</p>
            
            <div className="flex flex-col items-center gap-4">
               <input 
