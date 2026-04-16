@@ -26,8 +26,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview بروتوكول التنفيذ الداخلي v1.0 - Namix Internal Protocol
- * واجهة استلام السيولة عبر المعرف الرقمي مع نظام مشاركة الروابط.
+ * @fileOverview مركز الاستلام الداخلي المطور v2.0 - محتوى مطهر
+ * تم حذف كلمات (بروتوكول، ميثاق، سيادة، أرباح، سيولة) واستبدالها بمصطلحات مباشرة.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -52,37 +52,28 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-700 font-body text-right" dir="rtl">
       
-      {/* 1. Header Protocol */}
+      {/* 1. Header Section */}
       <section className="flex items-center justify-between px-2">
          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-[18px] bg-[#002d4d] text-white flex items-center justify-center shadow-lg relative">
-               <div className="relative">
-                  <motion.div 
-                    animate={{ scale: [1, 1.2, 1] }} 
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#f9a885] border-2 border-[#002d4d]" 
-                  />
-                  <div className="h-6 w-6 flex items-center justify-center">
-                    <div className="grid grid-cols-2 gap-0.5">
-                      <div className="h-1 w-1 rounded-full bg-white" />
-                      <div className="h-1 w-1 rounded-full bg-white/40" />
-                      <div className="h-1 w-1 rounded-full bg-white/40" />
-                      <div className="h-1 w-1 rounded-full bg-white" />
-                    </div>
-                  </div>
+            <div className="h-12 w-12 rounded-[18px] bg-[#002d4d] text-white flex items-center justify-center shadow-lg">
+               <div className="grid grid-cols-2 gap-0.5">
+                  <div className="h-1 w-1 rounded-full bg-white" />
+                  <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
+                  <div className="h-1 w-1 rounded-full bg-[#f9a885]" />
+                  <div className="h-1 w-1 rounded-full bg-white" />
                </div>
             </div>
             <div className="space-y-0.5">
-               <h3 className="text-xl font-black text-[#002d4d]">استلام داخلي</h3>
-               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Protocol</p>
+               <h3 className="text-xl font-black text-[#002d4d]">استلام مباشر</h3>
+               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
             </div>
          </div>
-         <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner animate-pulse">
-            ID ACTIVE
+         <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">
+            ACTIVE ID
          </Badge>
       </section>
 
-      {/* 2. Visual Core (QR) */}
+      {/* 2. QR Core */}
       <section className="flex flex-col items-center gap-10">
          <NamixIdQR namixId={namixId} size={220} />
 
@@ -108,7 +99,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
          </div>
       </section>
 
-      {/* 3. Logic Briefing */}
+      {/* 3. Information Briefing */}
       <section className="p-8 bg-[#002d4d] rounded-[48px] text-white relative overflow-hidden shadow-2xl group">
          <div className="absolute top-0 right-0 p-8 opacity-[0.03] -rotate-12 transition-transform duration-1000 group-hover:rotate-0">
             <Sparkles size={120} />
@@ -118,15 +109,15 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
                   <ShieldCheck size={20} className="text-[#f9a885]" />
                </div>
-               <h4 className="text-base font-black">ميثاق الاستلام الموحد</h4>
+               <h4 className="text-base font-black">دليل الاستلام</h4>
             </div>
             <p className="text-[11px] font-bold text-blue-100/60 leading-[2.2]">
-              هذا المعرف الرقمي (Namix ID) هو عنوان محفظتك الداخلية. يمكن لأي مستخدم ناميكس تحويل السيولة لك فورياً من رصيده المتاح عبر مسح الباركود أو استخدام رابط الدفع المباشر.
+              هذا المعرف الرقمي هو عنوان حسابك في ناميكس. يمكن للمستخدمين الآخرين تحويل الرصيد لك فورياً من محافظهم الجارية عبر مسح هذا الرمز أو استخدام الرابط المخصص.
             </p>
          </div>
       </section>
 
-      {/* 4. Payment Link Trigger */}
+      {/* 4. Payment Link */}
       <section className="pt-4 pb-20">
          <button 
            onClick={() => setIsLinkOpen(true)}
@@ -137,15 +128,14 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                   <LinkIcon size={18} />
                </div>
                <div className="text-right">
-                  <p className="font-black text-sm text-[#002d4d]">رابط الدفع المباشر</p>
-                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Generate Checkout URL</p>
+                  <p className="font-black text-sm text-[#002d4d]">رابط التحويل المباشر</p>
+                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Generate URL</p>
                </div>
             </div>
             <ChevronLeft className="h-5 w-5 text-gray-300 group-hover:text-[#002d4d] transition-all" />
          </button>
       </section>
 
-      {/* Payment Link Dialog */}
       <Dialog open={isLinkOpen} onOpenChange={setIsLinkOpen}>
          <DialogContent className="rounded-[48px] border-none shadow-2xl p-0 max-w-[400px] overflow-hidden font-body text-right outline-none" dir="rtl">
             <div className="bg-[#002d4d] p-8 text-white relative text-center">
@@ -153,12 +143,12 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                <div className="h-16 w-16 rounded-3xl bg-white/10 flex items-center justify-center backdrop-blur-2xl border border-white/20 shadow-inner mx-auto mb-4">
                   <LinkIcon size={24} className="text-[#f9a885]" />
                </div>
-               <DialogTitle className="text-2xl font-black">رابط الدفع السيادي</DialogTitle>
+               <DialogTitle className="text-2xl font-black">رابط التحويل</DialogTitle>
                <p className="text-[9px] font-black text-blue-200/60 uppercase tracking-[0.3em] mt-1">Direct Checkout Link</p>
             </div>
             
             <div className="p-10 space-y-8 bg-white">
-               <p className="text-gray-500 font-bold text-xs text-center leading-relaxed">انسخ الرابط وأرسله للمستثمرين ليتمكنوا من تحويل الأرباح أو السيولة لك بلمسة واحدة.</p>
+               <p className="text-gray-500 font-bold text-xs text-center leading-relaxed">انسخ الرابط وأرسله للآخرين ليتمكنوا من إرسال الرصيد لك بلمسة واحدة.</p>
                
                <div className="p-4 bg-gray-50 rounded-[28px] border border-gray-100 shadow-inner flex flex-col gap-4">
                   <p className="text-[10px] font-mono text-blue-600 break-all text-left" dir="ltr">{paymentLink}</p>
@@ -172,12 +162,12 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                      {linkCopied ? (
                        <div className="flex items-center gap-2"><Check size={16} /> <span>تم نسخ الرابط</span></div>
                      ) : (
-                       <div className="flex items-center gap-2"><Copy size={16} /> <span>نسخ رابط الدفع</span></div>
+                       <div className="flex items-center gap-2"><Copy size={16} /> <span>نسخ الرابط</span></div>
                      )}
                   </Button>
                </div>
                
-               <button onClick={() => setIsLinkOpen(false)} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">إغلاق النافذة</button>
+               <button onClick={() => setIsLinkOpen(false)} className="w-full text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">إغلاق</button>
             </div>
          </DialogContent>
       </Dialog>
@@ -185,8 +175,8 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
       <DepositShareDrawer 
         open={isShareOpen} 
         onOpenChange={setIsShareOpen} 
-        selectedAsset={{ name: 'Namix User', coin: 'Internal', icon: 'NAMIX_INTERNAL_USER' }} 
-        selectedNetwork={{ name: 'بروتوكول ناميكس' }} 
+        selectedAsset={{ name: 'Namix User', coin: 'Internal', icon: 'USDT' }} 
+        selectedNetwork={{ name: 'تحويل داخلي' }} 
         walletAddress={namixId} 
       />
     </div>

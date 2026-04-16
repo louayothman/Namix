@@ -31,8 +31,8 @@ import { InternalExecutionStep } from "@/components/deposit/categories/internal/
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 
 /**
- * @fileOverview مُفاعل التحميل السيادي المطور v2.2 - Sovereign Dynamic Pulse
- * تم إضافة دعم كامل للنمط الداخلي (Namix ID) مع أيقونة User المخصصة.
+ * @fileOverview مُفاعل التحميل v2.3 - محتوى مطهر
+ * تم استبدال الأيقونات والمصطلحات لتعكس الهوية الموحدة.
  */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
@@ -102,11 +102,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
 
   useEffect(() => {
     if (!category) return;
-    
-    // إذا كان النمط داخلي، انتقل مباشرة للتنفيذ
-    if (category.type === 'internal') {
-      setStep("execution");
-    }
+    if (category.type === 'internal') setStep("execution");
 
     if (category.type === 'binance' && binanceConfig.length === 0) {
       getBinanceCoinsConfig().then(res => { if (res.success) setBinanceConfig(res.coins); });
@@ -121,11 +117,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     setSearchQuery("");
     setWalletAddress("");
     setError(null);
-    setSlowNetworkId(null);
-    
-    if (category?.type === 'nowpayments' || category?.type === 'binance') {
-      setStep("select_network");
-    } else {
+    if (category?.type === 'nowpayments' || category?.type === 'binance') setStep("select_network");
+    else {
       setWalletAddress(asset.walletAddress || "");
       setStep("execution");
     }
@@ -134,33 +127,18 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
   const handleNetworkSelect = async (network: any) => {
     setSelectedNetwork(network);
     setWalletAddress("");
-    setError(null);
-    setSlowNetworkId(null);
     setLoading(true);
-
     try {
       if (category?.type === 'nowpayments') {
         const res = await createNowPayment(dbUser.id, network.id, 10);
-        if (res.success) {
-          setWalletAddress(res.address);
-          setStep("execution");
-        } else {
-          setSlowNetworkId(network.id || network.network);
-        }
+        if (res.success) { setWalletAddress(res.address); setStep("execution"); }
+        else setSlowNetworkId(network.id);
       } else if (category?.type === 'binance') {
         const addrRes = await getBinanceDepositAddress(selectedAsset.coin, network.network);
-        if (addrRes.success) {
-          setWalletAddress(addrRes.address);
-          setStep("execution");
-        } else {
-          setError(addrRes.error);
-        }
+        if (addrRes.success) { setWalletAddress(addrRes.address); setStep("execution"); }
+        else setError(addrRes.error);
       }
-    } catch (err: any) {
-      setSlowNetworkId(network.id || network.network);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setSlowNetworkId(network.id); } finally { setLoading(false); }
   };
 
   const handleFinalSubmit = async () => {
@@ -177,8 +155,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     try {
       await addDocumentNonBlocking(collection(db, "deposit_requests"), {
         userId: dbUser.id, userName: dbUser.displayName, amount: Number(amount),
-        methodName: `${category?.name} - ${selectedAsset?.name || selectedAsset?.symbol || selectedAsset?.label}`,
-        transactionId: txid || "MANUAL_REVIEW_PENDING",
+        methodName: `${category?.name} - ${selectedAsset?.name || selectedAsset?.label}`,
+        transactionId: txid || "REVIEW_PENDING",
         status: "pending", createdAt: new Date().toISOString()
       });
       setStep("result");
@@ -186,16 +164,8 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
   };
 
   const handleBack = () => {
-    setError(null);
-    setWalletAddress("");
-    setTxid("");
-    setSlowNetworkId(null);
     if (step === "result") { router.push("/home"); return; }
-    if (step === "execution") { 
-      if (category?.type === 'internal') { router.back(); return; }
-      setStep("select_network"); 
-      return; 
-    }
+    if (step === "execution") { if (category?.type === 'internal') { router.back(); return; } setStep("select_network"); return; }
     if (step === "select_network") { setStep("select_asset"); return; }
     router.back();
   };
@@ -208,11 +178,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
               <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
                  {category?.type === 'binance' ? (
                    <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
-                 ) : category?.type === 'internal' ? (
-                   <div className="relative">
-                      <User size={32} />
-                      <div className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#f9a885] border border-white" />
-                   </div>
                  ) : (
                    <div className="grid grid-cols-2 gap-1 scale-110">
                      <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
@@ -224,7 +189,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
               </div>
               <div className="text-right">
                  <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Live Pulse</span></div>
+                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Online</span></div>
               </div>
            </div>
            <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
@@ -253,17 +218,11 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                     null}
                   </motion.div>
                 )}
-                
                 {step === "select_network" && (
                   <motion.div key="sn" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                    {category?.type === 'binance' ? (
-                      <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} />
-                    ) : (
-                      <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} availableIds={npAvailableIds} slowNetworkId={slowNetworkId} />
-                    )}
+                    {category?.type === 'binance' ? <BinanceNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} /> : <NowPaymentsNetworkStep selectedAsset={selectedAsset} onSelect={handleNetworkSelect} availableIds={npAvailableIds} slowNetworkId={slowNetworkId} />}
                   </motion.div>
                 )}
-                
                 {step === "execution" && (
                   <motion.div key="ex" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                     {category?.type === 'binance' ? <BinanceExecutionStep selectedAsset={selectedAsset} selectedNetwork={selectedNetwork} walletAddress={walletAddress} loading={loading} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} /> :
@@ -272,7 +231,6 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
                     <ManualExecutionStep selectedAsset={selectedAsset} loading={loading} amount={amount} setAmount={setAmount} txid={txid} setTxid={setTxid} onSubmit={handleFinalSubmit} error={error} />}
                   </motion.div>
                 )}
-                
                 {step === "result" && (
                   <motion.div key="rs" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                     <SuccessStep categoryType={category?.type} successData={successData} error={error} onBackHome={() => router.push("/home")} onRetry={() => { setError(null); setStep("execution"); }} />

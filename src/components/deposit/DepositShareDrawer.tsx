@@ -103,11 +103,20 @@ export function DepositShareDrawer({
         >
           <div className="w-full flex items-center justify-between border-b border-gray-50 pb-8" dir="rtl">
              <div className="flex items-center gap-5">
-                <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || selectedAsset?.symbol} size={48} />
+                {isInternal ? (
+                   <div className="grid grid-cols-2 gap-1">
+                      <div className="h-4 w-4 rounded-full bg-[#002d4d]" />
+                      <div className="h-4 w-4 rounded-full bg-[#f9a885]" />
+                      <div className="h-4 w-4 rounded-full bg-[#f9a885]" />
+                      <div className="h-4 w-4 rounded-full bg-[#002d4d]" />
+                   </div>
+                ) : (
+                  <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || selectedAsset?.symbol} size={48} />
+                )}
                 <div className="text-right">
                    <h2 className="text-base font-normal text-[#002d4d]">{selectedAsset?.name || selectedAsset?.coin || selectedAsset?.symbol}</h2>
                    <p className="text-[9px] font-normal text-gray-400 uppercase tracking-widest mt-1.5">
-                     {selectedNetwork?.name || selectedNetwork?.network || "Internal Protocol"}
+                     {selectedNetwork?.name || selectedNetwork?.network || "نظام التحويل الداخلي"}
                    </p>
                 </div>
              </div>
@@ -138,12 +147,12 @@ export function DepositShareDrawer({
                   {isInternal ? "معرف ناميكس (Namix ID)" : "عنوان الإيداع الموثق"}
                 </p>
                 <p className="text-[20px] font-black text-[#002d4d] break-all leading-loose px-4 tabular-nums tracking-widest" dir="ltr">
-                  {isInternal ? walletAddress : walletAddress}
+                  {walletAddress}
                 </p>
              </div>
              <div className="inline-flex items-center gap-2 px-8 py-3 bg-gray-50 rounded-full border border-gray-100">
                 <span className="text-[12px] font-normal text-[#002d4d]">
-                  {isInternal ? "بروتوكول التحويل المباشر" : `الشبكة : ${selectedAsset?.coin || selectedAsset?.symbol} - ${selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}`}
+                  {isInternal ? "نظام التحويل المباشر" : `الشبكة : ${selectedAsset?.coin || selectedAsset?.symbol} - ${selectedNetwork?.name || selectedNetwork?.network || "Mainnet"}`}
                 </span>
              </div>
           </div>
@@ -160,7 +169,7 @@ export function DepositShareDrawer({
                    <span>N</span><span>A</span><span>M</span><span>I</span><span>X</span>
                 </div>
              </div>
-             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em] opacity-30">Institutional Trust Protocol</p>
+             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em] opacity-30">Institutional Trust Node</p>
           </div>
         </div>
       </div>
@@ -169,7 +178,7 @@ export function DepositShareDrawer({
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100]" />
           <DrawerContent className="fixed bottom-0 left-0 right-0 h-[60dvh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
-            <VisuallyHidden.Root><DrawerTitle>معالجة المعاملة</DrawerTitle></VisuallyHidden.Root>
+            <VisuallyHidden.Root><DrawerTitle>معالجة البيانات</DrawerTitle></VisuallyHidden.Root>
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-10 scrollbar-none">
                <AnimatePresence mode="wait">
