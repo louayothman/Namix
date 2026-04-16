@@ -28,9 +28,10 @@ import { executeInternalTransfer } from "@/app/actions/transfer-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.0
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.1 - Fixed Missing Imports
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
