@@ -131,7 +131,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   };
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 100);
+    const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -161,8 +161,13 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
 
   const processMaturedInvestments = useCallback(async () => {
     if (!activeInvestments || activeInvestments.length === 0 || processingPayouts || !userId) return;
-    const currentTime = new Date();
-    const matured = activeInvestments.filter(inv => !inv.isProcessed && currentTime >= new Date(inv.endTime));
+    const currentTime = now.getTime();
+    // تأخير معالجة المستحقات لـ 5 ثوانٍ بعد انتهاء الوقت لضمان الشفافية البصرية للمستثمر
+    const matured = activeInvestments.filter(inv => 
+      !inv.isProcessed && 
+      currentTime >= new Date(inv.endTime).getTime() + 5000
+    );
+
     if (matured.length === 0) return;
     setProcessingPayouts(true);
     try {
@@ -179,11 +184,10 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
           completedAt: new Date().toISOString()
         });
         
-        // App Notification
         await addDoc(collection(db, "notifications"), {
           userId: userId,
           title: "اكتمل الاستثمار! 💰",
-          message: `تم تفعيل نظام المحاكاة: اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`,
+          message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`,
           type: "success",
           isRead: false,
           createdAt: new Date().toISOString()
@@ -194,11 +198,11 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     } finally {
       setProcessingPayouts(false);
     }
-  }, [activeInvestments, userId, db, processingPayouts]);
+  }, [activeInvestments, userId, db, processingPayouts, now]);
 
   useEffect(() => {
     processMaturedInvestments();
-  }, [processMaturedInvestments, now]);
+  }, [processMaturedInvestments]);
 
   if (!dbUser) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

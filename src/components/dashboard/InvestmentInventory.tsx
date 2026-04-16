@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,11 +43,8 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
   const displayInvestments = useMemo(() => {
     if (!investments) return [];
     return investments.filter(inv => {
+      // إظهار العقود النشطة فقط (والتي ستبقى نشطة لـ 5 ثوانٍ بعد انتهائها بسبب تأخير المعالجة)
       if (inv.status === 'active') return true;
-      if (inv.status === 'completed' && inv.completedAt) {
-        const diffSeconds = (now.getTime() - new Date(inv.completedAt).getTime()) / 1000;
-        return diffSeconds >= 0 && diffSeconds <= 30;
-      }
       return false;
     }).slice(0, 5);
   }, [investments, now]);
@@ -77,7 +75,7 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
           <p className="text-[8px] text-gray-400 uppercase tracking-widest">Active Growth Matrix</p>
         </div>
         <Badge className="bg-gray-100 text-[#002d4d] border-none font-normal text-[8px] rounded-full px-3 py-1">
-          {displayInvestments.filter(i => i.status === 'active').length} وحدات تشغيلية
+          {displayInvestments.length} وحدات تشغيلية
         </Badge>
       </div>
 
@@ -85,10 +83,10 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
         <AnimatePresence mode="popLayout">
           {displayInvestments.map((inv) => {
             const { percent, accrued } = getProgressData(inv.startTime, inv.endTime, inv.expectedProfit);
-            const isCompleted = inv.status === 'completed';
-            const accruedStr = isCompleted ? inv.expectedProfit.toFixed(3) : accrued.toFixed(3);
+            const isCompleted = percent >= 100;
+            const accruedStr = accrued.toFixed(3);
             const circumference = 2 * Math.PI * 36;
-            const strokeDashoffset = circumference - (isCompleted ? 1 : percent / 100) * circumference;
+            const strokeDashoffset = circumference - (percent / 100) * circumference;
 
             return (
               <motion.div key={inv.id} layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.5 }}>

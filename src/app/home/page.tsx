@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, increment, arrayUnion, limit, addDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, orderBy, increment, arrayUnion, limit, addDoc, updateDoc } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
@@ -131,18 +131,31 @@ export default function HomePage() {
 
   const processMaturedInvestments = useCallback(async () => {
     if (!investments || !localUser?.id) return;
-    const matured = investments.filter(inv => inv.status === 'active' && !inv.isProcessed && new Date() >= new Date(inv.endTime));
+    const currentTime = now.getTime();
+    // تفعيل نافذة الانتظار لـ 5 ثوانٍ بعد بلوغ موعد الاستحقاق لضمان بقاء العقد ظاهراً للمستثمر
+    const matured = investments.filter(inv => 
+      inv.status === 'active' && 
+      !inv.isProcessed && 
+      currentTime >= new Date(inv.endTime).getTime() + 5000
+    );
+
     for (const inv of matured) {
       const totalPayout = inv.amount + (inv.expectedProfit || 0);
       await updateDoc(doc(db, "users", localUser.id), { totalBalance: increment(totalPayout), totalProfits: increment(inv.expectedProfit || 0), activeInvestmentsTotal: increment(-inv.amount) });
       await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
       await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
     }
-  }, [investments, localUser?.id, db]);
+  }, [investments, localUser?.id, db, now]);
 
   useEffect(() => {
-    const timer = setInterval(() => { setNow(new Date()); processMaturedInvestments(); }, 1000);
+    const timer = setInterval(() => { 
+      setNow(new Date()); 
+    }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    processMaturedInvestments();
   }, [processMaturedInvestments]);
 
   if (!localUser) return null;
