@@ -219,10 +219,10 @@ export function PortfolioHero({
             >
               <motion.div 
                 animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-2 opacity-10 pointer-events-none"
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute right-2 opacity-10 pointer-events-none"
               >
-                <ChevronDown size={56} strokeWidth={3} />
+                <ChevronDown size={44} strokeWidth={3} />
               </motion.div>
               <span className="relative z-10">استلام <span className="opacity-30">Receive</span></span>
             </button>
@@ -232,10 +232,10 @@ export function PortfolioHero({
             >
               <motion.div 
                 animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute right-2 opacity-10 pointer-events-none"
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute left-2 opacity-10 pointer-events-none"
               >
-                <ChevronUp size={56} strokeWidth={3} />
+                <ChevronUp size={44} strokeWidth={3} />
               </motion.div>
               <span className="relative z-10">إرسال <span className="opacity-30">Send</span></span>
             </button>
