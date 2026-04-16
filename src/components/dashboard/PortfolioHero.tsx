@@ -43,15 +43,22 @@ export function PortfolioHero({
     return "مساء الخير";
   }, []);
 
-  // محرك تبادل التحية والمؤشرات (كل 10 ثوانٍ)
+  // محرك تبادل التحية (كل 10 ثوانٍ)
   useEffect(() => {
     setGreeting(timeGreeting);
-    const interval = setInterval(() => {
+    const greetingInterval = setInterval(() => {
       setGreeting(prev => prev === "Welcome Back" ? timeGreeting : "Welcome Back");
-      setActiveMetric(prev => prev === 'yield' ? 'invest' : 'yield');
     }, 10000);
-    return () => clearInterval(interval);
+    return () => clearInterval(greetingInterval);
   }, [timeGreeting]);
+
+  // محرك تبادل المؤشرات (كل 8 ثوانٍ) كما طلب المستخدم
+  useEffect(() => {
+    const metricInterval = setInterval(() => {
+      setActiveMetric(prev => prev === 'yield' ? 'invest' : 'yield');
+    }, 8000);
+    return () => clearInterval(metricInterval);
+  }, []);
 
   const approximateBalance = useMemo(() => {
     const balance = user?.totalBalance || 0;
@@ -124,18 +131,18 @@ export function PortfolioHero({
             </div>
           </div>
 
-          {/* Main Financial Row: Balance (Right) vs Toggled Stats (Left) */}
+          {/* Main Financial Row: Balance (Right) vs Controls and Toggled Stats (Left) */}
           <div className="flex flex-row items-center justify-between w-full">
             
-            {/* Right Side: Primary Balance (Larger) */}
+            {/* Right Side: Primary Balance Area */}
             <div className="flex flex-col items-start text-right space-y-1">
               <div className="flex items-baseline gap-1.5">
-                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد balance</span>
+                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد <span className="text-[8px] opacity-60">balance</span></span>
                  <button 
                   onClick={() => setShowBalance(!showBalance)}
                   className="h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90 ml-1"
                 >
-                  {showBalance ? <Eye size={12} /> : <EyeOff size={12} />}
+                  {showBalance ? <Eye size={10} /> : <EyeOff size={10} />}
                 </button>
               </div>
               
@@ -177,52 +184,66 @@ export function PortfolioHero({
               </div>
             </div>
 
-            {/* Left Side: Toggled Stats Matrix (Cycles every 10s) */}
-            <div className="flex flex-col items-end pr-6 min-w-[120px]">
-               <AnimatePresence mode="wait">
-                  {activeMetric === 'yield' ? (
-                    <motion.div 
-                      key="yield"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className="text-right flex items-center justify-end gap-2 w-full"
-                    >
-                       <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-widest leading-none">الأرباح</p>
-                       <p className="text-lg font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
-                         ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                       </p>
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="invest"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className="text-right flex items-center justify-end gap-2 w-full"
-                    >
-                       <p className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">الاستثمارات</p>
-                       <p className="text-lg font-black text-white tabular-nums tracking-tighter leading-none">
-                         ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                       </p>
-                    </motion.div>
-                  )}
-               </AnimatePresence>
+            {/* Left/Middle: Stacked Actions and Toggled Stats Area */}
+            <div className="flex items-center gap-4 md:gap-8">
+              
+              {/* Metric Toggle (Right of buttons from user perspective) */}
+              <div className="flex flex-col items-end pr-2 overflow-hidden h-[36px] min-w-[100px] justify-center relative">
+                 <AnimatePresence mode="wait">
+                    {activeMetric === 'yield' ? (
+                      <motion.div 
+                        key="yield"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="text-right flex items-center justify-end gap-2 w-full"
+                      >
+                         <p className="text-[11px] font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
+                           ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                         </p>
+                         <p className="text-[8px] font-black text-[#f9a885]/60 uppercase tracking-widest leading-none">الأرباح</p>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        key="invest"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="text-right flex items-center justify-end gap-2 w-full"
+                      >
+                         <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
+                           ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                         </p>
+                         <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">الاستثمارات</p>
+                      </motion.div>
+                    )}
+                 </AnimatePresence>
+              </div>
+
+              {/* Stacked Control Buttons */}
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button 
+                  onClick={onDeposit} 
+                  className="h-10 px-6 rounded-2xl bg-[#f9a885] text-[#002d4d] font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg group relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
+                  <ArrowDown size={12} className="relative z-10" />
+                  <span className="relative z-10">استلام</span>
+                </button>
+                <button 
+                  onClick={onWithdraw} 
+                  className="h-10 px-6 rounded-2xl bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl group"
+                >
+                  <ArrowDownCircle size={12} className="rotate-180 text-[#f9a885]" />
+                  <span>إرسال</span>
+                </button>
+              </div>
+
             </div>
           </div>
 
-          {/* Action Buttons Strip */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
-            <button onClick={onDeposit} className="h-14 rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-[13px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-              <ArrowDown className="h-4 w-4 relative z-10" />
-              <span className="relative z-10">استلام</span>
-            </button>
-            <button onClick={onWithdraw} className="h-14 rounded-[28px] bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-black text-[13px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl group">
-              <ArrowDownCircle className="h-4 w-4 rotate-180 text-[#f9a885]" />
-              <span>إرسال</span>
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
