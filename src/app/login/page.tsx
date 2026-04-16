@@ -170,7 +170,7 @@ function LoginContent() {
               {step === "otp" && <OTPStep key="o" otp={formData.otp} onChange={v => setFormData({ ...formData, otp: v })} onBack={() => setStep("email")} onSubmit={handleOTPSubmit} loading={loading} error={error} />}
               {step === "signup" && <SignupStep key="s" formData={formData} setFormData={setFormData} onBack={() => setStep("email")} onSubmit={handleSignupSubmit} loading={loading} error={error} />}
               {step === "password" && <PasswordStep key="p" password={formData.password} onChange={v => setFormData({ ...formData, password: v })} onBack={() => setStep("email")} onForgotPassword={() => {}} onSubmit={handleLoginSubmit} loading={loading} error={error} />}
-            </AnPresence>
+            </AnimatePresence>
             <div className="pt-8">
               <LegalLinks terms={legal?.termsAndConditions || ""} privacy={legal?.privacyPolicy || ""} />
             </div>
