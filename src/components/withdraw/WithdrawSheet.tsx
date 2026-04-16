@@ -28,10 +28,12 @@ import {
   ShieldAlert,
   TrendingUp,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { differenceInMinutes, differenceInHours, differenceInDays, differenceInMonths, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface WithdrawSheetProps {
   open: boolean;
@@ -216,7 +218,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                       <div className="h-14 w-14 rounded-[22px] bg-gray-50 flex items-center justify-center shadow-inner group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shrink-0">
                         {cat.type === 'binance' ? <Cpu size={28} /> : 
                          cat.type === 'nowpayments' ? <Zap size={28} /> :
-                         cat.type === 'internal' ? <Fingerprint size={28} /> :
+                         cat.type === 'internal' ? <NamixDotsIcon /> :
                          <Wallet size={28} />}
                       </div>
                       <div className="flex-1 space-y-1">
@@ -242,4 +244,3 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
     </Drawer>
   );
 }
-
