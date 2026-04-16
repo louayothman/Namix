@@ -70,12 +70,12 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
     const diff = end - now.getTime();
     if (diff <= 0) return "00:00:00:00";
     
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+    const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
     
-    return `${d}ي ${h}س ${m}د ${s}ث`;
+    return `${d}:${h}:${m}:${s}`;
   };
 
   return (
@@ -130,7 +130,7 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
                         <h4 className="text-[13px] font-normal truncate max-w-[140px] text-white">{inv.planTitle}</h4>
                         <div className="flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase mt-1 tabular-nums">
                            <Timer size={10} className={cn(isCompleted ? "text-emerald-400" : "text-[#f9a885] animate-pulse")} />
-                           <span>{getCountdown(inv.endTime)}</span>
+                           <span className="tracking-widest">{getCountdown(inv.endTime)}</span>
                         </div>
                       </div>
                       <div className="flex-1 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between px-4">
