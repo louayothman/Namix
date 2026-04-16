@@ -50,11 +50,20 @@ export function PortfolioHero({
     <div className="relative w-full">
       <Card className="border-none shadow-none rounded-t-none rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group">
         
-        {/* Sovereign Backdrop: Static iX Branding */}
+        {/* Sovereign Backdrop: Huge Animated Namix Icon at Bottom-Left */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-           <div className="absolute left-[-5%] top-1/2 -translate-y-1/2 text-[300px] md:text-[400px] font-black text-white/[0.03] leading-none tracking-tighter italic rounded-[100px]">
-              iX
-           </div>
+           <motion.div 
+             animate={{ rotate: [0, 360] }}
+             transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+             className="absolute -bottom-24 -left-24 opacity-[0.04] flex items-center justify-center"
+           >
+              <div className="grid grid-cols-2 gap-8 md:gap-12">
+                 <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-white shadow-2xl" />
+                 <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-[#f9a885] shadow-2xl" />
+                 <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-[#f9a885] shadow-2xl" />
+                 <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-white shadow-2xl" />
+              </div>
+           </motion.div>
         </div>
 
         <CardContent className="p-8 md:p-12 pt-12 md:pt-16 space-y-12 relative z-10">
