@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.2 - Navigation Correction
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.3 - UI Layout Refinement
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -181,9 +181,9 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
             {step === 'amount' && (
               <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-10">
-                 <div className="p-8 bg-gray-50 rounded-[48px] border border-gray-100 shadow-inner flex flex-col items-center gap-4 text-center">
-                    <div className="h-20 w-20 rounded-[32px] bg-white flex items-center justify-center shadow-sm text-blue-500">
-                       <User size={40} />
+                 <div className="p-8 bg-gray-50 rounded-[48px] border border-gray-100 shadow-inner flex items-center gap-6 text-right">
+                    <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm text-[#f9a885]">
+                       <User size={32} />
                     </div>
                     <div className="space-y-1">
                        <h3 className="text-xl font-black text-[#002d4d]">{recipient?.displayName}</h3>
