@@ -53,13 +53,13 @@ export function AddressDisplay({
                 className="w-full h-full" 
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <div className="bg-white p-1 rounded-sm shadow-sm">
+                 <div className="bg-white p-0.5">
                     <CryptoIcon name={selectedAsset?.icon || selectedAsset?.coin || selectedAsset?.symbol} size={32} />
                  </div>
               </div>
             </div>
           ) : (
-            <div className="h-full w-full bg-gray-50/50 rounded-[48px] animate-pulse border border-dashed border-gray-200" />
+            <div className="h-full w-full bg-gray-50/50 animate-pulse border border-dashed border-gray-200" />
           )}
         </div>
 

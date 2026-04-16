@@ -9,9 +9,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   lightText?: boolean;
   hideText?: boolean;
+  animate?: boolean;
 }
 
-export function Logo({ className, size = 'md', lightText = false, hideText = false }: LogoProps) {
+export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
   const isLarge = size === 'lg';
   const dotSize = isSmall ? 4 : isLarge ? 10 : 7;
@@ -22,7 +23,7 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
     <div className={cn("relative flex items-center group cursor-pointer", className)} dir="ltr">
       <div className="relative flex items-center justify-center">
         <motion.div 
-          animate={{ rotate: [0, 90, 180, 270, 360] }}
+          animate={animate ? { rotate: [0, 90, 180, 270, 360] } : {}}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="grid grid-cols-2" 
           style={{ gap: `${gap}px` }}

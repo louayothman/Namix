@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -116,7 +115,7 @@ export function DepositShareDrawer({
                 <div className="text-right">
                    <h2 className="text-base font-normal text-[#002d4d]">{selectedAsset?.name || selectedAsset?.coin || selectedAsset?.symbol}</h2>
                    <p className="text-[9px] font-normal text-gray-400 uppercase tracking-widest mt-1.5">
-                     {selectedNetwork?.name || selectedNetwork?.network || "نظام التحويل الداخلي"}
+                     {selectedNetwork?.name || selectedNetwork?.network || "نظام التحويل المباشر"}
                    </p>
                 </div>
              </div>
@@ -131,11 +130,9 @@ export function DepositShareDrawer({
           <div className="py-10">
              {walletAddress && (
                <div className="relative">
-                  <QRCodeSVG value={walletAddress} size={280} bgColor={"#ffffff"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
+                  <QRCodeSVG value={walletAddress} size={280} bgColor={"transparent"} fgColor={"#002d4d"} level={"H"} includeMargin={false} />
                   <div className="absolute inset-0 flex items-center justify-center">
-                     <div className="bg-white p-2 rounded-xl shadow-lg">
-                        <Logo size="sm" hideText />
-                     </div>
+                     <Logo size="sm" hideText animate={false} />
                   </div>
                </div>
              )}
@@ -144,7 +141,7 @@ export function DepositShareDrawer({
           <div className="w-full text-center space-y-8" dir="rtl">
              <div className="space-y-3">
                 <p className="text-[8px] font-normal text-gray-300 uppercase tracking-[0.4em]">
-                  {isInternal ? "معرف ناميكس (Namix ID)" : "عنوان الإيداع الموثق"}
+                  {isInternal ? "معرف ناميكس (Namix ID)" : "عنوان الإيداع المعتمد"}
                 </p>
                 <p className="text-[20px] font-black text-[#002d4d] break-all leading-loose px-4 tabular-nums tracking-widest" dir="ltr">
                   {walletAddress}
@@ -169,7 +166,7 @@ export function DepositShareDrawer({
                    <span>N</span><span>A</span><span>M</span><span>I</span><span>X</span>
                 </div>
              </div>
-             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em] opacity-30">Institutional Trust Node</p>
+             <p className="text-[6px] font-bold text-gray-400 uppercase tracking-[0.5em] opacity-30">Trust System Node</p>
           </div>
         </div>
       </div>
@@ -206,7 +203,7 @@ export function DepositShareDrawer({
 
             <div className="p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-3 opacity-20 shrink-0">
                <ShieldCheck size={14} className="text-emerald-500" />
-               <p className="text-[9px] font-normal uppercase tracking-widest text-[#002d4d]">Secure Asset Protocol</p>
+               <p className="text-[9px] font-normal uppercase tracking-widest text-[#002d4d]">Secure Asset System</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
