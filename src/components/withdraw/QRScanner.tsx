@@ -14,8 +14,8 @@ interface QRScannerProps {
 }
 
 /**
- * @fileOverview مُفاعل مسح الباركود التكتيكي v2.3 - High-Precision Capture Node
- * تم تحسين محرك الرصد اللحظي لضمان التقاط المعرفات فوراً من تدفق الفيديو.
+ * @fileOverview مُفاعل مسح الباركود التكتيكي v2.4 - High-Speed Capture Node
+ * تم تسريع خط المسح الضوئي وتحسين دورة الرصد لضمان تجربة مستخدم وميضية.
  */
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,7 +40,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          // التأكد من تشغيل الفيديو لبدء دورة المعالجة
           videoRef.current.onloadedmetadata = () => {
             setHasPermission(true);
             setIsProcessing(false);
@@ -72,7 +71,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "attemptBoth", // تحسين الالتقاط في كافة ظروف الإضاءة
+            inversionAttempts: "attemptBoth",
           });
 
           if (code) {
@@ -198,7 +197,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#f9a885] rounded-bl-[48px]" />
            <motion.div 
              animate={{ top: ["5%", "95%", "5%"] }}
-             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
              className="absolute left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent shadow-[0_0_15px_#f9a885] z-20"
            />
            {isProcessing && (
