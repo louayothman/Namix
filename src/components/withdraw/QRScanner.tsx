@@ -14,8 +14,8 @@ interface QRScannerProps {
 }
 
 /**
- * @fileOverview مُفاعل مسح الباركود التكتيكي v2.4 - High-Speed Capture Node
- * تم تسريع خط المسح الضوئي وتحسين دورة الرصد لضمان تجربة مستخدم وميضية.
+ * @fileOverview مُفاعل مسح الباركود التكتيكي v2.5 - Stable Pulse Edition
+ * تم إعادة ضبط سرعة خط المسح لتكون 2.5 ثانية لضمان تجربة بصرية متزنة.
  */
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -197,7 +197,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#f9a885] rounded-bl-[48px]" />
            <motion.div 
              animate={{ top: ["5%", "95%", "5%"] }}
-             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
              className="absolute left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-[#f9a885] to-transparent shadow-[0_0_15px_#f9a885] z-20"
            />
            {isProcessing && (
@@ -222,7 +222,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
               <Button 
                 onClick={() => fileInputRef.current?.click()}
                 variant="ghost" 
-                className="h-14 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs px-8 shadow-2xl active:scale-95 transition-all flex items-center gap-3"
+                className="h-14 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs px-8 shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
               >
                 <ImageIcon size={18} className="text-[#f9a885]" />
                 رفع صورة QR
