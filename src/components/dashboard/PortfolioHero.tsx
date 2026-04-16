@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Bell, ArrowDown, ArrowDownCircle, UserCircle, TrendingUp, ChevronDown } from "lucide-react";
-import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
 import { 
   DropdownMenu, 
@@ -32,14 +31,27 @@ export function PortfolioHero({
   onWithdraw 
 }: PortfolioHeroProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
+  const [greeting, setGreeting] = useState("");
   const prices = useMarketStore(state => state.prices);
 
-  const greeting = useMemo(() => {
+  const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return "صباح الخير";
     if (hour >= 12 && hour < 18) return "طاب يومك";
     return "مساء الخير";
   }, []);
+
+  useEffect(() => {
+    // تعيين التحية الزمنية فوراً عند التحميل
+    setGreeting(timeGreeting);
+
+    // تفعيل بروتوكول التبديل التلقائي بعد 10 ثوانٍ
+    const timer = setTimeout(() => {
+      setGreeting("Welcome Back");
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [timeGreeting]);
 
   const approximateBalance = useMemo(() => {
     const balance = user?.totalBalance || 0;
@@ -78,7 +90,17 @@ export function PortfolioHero({
           {/* Header Strip - Identity Focused */}
           <div className="flex items-center justify-between">
             <div className="text-right space-y-0.5">
-               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{greeting}</p>
+               <AnimatePresence mode="wait">
+                  <motion.p 
+                    key={greeting}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-[10px] font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    {greeting}
+                  </motion.p>
+               </AnimatePresence>
                <h1 className="text-lg font-black tracking-tight text-white">{user?.displayName || '...'}</h1>
             </div>
 
@@ -99,7 +121,6 @@ export function PortfolioHero({
                   </button>
                 </Link>
               </div>
-              <Logo size="sm" hideText className="scale-110 brightness-200" />
             </div>
           </div>
 
