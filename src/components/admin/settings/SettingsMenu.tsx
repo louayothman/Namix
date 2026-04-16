@@ -6,11 +6,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/**
- * @fileOverview قائمة إعدادات المنصة v11.0
- * تم تطهير القائمة من نظام الصكوك والقسائم.
- */
-
 interface MenuItem {
   id: string;
   title: string;

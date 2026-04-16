@@ -56,7 +56,6 @@ function ProfileContent() {
     }
   }, [user?.id, db]);
 
-  // محرك احتساب الرتبة اللحظي للملف الشخصي
   const calculatedTier = useMemo(() => {
     if (!dbUser || !tiersData?.list) return null;
     const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
@@ -107,18 +106,18 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-gray-100/30 p-1.5 rounded-full border border-gray-100 shadow-inner">
+          <div className="flex items-center gap-6 bg-gray-100/30 px-6 py-2 rounded-full border border-gray-100 shadow-inner">
              <button 
                onClick={() => setSettingsOpen(true)} 
-               className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:bg-white hover:shadow-sm"
+               className="text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none"
              >
-               <Settings className="h-5 w-5 md:h-5 md:w-5" />
+               <Settings className="h-6 w-6" />
              </button>
              <button 
                onClick={() => router.push("/home")} 
-               className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:bg-white hover:shadow-sm"
+               className="text-[#002d4d] hover:text-[#f9a885] transition-all active:scale-90 outline-none"
              >
-               <ChevronLeft className="h-6 w-6 md:h-6 md:w-6" />
+               <ChevronLeft className="h-7 w-7" />
              </button>
           </div>
         </div>
