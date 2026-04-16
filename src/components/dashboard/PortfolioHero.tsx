@@ -66,95 +66,103 @@ export function PortfolioHero({
            </motion.div>
         </div>
 
-        <CardContent className="p-8 md:p-12 pt-12 md:pt-16 space-y-12 relative z-10">
+        <CardContent className="p-8 md:p-12 pt-10 md:pt-12 space-y-10 relative z-10">
           
+          {/* Header Strip */}
           <div className="flex items-center justify-between">
-            <div className="flex flex-col items-start gap-3">
-               <Logo size="sm" lightText className="scale-110" />
-            </div>
+            <Logo size="sm" lightText className="scale-100" />
 
             <div className="flex items-center gap-3">
               <div className="text-left space-y-0.5 mr-2">
-                <h1 className="text-sm font-normal tracking-tight text-white">{user?.displayName || '...'}</h1>
+                <h1 className="text-xs font-normal tracking-tight text-white/90">{user?.displayName || '...'}</h1>
               </div>
               
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
-                <Link href="/notifications" className="relative h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all">
-                  <Bell className="h-4.5 w-4.5 text-[#f9a885]" />
+                <Link href="/notifications" className="relative h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all">
+                  <Bell className="h-4 w-4 text-[#f9a885]" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
+                    <span className="absolute top-2 right-2 flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 border-2 border-[#8899AA]"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500 border-2 border-[#8899AA]"></span>
                     </span>
                   )}
                 </Link>
                 <Link href="/profile">
-                  <button className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all active:scale-90">
-                    <UserCircle className="h-5 w-5 text-white" />
+                  <button className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all active:scale-90">
+                    <UserCircle className="h-4.5 w-4.5 text-white" />
                   </button>
                 </Link>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-center text-center space-y-2">
-            <span className="text-[11px] text-white/60 uppercase">الرصيد المتاح</span>
-            <h2 className="text-6xl md:text-8xl font-normal leading-none tabular-nums tracking-tighter flex items-baseline gap-3 text-white">
-              <span className="text-white/20 text-3xl md:text-4xl">$</span>
-              {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h2>
-
-            <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 backdrop-blur-md mt-2 group/approx active:scale-95 transition-all">
-               <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tight" dir="ltr">
-                  ≈ {selectedCurrency === 'BTC' ? approximateBalance.toFixed(8) : approximateBalance.toFixed(selectedCurrency === 'USDT' ? 2 : 6)} {selectedCurrency}
-               </p>
-               
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="h-5 w-5 rounded-md hover:bg-white/10 flex items-center justify-center transition-all outline-none">
-                       <ChevronDown size={14} className="text-[#f9a885]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="rounded-2xl border-none shadow-2xl p-1.5 min-w-[90px] bg-white/95 backdrop-blur-xl z-[1002]" dir="rtl">
-                     {(['BTC', 'USDT', 'ETH'] as const).map(curr => (
-                       <DropdownMenuItem 
-                         key={curr} 
-                         onClick={() => setSelectedCurrency(curr)}
-                         className={cn(
-                           "text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer justify-center transition-all mb-1",
-                           selectedCurrency === curr ? "bg-[#002d4d] text-white" : "text-gray-400 hover:bg-gray-50"
-                         )}
-                       >
-                         {curr}
-                       </DropdownMenuItem>
-                     ))}
-                  </DropdownMenuContent>
-               </DropdownMenu>
+          {/* Main Financial Row: Balance (Right) vs Stats (Left) */}
+          <div className="flex flex-row items-center justify-between w-full">
+            
+            {/* Right Side: Primary Balance */}
+            <div className="flex flex-col items-start text-right space-y-0.5">
+              <span className="text-[9px] text-white/40 uppercase tracking-widest">الرصيد المتاح</span>
+              <h2 className="text-4xl md:text-6xl font-normal leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
+                <span className="text-white/20 text-xl md:text-2xl">$</span>
+                {(user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h2>
+              
+              <div className="flex items-center gap-1.5 mt-1 px-1">
+                 <p className="text-[10px] font-black text-white/60 tabular-nums tracking-tight" dir="ltr">
+                    ≈ {selectedCurrency === 'BTC' ? approximateBalance.toFixed(8) : approximateBalance.toFixed(selectedCurrency === 'USDT' ? 2 : 6)} {selectedCurrency}
+                 </p>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="h-4 w-4 rounded-md hover:bg-white/10 flex items-center justify-center transition-all outline-none">
+                         <ChevronDown size={12} className="text-[#f9a885]" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="rounded-2xl border-none shadow-2xl p-1.5 min-w-[90px] bg-white/95 backdrop-blur-xl z-[1002]" dir="rtl">
+                       {(['BTC', 'USDT', 'ETH'] as const).map(curr => (
+                         <DropdownMenuItem 
+                           key={curr} 
+                           onClick={() => setSelectedCurrency(curr)}
+                           className={cn(
+                             "text-[10px] font-black py-2.5 px-4 rounded-xl cursor-pointer justify-center transition-all mb-1",
+                             selectedCurrency === curr ? "bg-[#002d4d] text-white" : "text-gray-400 hover:bg-gray-50"
+                           )}
+                         >
+                           {curr}
+                         </DropdownMenuItem>
+                       ))}
+                    </DropdownMenuContent>
+                 </DropdownMenu>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-0 mt-8 pt-2 w-full relative">
-               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-[0.5px] bg-white/10" />
-               <div className="flex flex-col items-center">
-                  <p className="text-[10px] text-white/20 uppercase mb-1.5">الاستثمارات</p>
-                  <p className="text-xl font-normal text-white tabular-nums">${(user?.activeInvestmentsTotal || 0).toLocaleString()}</p>
+            {/* Left Side: Vertical Stats Stack */}
+            <div className="flex flex-col items-end gap-5">
+               <div className="text-right space-y-0.5">
+                  <p className="text-[8px] text-white/30 uppercase tracking-tighter leading-none">الاستثمارات</p>
+                  <p className="text-xl font-normal text-white tabular-nums tracking-tighter leading-none">
+                    ${(user?.activeInvestmentsTotal || 0).toLocaleString()}
+                  </p>
                </div>
-               <div className="flex flex-col items-center">
-                  <p className="text-[10px] text-[#f9a885]/40 uppercase mb-1.5">الأرباح</p>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp size={12} className="text-[#f9a885] opacity-40" />
-                    <p className="text-xl font-normal text-[#f9a885] tabular-nums">+${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+               <div className="text-right space-y-0.5">
+                  <div className="flex items-center gap-1 justify-end">
+                    <TrendingUp size={10} className="text-[#f9a885] opacity-40" />
+                    <p className="text-[8px] text-[#f9a885]/40 uppercase tracking-tighter leading-none">الأرباح</p>
                   </div>
+                  <p className="text-xl font-normal text-[#f9a885] tabular-nums tracking-tighter leading-none">
+                    +${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
                </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
-            <button onClick={onDeposit} className="h-16 rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl relative overflow-hidden group">
+          {/* Action Buttons Strip */}
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
+            <button onClick={onDeposit} className="h-14 rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-[13px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
               <ArrowDown className="h-4 w-4 relative z-10" />
               <span className="relative z-10">استلام</span>
             </button>
-            <button onClick={onWithdraw} className="h-16 rounded-[28px] bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl group">
+            <button onClick={onWithdraw} className="h-14 rounded-[28px] bg-white/5 text-white backdrop-blur-3xl border border-white/10 font-black text-[13px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl group">
               <ArrowDownCircle className="h-4 w-4 rotate-180 text-[#f9a885]" />
               <span>إرسال</span>
             </button>
