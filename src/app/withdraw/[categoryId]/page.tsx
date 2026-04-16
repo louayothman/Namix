@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -36,13 +36,14 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.7 - Tactical Barcode Upgrade
- * تم تحديث أيقونة المسح لتصبح مصفوفة تكتيكية (Frame + QR + Scan Line) بأسلوب ناميكس.
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.8 - Auto-Inflow Protocol
+ * تم إضافة منطق الكشف التلقائي عن معرف المستلم من الرابط (id query param) لتجاوز البحث.
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const db = useFirestore();
   
   const [dbUser, setDbUser] = useState<any>(null);
@@ -76,6 +77,15 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     }
   }, [db]);
 
+  // بروتوكول المزامنة الاستباقية: البحث التلقائي إذا وجد id في الرابط
+  useEffect(() => {
+    const targetId = searchParams.get("id");
+    if (targetId && categoryId === 'internal' && !recipient && !loading) {
+      setIdentifier(targetId);
+      handleFindUser(targetId);
+    }
+  }, [searchParams, categoryId]);
+
   const withdrawableMax = useMemo(() => {
     if (!dbUser) return 0;
     return Math.max(0, dbUser.totalBalance - (dbUser.welcomeBonus || 0));
@@ -89,12 +99,15 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     });
   };
 
-  const handleFindUser = async () => {
-    if (!identifier.trim()) return;
+  const handleFindUser = async (overrideId?: string) => {
+    const idToSearch = overrideId || identifier;
+    if (!idToSearch.trim()) return;
+    
     setLoading(true);
     setError(null);
-    const res = await findUserByIdOrEmail(identifier);
+    const res = await findUserByIdOrEmail(idToSearch);
     setLoading(false);
+    
     if (res.success) {
       setRecipient(res.user);
       setStep('amount');
@@ -162,7 +175,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
               <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
-                <ChevronRight size={20} />
+                <ChevronLeft size={20} />
               </button>
            </div>
         </header>
@@ -188,17 +201,13 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                           <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-200" />
                        </div>
                        
-                       {/* Tactical Barcode Button - Re-engineered Icon */}
                        <button className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:scale-110">
-                            {/* Frame Corners */}
                             <path d="M2 9V2h7m6 0h7v7m0 6v7h-7m-6 0H2v-7" strokeWidth="2" />
-                            {/* Mini QR Pattern */}
                             <rect x="6" y="6" width="4" height="4" strokeWidth="1.5" />
                             <rect x="14" y="6" width="4" height="4" strokeWidth="1.5" />
                             <rect x="6" y="14" width="4" height="4" strokeWidth="1.5" />
                             <path d="M14 14h1v1h-1zM17 14h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1z" fill="currentColor" stroke="none" />
-                            {/* Static/Pulsing Scan Line */}
                             <line x1="4" y1="12" x2="20" y2="12" stroke="#f9a885" strokeWidth="1.5" className="animate-pulse" />
                           </svg>
                        </button>
@@ -207,7 +216,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  </div>
 
                  {identifier.length >= 3 && (
-                   <Button onClick={handleFindUser} disabled={loading} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all">
+                   <Button onClick={() => handleFindUser()} disabled={loading} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all">
                       {loading ? <Loader2 className="animate-spin" /> : "متابعة"}
                    </Button>
                  )}
@@ -216,7 +225,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
             {step === 'amount' && (
               <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-10">
-                 {/* Recipient Identity - Direct on page layout */}
                  <div className="flex items-center gap-5 text-right px-4">
                     <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm border border-gray-50 text-[#f9a885]">
                        <User size={32} />
@@ -271,7 +279,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
                  <div className="grid gap-3">
                     <Button onClick={handleValidateAmount} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95">المتابعة للتحقق</Button>
-                    <button onClick={() => setStep('search')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-4">تغيير المستلم</button>
+                    <button onClick={() => { setRecipient(null); setStep('search'); setIdentifier(""); }} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-4">تغيير المستلم</button>
                  </div>
               </motion.div>
             )}

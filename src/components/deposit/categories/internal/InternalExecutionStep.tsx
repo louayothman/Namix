@@ -23,8 +23,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview محطة الاستلام المباشر v3.0 - Integrated Action Matrix
- * تم دمج أزرار المشاركة والنسخ في مصفوفة واحدة لسهولة الوصول وتقليل طول الصفحة.
+ * @fileOverview محطة الاستلام المباشر v3.1 - Direct Route Update
+ * تم تحديث الرابط ليوجه مباشرة لمحطة السحب الداخلي مع حقن الـ ID تلقائياً.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -33,7 +33,8 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [linkCopied, setLinkCopied] = useState(false);
 
   const namixId = dbUser?.namixId || "...";
-  const paymentLink = typeof window !== "undefined" ? `${window.location.origin}/pay?id=${namixId}` : "";
+  // تحديث الوجهة لتكون صفحة السحب الداخلي مباشرة
+  const paymentLink = typeof window !== "undefined" ? `${window.location.origin}/withdraw/internal?id=${namixId}` : "";
 
   const handleCopy = (text: string, type: 'id' | 'link') => {
     navigator.clipboard.writeText(text);
