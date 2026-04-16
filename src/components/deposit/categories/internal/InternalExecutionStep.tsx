@@ -26,8 +26,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview مركز الاستلام الداخلي المطور v2.1 - تطهير الواجهة
- * تم إزالة الأيقونة المتكررة من الهيدر وتبسيط لغة المحتوى.
+ * @fileOverview مركز الاستلام الداخلي المطور v2.2 - تحديث لغة الواجهة
+ * تم تحديث العنوان الرئيسي وتثبيت التطهير اللغوي للمصطلحات المحظورة.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -52,10 +52,10 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-700 font-body text-right" dir="rtl">
       
-      {/* 1. Header Section - Minimalist */}
+      {/* 1. Header Section - Updated Content */}
       <section className="flex items-center justify-between px-2">
          <div className="space-y-0.5">
-            <h3 className="text-xl font-black text-[#002d4d]">استلام مباشر</h3>
+            <h3 className="text-xl font-black text-[#002d4d]">شارك رمز الدفع واستلم الأموال من مستخدمي Namix الاخرين</h3>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
          </div>
          <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">
