@@ -196,10 +196,10 @@ export function PortfolioHero({
                       transition={{ duration: 0.5, ease: "easeOut" }}
                       className="text-right flex items-center justify-end gap-2 w-full"
                     >
-                       <p className="text-[11px] font-black text-[#f9a885] tabular-nums tracking-tighter leading-none">
+                       <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
                          ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                        </p>
-                       <p className="text-[8px] font-black text-[#f9a885]/60 uppercase tracking-widest leading-none">الأرباح</p>
+                       <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">الأرباح</p>
                     </motion.div>
                   ) : (
                     <motion.div 
