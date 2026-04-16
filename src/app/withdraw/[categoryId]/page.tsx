@@ -22,7 +22,9 @@ import {
   Coins,
   ChevronLeft,
   Plus,
-  Minus
+  Minus,
+  Copy,
+  ScanQrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,8 +36,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 /**
- * @fileOverview محطة إرسال المبالغ الداخلية v5.6 - Tactical Amount Controller
- * تم تحديث حقل المبلغ ليدعم التحكم الجانبي (+/-) ومنع القيم السالبة مع تصميم أكثر رشاقة.
+ * @fileOverview محطة إرسال المبالغ الداخلية v5.7 - Tactical Barcode Upgrade
+ * تم تحديث أيقونة المسح لتصبح مصفوفة تكتيكية (Frame + QR + Scan Line) بأسلوب ناميكس.
  */
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
@@ -51,9 +53,11 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
   const [recipient, setRecipient] = useState<any>(null);
   const [amount, setAmount] = useState("");
   const [pin, setPin] = useState("");
+  const [transactionHash, setTransactionHash] = useState("");
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
   const categoryRef = useMemoFirebase(() => doc(db, "withdraw_methods", categoryId), [db, categoryId]);
   const { data: category, isLoading: loadingCat } = useDoc(categoryRef);
@@ -120,10 +124,18 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     const res = await executeInternalTransfer(dbUser.id, recipient.id, Number(amount), pin);
     setLoading(false);
     if (res.success) {
+      setTransactionHash(res.hash);
       setStep('success');
     } else {
       setError(res.error);
     }
+  };
+
+  const handleCopyHash = () => {
+    if (!transactionHash) return;
+    navigator.clipboard.writeText(transactionHash);
+    setCopyStatus("تم النسخ");
+    setTimeout(() => setCopyStatus(null), 2000);
   };
 
   if (loadingCat) return <div className="h-screen w-full flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d] opacity-20" /></div>;
@@ -150,7 +162,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">الرصيد المتاح</span>
               </div>
               <button onClick={() => router.back()} className="h-10 w-10 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm">
-                <ChevronLeft size={20} />
+                <ChevronRight size={20} />
               </button>
            </div>
         </header>
@@ -175,8 +187,20 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                           />
                           <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-200" />
                        </div>
-                       <button className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm">
-                          <Scan size={24} />
+                       
+                       {/* Tactical Barcode Button - Re-engineered Icon */}
+                       <button className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:scale-110">
+                            {/* Frame Corners */}
+                            <path d="M2 9V2h7m6 0h7v7m0 6v7h-7m-6 0H2v-7" strokeWidth="2" />
+                            {/* Mini QR Pattern */}
+                            <rect x="6" y="6" width="4" height="4" strokeWidth="1.5" />
+                            <rect x="14" y="6" width="4" height="4" strokeWidth="1.5" />
+                            <rect x="6" y="14" width="4" height="4" strokeWidth="1.5" />
+                            <path d="M14 14h1v1h-1zM17 14h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1z" fill="currentColor" stroke="none" />
+                            {/* Static/Pulsing Scan Line */}
+                            <line x1="4" y1="12" x2="20" y2="12" stroke="#f9a885" strokeWidth="1.5" className="animate-pulse" />
+                          </svg>
                        </button>
                     </div>
                     {error && <p className="text-red-500 text-[10px] font-bold pr-4">{error}</p>}
@@ -192,9 +216,9 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
             {step === 'amount' && (
               <motion.div key="a" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-10">
-                 {/* Recipient Identity - Minimalist Layout */}
-                 <div className="flex items-center gap-5 text-right px-2">
-                    <div className="h-16 w-16 rounded-[24px] bg-gray-50 flex items-center justify-center shadow-inner text-[#f9a885]">
+                 {/* Recipient Identity - Direct on page layout */}
+                 <div className="flex items-center gap-5 text-right px-4">
+                    <div className="h-16 w-16 rounded-[24px] bg-white flex items-center justify-center shadow-sm border border-gray-50 text-[#f9a885]">
                        <User size={32} />
                     </div>
                     <div className="space-y-1">
@@ -206,7 +230,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                     </div>
                  </div>
 
-                 <div className="space-y-4">
+                 <div className="space-y-4 px-2">
                     <Label className="text-[10px] font-black text-gray-400 pr-6 uppercase tracking-widest">المبلغ المراد إرساله ($)</Label>
                     <div className="flex items-center gap-3">
                        <button 
@@ -296,9 +320,22 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                     <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-emerald-400/20 rounded-full blur-3xl -z-10" />
                  </div>
                  
-                 <div className="space-y-3">
-                    <h2 className="text-3xl font-black text-[#002d4d]">تم الإرسال بنجاح</h2>
-                    <p className="text-gray-500 font-bold text-sm max-w-xs mx-auto leading-loose">لقد تم تحويل مبلغ <span className="text-emerald-600 font-black">${amount}</span> بنجاح إلى حساب {recipient?.displayName}.</p>
+                 <div className="space-y-6">
+                    <div className="space-y-3">
+                       <h2 className="text-3xl font-black text-[#002d4d]">تم الإرسال بنجاح</h2>
+                       <p className="text-gray-500 font-bold text-sm max-w-xs mx-auto leading-loose">لقد تم تحويل مبلغ <span className="text-emerald-600 font-black">${amount}</span> بنجاح إلى حساب {recipient?.displayName}.</p>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 rounded-[32px] border border-gray-100 space-y-3">
+                       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">رقم المرجع الفريد (Hash)</p>
+                       <div className="flex items-center justify-center gap-3">
+                          <p className="text-lg font-black text-[#002d4d] tabular-nums tracking-tighter">{transactionHash}</p>
+                          <button onClick={handleCopyHash} className="h-8 w-8 text-gray-300 hover:text-blue-500 transition-all active:scale-90">
+                             {copyStatus ? <CheckCircle2 size={18} className="text-emerald-500" /> : <Copy size={18} />}
+                          </button>
+                       </div>
+                       {copyStatus && <p className="text-[8px] font-black text-emerald-600 animate-in fade-in">{copyStatus}</p>}
+                    </div>
                  </div>
 
                  <Button onClick={() => router.push('/home')} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black shadow-xl active:scale-95">العودة للرئيسية</Button>
