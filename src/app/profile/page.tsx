@@ -38,8 +38,11 @@ function ProfileContent() {
 
   useEffect(() => {
     const userSession = localStorage.getItem("namix_user");
-    if (userSession) setUser(JSON.parse(userSession));
-    else router.push("/login");
+    if (userSession) {
+      setUser(JSON.parse(userSession));
+    } else {
+      router.push("/login");
+    }
   }, [router]);
 
   const userDocRef = useMemoFirebase(() => user?.id ? doc(db, "users", user.id) : null, [db, user?.id]);
@@ -106,16 +109,17 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 bg-gray-100/30 px-6 py-2 rounded-full border border-gray-100 shadow-inner">
+          {/* الكبسولة الموحدة الشفافة - اقصى اليسار */}
+          <div className="flex items-center gap-6 px-2">
              <button 
                onClick={() => setSettingsOpen(true)} 
-               className="text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none"
+               className="text-[#002d4d] hover:text-blue-600 transition-all active:scale-90 outline-none p-2"
              >
                <Settings className="h-6 w-6" />
              </button>
              <button 
                onClick={() => router.push("/home")} 
-               className="text-[#002d4d] hover:text-[#f9a885] transition-all active:scale-90 outline-none"
+               className="text-[#002d4d] hover:text-[#f9a885] transition-all active:scale-90 outline-none p-2"
              >
                <ChevronLeft className="h-7 w-7" />
              </button>
