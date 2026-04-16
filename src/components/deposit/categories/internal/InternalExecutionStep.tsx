@@ -26,8 +26,8 @@ interface InternalExecutionStepProps {
 }
 
 /**
- * @fileOverview مركز الاستلام الداخلي المطور v2.2 - تحديث لغة الواجهة
- * تم تحديث العنوان الرئيسي وتثبيت التطهير اللغوي للمصطلحات المحظورة.
+ * @fileOverview محطة الاستلام المباشر v2.3 - Simplified UI
+ * تم تبسيط العناوين وتطهير الواجهة من أيقونات الرأس المتكررة.
  */
 export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   const handleCopy = (text: string, type: 'id' | 'link') => {
     navigator.clipboard.writeText(text);
     if (type === 'id') {
-      setCopyStatus("تم النسخ");
+      setCopyStatus("تم النسخ ✅");
       setTimeout(() => setCopyStatus(null), 2000);
     } else {
       setLinkCopied(true);
@@ -52,10 +52,10 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-700 font-body text-right" dir="rtl">
       
-      {/* 1. Header Section - Updated Content */}
+      {/* 1. Header Section - Clean & Direct */}
       <section className="flex items-center justify-between px-2">
          <div className="space-y-0.5">
-            <h3 className="text-xl font-black text-[#002d4d]">شارك رمز الدفع واستلم الأموال من مستخدمي Namix الاخرين</h3>
+            <h3 className="text-xl font-black text-[#002d4d]">الاستلام المباشر من مستخدمي Namix</h3>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Namix Internal Transfer</p>
          </div>
          <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[8px] px-3 py-1 rounded-full shadow-inner">
@@ -77,6 +77,9 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                  {copyStatus ? <Check size={20} className="text-emerald-500" /> : <Copy size={20} />}
                </button>
             </div>
+            {copyStatus && (
+              <p className="text-[9px] font-black text-emerald-600 animate-in fade-in slide-in-from-top-1">{copyStatus}</p>
+            )}
 
             <Button 
               onClick={() => setIsShareOpen(true)}
@@ -122,7 +125,7 @@ export function InternalExecutionStep({ dbUser }: InternalExecutionStepProps) {
                   <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Generate URL</p>
                </div>
             </div>
-            <ChevronLeft className="h-5 w-5 text-gray-300 group-hover:text-[#002d4d] transition-all" />
+            <ChevronLeft className="h-5 w-5 text-gray-200 group-hover:text-[#002d4d] transition-all" />
          </button>
       </section>
 
