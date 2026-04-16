@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   ChevronLeft,
   Rocket,
-  CheckCircle2
+  CheckCircle2,
+  Timer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,7 +44,7 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
   const displayInvestments = useMemo(() => {
     if (!investments) return [];
     return investments.filter(inv => {
-      // إظهار العقود النشطة فقط (والتي ستبقى نشطة لـ 5 ثوانٍ بعد انتهائها بسبب تأخير المعالجة)
+      // إظهار العقود النشطة فقط
       if (inv.status === 'active') return true;
       return false;
     }).slice(0, 5);
@@ -62,6 +63,19 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
       const accrued = (Math.min(Math.max(elapsedMs / totalMs, 0), 1) * expectedProfit);
       return { percent, accrued };
     } catch (e) { return { percent: 0, accrued: 0 }; }
+  };
+
+  const getCountdown = (endTime: string) => {
+    const end = new Date(endTime).getTime();
+    const diff = end - now.getTime();
+    if (diff <= 0) return "00:00:00:00";
+    
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    return `${d}ي ${h}س ${m}د ${s}ث`;
   };
 
   return (
@@ -98,14 +112,26 @@ export function InvestmentInventory({ investments, isLoading, now }: InvestmentI
                         <motion.circle cx="40" cy="40" r="36" stroke={isCompleted ? "#10b981" : "#f9a885"} strokeWidth="3" fill="transparent" strokeDasharray={circumference} animate={{ strokeDashoffset }} transition={{ duration: 1 }} strokeLinecap="round" />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                         {isCompleted ? <CheckCircle2 size={28} className="text-emerald-400" /> : <Rocket size={26} className="text-white transform -rotate-45" />}
+                         {isCompleted ? (
+                           <CheckCircle2 size={28} className="text-emerald-400" />
+                         ) : (
+                           <motion.div
+                             animate={{ y: [0, -4, 0] }}
+                             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                           >
+                             <Rocket size={26} className="text-white transform -rotate-45" />
+                           </motion.div>
+                         )}
                       </div>
                     </div>
 
                     <div className="flex-1 space-y-2.5 min-w-0">
                       <div className="text-right">
                         <h4 className="text-[13px] font-normal truncate max-w-[140px] text-white">{inv.planTitle}</h4>
-                        <p className="text-[8px] text-white/40 uppercase mt-1">المعرف: {inv.id.slice(-6).toUpperCase()}</p>
+                        <div className="flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase mt-1 tabular-nums">
+                           <Timer size={10} className={cn(isCompleted ? "text-emerald-400" : "text-[#f9a885] animate-pulse")} />
+                           <span>{getCountdown(inv.endTime)}</span>
+                        </div>
                       </div>
                       <div className="flex-1 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between px-4">
                         <span className="text-[8px] text-white/40 uppercase">عائد %{inv.profitPercent}</span>
