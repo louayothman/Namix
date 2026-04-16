@@ -22,18 +22,12 @@ import { FinancialSection } from "@/components/profile/FinancialSection";
 import { SupportSection } from "@/components/profile/SupportSection";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SettingsHubDialog } from "@/components/profile/SettingsHubDialog";
-import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
-import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
-import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
   const [referralCount, setReferralCount] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [pinSetupOpen, setPinSetupOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
@@ -91,8 +85,7 @@ function ProfileContent() {
 
   useEffect(() => {
     const action = searchParams.get("action");
-    if (action === "setup-pin") setPinSetupOpen(true);
-    if (action === "verify") setEditProfileOpen(true);
+    if (action === "setup-pin" || action === "verify") setSettingsOpen(true);
   }, [searchParams]);
 
   if (!user) return (
@@ -114,16 +107,16 @@ function ProfileContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 bg-gray-100/50 p-1.5 rounded-full border border-gray-100">
+          <div className="flex items-center gap-2 bg-gray-100/30 p-1.5 rounded-full border border-gray-100 shadow-inner">
              <button 
                onClick={() => setSettingsOpen(true)} 
-               className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:text-blue-600"
+               className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:bg-white hover:shadow-sm"
              >
                <Settings className="h-5 w-5 md:h-5 md:w-5" />
              </button>
              <button 
-               onClick={() => router.back()} 
-               className="h-10 w-10 md:h-11 md:w-11 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:text-blue-600"
+               onClick={() => router.push("/home")} 
+               className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:bg-white hover:shadow-sm"
              >
                <ChevronLeft className="h-6 w-6 md:h-6 md:w-6" />
              </button>
@@ -152,10 +145,13 @@ function ProfileContent() {
            </div>
         </div>
 
-        <SettingsHubDialog open={settingsOpen} onOpenChange={setSettingsOpen} onOpenEdit={() => setEditProfileOpen(true)} onOpenPassword={() => setChangePasswordOpen(true)} onOpenPin={() => setPinSetupOpen(true)} />
-        <EditProfileDialog open={editProfileOpen} onOpenChange={setEditProfileOpen} user={user} dbUser={dbUser} onSuccess={() => setProfileSuccess(true)} />
-        <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} userId={user.id} dbUser={dbUser} />
-        <PinSetupDialog open={pinSetupOpen} onOpenChange={setPinSetupOpen} dbUser={dbUser} />
+        <SettingsHubDialog 
+          open={settingsOpen} 
+          onOpenChange={setSettingsOpen} 
+          user={user}
+          dbUser={dbUser}
+          onProfileUpdate={() => setProfileSuccess(true)}
+        />
 
         <SuccessDialog open={profileSuccess} onOpenChange={setProfileSuccess} title="تم تحديث الهوية" description="تم تأمين وحفظ بياناتك الشخصية المحدثة بنجاح." icon={ShieldCheck} type="profile" />
         <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
