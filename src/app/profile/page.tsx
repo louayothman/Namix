@@ -4,7 +4,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
-import { ChevronRight, Settings, Loader2, ShieldCheck, Zap, ZapOff, Gift, Coins, Sparkles } from "lucide-react";
+import { ChevronLeft, Settings, Loader2, Sparkles } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
@@ -73,22 +73,30 @@ function ProfileContent() {
   return (
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-32 font-body text-right" dir="rtl">
+        {/* Header with Unified Capsule */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 md:gap-5">
-             <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md">
-               <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
-             </button>
-             <div className="space-y-0.5">
-               <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
-               <div className="flex items-center gap-2 text-blue-500 font-black text-[7px] md:text-[9px] uppercase tracking-widest">
-                  <Sparkles size={10} className="text-[#f9a885]" />
-                  Sovereign Account Control
-               </div>
-             </div>
+          <div className="space-y-0.5">
+            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">ملفي الشخصي</h1>
+            <div className="flex items-center gap-2 text-blue-500 font-black text-[7px] md:text-[9px] uppercase tracking-widest">
+               <Sparkles size={10} className="text-[#f9a885]" />
+               Sovereign Account Control
+            </div>
           </div>
-          <button onClick={() => setSettingsOpen(true)} className="h-10 w-10 md:h-12 md:w-12 rounded-[18px] md:rounded-[22px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-[#001d33]">
-            <Settings className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
+
+          <div className="flex items-center gap-1.5 bg-gray-100/50 p-1.5 rounded-[24px] border border-gray-100 shadow-inner">
+             <button 
+               onClick={() => setSettingsOpen(true)} 
+               className="h-10 w-10 md:h-11 md:w-11 rounded-xl md:rounded-[18px] bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all hover:bg-[#001d33]"
+             >
+               <Settings className="h-5 w-5 md:h-5 md:w-5" />
+             </button>
+             <button 
+               onClick={() => router.back()} 
+               className="h-10 w-10 md:h-11 md:w-11 rounded-xl md:rounded-[18px] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-90 transition-all hover:shadow-md"
+             >
+               <ChevronLeft className="h-6 w-6 md:h-6 md:w-6" />
+             </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
