@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ShieldCheck, Fingerprint, Zap, Loader2, ShieldAlert, Sparkles, CheckCircle2 } from "lucide-react";
+import { Fingerprint, Loader2, ShieldAlert, ShieldCheck, Zap, Sparkles, CheckCircle2 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,13 +24,49 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
 
   useEffect(() => {
     const checkSupport = async () => {
-      // التحقق من دعم الجهاز للمصادقة الحيوية (بصمة/وجه)
       const supported = !!(window.PublicKeyCredential && 
         await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
       setIsSupported(supported);
     };
     checkSupport();
   }, []);
+
+  const triggerNativeAuth = async () => {
+    // تحدي عشوائي نانوي لتشغيل حساسات الجهاز
+    const challenge = new Uint8Array(32);
+    window.crypto.getRandomValues(challenge);
+    
+    const options: any = {
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: "required",
+        authenticatorSelection: {
+          authenticatorAttachment: "platform",
+          userVerification: "required"
+        }
+      }
+    };
+
+    // هذا السطر هو ما يفتح واجهة بصمة الوجه أو الأصبع الرسمية للجهاز
+    if (dbUser?.isBiometricEnabled) {
+      // إذا كان مفعلاً ونريد الإلغاء، نستخدم get للتحقق
+      return await navigator.credentials.get(options);
+    } else {
+      // إذا كان غير مفعل ونريد التفعيل، نستخدم create لبناء الهوية الحيوية
+      const createOptions = {
+        ...options.publicKey,
+        rp: { name: "Namix Protocol" },
+        user: {
+          id: Uint8Array.from(dbUser.id, c => c.charCodeAt(0)),
+          name: dbUser.email || "user@namix.pro",
+          displayName: dbUser.displayName || "Investor",
+        },
+        pubKeyCredParams: [{ alg: -7, type: "public-key" }]
+      };
+      return await navigator.credentials.create({ publicKey: createOptions });
+    }
+  };
 
   const handleToggle = async (val: boolean) => {
     if (!dbUser?.id) return;
@@ -40,42 +76,20 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
     hapticFeedback.medium();
 
     try {
-      // بروتوكول طلب البصمة/الوجه الحقيقي من الجهاز
-      if (window.PublicKeyCredential) {
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        // إنشاء خيارات تطلب المصادقة الحيوية الصرفة
-        const options: any = {
-          publicKey: {
-            challenge,
-            timeout: 60000,
-            userVerification: "required", // إجباري استخدام البصمة أو الوجه
-            authenticatorSelection: {
-              authenticatorAttachment: "platform", // استخدام حساس الجهاز نفسه فقط
-              userVerification: "required"
-            }
-          }
-        };
-
-        // فتح واجهة الجهاز الرسمية (FaceID / Fingerprint)
-        // ملاحظة: المتصفح قد يعرض كلمة "مفتاح مرور" كترجمة تقنية للبصمة في الويب
-        await navigator.credentials.create(options);
-        
-        // تحديث قاعدة البيانات عند نجاح البصمة
-        await updateDoc(doc(db, "users", dbUser.id), { 
-          isBiometricEnabled: val,
-          updatedAt: new Date().toISOString()
-        });
-        
-        hapticFeedback.success();
-        setNotice({ 
-          type: 'success', 
-          text: val ? "تم تفعيل حماية البصمة بنجاح." : "تم تعطيل الحماية الحيوية."
-        });
-      } else {
-        throw new Error("Local auth not supported");
-      }
+      // فتح واجهة الجهاز الرسمية
+      await triggerNativeAuth();
+      
+      // التحديث في قاعدة البيانات بعد نجاح المصادقة الحيوية
+      await updateDoc(doc(db, "users", dbUser.id), { 
+        isBiometricEnabled: val,
+        updatedAt: new Date().toISOString()
+      });
+      
+      hapticFeedback.success();
+      setNotice({ 
+        type: 'success', 
+        text: val ? "تم تفعيل حماية البصمة بنجاح." : "تم تعطيل الحماية الحيوية."
+      });
 
       setTimeout(() => setNotice(null), 3000);
     } catch (e: any) {
@@ -92,7 +106,7 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
 
   if (isSupported === false) {
     return (
-      <div className="space-y-8 animate-in fade-in text-center py-10 font-body">
+      <div className="space-y-8 animate-in fade-in text-center py-10 font-body" dir="rtl">
         <div className="h-20 w-20 rounded-[32px] bg-red-50 flex items-center justify-center mx-auto border border-red-100 shadow-inner">
            <ShieldAlert className="h-10 w-10 text-red-500" />
         </div>

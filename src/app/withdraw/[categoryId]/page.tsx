@@ -25,8 +25,7 @@ import {
   Minus,
   Copy,
   ScanQrCode,
-  X,
-  FaceIcon
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -139,10 +138,28 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     if (!dbUser?.isBiometricEnabled) return;
     setBiometricLoading(true);
     hapticFeedback.medium();
+    
     try {
-      // Simulate Biometric Auth (Simplified)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // استدعاء واجهة البصمة الحقيقية للجهاز
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
       
+      const options: any = {
+        publicKey: {
+          challenge,
+          timeout: 60000,
+          userVerification: "required",
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required"
+          }
+        }
+      };
+
+      // إذا نجح السطر التالي، فهذا يعني أن المستخدم وضع بصمته بنجاح
+      await navigator.credentials.get(options);
+      
+      // تنفيذ التحويل باستخدام رمز PIN المخزن (بشكل آلي خلف الكواليس بعد نجاح البصمة)
       const res = await executeInternalTransfer(dbUser.id, recipient.id, Number(amount), dbUser.securityPin);
       if (res.success) {
         setTransactionHash(res.hash);
@@ -153,7 +170,9 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
         hapticFeedback.error();
       }
     } catch (err) {
+      console.error("Biometric Fail:", err);
       hapticFeedback.error();
+      setError("فشل التحقق الحيوي. يرجى استخدام رمز PIN.");
     } finally {
       setBiometricLoading(false);
     }
@@ -238,11 +257,11 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                  <div className="space-y-4">
                     <div className="flex items-center gap-3">
                        <div className="relative flex-1">
-                          <Input 
+                          <input 
                             value={identifier} 
                             onChange={e => {setIdentifier(e.target.value); setError(null);}} 
                             placeholder="ID المستخدم أو البريد الإلكتروني..." 
-                            className="h-16 rounded-[28px] bg-white border-gray-100 shadow-inner px-8 text-right font-black text-sm focus-visible:ring-2 focus-visible:ring-blue-500" 
+                            className="h-16 w-full rounded-[28px] bg-white border border-gray-100 shadow-inner px-8 text-right font-black text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                           />
                           <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-200" />
                        </div>
@@ -251,15 +270,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                          onClick={() => setIsScanning(true)}
                          className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group"
                        >
-                          <div className="relative flex items-center justify-center">
-                             <div className="absolute inset-0 border-2 border-gray-300 rounded-lg scale-[0.6]" />
-                             <Scan size={24} className="text-[#002d4d] group-hover:scale-110 transition-transform" />
-                             <motion.div 
-                               animate={{ y: [-8, 8, -8] }} 
-                               transition={{ duration: 2, repeat: Infinity }}
-                               className="absolute h-[1px] w-5 bg-[#f9a885] shadow-[0_0_8px_#f9a885]" 
-                             />
-                          </div>
+                          <Scan size={24} className="text-[#002d4d] group-hover:scale-110 transition-transform" />
                        </button>
                     </div>
                     {error && <p className="text-red-500 text-[10px] font-bold pr-4">{error}</p>}
@@ -299,7 +310,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                        </button>
 
                        <div className="flex-1 relative">
-                          <Input 
+                          <input 
                             type="number" 
                             value={amount} 
                             onChange={e => {
@@ -308,7 +319,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                               setAmount(val); 
                               setError(null);
                             }} 
-                            className="h-14 rounded-[24px] bg-white border-gray-100 shadow-inner text-center font-black text-2xl text-[#002d4d] tabular-nums" 
+                            className="h-14 w-full rounded-[24px] bg-white border border-gray-100 shadow-inner text-center font-black text-2xl text-[#002d4d] tabular-nums outline-none" 
                             placeholder="0.00" 
                           />
                           <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-50" />
