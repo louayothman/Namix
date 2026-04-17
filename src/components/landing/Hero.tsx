@@ -11,8 +11,8 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v9.0 - Refined Minimalist Layout
- * تم تطهير الهيدر من تكرار الاسم وتصحيح زر التنفيذ مع سهم خلفية عملاق فقط.
+ * @fileOverview NAMIX ELITE HERO v10.0 - Fully Responsive Sovereign Layout
+ * واجهة الهيرو المطورة لتتوافق مع كافة الشاشات مع أوسمة صدارة ثلاثية مؤطرة وهيدر مينيماليست.
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
@@ -87,7 +87,7 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-4 md:px-12 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Integrated Header - Minimalism with Logo only */}
+      {/* 1. Institutional Corner Header */}
       <div className="absolute top-8 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
@@ -120,7 +120,7 @@ export function Hero() {
 
       <div className="max-w-7xl mx-auto w-full flex flex-col items-center text-center space-y-12 md:space-y-20 py-12 relative z-10">
         
-        {/* 2. Counter Matrix */}
+        {/* 2. Massive Trust Counter */}
         <div className="space-y-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -142,13 +142,13 @@ export function Hero() {
           </motion.h2>
         </div>
 
-        {/* 3. Framed Stats Matrix - Symmetrical Laurels */}
+        {/* 3. Triple Framed Stats Hub - Sovereign Symmetrical Row */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full flex flex-row items-center justify-center gap-4 md:gap-14 lg:gap-24 flex-nowrap overflow-x-auto scrollbar-none py-6 px-4"
         >
-           {/* Stat 1: Customer Assets */}
+           {/* Stat 1: Client Assets */}
            <div className="flex items-center gap-0 group shrink-0">
               <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
               <div className="space-y-0 text-center px-1 md:px-3">
@@ -179,11 +179,11 @@ export function Hero() {
            </div>
         </motion.div>
 
-        {/* 4. Reward & Execution Hub */}
+        {/* 4. Execution Hub - Smart Call to Action */}
         <div className="flex flex-col items-center gap-6 w-full">
            
            <div className="space-y-8 w-full flex flex-col items-center">
-              {/* Reward Text */}
+              {/* Clean Reward Node */}
               <div className="flex items-center gap-3">
                 <Gift className="h-5 w-5 text-[#f9a885]" />
                 <p className="text-sm md:text-lg font-black text-[#002d4d] tracking-normal">
@@ -197,7 +197,7 @@ export function Hero() {
                   whileTap={{ scale: 0.98 }}
                   className="h-16 w-full rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-lg shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Huge Transparent Background Arrow Only */}
+                  {/* Phantom Giant Background Arrow */}
                   <motion.div 
                     animate={{ x: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -213,7 +213,7 @@ export function Hero() {
 
            <div className="flex items-center justify-center gap-3 opacity-20 select-none pt-8">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v9.0</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v10.0</p>
            </div>
         </div>
 
