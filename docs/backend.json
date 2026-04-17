@@ -13,6 +13,9 @@
         "role": { "type": "string", "enum": ["user", "admin"] },
         "displayName": { "type": "string" },
         "gender": { "type": "string" },
+        "birthDate": { "type": "string", "format": "date" },
+        "isVerified": { "type": "boolean" },
+        "isBiometricEnabled": { "type": "boolean", "description": "Whether the user has enabled biometric authentication." },
         "password": { "type": "string" },
         "securityPin": { "type": "string" },
         "totalBalance": { "type": "number" },
@@ -20,28 +23,13 @@
         "totalProfits": { "type": "number" },
         "referralCode": { "type": "string" },
         "referredBy": { "type": "string" },
-        "assignedWallets": { 
-          "type": "object",
-          "description": "Unique permanent addresses for deposits (e.g., { 'usdttrc20': 'TX...' })"
-        },
-        "nowPaymentsId": { "type": "string" },
+        "isAutoInvestEnabled": { "type": "boolean" },
+        "favoriteSymbols": { "type": "array", "items": { "type": "string" } },
         "lastActive": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "email", "role", "namixId"]
-    },
-    "MarketConnectivity": {
-      "title": "MarketConnectivity",
-      "type": "object",
-      "description": "Configuration for external financial data providers.",
-      "properties": {
-        "binanceApiKey": { "type": "string" },
-        "binanceApiSecret": { "type": "string" },
-        "nowPaymentsApiKey": { "type": "string" },
-        "nowPaymentsIpnSecret": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
     }
   },
   "auth": {
@@ -54,13 +42,6 @@
         "definition": {
           "entityName": "User",
           "description": "Stores user profiles."
-        }
-      },
-      {
-        "path": "/system_settings/connectivity",
-        "definition": {
-          "entityName": "MarketConnectivity",
-          "description": "Global API connectivity settings."
         }
       }
     ]

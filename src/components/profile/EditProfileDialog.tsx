@@ -109,14 +109,13 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
             border: 1px solid transparent;
             transition: all 0.3s ease;
+            gap: 12px;
           }
           .PhoneInput:focus-within {
             border-color: rgba(59, 130, 246, 0.1);
             background-color: white;
             box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), inset 0 2px 4px 0 rgba(0, 0, 0, 0.01);
             outline: none;
-            ring: 4px;
-            --tw-ring-color: rgba(59, 130, 246, 0.05);
           }
           .PhoneInputInput {
             flex: 1;
@@ -135,25 +134,13 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
             margin-left: 12px;
             padding-left: 12px;
             border-left: 1px solid #f1f5f9;
-            gap: 8px;
+            gap: 10px;
             display: flex;
             align-items: center;
           }
-          .PhoneInputCountrySelect {
-            cursor: pointer;
-          }
-          /* Custom styling for date input */
-          input[type="date"]::-webkit-calendar-picker-indicator {
-            background: transparent;
-            bottom: 0;
-            color: transparent;
-            cursor: pointer;
-            height: auto;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: auto;
+          .PhoneInputCountrySelectArrow {
+            opacity: 0.3;
+            margin-left: 4px;
           }
         `}</style>
 
@@ -193,7 +180,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                       type="date" 
                       value={editData.birthDate} 
                       onChange={e => setEditData({...editData, birthDate: e.target.value})} 
-                      className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all appearance-none" 
+                      className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all" 
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 pointer-events-none" />
                   </div>
@@ -201,7 +188,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">رقم الهاتف</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">رقم الهاتف للهوية</Label>
                 <div className="relative">
                   <PhoneInput 
                     international 

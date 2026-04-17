@@ -25,7 +25,8 @@ import {
   Minus,
   Copy,
   ScanQrCode,
-  X
+  X,
+  FaceIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,11 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { QRScanner } from "@/components/withdraw/QRScanner";
-
-/**
- * @fileOverview محطة إرسال المبالغ الداخلية v6.0 - Advanced Capture Update
- * تم دمج مُفاعل مسح الباركود التكتيكي لالتقاط المعرفات الرقمية آلياً.
- */
+import { hapticFeedback } from "@/lib/haptic-engine";
 
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = use(params);
@@ -51,7 +48,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
   const [dbUser, setDbUser] = useState<any>(null);
   const [step, setStep] = useState<'search' | 'amount' | 'verify' | 'success'>('search');
   
-  // UI & Capture States
   const [isScanning, setIsScanning] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [recipient, setRecipient] = useState<any>(null);
@@ -60,6 +56,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
   const [transactionHash, setTransactionHash] = useState("");
   
   const [loading, setLoading] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
 
@@ -80,7 +77,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     }
   }, [db]);
 
-  // بروتوكول المزامنة الاستباقية: البحث التلقائي إذا وجد id في الرابط
   useEffect(() => {
     const targetId = searchParams.get("id");
     if (targetId && categoryId === 'internal' && !recipient && !loading) {
@@ -139,6 +135,30 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     setStep('verify');
   };
 
+  const handleBiometricVerify = async () => {
+    if (!dbUser?.isBiometricEnabled) return;
+    setBiometricLoading(true);
+    hapticFeedback.medium();
+    try {
+      // Simulate Biometric Auth (Simplified)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const res = await executeInternalTransfer(dbUser.id, recipient.id, Number(amount), dbUser.securityPin);
+      if (res.success) {
+        setTransactionHash(res.hash);
+        hapticFeedback.success();
+        setStep('success');
+      } else {
+        setError(res.error);
+        hapticFeedback.error();
+      }
+    } catch (err) {
+      hapticFeedback.error();
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
   const handleFinalExecute = async () => {
     if (pin.length < 6 || !dbUser) return;
     setLoading(true);
@@ -184,7 +204,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     <Shell hideMobileNav>
       <div className="flex flex-col min-h-screen bg-[#fcfdfe] font-body text-right" dir="rtl">
         
-        {/* Header Strip */}
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-5 flex items-center justify-between">
            <div className="flex items-center gap-4">
               <div className="grid grid-cols-2 gap-1 scale-90 opacity-80">
@@ -233,7 +252,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                          className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group"
                        >
                           <div className="relative flex items-center justify-center">
-                             {/* Tactical Scan Icon */}
                              <div className="absolute inset-0 border-2 border-gray-300 rounded-lg scale-[0.6]" />
                              <Scan size={24} className="text-[#002d4d] group-hover:scale-110 transition-transform" />
                              <motion.div 
@@ -311,7 +329,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
                  <div className="grid gap-3">
                     <Button onClick={handleValidateAmount} className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95">المتابعة للتحقق</Button>
-                    <button onClick={() => { setRecipient(null); setStep('search'); setIdentifier(""); }} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-4">تغيير المستلم</button>
+                    <button onClick={() => { setRecipient(null); setStep('search'); setIdentifier(""); }} className="text-[10px] font-black text-gray-300 uppercase tracking-widest py-4">تغيير المستلم</button>
                  </div>
               </motion.div>
             )}
@@ -344,8 +362,20 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
 
                  <div className="grid gap-4">
                     <Button onClick={handleFinalExecute} disabled={loading || pin.length < 6} className="h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-3">
-                       {loading ? <Loader2 className="animate-spin" /> : <><span>تأكيد وإرسال المبالغ</span> <ShieldCheck size={24} /></>}
+                       {loading ? <Loader2 className="animate-spin h-6 w-6" /> : <><span>تأكيد وإرسال المبالغ</span> <ShieldCheck size={24} /></>}
                     </Button>
+                    
+                    {dbUser?.isBiometricEnabled && (
+                      <Button 
+                        onClick={handleBiometricVerify} 
+                        disabled={biometricLoading}
+                        variant="outline" 
+                        className="h-16 rounded-full border-gray-100 bg-white text-[#002d4d] font-black text-base shadow-sm active:scale-95 transition-all flex items-center justify-center gap-3"
+                      >
+                         {biometricLoading ? <Loader2 className="animate-spin" /> : <>استخدام بصمة الوجه / الإصبع <Fingerprint size={24} className="text-blue-500" /></>}
+                      </Button>
+                    )}
+
                     <button onClick={() => setStep('amount')} className="text-[10px] font-black text-gray-300 uppercase tracking-widest py-4">رجوع</button>
                  </div>
               </motion.div>

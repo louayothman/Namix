@@ -11,7 +11,8 @@ import {
   Fingerprint, 
   Loader2,
   ChevronLeft,
-  Sparkles
+  ShieldCheck,
+  Zap
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -21,8 +22,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { PinSetupDialog } from "@/components/profile/PinSetupDialog";
+import { BiometricSetup } from "@/components/profile/BiometricSetup";
 
-type SettingsView = 'menu' | 'profile' | 'password' | 'pin';
+type SettingsView = 'menu' | 'profile' | 'password' | 'pin' | 'biometric';
 
 function SettingsContent() {
   const [activeView, setActiveView] = useState<SettingsView>('menu');
@@ -48,6 +50,7 @@ function SettingsContent() {
 
   const menuItems = [
     { id: 'profile', title: "توثيق الهوية", desc: "تحديث البيانات الشخصية", icon: UserCircle, color: "text-blue-500" },
+    { id: 'biometric', title: "الأمان الحيوي", desc: "بصمة الوجه والإصبع للعمليات", icon: Zap, color: "text-[#f9a885]" },
     { id: 'password', title: "كلمة المرور", desc: "تحديث شفرة الدخول", icon: KeyRound, color: "text-orange-500" },
     { id: 'pin', title: "رمز الخزنة", desc: "تأمين العمليات المالية", icon: Fingerprint, color: "text-emerald-500" },
   ];
@@ -56,6 +59,7 @@ function SettingsContent() {
     if (activeView === 'profile') return "توثيق الهوية";
     if (activeView === 'password') return "تغيير كلمة المرور";
     if (activeView === 'pin') return "رمز حماية الخزنة";
+    if (activeView === 'biometric') return "الأمان الحيوي";
     return "إعدادات الحساب";
   };
 
@@ -72,7 +76,6 @@ function SettingsContent() {
   return (
     <div className="w-full max-w-2xl mx-auto pt-10 pb-32 font-body text-right select-none overflow-x-hidden px-1" dir="rtl">
       
-      {/* Unified Header - Title Extreme Right, Back Button Extreme Left */}
       <div className="flex flex-row items-center justify-between border-b border-gray-50 pb-8 px-4">
          <div className="text-right">
             <h1 className="text-2xl font-black text-[#002d4d] leading-none">{getTitle()}</h1>
@@ -152,6 +155,12 @@ function SettingsContent() {
                     open={true} 
                     onOpenChange={() => setActiveView('menu')} 
                     dbUser={dbUser} 
+                  />
+                )}
+                {activeView === 'biometric' && (
+                  <BiometricSetup 
+                    dbUser={dbUser} 
+                    onOpenChange={() => setActiveView('menu')} 
                   />
                 )}
               </motion.div>
