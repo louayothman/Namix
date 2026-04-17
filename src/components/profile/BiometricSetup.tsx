@@ -20,11 +20,11 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
-  const [notice, setNotice] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
 
   useEffect(() => {
     const checkSupport = async () => {
-      // التحقق الفني من دعم المتصفح والجهاز لبروتوكولات الحماية الحيوية
+      // التحقق من دعم الجهاز للمصادقة الحيوية (بصمة/وجه)
       const supported = !!(window.PublicKeyCredential && 
         await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
       setIsSupported(supported);
@@ -36,27 +36,33 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
     if (!dbUser?.id) return;
     
     setLoading(true);
-    setNotice(null);
+    setNotice({ type: 'info', text: "جاري استدعاء حماية الجهاز..." });
     hapticFeedback.medium();
 
     try {
-      // بروتوكول طلب المصادقة الحيوية الحقيقي من نظام تشغيل الجهاز
+      // بروتوكول طلب البصمة/الوجه الحقيقي من الجهاز
       if (window.PublicKeyCredential) {
         const challenge = new Uint8Array(32);
         window.crypto.getRandomValues(challenge);
 
-        const options: CredentialRequestOptions = {
+        // إنشاء خيارات تطلب المصادقة الحيوية الصرفة
+        const options: any = {
           publicKey: {
             challenge,
             timeout: 60000,
-            userVerification: "required",
+            userVerification: "required", // إجباري استخدام البصمة أو الوجه
+            authenticatorSelection: {
+              authenticatorAttachment: "platform", // استخدام حساس الجهاز نفسه فقط
+              userVerification: "required"
+            }
           }
         };
 
-        // هذا السطر يفتح واجهة FaceID أو البصمة الرسمية للجوال/الجهاز
-        await navigator.credentials.get(options);
+        // فتح واجهة الجهاز الرسمية (FaceID / Fingerprint)
+        // ملاحظة: المتصفح قد يعرض كلمة "مفتاح مرور" كترجمة تقنية للبصمة في الويب
+        await navigator.credentials.create(options);
         
-        // إذا نجح التحقق (لم يرمِ خطأ)، نقوم بتحديث الحالة في قاعدة البيانات
+        // تحديث قاعدة البيانات عند نجاح البصمة
         await updateDoc(doc(db, "users", dbUser.id), { 
           isBiometricEnabled: val,
           updatedAt: new Date().toISOString()
@@ -65,21 +71,20 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
         hapticFeedback.success();
         setNotice({ 
           type: 'success', 
-          text: val ? "تم تنشيط بروتوكول الحماية الحيوية بنجاح." : "تم تعطيل الحماية الحيوية وإعادة التأمين للـ PIN."
+          text: val ? "تم تفعيل حماية البصمة بنجاح." : "تم تعطيل الحماية الحيوية."
         });
       } else {
-        throw new Error("WebAuthn not supported");
+        throw new Error("Local auth not supported");
       }
 
-      // إخفاء التنبيه تلقائياً بعد فترة لراحة العين
-      setTimeout(() => setNotice(null), 4000);
+      setTimeout(() => setNotice(null), 3000);
     } catch (e: any) {
       hapticFeedback.error();
-      // معالجة حالة الإلغاء من قبل المستخدم أو فشل الحساس
       setNotice({ 
         type: 'error', 
-        text: "لم تكتمل عملية المصادقة الحيوية. يرجى المحاولة مجدداً." 
+        text: "فشلت المصادقة أو تم إلغاء العملية." 
       });
+      setTimeout(() => setNotice(null), 3000);
     } finally {
       setLoading(false);
     }
@@ -93,9 +98,9 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
         </div>
         <div className="space-y-2">
            <h3 className="text-xl font-black text-[#002d4d]">بروتوكول غير مدعوم</h3>
-           <p className="text-xs text-gray-400 font-bold leading-relaxed px-6">عذراً، متصفحك أو جهازك لا يدعم بروتوكولات الحماية الحيوية المتقدمة حالياً.</p>
+           <p className="text-xs text-gray-400 font-bold leading-relaxed px-6">عذراً، هذا الجهاز لا يدعم تقنيات المصادقة الحيوية المباشرة للويب.</p>
         </div>
-        <Button onClick={() => onOpenChange(false)} variant="outline" className="h-12 rounded-full px-10 font-black text-xs">العودة للملف الشخصي</Button>
+        <Button onClick={() => onOpenChange(false)} variant="outline" className="h-12 rounded-full px-10 font-black text-xs">العودة للملف</Button>
       </div>
     );
   }
@@ -117,8 +122,8 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
                   <Fingerprint size={28} />
                </div>
                <div className="text-right space-y-0.5">
-                  <h4 className="text-lg font-black text-[#002d4d]">بصمة الوجه / الإصبع</h4>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sovereign Biometric Vault</p>
+                  <h4 className="text-lg font-black text-[#002d4d]">بصمة الوجه / الأصبع</h4>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Device Native Security</p>
                </div>
             </div>
             <div dir="ltr" className="flex items-center gap-4">
@@ -143,11 +148,13 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: -10, height: 0 }}
                 className={cn(
-                  "p-4 rounded-[20px] flex items-center gap-3 relative z-10",
-                  notice.type === 'success' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-orange-50 text-orange-600 border border-orange-100"
+                  "p-4 rounded-[20px] flex items-center gap-3 relative z-10 border transition-colors",
+                  notice.type === 'success' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : 
+                  notice.type === 'info' ? "bg-blue-50 text-blue-600 border-blue-100" :
+                  "bg-orange-50 text-orange-600 border-orange-100"
                 )}
               >
-                 {notice.type === 'success' ? <CheckCircle2 size={14} /> : <ShieldAlert size={14} />}
+                 {notice.type === 'success' ? <CheckCircle2 size={14} /> : <Zap size={14} className="animate-pulse" />}
                  <p className="text-[10px] font-black tracking-normal">{notice.text}</p>
               </motion.div>
             )}
@@ -155,29 +162,19 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
 
          <div className="p-6 bg-white/50 rounded-[32px] border border-white shadow-sm space-y-4 relative z-10">
             <div className="flex items-center gap-2 text-blue-600">
-               <Zap size={14} className="fill-current" />
-               <span className="text-[10px] font-black uppercase tracking-widest">الاستخدامات الموثقة</span>
+               <ShieldCheck size={14} className="fill-current" />
+               <span className="text-[10px] font-black uppercase tracking-widest">تأمين العمليات</span>
             </div>
             <p className="text-[11px] font-bold text-gray-500 leading-[2.2]">
-               عند تفعيل هذا الخيار، سيقوم النظام بطلب بصمة وجهك أو إصبعك بدلاً من رمز PIN التقليدي عند تنفيذ عمليات السحب أو الصفقات الحساسة. لا يمكن تفعيل أو تعطيل هذا الخيار إلا بموافقة الجهاز الحيوية.
+               تفعيل هذا الخيار يربط حسابك بنظام الحماية المعتمد في جهازك. سيتم طلب البصمة لتأكيد عمليات السحب والتداول الحساسة كبديل آمن وسريع لرمز PIN.
             </p>
-         </div>
-      </div>
-
-      <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100 flex items-start gap-6">
-         <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
-            <ShieldCheck className="h-5 w-5 text-blue-600" />
-         </div>
-         <div className="space-y-1 pt-1 text-right">
-            <p className="text-xs font-black text-[#002d4d]">حماية سيادية مشفرة</p>
-            <p className="text-[10px] font-bold text-blue-800/60 leading-relaxed">بصمتك الحيوية لا تُخزن في خوادمنا نهائياً؛ يتم التحقق منها محلياً داخل بيئة أمان الجهاز المعتمدة لضمان الخصوصية المطلقة.</p>
          </div>
       </div>
 
       <div className="pt-4 flex flex-col items-center gap-4 opacity-20">
          <div className="flex items-center gap-2">
             <Sparkles size={12} className="text-[#f9a885]" />
-            <p className="text-[9px] font-black uppercase tracking-[0.5em]">Identity Secured</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.5em]">Biometric Vault Active</p>
          </div>
       </div>
     </div>
