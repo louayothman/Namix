@@ -10,7 +10,8 @@ import {
   KeyRound, 
   Fingerprint, 
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  Sparkles
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -69,10 +70,10 @@ function SettingsContent() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 px-4 pt-10 pb-32 font-body text-right select-none" dir="rtl">
+    <div className="w-full max-w-2xl mx-auto pt-10 pb-32 font-body text-right select-none overflow-x-hidden" dir="rtl">
       
-      {/* Unified Minimal Header - Button on the far Left */}
-      <div className="flex flex-row items-center justify-between border-b border-gray-50 pb-8">
+      {/* Unified Header - Edge to Edge with Padding */}
+      <div className="flex flex-row items-center justify-between border-b border-gray-50 pb-8 px-6">
          <button 
            onClick={handleBack}
            className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm transition-all"
@@ -94,25 +95,26 @@ function SettingsContent() {
                 initial={{ opacity: 0, y: 10 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-1"
+                className="space-y-0"
               >
                 {menuItems.map((item) => (
                   <button 
                     key={item.id}
                     onClick={() => setActiveView(item.id as any)}
-                    className="w-full relative overflow-hidden flex items-center justify-between py-8 px-2 border-b border-gray-50 transition-all group active:scale-[0.98]"
+                    className="w-full relative overflow-hidden flex items-center justify-between py-10 px-8 border-b border-gray-50 transition-all group active:bg-gray-50/50"
                   >
-                     <div className={cn("absolute -bottom-4 -left-4 opacity-5 transition-all duration-700 pointer-events-none", item.color)}>
-                        <item.icon size={100} />
+                     {/* Horizontal Card Background Ghost Icon */}
+                     <div className={cn("absolute -bottom-6 -left-6 opacity-5 transition-all duration-1000 pointer-events-none group-hover:scale-125 group-hover:rotate-12", item.color)}>
+                        <item.icon size={140} strokeWidth={1} />
                      </div>
 
                      <div className="relative z-10 text-right">
-                        <h3 className="font-black text-lg text-[#002d4d] group-hover:text-blue-600 transition-colors">{item.title}</h3>
-                        <p className="text-[10px] text-gray-400 font-bold">{item.desc}</p>
+                        <h3 className="font-black text-xl text-[#002d4d] group-hover:text-blue-600 transition-colors">{item.title}</h3>
+                        <p className="text-[11px] text-gray-400 font-bold mt-1.5">{item.desc}</p>
                      </div>
 
-                     <div className="relative z-10 h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
-                        <ChevronLeft className="h-4 w-4" />
+                     <div className="relative z-10 h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shadow-sm">
+                        <ChevronLeft className="h-5 w-5" />
                      </div>
                   </button>
                 ))}
@@ -123,7 +125,7 @@ function SettingsContent() {
                 initial={{ opacity: 0, x: 20 }} 
                 animate={{ opacity: 1, x: 0 }} 
                 exit={{ opacity: 0, y: 10 }}
-                className="relative pt-6"
+                className="relative pt-10 px-8"
               >
                 {activeView === 'profile' && (
                   <EditProfileDialog 
@@ -154,9 +156,12 @@ function SettingsContent() {
          </AnimatePresence>
       </div>
 
-      <div className="flex flex-col items-center gap-2 pt-16 opacity-10">
-         <p className="text-[8px] font-black text-[#002d4d] text-center">NAMIX SECURITY CORE</p>
-         <div className="h-[1px] w-12 bg-gray-300" />
+      <div className="flex flex-col items-center gap-2 pt-20 opacity-10">
+         <div className="flex items-center gap-3">
+            <div className="h-[0.5px] w-8 bg-gray-300" />
+            <p className="text-[8px] font-black text-[#002d4d] text-center uppercase">NAMIX SECURITY CORE</p>
+            <div className="h-[0.5px] w-8 bg-gray-300" />
+         </div>
       </div>
     </div>
   );
