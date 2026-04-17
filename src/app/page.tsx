@@ -21,11 +21,10 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v25.0 - Ultimate Minimalism
- * واجهة استثمارية عالمية مطهرة تماماً من المصطلحات المعقدة، تركز على المحفظة والنمو.
+ * @fileOverview بوابة ناميكس الاستثمارية v26.0 - Luxury Minimalism (Right Aligned)
+ * واجهة استثمارية عالمية تعتمد محاذاة اليمين للشاشات الكبيرة مع توزيع استراتيجي للعناصر.
  */
 export default function LandingPage() {
-  const db = useFirestore();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Dialog States
@@ -57,7 +56,7 @@ export default function LandingPage() {
 
       <Navbar onAboutClick={() => setIsAboutOpen(true)} />
 
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center pt-24">
+      <main className="relative z-10 flex-1 flex flex-col justify-center">
         <Hero />
       </main>
 
