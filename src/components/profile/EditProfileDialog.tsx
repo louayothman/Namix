@@ -19,7 +19,8 @@ import {
   ShieldCheck, 
   CheckCircle2,
   Zap,
-  Smartphone
+  Smartphone,
+  ChevronLeft
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
@@ -99,7 +100,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
     <div className="text-right space-y-8 animate-in fade-in duration-500 font-body" dir="rtl">
         <style jsx global>{`
           .PhoneInput {
-            background-color: #f9fafb;
+            background-color: rgba(249, 250, 251, 0.5);
             border-radius: 20px;
             padding: 0 16px;
             height: 56px;
@@ -110,9 +111,12 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
             transition: all 0.3s ease;
           }
           .PhoneInput:focus-within {
-            border-color: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.1);
             background-color: white;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), inset 0 2px 4px 0 rgba(0, 0, 0, 0.01);
+            outline: none;
+            ring: 4px;
+            --tw-ring-color: rgba(59, 130, 246, 0.05);
           }
           .PhoneInputInput {
             flex: 1;
@@ -131,11 +135,14 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
             margin-left: 12px;
             padding-left: 12px;
             border-left: 1px solid #f1f5f9;
+            gap: 8px;
+            display: flex;
+            align-items: center;
           }
           .PhoneInputCountrySelect {
             cursor: pointer;
           }
-          /* Custom styling for date input to match others */
+          /* Custom styling for date input */
           input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent;
             bottom: 0;
@@ -154,12 +161,12 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
           {step === 'identity' && (
             <motion.div key="id" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الاسم القانوني</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">الاسم القانوني</Label>
                 <div className="relative">
                   <Input 
                     value={editData.displayName} 
                     onChange={e => setEditData({...editData, displayName: e.target.value})} 
-                    className="h-14 rounded-2xl bg-gray-50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/5 transition-all" 
+                    className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/5 focus-visible:border-blue-100 transition-all" 
                     placeholder="أدخل اسمك بالكامل..." 
                   />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -168,9 +175,9 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الجنس</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">الجنس</Label>
                   <Select value={editData.gender} onValueChange={val => setEditData({...editData, gender: val})}>
-                    <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none px-6 font-black shadow-inner focus:bg-white transition-all">
+                    <SelectTrigger className="h-14 rounded-2xl bg-gray-50/50 border-none px-6 font-black shadow-inner focus:bg-white transition-all">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -180,13 +187,13 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تاريخ الميلاد</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">تاريخ الميلاد</Label>
                   <div className="relative">
                     <Input 
                       type="date" 
                       value={editData.birthDate} 
                       onChange={e => setEditData({...editData, birthDate: e.target.value})} 
-                      className="h-14 rounded-2xl bg-gray-50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all appearance-none" 
+                      className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all appearance-none" 
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 pointer-events-none" />
                   </div>
@@ -194,7 +201,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">رقم الهاتف</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">رقم الهاتف</Label>
                 <div className="relative">
                   <PhoneInput 
                     international 
@@ -211,7 +218,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                   disabled={!isIdentityComplete} 
                   className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all"
                 >
-                  متابعة
+                  متابعة التوثيق
                 </Button>
               </div>
             </motion.div>
