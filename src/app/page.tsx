@@ -20,8 +20,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v28.0 - Pure Hero Edition
- * تم حذف الشريط العلوي (Navbar) للتركيز المطلق على محتوى الهيرو والتحويل المباشر.
+ * @fileOverview بوابة ناميكس الاستثمارية v29.0 - Full Minimalism
+ * تم حذف الشريط العلوي (Navbar) للتركيز المطلق على الهيرو.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,7 +48,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.01)_0%,transparent_70%)] blur-[100px]" />
         
         {/* Giant Logo Aura - العلامة المائية السيادية */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] scale-[2.5] md:scale-[5] select-none pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.015] scale-[2.5] md:scale-[5] select-none pointer-events-none">
            <Logo size="lg" hideText animate={true} />
         </div>
       </div>
