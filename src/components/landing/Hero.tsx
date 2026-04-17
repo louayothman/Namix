@@ -11,14 +11,14 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v11.0 - Dual-Wing Responsive Layout
- * تم تقسيم الهيرو لجناحين في الشاشات الكبيرة: يمين (العداد والإحصائيات) ويسار (المكافأة والزر).
+ * @fileOverview NAMIX ELITE HERO v12.0 - Precision Background Edition
+ * تم تصغير السهم الخلفي وتثبيت التوازن التناظري للأوسمة والجناحين.
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-6 h-6 md:w-10 md:h-10 shrink-0", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-8 h-8 md:w-12 md:h-12 shrink-0", mirrored && "scale-x-[-1]", className)} 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -143,7 +143,7 @@ export function Hero() {
               </motion.h2>
            </div>
 
-           {/* Symmetrical Stats Hub */}
+           {/* Symmetrical Stats Hub - Optimized for Single Row */}
            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -153,7 +153,7 @@ export function Hero() {
                 { label: "أصول العملاء", id: "assets" },
                 { label: "حجم التداول", id: "volume" },
                 { label: "الاستثمارات", id: "invest" }
-              ].map((stat, i) => (
+              ].map((stat) => (
                 <div key={stat.id} className="flex items-center gap-0.5 group shrink-0">
                    <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
                    <div className="space-y-0 text-center px-1">
@@ -183,13 +183,13 @@ export function Hero() {
                   whileTap={{ scale: 0.98 }}
                   className="h-16 md:h-20 w-full rounded-[28px] md:rounded-[40px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Giant Background Arrow */}
+                  {/* Giant Background Arrow - Refined size to 80 */}
                   <motion.div 
                     animate={{ x: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute left-6 md:left-10 opacity-[0.08] pointer-events-none"
                   >
-                    <ChevronLeft size={100} strokeWidth={4} />
+                    <ChevronLeft size={80} strokeWidth={4} />
                   </motion.div>
                   
                   <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "سجل الآن مجاناً"}</span>
@@ -199,7 +199,7 @@ export function Hero() {
 
            <div className="flex items-center justify-center lg:justify-start gap-3 opacity-20 select-none lg:pr-6">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v11.0</p>
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v12.0</p>
            </div>
         </div>
 
