@@ -52,9 +52,9 @@ function SettingsContent() {
   ];
 
   const getTitle = () => {
-    if (activeView === 'profile') return "توثيق الهوية المعتمد";
-    if (activeView === 'password') return "تحديث كلمة المرور";
-    if (activeView === 'pin') return "بروتوكول PIN الخزنة";
+    if (activeView === 'profile') return "توثيق الهوية";
+    if (activeView === 'password') return "تغيير كلمة المرور";
+    if (activeView === 'pin') return "رمز حماية الخزنة";
     return "إعدادات الحساب";
   };
 
@@ -69,21 +69,21 @@ function SettingsContent() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right select-none" dir="rtl">
+    <div className="max-w-2xl mx-auto space-y-8 px-4 pt-10 pb-32 font-body text-right select-none" dir="rtl">
       
-      {/* Integrated Sovereign Header */}
+      {/* Unified Minimal Header - Button on the far Left */}
       <div className="flex flex-row items-center justify-between border-b border-gray-50 pb-8">
-         <div className="text-right">
-            <h1 className="text-2xl font-black text-[#002d4d] leading-none">{getTitle()}</h1>
-            <p className="text-[9px] font-bold text-gray-300 mt-2">Security Hub Node</p>
-         </div>
-
          <button 
            onClick={handleBack}
            className="h-12 w-12 rounded-2xl bg-gray-50 flex items-center justify-center text-[#002d4d] active:scale-90 border border-gray-100 shadow-sm transition-all"
          >
            <ChevronLeft className="h-6 w-6" />
          </button>
+
+         <div className="text-right">
+            <h1 className="text-2xl font-black text-[#002d4d] leading-none">{getTitle()}</h1>
+            <p className="text-[9px] font-bold text-gray-300 mt-2">Security Hub Node</p>
+         </div>
       </div>
 
       <div className="relative min-h-[400px]">
@@ -94,23 +94,25 @@ function SettingsContent() {
                 initial={{ opacity: 0, y: 10 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-1"
               >
                 {menuItems.map((item) => (
                   <button 
                     key={item.id}
                     onClick={() => setActiveView(item.id as any)}
-                    className="w-full relative overflow-hidden flex items-center justify-between p-8 bg-white hover:bg-gray-50 border border-gray-100 rounded-[40px] transition-all group active:scale-[0.98] shadow-sm"
+                    className="w-full relative overflow-hidden flex items-center justify-between py-8 px-2 border-b border-gray-50 transition-all group active:scale-[0.98]"
                   >
-                     <div className={cn("absolute -bottom-6 -left-6 opacity-5 transition-all duration-700 pointer-events-none", item.color)}>
-                        <item.icon size={120} />
+                     <div className={cn("absolute -bottom-4 -left-4 opacity-5 transition-all duration-700 pointer-events-none", item.color)}>
+                        <item.icon size={100} />
                      </div>
+
                      <div className="relative z-10 text-right">
                         <h3 className="font-black text-lg text-[#002d4d] group-hover:text-blue-600 transition-colors">{item.title}</h3>
-                        <p className="text-[11px] text-gray-400 font-bold">{item.desc}</p>
+                        <p className="text-[10px] text-gray-400 font-bold">{item.desc}</p>
                      </div>
-                     <div className="relative z-10 h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all shadow-inner">
-                        <ChevronLeft className="h-5 w-5" />
+
+                     <div className="relative z-10 h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 group-hover:bg-[#002d4d] group-hover:text-[#f9a885] transition-all">
+                        <ChevronLeft className="h-4 w-4" />
                      </div>
                   </button>
                 ))}
@@ -121,7 +123,7 @@ function SettingsContent() {
                 initial={{ opacity: 0, x: 20 }} 
                 animate={{ opacity: 1, x: 0 }} 
                 exit={{ opacity: 0, y: 10 }}
-                className="relative pt-2"
+                className="relative pt-6"
               >
                 {activeView === 'profile' && (
                   <EditProfileDialog 
