@@ -11,14 +11,14 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v12.0 - Precision Background Edition
- * تم تصغير السهم الخلفي وتثبيت التوازن التناظري للأوسمة والجناحين.
+ * @fileOverview NAMIX ELITE HERO v14.0 - Precision Spacing Edition
+ * تم تقليل المسافات الداخلية للأوسمة وزيادة التباعد بين الكتل لضمان التوازن الفخم.
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-8 h-8 md:w-12 md:h-12 shrink-0", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-8 h-8 md:w-14 md:h-14 shrink-0", mirrored && "scale-x-[-1]", className)} 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -87,7 +87,7 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Corner Header */}
+      {/* 1. Fixed Layout Header */}
       <div className="absolute top-10 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
@@ -96,7 +96,7 @@ export function Hero() {
             <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/10 backdrop-blur-xl group">
               <motion.div 
                 animate={{ x: ['-200%', '200%'] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
               />
               <span className="relative z-10">دخول</span>
@@ -121,7 +121,7 @@ export function Hero() {
       <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row-reverse items-center lg:justify-between gap-12 lg:gap-20 py-24 md:py-32 relative z-10">
         
         {/* RIGHT WING: Counter and Stats */}
-        <div className="flex-1 flex flex-col items-center lg:items-end space-y-10 lg:space-y-12">
+        <div className="flex-1 flex flex-col items-center lg:items-end space-y-10 lg:space-y-14">
            <div className="text-center lg:text-right space-y-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -143,11 +143,11 @@ export function Hero() {
               </motion.h2>
            </div>
 
-           {/* Symmetrical Stats Hub - Optimized for Single Row */}
+           {/* Symmetrical Stats Hub - Optimized spacing */}
            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full flex flex-row items-center justify-center lg:justify-end gap-2 md:gap-8 flex-nowrap overflow-x-auto scrollbar-none py-4"
+              className="w-full flex flex-row items-center justify-center lg:justify-end gap-3 md:gap-14 flex-nowrap overflow-x-auto scrollbar-none py-4"
            >
               {[
                 { label: "أصول العملاء", id: "assets" },
@@ -157,8 +157,8 @@ export function Hero() {
                 <div key={stat.id} className="flex items-center gap-0.5 group shrink-0">
                    <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
                    <div className="space-y-0 text-center px-1">
-                      <p className="text-xs md:text-xl lg:text-2xl font-black text-[#002d4d] leading-none">No.1</p>
-                      <p className="text-[6px] md:text-[8px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">{stat.label}</p>
+                      <p className="text-sm md:text-2xl lg:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
+                      <p className="text-[6px] md:text-[8px] font-black text-gray-400 uppercase tracking-tighter mt-1.5 whitespace-nowrap">{stat.label}</p>
                    </div>
                    <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
                 </div>
@@ -177,17 +177,17 @@ export function Hero() {
                 </p>
               </div>
 
-              <Link href={isLoggedIn ? "/home" : "/login"} className="w-full max-w-[340px] md:max-w-[420px]">
+              <Link href={isLoggedIn ? "/home" : "/login"} className="w-full max-w-[320px] md:max-w-[400px]">
                 <motion.button 
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="h-16 md:h-20 w-full rounded-[28px] md:rounded-[40px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Giant Background Arrow - Refined size to 80 */}
+                  {/* Subtle Background Arrow */}
                   <motion.div 
-                    animate={{ x: [0, -15, 0] }}
+                    animate={{ x: [0, -10, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-6 md:left-10 opacity-[0.08] pointer-events-none"
+                    className="absolute left-6 md:left-8 opacity-[0.08] pointer-events-none"
                   >
                     <ChevronLeft size={80} strokeWidth={4} />
                   </motion.div>
@@ -199,7 +199,7 @@ export function Hero() {
 
            <div className="flex items-center justify-center lg:justify-start gap-3 opacity-20 select-none lg:pr-6">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v12.0</p>
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v14.0</p>
            </div>
         </div>
 
