@@ -3,9 +3,9 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ShieldCheck, Zap } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Zap, Sparkles } from "lucide-react";
 import Link from "next/link";
-import Lottie from "lottie-react";
+import { Logo } from "@/components/layout/Logo";
 
 interface HeroProps {
   title?: string;
@@ -15,23 +15,18 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو v13.0 - Balanced Professional Edition
- * تم تصغير أحجام العناوين وتحديث النصوص لتعكس هوية "ناميكس" الرسمية.
+ * @fileOverview مُفاعل الهيرو الفائق v14.0 - Performance Optimized
+ * تم استبدال Lottie بمفاعل أيقوني سيادي خفيف لضمان سلاسة الحركة بنسبة 100%.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
-  const [animationData, setAnimationData] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    fetch("https://lottie.host/f696eec5-3031-46db-904e-2f94a2bf999a/KlzuAzWVLt.json")
-      .then((res) => res.json())
-      .then((data) => setAnimationData(data))
-      .catch((err) => console.error("Lottie Load Error:", err));
   }, []);
 
   return (
-    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden">
+    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden bg-white">
       
       {/* 1. Technical Grid Overlay */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]" 
@@ -51,7 +46,6 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
       </div>
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        {/* Forced Flex Row even on smallest screens for 50/50 layout */}
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
           {/* Content Block - 50% width */}
@@ -71,7 +65,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
               </h1>
               
               <p className="text-gray-500 text-[9px] md:text-lg font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
-                {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة خصيصاً لتعظيم عوائد النخبة وتحقيق استقلاليتك المالية الكاملة في عالم الاقتصاد الرقمي الجديد."}
+                {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة خصيصاً لتعظيم عوائد النخبة."}
               </p>
             </motion.div>
 
@@ -101,41 +95,53 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* Lottie Animation Block - 50% width */}
+          {/* New Optimized Visual Reactor - 50% width */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, delay: 0.5 }}
-            className="w-1/2 flex justify-center md:justify-end"
+            className="w-1/2 flex justify-center md:justify-end relative"
           >
-            <div className="relative w-full max-w-[160px] md:max-w-[450px] aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 bg-slate-400/5 rounded-full blur-[20px] md:blur-[100px] animate-pulse" />
-              
-              {animationData ? (
-                <Lottie 
-                  animationData={animationData} 
-                  loop={true} 
-                  className="w-full h-full relative z-10 scale-110"
-                />
-              ) : (
-                <div className="h-8 w-8 md:h-20 md:w-20 border-2 md:border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin" />
-              )}
+            <div className="relative w-full max-w-[160px] md:max-w-[420px] aspect-square flex items-center justify-center">
+               <motion.div 
+                 animate={{ rotate: 360 }}
+                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                 className="absolute inset-0 rounded-full border border-dashed border-gray-100 opacity-20"
+               />
+               <motion.div 
+                 animate={{ rotate: -360 }}
+                 transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                 className="absolute inset-8 rounded-full border border-dashed border-blue-50 opacity-20"
+               />
+               
+               <div className="relative z-10 scale-[1.5] md:scale-[3] drop-shadow-[0_20px_50px_rgba(0,45,77,0.15)]">
+                  <Logo size="lg" hideText animate={true} />
+               </div>
+
+               <motion.div 
+                 animate={{ 
+                   scale: [1, 1.1, 1],
+                   opacity: [0.3, 0.6, 0.3]
+                 }}
+                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                 className="absolute h-32 w-32 md:h-64 md:w-64 bg-blue-500/5 rounded-full blur-3xl -z-10"
+               />
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* 3. Floating Digital Dust */}
+      {/* Floating Dust */}
       {isMounted && (
         <div className="absolute inset-0 pointer-events-none z-0">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               initial={{ x: Math.random() * 800, y: Math.random() * 400, opacity: 0 }}
-              animate={{ y: [0, -20, 0], opacity: [0, 0.2, 0] }}
-              transition={{ duration: 5 + i, repeat: Infinity, delay: i * 0.5 }}
-              className="absolute h-0.5 w-0.5 bg-slate-300 rounded-full"
-              style={{ top: `${20 + i * 20}%`, left: `${10 + i * 20}%` }}
+              animate={{ y: [0, -40, 0], opacity: [0, 0.3, 0] }}
+              transition={{ duration: 8 + i, repeat: Infinity, delay: i * 0.5 }}
+              className="absolute h-1 w-1 bg-blue-100 rounded-full blur-[1px]"
+              style={{ top: `${15 + i * 15}%`, left: `${10 + i * 15}%` }}
             />
           ))}
         </div>
