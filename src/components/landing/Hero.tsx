@@ -1,20 +1,20 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ShieldCheck, ChevronUp, ChevronDown, Wallet, TrendingUp } from "lucide-react";
+import { Gift, ChevronLeft, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 /**
- * AnimatedDigit - محرك الخانة الرقمية المنزلقة لنمط العداد
- * يضمن تحرك الأرقام بشكل عمودي عند التحديث لتعزيز الشعور بالواقعية.
+ * AnimatedDigit - محرك الخانة الرقمية المنزلقة
  */
-function AnimatedDigit({ digit }: { digit: string }) {
+function AnimatedDigit({ digit, colorClass = "text-[#fbc02d]" }: { digit: string, colorClass?: string }) {
   const isNumber = !isNaN(parseInt(digit));
-  if (!isNumber) return <span className="inline-block px-0.5">{digit}</span>;
+  if (!isNumber) return <span className={cn("inline-block px-0.5", colorClass)}>{digit}</span>;
 
   const num = parseInt(digit);
 
@@ -26,7 +26,7 @@ function AnimatedDigit({ digit }: { digit: string }) {
         className="flex flex-col items-center w-full h-[1000%] absolute top-0 left-0"
       >
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <div key={n} className="h-[10%] flex items-center justify-center font-black">
+          <div key={n} className={cn("h-[10%] flex items-center justify-center font-black", colorClass)}>
             {n}
           </div>
         ))}
@@ -35,146 +35,127 @@ function AnimatedDigit({ digit }: { digit: string }) {
   );
 }
 
-function MockPortfolioCard() {
-  const [balance, setBalance] = useState(12450.00);
-  const [yieldValue, setYieldValue] = useState(840.42);
-
-  // زيادة نانوية تلقائية لإضفاء حيوية مستمرة على المحرك
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setYieldValue(prev => prev + 0.001);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleActionTrigger = () => {
-    // محاكاة تدفق سيولة عند الضغط لتشغيل العداد
-    setBalance(prev => prev + Math.floor(Math.random() * 120) + 40);
-    setYieldValue(prev => prev + (Math.random() * 0.5));
-  };
-
-  return (
-    <motion.div
-      animate={{ y: [0, -12, 0] }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      className="w-full max-w-[320px] bg-[#8899AA] rounded-[40px] p-8 text-white shadow-[0_40px_100px_-15px_rgba(136,153,170,0.4)] relative overflow-hidden group select-none mb-10"
-    >
-      {/* Sovereign Watermark */}
-      <div className="absolute top-0 right-0 p-4 opacity-[0.03] -rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-         <Wallet size={140} />
-      </div>
-
-      <div className="space-y-10 relative z-10">
-        <div className="flex items-center justify-between">
-           <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-2xl border border-white/20 shadow-inner">
-              <ShieldCheck size={20} className="text-[#f9a885]" />
-           </div>
-           <Badge className="bg-emerald-500/20 text-emerald-300 border-none font-black text-[7px] px-2.5 py-0.5 rounded-full tracking-widest uppercase">
-              Live Core
-           </Badge>
-        </div>
-
-        <div className="space-y-2">
-           <div className="flex items-center text-[36px] font-black tabular-nums tracking-tighter" dir="ltr">
-              <span className="text-xl mr-1.5 opacity-30">$</span>
-              {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split("").map((char, i) => (
-                <AnimatedDigit key={i} digit={char} />
-              ))}
-           </div>
-           <div className="flex items-center gap-2 text-emerald-300">
-              <TrendingUp size={12} className="animate-pulse" />
-              <div className="flex items-center text-[11px] font-black tabular-nums" dir="ltr">
-                 <span>+$</span>
-                 {yieldValue.toFixed(2).split("").map((char, i) => (
-                   <AnimatedDigit key={i} digit={char} />
-                 ))}
-                 <span className="ml-1 opacity-60">Today</span>
-              </div>
-           </div>
-        </div>
-
-        {/* أزرار العمليات التفاعلية - Interactive Node Matrix */}
-        <div className="grid grid-cols-2 gap-4 pt-2">
-           <motion.button 
-             whileHover={{ scale: 1.04, y: -2 }}
-             whileTap={{ scale: 0.94 }}
-             onClick={handleActionTrigger}
-             className="h-14 rounded-2xl bg-white text-[#002d4d] flex items-center justify-center gap-3 shadow-xl transition-all border-none outline-none group/btn relative overflow-hidden"
-           >
-              <div className="absolute inset-0 bg-[#f9a885]/5 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
-              <ChevronDown size={20} className="text-[#f9a885] relative z-10" />
-              <span className="text-[12px] font-black relative z-10">استلام</span>
-           </motion.button>
-
-           <motion.button 
-             whileHover={{ scale: 1.04, y: -2 }}
-             whileTap={{ scale: 0.94 }}
-             onClick={handleActionTrigger}
-             className="h-14 rounded-2xl bg-white/10 text-white backdrop-blur-xl border border-white/10 flex items-center justify-center gap-3 transition-all group/btn outline-none"
-           >
-              <ChevronUp size={20} className="text-white relative z-10" />
-              <span className="text-[12px] font-black relative z-10">إرسال</span>
-           </motion.button>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-white/10 rounded-full blur-[1px]" />
-    </motion.div>
-  );
-}
+/**
+ * LaurelWreath - أيقونة إكليل الغار الذهبي المخصصة
+ */
+const LaurelWreath = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={cn("w-12 h-12 md:w-16 md:h-16", className)} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M35 85C25 75 15 60 15 45C15 30 25 15 35 15" stroke="#fbc02d" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+    <path d="M65 85C75 75 85 60 85 45C85 30 75 15 65 15" stroke="#fbc02d" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
+    {[25, 40, 55, 70].map((y, i) => (
+      <React.Fragment key={i}>
+        <circle cx="18" cy={y} r="3" fill="#fbc02d" />
+        <circle cx="82" cy={y} r="3" fill="#fbc02d" />
+      </React.Fragment>
+    ))}
+  </svg>
+);
 
 export function Hero() {
+  const db = useFirestore();
+  const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
+  const { data: users } = useCollection(usersQuery);
+  
+  const baseCount = 2314548; // الرقم الأساسي المطلوب
+  const totalDisplayCount = useMemo(() => {
+    const realUsers = users?.length || 0;
+    return (baseCount + realUsers).toLocaleString();
+  }, [users]);
+
   return (
-    <section className="relative w-full min-h-[85vh] flex flex-col justify-center px-6 md:px-12 lg:px-24 font-body overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-[75vh] flex flex-col items-center justify-center px-6 md:px-12 font-body overflow-hidden" dir="rtl">
       
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center lg:items-center justify-between gap-12 lg:gap-24 relative z-10 py-16 md:py-24">
+      <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center space-y-12 md:space-y-16 py-12 relative z-10">
         
-        {/* RIGHT SIDE: Strategic Copy */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 space-y-10 text-center lg:text-right"
-        >
-          <div className="flex items-center justify-center lg:justify-start gap-4">
-             <div className="h-[0.5px] w-10 bg-[#002d4d]/20" />
-             <span className="text-[11px] font-black text-blue-600/40 uppercase tracking-[0.5em] mr-[-0.5em]">Unified Asset Hub</span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#002d4d] tracking-tight leading-[1] max-w-4xl">
-            ناميكس | <span className="text-[#f9a885] drop-shadow-sm">محفظتك الرقمية</span> المتكاملة للنمو
-          </h1>
+        {/* 1. Large Dynamic Number & Trust Text */}
+        <div className="space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-5xl md:text-8xl font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden"
+            dir="ltr"
+          >
+            {totalDisplayCount.split("").map((char, i) => (
+              <AnimatedDigit key={i} digit={char} />
+            ))}
+          </motion.div>
           
-          <p className="text-gray-400 text-lg md:text-2xl font-bold max-w-2xl lg:mr-0 mx-auto leading-[2.2] md:leading-[2.5] opacity-90">
-            اختبر الكفاءة الفائقة في إدارة استثماراتك. ناميكس توفر لك منصة موحدة تجمع بين سرعة التداول الفوري وحلول تنمية الأصول الموثوقة، المصممة لضمان نمو مستدام.
-          </p>
-        </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 1 }}
+            className="text-3xl md:text-5xl font-black text-[#002d4d] tracking-tight"
+          >
+            مُستخدِم يثقون بنا
+          </motion.h2>
+        </div>
 
-        {/* LEFT SIDE: Dynamic Identity Node */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, x: -40 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full lg:w-auto lg:shrink-0 flex flex-col items-center lg:items-start"
+        {/* 2. Ranking Badges Section */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 1 }}
+          className="w-full flex items-center justify-center gap-4 md:gap-16"
         >
-          {/* محاكي المحفظة الحيوي */}
-          <MockPortfolioCard />
-
-          <Link href="/login" className="w-full sm:w-[320px]">
-            <motion.button 
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              className="h-20 w-full rounded-full bg-[#002d4d] text-white font-black text-lg shadow-2xl hover:bg-[#001d33] transition-all flex items-center justify-center gap-8 relative overflow-hidden group border-none outline-none"
-            >
-              <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
-              <span>سجل الآن مجاناً</span>
-              <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#f9a885] transition-colors duration-500">
-                <ArrowRight className="h-6 w-6 rotate-180 transition-transform group-hover:-translate-x-1 text-white" />
+           {/* Badge Left */}
+           <div className="flex items-center gap-2 md:gap-6 group">
+              <LaurelWreath className="group-hover:rotate-12 transition-transform duration-700" />
+              <div className="space-y-0.5">
+                 <p className="text-xl md:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-tight">أصول العملاء</p>
               </div>
-            </motion.button>
-          </Link>
+              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-12 transition-transform duration-700" />
+           </div>
+
+           {/* Badge Right */}
+           <div className="flex items-center gap-2 md:gap-6 group">
+              <LaurelWreath className="group-hover:rotate-12 transition-transform duration-700" />
+              <div className="space-y-0.5">
+                 <p className="text-xl md:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-tight">حجم التداول</p>
+              </div>
+              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-12 transition-transform duration-700" />
+           </div>
         </motion.div>
 
+        {/* 3. Reward & Action Section */}
+        <div className="space-y-8 w-full flex flex-col items-center">
+           <motion.div 
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             transition={{ delay: 0.8 }}
+             className="flex items-center gap-3 bg-gray-50/50 px-6 py-2.5 rounded-full border border-gray-100 shadow-sm"
+           >
+              <Gift className="h-5 w-5 text-[#fbc02d] animate-bounce" />
+              <p className="text-xs md:text-base font-black text-[#002d4d]">
+                مُكافأة تصل إلى <span className="text-[#fbc02d]">$100</span> اليوم فقط
+              </p>
+           </motion.div>
+
+           <Link href="/login" className="w-full max-w-[340px]">
+             <motion.button 
+               whileHover={{ scale: 1.02, y: -4 }}
+               whileTap={{ scale: 0.96 }}
+               className="h-20 w-full rounded-[24px] bg-[#fbc02d] text-[#002d4d] font-black text-xl md:text-2xl shadow-2xl shadow-yellow-500/20 hover:bg-[#ffca28] transition-all flex items-center justify-center gap-4 relative overflow-hidden group outline-none"
+             >
+               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+               <span className="relative z-10">إنشاء حساب</span>
+               <ChevronLeft className="h-6 w-6 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={3} />
+             </motion.button>
+           </Link>
+
+           <div className="flex items-center gap-3 opacity-20 select-none pt-4">
+              <ShieldCheck size={14} className="text-emerald-500" />
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Security Node</p>
+           </div>
+        </div>
+
+      </div>
+
+      {/* Decorative Atmosphere */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(251,192,45,0.02)_0%,transparent_70%)]" />
       </div>
     </section>
   );
