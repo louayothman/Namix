@@ -11,14 +11,14 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v10.0 - Fully Responsive Sovereign Layout
- * واجهة الهيرو المطورة لتتوافق مع كافة الشاشات مع أوسمة صدارة ثلاثية مؤطرة وهيدر مينيماليست.
+ * @fileOverview NAMIX ELITE HERO v11.0 - Dual-Wing Responsive Layout
+ * تم تقسيم الهيرو لجناحين في الشاشات الكبيرة: يمين (العداد والإحصائيات) ويسار (المكافأة والزر).
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-6 h-6 md:w-12 md:h-12 shrink-0", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-6 h-6 md:w-10 md:h-10 shrink-0", mirrored && "scale-x-[-1]", className)} 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -34,7 +34,7 @@ const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, cla
       <path d="m 43.731844,727.44265 c -13.50183,-59.5145 -64.782452,-65.44807 -116.173584,-66.07531 27.191044,43.28729 61.484952,83.16283 116.173584,66.07531 z" />
       <path d="M 28.353512,639.98238 C 83.492962,613.83027 78.104003,562.48953 67.51225,512.19779 31.194121,548.17207 -0.24580513,590.33455 28.353512,639.98238 z" />
       <path d="m 19.164595,656.99812 c -6.339212,-60.69651 -56.552533,-72.67739 -107.50569,-79.40263 21.858519,46.20969 51.174797,89.8752 107.50569,79.40263 z" />
-      <path d="M 5.1751165,540.48644 C 64.763679,527.31633 70.982683,476.06937 71.896069,424.68233 28.458188,451.63189 -11.607558,485.70325 5.1751165,540.48644 z" id="path2844-1" />
+      <path d="M 5.1751165,540.48644 C 64.763679,527.31633 70.982683,476.06937 71.896069,424.68233 28.458188,451.63189 -11.607558,485.70325 5.1751165,540.48644 z" />
       <path d="M -6.4859483,585.25321 C 10.758728,526.7136 -31.112486,496.51915 -75.668597,470.90297 c 2.620999,51.05161 13.106722,102.5897 69.1826487,114.35024 z" />
       <path d="m 28.616032,425.50229 c 60.950565,3.05215 80.496728,-44.72699 94.963058,-94.04387 -49.017377,14.50674 -96.665404,36.77334 -94.963058,94.04387 z" />
       <path d="m -10.626514,491.19264 c 36.629046,-48.8116 7.9620893,-91.74309 -24.821398,-131.32444 -15.399078,48.74424 -23.600233,100.69481 24.821398,131.32444 z" />
@@ -85,18 +85,18 @@ export function Hero() {
   if (!mounted) return null;
 
   return (
-    <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-4 md:px-12 font-body overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Institutional Corner Header */}
-      <div className="absolute top-8 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
+      {/* 1. Corner Header */}
+      <div className="absolute top-10 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
          </div>
          <Link href="/login">
-            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/20 backdrop-blur-xl group">
+            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/10 backdrop-blur-xl group">
               <motion.div 
-                animate={{ opacity: [0.3, 0.6, 0.3], x: ['-100%', '100%'] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                animate={{ x: ['-200%', '200%'] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
               />
               <span className="relative z-10">دخول</span>
@@ -118,92 +118,78 @@ export function Hero() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col items-center text-center space-y-12 md:space-y-20 py-12 relative z-10">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row-reverse items-center lg:justify-between gap-12 lg:gap-20 py-24 md:py-32 relative z-10">
         
-        {/* 2. Massive Trust Counter */}
-        <div className="space-y-4">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-6xl md:text-[150px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(249,168,133,0.3)]"
-            dir="ltr"
-          >
-            {totalDisplayCount.split("").map((char, i) => (
-              <AnimatedDigit key={i} digit={char} />
-            ))}
-          </motion.div>
-          
-          <motion.h2 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-2xl md:text-6xl font-black text-[#002d4d] tracking-tight leading-none"
-          >
-            مُستخدِم يثقون بنا
-          </motion.h2>
+        {/* RIGHT WING: Counter and Stats */}
+        <div className="flex-1 flex flex-col items-center lg:items-end space-y-10 lg:space-y-12">
+           <div className="text-center lg:text-right space-y-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-6xl md:text-[100px] lg:text-[140px] font-black tabular-nums tracking-tighter flex items-center justify-center lg:justify-end h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(249,168,133,0.3)]"
+                dir="ltr"
+              >
+                {totalDisplayCount.split("").map((char, i) => (
+                  <AnimatedDigit key={i} digit={char} />
+                ))}
+              </motion.div>
+              
+              <motion.h2 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-2xl md:text-5xl lg:text-6xl font-black text-[#002d4d] tracking-tight leading-none"
+              >
+                مُستخدِم يثقون بنا
+              </motion.h2>
+           </div>
+
+           {/* Symmetrical Stats Hub */}
+           <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full flex flex-row items-center justify-center lg:justify-end gap-2 md:gap-8 flex-nowrap overflow-x-auto scrollbar-none py-4"
+           >
+              {[
+                { label: "أصول العملاء", id: "assets" },
+                { label: "حجم التداول", id: "volume" },
+                { label: "الاستثمارات", id: "invest" }
+              ].map((stat, i) => (
+                <div key={stat.id} className="flex items-center gap-0.5 group shrink-0">
+                   <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
+                   <div className="space-y-0 text-center px-1">
+                      <p className="text-xs md:text-xl lg:text-2xl font-black text-[#002d4d] leading-none">No.1</p>
+                      <p className="text-[6px] md:text-[8px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">{stat.label}</p>
+                   </div>
+                   <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
+                </div>
+              ))}
+           </motion.div>
         </div>
 
-        {/* 3. Triple Framed Stats Hub - Sovereign Symmetrical Row */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full flex flex-row items-center justify-center gap-4 md:gap-14 lg:gap-24 flex-nowrap overflow-x-auto scrollbar-none py-6 px-4"
-        >
-           {/* Stat 1: Client Assets */}
-           <div className="flex items-center gap-0 group shrink-0">
-              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-              <div className="space-y-0 text-center px-1 md:px-3">
-                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">أصول العملاء</p>
-              </div>
-              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
-           </div>
-
-           {/* Stat 2: Trading Volume */}
-           <div className="flex items-center gap-0 group shrink-0">
-              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-              <div className="space-y-0 text-center px-1 md:px-3">
-                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">حجم التداول</p>
-              </div>
-              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
-           </div>
-
-           {/* Stat 3: Investments */}
-           <div className="flex items-center gap-0 group shrink-0">
-              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-              <div className="space-y-0 text-center px-1 md:px-3">
-                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">الاستثمارات</p>
-              </div>
-              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
-           </div>
-        </motion.div>
-
-        {/* 4. Execution Hub - Smart Call to Action */}
-        <div className="flex flex-col items-center gap-6 w-full">
-           
-           <div className="space-y-8 w-full flex flex-col items-center">
+        {/* LEFT WING: Rewards and CTA */}
+        <div className="flex-1 flex flex-col items-center lg:items-start space-y-10 lg:space-y-12">
+           <div className="space-y-8 w-full flex flex-col items-center lg:items-start">
               {/* Clean Reward Node */}
-              <div className="flex items-center gap-3">
-                <Gift className="h-5 w-5 text-[#f9a885]" />
-                <p className="text-sm md:text-lg font-black text-[#002d4d] tracking-normal">
+              <div className="flex items-center gap-3 lg:pr-4">
+                <Gift className="h-5 w-5 md:h-7 md:w-7 text-[#f9a885]" />
+                <p className="text-sm md:text-xl lg:text-2xl font-black text-[#002d4d] tracking-normal">
                   مكافأة تصل الى <span className="text-[#f9a885] font-black">100$</span> عند التسجيل
                 </p>
               </div>
 
-              <Link href={isLoggedIn ? "/home" : "/login"} className="w-full max-w-[300px]">
+              <Link href={isLoggedIn ? "/home" : "/login"} className="w-full max-w-[340px] md:max-w-[420px]">
                 <motion.button 
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="h-16 w-full rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-lg shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
+                  className="h-16 md:h-20 w-full rounded-[28px] md:rounded-[40px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Phantom Giant Background Arrow */}
+                  {/* Giant Background Arrow */}
                   <motion.div 
                     animate={{ x: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-6 opacity-10 pointer-events-none"
+                    className="absolute left-6 md:left-10 opacity-[0.08] pointer-events-none"
                   >
-                    <ChevronLeft size={80} strokeWidth={4} />
+                    <ChevronLeft size={100} strokeWidth={4} />
                   </motion.div>
                   
                   <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "سجل الآن مجاناً"}</span>
@@ -211,9 +197,9 @@ export function Hero() {
               </Link>
            </div>
 
-           <div className="flex items-center justify-center gap-3 opacity-20 select-none pt-8">
+           <div className="flex items-center justify-center lg:justify-start gap-3 opacity-20 select-none lg:pr-6">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v10.0</p>
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v11.0</p>
            </div>
         </div>
 
