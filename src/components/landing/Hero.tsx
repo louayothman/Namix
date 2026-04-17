@@ -11,14 +11,14 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v8.0 - Symmetrical Triple Hub
- * واجهة سينمائية مطهرة، تعتمد التوازن الثلاثي للأوسمة مع شعار علوي وذكاء تنفيذ.
+ * @fileOverview NAMIX ELITE HERO v9.0 - Refined Minimalist Layout
+ * تم تطهير الهيدر من تكرار الاسم وتصحيح زر التنفيذ مع سهم خلفية عملاق فقط.
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-5 h-5 md:w-12 md:h-12 shrink-0", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-6 h-6 md:w-12 md:h-12 shrink-0", mirrored && "scale-x-[-1]", className)} 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -87,25 +87,24 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-4 md:px-12 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Integrated Header - Minimalism with Shimmer */}
+      {/* 1. Integrated Header - Minimalism with Logo only */}
       <div className="absolute top-8 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
-            <h1 className="text-xl md:text-2xl font-black text-[#002d4d] tracking-[0.2em] uppercase select-none">NAMIX</h1>
          </div>
          <Link href="/login">
-            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-colors uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/20 backdrop-blur-xl group">
+            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/20 backdrop-blur-xl group">
               <motion.div 
-                animate={{ x: ['-200%', '200%'] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-[-25deg] pointer-events-none"
+                animate={{ opacity: [0.3, 0.6, 0.3], x: ['-100%', '100%'] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
               />
               <span className="relative z-10">دخول</span>
             </button>
          </Link>
       </div>
 
-      {/* Background Atmosphere - Gray-Blue & Orange Glow */}
+      {/* Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none bg-white">
         <motion.div 
           animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.08, 0.04] }}
@@ -121,7 +120,7 @@ export function Hero() {
 
       <div className="max-w-7xl mx-auto w-full flex flex-col items-center text-center space-y-12 md:space-y-20 py-12 relative z-10">
         
-        {/* 2. Counter Matrix - Ultra Bold Display */}
+        {/* 2. Counter Matrix */}
         <div className="space-y-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -143,46 +142,40 @@ export function Hero() {
           </motion.h2>
         </div>
 
-        {/* 3. Framed Stats Matrix - Increased Sizes & Symmetrical Framing */}
+        {/* 3. Framed Stats Matrix - Symmetrical Laurels */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full flex flex-row items-center justify-center gap-4 md:gap-14 lg:gap-24 flex-nowrap overflow-x-auto scrollbar-none py-6 px-4"
         >
            {/* Stat 1: Customer Assets */}
-           <div className="flex items-center gap-1 group shrink-0">
-              <div className="flex items-center">
-                 <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-                 <div className="space-y-0 text-center px-2 md:px-5">
-                    <p className="text-sm md:text-5xl font-black text-[#002d4d] leading-none">No.1</p>
-                    <p className="text-[7px] md:text-[12px] font-black text-gray-400 uppercase tracking-tighter mt-1.5 whitespace-nowrap">أصول العملاء</p>
-                 </div>
-                 <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
+           <div className="flex items-center gap-0 group shrink-0">
+              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
+              <div className="space-y-0 text-center px-1 md:px-3">
+                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">أصول العملاء</p>
               </div>
+              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
            </div>
 
            {/* Stat 2: Trading Volume */}
-           <div className="flex items-center gap-1 group shrink-0">
-              <div className="flex items-center">
-                 <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-                 <div className="space-y-0 text-center px-2 md:px-5">
-                    <p className="text-sm md:text-5xl font-black text-[#002d4d] leading-none">No.1</p>
-                    <p className="text-[7px] md:text-[12px] font-black text-gray-400 uppercase tracking-tighter mt-1.5 whitespace-nowrap">حجم التداول</p>
-                 </div>
-                 <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
+           <div className="flex items-center gap-0 group shrink-0">
+              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
+              <div className="space-y-0 text-center px-1 md:px-3">
+                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">حجم التداول</p>
               </div>
+              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
            </div>
 
            {/* Stat 3: Investments */}
-           <div className="flex items-center gap-1 group shrink-0">
-              <div className="flex items-center">
-                 <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-                 <div className="space-y-0 text-center px-2 md:px-5">
-                    <p className="text-sm md:text-5xl font-black text-[#002d4d] leading-none">No.1</p>
-                    <p className="text-[7px] md:text-[12px] font-black text-gray-400 uppercase tracking-tighter mt-1.5 whitespace-nowrap">الاستثمارات</p>
-                 </div>
-                 <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
+           <div className="flex items-center gap-0 group shrink-0">
+              <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
+              <div className="space-y-0 text-center px-1 md:px-3">
+                 <p className="text-sm md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[7px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1 whitespace-nowrap">الاستثمارات</p>
               </div>
+              <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
            </div>
         </motion.div>
 
@@ -190,7 +183,7 @@ export function Hero() {
         <div className="flex flex-col items-center gap-6 w-full">
            
            <div className="space-y-8 w-full flex flex-col items-center">
-              {/* Reward Text - Minimalist */}
+              {/* Reward Text */}
               <div className="flex items-center gap-3">
                 <Gift className="h-5 w-5 text-[#f9a885]" />
                 <p className="text-sm md:text-lg font-black text-[#002d4d] tracking-normal">
@@ -204,7 +197,7 @@ export function Hero() {
                   whileTap={{ scale: 0.98 }}
                   className="h-16 w-full rounded-[28px] bg-[#f9a885] text-[#002d4d] font-black text-lg shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Huge Transparent Background Arrow */}
+                  {/* Huge Transparent Background Arrow Only */}
                   <motion.div 
                     animate={{ x: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -214,14 +207,13 @@ export function Hero() {
                   </motion.div>
                   
                   <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "سجل الآن مجاناً"}</span>
-                  <ChevronLeft className="h-6 w-6 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={3} />
                 </motion.button>
               </Link>
            </div>
 
            <div className="flex items-center justify-center gap-3 opacity-20 select-none pt-8">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v8.0</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v9.0</p>
            </div>
         </div>
 
@@ -229,4 +221,3 @@ export function Hero() {
     </section>
   );
 }
-
