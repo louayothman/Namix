@@ -100,21 +100,21 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
     <div className="text-right space-y-8 animate-in fade-in duration-500 font-body" dir="rtl">
         <style jsx global>{`
           .PhoneInput {
-            background-color: rgba(249, 250, 251, 0.5);
-            border-radius: 20px;
-            padding: 0 16px;
-            height: 56px;
+            background-color: rgba(249, 250, 251, 0.4);
+            border-radius: 24px;
+            padding: 4px 18px;
+            height: 60px;
             display: flex;
             align-items: center;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            gap: 12px;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 45, 77, 0.02);
+            border: 1.5px solid transparent;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 16px;
           }
           .PhoneInput:focus-within {
-            border-color: rgba(59, 130, 246, 0.1);
+            border-color: rgba(0, 45, 77, 0.08);
             background-color: white;
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), inset 0 2px 4px 0 rgba(0, 0, 0, 0.01);
+            box-shadow: 0 25px 50px -12px rgba(0, 45, 77, 0.08), inset 0 1px 1px 0 rgba(0, 0, 0, 0.01);
             outline: none;
           }
           .PhoneInputInput {
@@ -122,25 +122,33 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
             background: transparent !important;
             border: none !important;
             height: 100%;
-            font-size: 15px !important;
+            font-size: 16px !important;
             color: #002d4d !important;
             outline: none !important;
             text-align: left !important;
             direction: ltr !important;
-            font-weight: 700 !important;
-            padding-left: 12px !important;
+            font-weight: 800 !important;
+            padding-left: 8px !important;
           }
           .PhoneInputCountry {
-            margin-left: 12px;
-            padding-left: 12px;
+            margin-left: 14px;
+            padding-left: 14px;
             border-left: 1px solid #f1f5f9;
-            gap: 10px;
+            gap: 12px;
             display: flex;
             align-items: center;
           }
+          .PhoneInputCountryIcon {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-radius: 4px;
+            width: 24px !important;
+            height: auto !important;
+          }
           .PhoneInputCountrySelectArrow {
-            opacity: 0.3;
-            margin-left: 4px;
+            opacity: 0.25;
+            margin-left: 6px;
+            width: 10px;
+            height: 10px;
           }
         `}</style>
 
@@ -148,12 +156,12 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
           {step === 'identity' && (
             <motion.div key="id" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">الاسم القانوني</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">الاسم القانوني الكامل</Label>
                 <div className="relative">
                   <Input 
                     value={editData.displayName} 
                     onChange={e => setEditData({...editData, displayName: e.target.value})} 
-                    className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/5 focus-visible:border-blue-100 transition-all" 
+                    className="h-14 rounded-[24px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-blue-500/5 transition-all" 
                     placeholder="أدخل اسمك بالكامل..." 
                   />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -164,7 +172,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-widest">الجنس</Label>
                   <Select value={editData.gender} onValueChange={val => setEditData({...editData, gender: val})}>
-                    <SelectTrigger className="h-14 rounded-2xl bg-gray-50/50 border-none px-6 font-black shadow-inner focus:bg-white transition-all">
+                    <SelectTrigger className="h-14 rounded-[24px] bg-gray-50/50 border-none px-6 font-black shadow-inner focus:bg-white transition-all">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -180,7 +188,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                       type="date" 
                       value={editData.birthDate} 
                       onChange={e => setEditData({...editData, birthDate: e.target.value})} 
-                      className="h-14 rounded-2xl bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all" 
+                      className="h-14 rounded-[24px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all" 
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 pointer-events-none" />
                   </div>

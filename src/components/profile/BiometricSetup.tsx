@@ -10,6 +10,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticFeedback } from "@/lib/haptic-engine";
+import { cn } from "@/lib/utils";
 
 interface BiometricSetupProps {
   dbUser: any;
@@ -39,7 +40,6 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
       try {
         hapticFeedback.medium();
         // Simulate WebAuthn Registration (Simplified for prototype)
-        // In production, you'd use navigator.credentials.create()
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         await updateDoc(doc(db, "users", dbUser.id), { 
