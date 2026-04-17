@@ -1,11 +1,11 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ShieldCheck, Zap, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Activity } from "lucide-react";
 import Link from "next/link";
-import { Logo } from "@/components/layout/Logo";
+import { cn } from "@/lib/utils";
 
 interface HeroProps {
   title?: string;
@@ -14,76 +14,82 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الترحيب المينيماليست v16.0 - Professional Standard
- * محتوى نصي احترافي موحد يدعو للاستثمار والتداول المباشر.
+ * @fileOverview مُفاعل الترحيب المينيماليست v18.0 - Portfolio Focused
+ * لغة استثمارية عالمية تركز على "المحفظة" والنمو المباشر.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   return (
-    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden bg-white font-body">
+    <section className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-6 font-body">
       
-      {/* Technical Grid Overlay */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.01]" 
-           style={{ backgroundImage: 'radial-gradient(#002d4d 0.5px, transparent 0.5px)', backgroundSize: '40px 40px' }} 
-      />
-
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="flex flex-col items-center text-center space-y-12">
-          
-          <div className="space-y-6 max-w-4xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-4"
-            >
-              <h1 className="text-3xl md:text-7xl font-black text-[#002d4d] tracking-tight leading-tight">
-                {title || (
-                  <>
-                    ناميكس | استثمر في <span className="text-[#f9a885]">أصولك الرقمية</span> بثقة
-                  </>
-                )}
-              </h1>
-              
-              <p className="text-gray-400 text-sm md:text-xl font-bold max-w-2xl mx-auto leading-relaxed md:leading-loose opacity-80">
-                {description || "استمتع بوصول فائق للأسواق العالمية من خلال واجهة احترافية تجمع بين كفاءة التداول الفوري وحلول تنمية المال المؤتمتة."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4"
-            >
-              <Link href={ctaLink} className="w-full md:w-auto">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="h-14 md:h-16 px-10 md:px-14 w-full md:w-auto rounded-full bg-[#002d4d] text-white hover:bg-[#001d33] font-black text-sm md:text-lg shadow-2xl transition-all flex items-center justify-center gap-3 group"
-                >
-                  <span>ابدأ التداول الآن</span>
-                  <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
-                </motion.button>
-              </Link>
-            </motion.div>
+      <div className="max-w-4xl space-y-10 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-6"
+        >
+          {/* Label Node */}
+          <div className="flex items-center justify-center gap-3">
+             <div className="h-[0.5px] w-8 bg-[#002d4d]/10" />
+             <span className="text-[10px] font-black text-blue-600/40 uppercase tracking-[0.4em] mr-[-0.4em]">Integrated Digital Asset Hub</span>
+             <div className="h-[0.5px] w-8 bg-[#002d4d]/10" />
           </div>
 
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            transition={{ duration: 2, delay: 0.5 }}
-            className="flex items-center gap-12 pt-8"
-          >
-             <div className="flex items-center gap-3">
-                <ShieldCheck size={16} className="text-emerald-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#002d4d]">Secure Platform</span>
-             </div>
-             <div className="flex items-center gap-3">
-                <Zap size={16} className="text-[#f9a885]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#002d4d]">Instant Growth</span>
-             </div>
-          </motion.div>
-        </div>
+          {/* Core Title - Bold & Precise */}
+          <h1 className="text-4xl md:text-7xl font-black text-[#002d4d] tracking-tight leading-[1.15]">
+            {title || (
+              <>
+                ناميكس | <span className="text-[#f9a885] drop-shadow-sm">محفظتك الرقمية</span> المتكاملة للنمو والتداول
+              </>
+            )}
+          </h1>
+          
+          {/* Elite Description */}
+          <p className="text-gray-400 text-base md:text-xl font-bold max-w-2xl mx-auto leading-[2.2] md:leading-[2.5] opacity-90 px-4">
+            {description || "اختبر الكفاءة الفائقة في إدارة استثماراتك. ناميكس توفر لك منصة موحدة تجمع بين سرعة التداول الفوري وحلول تنمية الأصول الموثوقة، لضمان مستقبل مالي مستقر ومربح في عالم الأصول الرقمية."}
+          </p>
+        </motion.div>
+
+        {/* Action Hub */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="flex flex-col items-center justify-center pt-6 w-full max-w-md mx-auto"
+        >
+          <Link href={ctaLink} className="w-full">
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="h-16 w-full rounded-full bg-[#002d4d] text-white font-black text-sm md:text-base shadow-2xl hover:bg-[#001d33] transition-all flex items-center justify-center gap-4 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
+              <span>ابدأ رحلتك الاستثمارية الآن</span>
+              <ArrowRight className="h-5 w-5 rotate-180 transition-transform group-hover:-translate-x-1" />
+            </motion.button>
+          </Link>
+        </motion.div>
+
+        {/* Confidence Indicators */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          transition={{ duration: 2, delay: 0.8 }}
+          className="flex flex-wrap items-center justify-center gap-10 md:gap-16 pt-12"
+        >
+           <div className="flex items-center gap-2.5">
+              <ShieldCheck size={14} className="text-emerald-500" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Security Verified</span>
+           </div>
+           <div className="flex items-center gap-2.5">
+              <Zap size={14} className="text-[#f9a885] fill-current" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Fast Execution</span>
+           </div>
+           <div className="flex items-center gap-2.5">
+              <Activity size={14} className="text-blue-500" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Live Market Pulse</span>
+           </div>
+        </motion.div>
       </div>
     </section>
   );
