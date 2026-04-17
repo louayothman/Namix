@@ -21,8 +21,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v26.0 - Luxury Minimalism (Right Aligned)
- * واجهة استثمارية عالمية تعتمد محاذاة اليمين للشاشات الكبيرة مع توزيع استراتيجي للعناصر.
+ * @fileOverview بوابة ناميكس الاستثمارية v27.0 - Global Minimalist Edition
+ * إعادة هيكلة شاملة للتركيز على محرك الهيرو والفوتر فقط بنقاء بصري تام.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,8 +37,8 @@ export default function LandingPage() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   useEffect(() => {
-    const session = localStorage.getItem("namix_user");
-    setIsLoggedIn(!!session);
+    const user = localStorage.getItem("namix_user");
+    setIsLoggedIn(!!user);
   }, []);
 
   return (
@@ -73,8 +73,8 @@ export default function LandingPage() {
       
       {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
-      <ContractLabDialog open={isContractLabOpen} onOpenChange={isContractLabOpen ? setIsContractLabOpen : () => {}} />
-      <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={isSpotTradingOpen ? setIsSpotTradingOpen : () => {}} />
+      <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
+      <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
       <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
