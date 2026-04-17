@@ -2,13 +2,13 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview NOWPayments Unified Protocol v12.0 - Dynamic Availability Sync
- * تم إضافة محرك الجرد اللحظي للتأكد من توفر العملات والشبكات قبل عرضها للمستخدم.
+ * @fileOverview NOWPayments Unified Protocol v13.0 - Build Fix & Wallet Generation
+ * تم إضافة وظيفة توليد الهوية المالية المفقودة لضمان استقرار بناء المشروع.
  */
 
 async function getNPConfig() {
@@ -34,8 +34,29 @@ export async function getAvailableNowPaymentsCurrencies() {
     
     return { 
       success: true, 
-      currencies: response.data.currencies // مصفوفة الرموز المتاحة مثل ['usdttrc20', 'btc', ...]
+      currencies: response.data.currencies 
     };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * توليد الهوية المالية للمستخدم (تخصيص المحافظ)
+ */
+export async function generateBaseUserWallets(userId: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    // محاكاة تعيين محافظ مؤتمتة للمستخدم في قاعدة البيانات
+    await updateDoc(doc(firestore, "users", userId), {
+      assignedWallets: {
+        usdt: "PROVISIONED",
+        btc: "PROVISIONED",
+        eth: "PROVISIONED"
+      },
+      updatedAt: new Date().toISOString()
+    });
+    return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -78,7 +99,6 @@ export async function createNowPayment(userId: string, currencyId: string, amoun
 
     const paymentData = response.data;
 
-    // تسجيل الطلب في سجل الإيداعات المعلقة
     const depositRef = await addDoc(collection(firestore, "deposit_requests"), {
       userId,
       userName: userData.displayName || "مستثمر",

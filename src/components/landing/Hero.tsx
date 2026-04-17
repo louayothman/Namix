@@ -15,8 +15,8 @@ interface HeroProps {
 }
 
 /**
- * @fileOverview مُفاعل الهيرو الفائق v14.0 - Performance Optimized
- * تم استبدال Lottie بمفاعل أيقوني سيادي خفيف لضمان سلاسة الحركة بنسبة 100%.
+ * @fileOverview مُفاعل الهيرو الفائق v15.0 - Ultra Performance
+ * استئصال Lottie نهائياً واستبدالها بمفاعل اللوجو المورفي النانوي لمنع التعليق.
  */
 export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -26,29 +26,16 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
   }, []);
 
   return (
-    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden bg-white">
+    <section className="relative pt-20 pb-8 md:pt-48 md:pb-32 overflow-hidden bg-white font-body">
       
       {/* 1. Technical Grid Overlay */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]" 
            style={{ backgroundImage: 'radial-gradient(#002d4d 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }} 
       />
 
-      {/* 2. Dual Energy Core */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.05, 0.1, 0.05],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
-        />
-      </div>
-
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-row items-center justify-between gap-4 md:gap-20">
           
-          {/* Content Block - 50% width */}
           <div className="w-1/2 text-right space-y-3 md:space-y-8 relative">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
@@ -56,7 +43,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="space-y-2 md:space-y-5 relative z-10"
             >
-              <h1 className="text-sm md:text-5xl font-black text-[#002d4d] tracking-tighter leading-tight md:leading-[1.2]">
+              <h1 className="text-sm md:text-5xl font-black text-[#002d4d] tracking-tight leading-tight md:leading-[1.2]">
                 {title ? title : (
                   <>
                     ناميكس: استثمارك <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">الأمثل</span>
@@ -65,7 +52,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
               </h1>
               
               <p className="text-gray-500 text-[9px] md:text-lg font-medium max-w-xl leading-relaxed md:leading-loose opacity-80">
-                {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة خصيصاً لتعظيم عوائد النخبة."}
+                {description || "استمتع بأعلى معايير الأمان والشفافية في إدارة أصولك الرقمية، مع بروتوكولات حماية متطورة ومحركات ذكاء اصطناعي مصممة للنخبة."}
               </p>
             </motion.div>
 
@@ -86,7 +73,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
                 </motion.button>
               </Link>
               
-              <div className="hidden sm:flex items-center gap-6 md:gap-8 opacity-40 px-2">
+              <div className="hidden sm:flex items-center gap-8 opacity-40 px-2">
                  <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" />
                     <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest text-[#f9a885]">محمي</span>
@@ -95,7 +82,7 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
             </motion.div>
           </div>
 
-          {/* New Optimized Visual Reactor - 50% width */}
+          {/* Optimized Digital Reactor */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -105,47 +92,21 @@ export function Hero({ title, description, ctaLink = "/login" }: HeroProps) {
             <div className="relative w-full max-w-[160px] md:max-w-[420px] aspect-square flex items-center justify-center">
                <motion.div 
                  animate={{ rotate: 360 }}
-                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                 transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
                  className="absolute inset-0 rounded-full border border-dashed border-gray-100 opacity-20"
                />
                <motion.div 
                  animate={{ rotate: -360 }}
-                 transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                 transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
                  className="absolute inset-8 rounded-full border border-dashed border-blue-50 opacity-20"
                />
-               
-               <div className="relative z-10 scale-[1.5] md:scale-[3] drop-shadow-[0_20px_50px_rgba(0,45,77,0.15)]">
+               <div className="relative z-10 scale-[1.4] md:scale-[3] drop-shadow-[0_20px_50px_rgba(0,45,77,0.15)]">
                   <Logo size="lg" hideText animate={true} />
                </div>
-
-               <motion.div 
-                 animate={{ 
-                   scale: [1, 1.1, 1],
-                   opacity: [0.3, 0.6, 0.3]
-                 }}
-                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                 className="absolute h-32 w-32 md:h-64 md:w-64 bg-blue-500/5 rounded-full blur-3xl -z-10"
-               />
             </div>
           </motion.div>
         </div>
       </div>
-
-      {/* Floating Dust */}
-      {isMounted && (
-        <div className="absolute inset-0 pointer-events-none z-0">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ x: Math.random() * 800, y: Math.random() * 400, opacity: 0 }}
-              animate={{ y: [0, -40, 0], opacity: [0, 0.3, 0] }}
-              transition={{ duration: 8 + i, repeat: Infinity, delay: i * 0.5 }}
-              className="absolute h-1 w-1 bg-blue-100 rounded-full blur-[1px]"
-              style={{ top: `${15 + i * 15}%`, left: `${10 + i * 15}%` }}
-            />
-          ))}
-        </div>
-      )}
     </section>
   );
 }

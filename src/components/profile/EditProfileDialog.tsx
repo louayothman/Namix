@@ -19,7 +19,6 @@ import {
   ShieldCheck, 
   CheckCircle2,
   Zap,
-  Smartphone,
   ChevronLeft
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
@@ -28,6 +27,11 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+
+/**
+ * @fileOverview واجهة توثيق الهوية المحدثة v2.0
+ * تم إصلاح تداخل حقل الهاتف وتطهير الـ RangeError عبر تثبيت تباعد النصوص القياسي.
+ */
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -148,12 +152,12 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
           {step === 'identity' && (
             <motion.div key="id" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">الاسم القانوني الكامل</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الاسم القانوني الكامل</Label>
                 <div className="relative">
                   <Input 
                     value={editData.displayName} 
                     onChange={e => setEditData({...editData, displayName: e.target.value})} 
-                    className="h-14 rounded-[20px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white transition-all" 
+                    className="h-14 rounded-[20px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner" 
                     placeholder="أدخل اسمك بالكامل..." 
                   />
                   <UserCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
@@ -162,7 +166,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">الجنس</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">الجنس</Label>
                   <Select value={editData.gender} onValueChange={val => setEditData({...editData, gender: val})}>
                     <SelectTrigger className="h-14 rounded-[20px] bg-gray-50/50 border-none px-6 font-black shadow-inner">
                       <SelectValue />
@@ -174,13 +178,13 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">تاريخ الميلاد</Label>
+                  <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">تاريخ الميلاد</Label>
                   <div className="relative">
                     <Input 
                       type="date" 
                       value={editData.birthDate} 
                       onChange={e => setEditData({...editData, birthDate: e.target.value})} 
-                      className="h-14 rounded-[20px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner focus-visible:bg-white" 
+                      className="h-14 rounded-[20px] bg-gray-50/50 border-none px-12 text-sm font-black shadow-inner" 
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 pointer-events-none" />
                   </div>
@@ -188,11 +192,11 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase tracking-normal">رقم الهاتف للهوية</Label>
+                <Label className="text-[10px] font-black text-gray-400 pr-4 uppercase">رقم الهاتف للهوية</Label>
                 <div className="relative">
                   <PhoneInput 
                     international 
-                    defaultCountry="SA" 
+                    defaultCountry="SY" 
                     value={editData.phoneNumber} 
                     onChange={(val) => setEditData({ ...editData, phoneNumber: val || "" })} 
                   />
@@ -203,7 +207,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                 <Button 
                   onClick={() => setStep('covenant')} 
                   disabled={!isIdentityComplete} 
-                  className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all"
+                  className="w-full h-16 rounded-full bg-[#002d4d] text-white font-black text-base shadow-xl active:scale-95 transition-all"
                 >
                   متابعة التوثيق
                 </Button>
@@ -235,7 +239,7 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                     </>
                   )}
                 </Button>
-                <button onClick={() => setStep('identity')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-4">رجوع لتعديل البيانات</button>
+                <button onClick={() => setStep('identity')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-4">رجوع</button>
               </div>
             </motion.div>
           )}
@@ -246,11 +250,6 @@ export function EditProfileDialog({ user, dbUser, onSuccess }: EditProfileDialog
                 <div className="h-32 w-32 bg-emerald-50 rounded-[48px] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
                    <CheckCircle2 size={60} className="text-emerald-500" />
                 </div>
-                <motion.div 
-                  animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }} 
-                  transition={{ duration: 2, repeat: Infinity }} 
-                  className="absolute inset-0 bg-emerald-400/20 rounded-full blur-3xl -z-10" 
-                />
               </div>
               <div className="space-y-3">
                  <h3 className="text-3xl font-black text-[#002d4d]">اكتمل التوثيق</h3>

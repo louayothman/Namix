@@ -11,6 +11,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { hapticFeedback } from "@/lib/haptic-engine";
 import { cn } from "@/lib/utils";
 
+/**
+ * @fileOverview بروتوكول الأمان الحيوي v2.0 - Biometric Authentication Hub
+ * تم إصلاح خطأ استيراد cn وإضافة التنويهات النانوية بدلاً من التوستات.
+ */
+
 interface BiometricSetupProps {
   dbUser: any;
   onOpenChange: (open: boolean) => void;
@@ -32,7 +37,6 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
   }, []);
 
   const triggerNativeAuth = async () => {
-    // تحدي عشوائي نانوي لتشغيل حساسات الجهاز
     const challenge = new Uint8Array(32);
     window.crypto.getRandomValues(challenge);
     
@@ -48,12 +52,9 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
       }
     };
 
-    // هذا السطر هو ما يفتح واجهة بصمة الوجه أو الأصبع الرسمية للجهاز
     if (dbUser?.isBiometricEnabled) {
-      // إذا كان مفعلاً ونريد الإلغاء، نستخدم get للتحقق
       return await navigator.credentials.get(options);
     } else {
-      // إذا كان غير مفعل ونريد التفعيل، نستخدم create لبناء الهوية الحيوية
       const createOptions = {
         ...options.publicKey,
         rp: { name: "Namix Protocol" },
@@ -76,10 +77,8 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
     hapticFeedback.medium();
 
     try {
-      // فتح واجهة الجهاز الرسمية
       await triggerNativeAuth();
       
-      // التحديث في قاعدة البيانات بعد نجاح المصادقة الحيوية
       await updateDoc(doc(db, "users", dbUser.id), { 
         isBiometricEnabled: val,
         updatedAt: new Date().toISOString()
@@ -182,13 +181,6 @@ export function BiometricSetup({ dbUser, onOpenChange }: BiometricSetupProps) {
             <p className="text-[11px] font-bold text-gray-500 leading-[2.2]">
                تفعيل هذا الخيار يربط حسابك بنظام الحماية المعتمد في جهازك. سيتم طلب البصمة لتأكيد عمليات السحب والتداول الحساسة كبديل آمن وسريع لرمز PIN.
             </p>
-         </div>
-      </div>
-
-      <div className="pt-4 flex flex-col items-center gap-4 opacity-20">
-         <div className="flex items-center gap-2">
-            <Sparkles size={12} className="text-[#f9a885]" />
-            <p className="text-[9px] font-black uppercase tracking-[0.5em]">Biometric Vault Active</p>
          </div>
       </div>
     </div>
