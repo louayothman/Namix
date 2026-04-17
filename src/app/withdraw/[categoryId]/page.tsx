@@ -38,6 +38,28 @@ import { Label } from "@/components/ui/label";
 import { QRScanner } from "@/components/withdraw/QRScanner";
 import { hapticFeedback } from "@/lib/haptic-engine";
 
+/**
+ * AnimatedScannerIcon - أيقونة المسح التكتيكية المخصصة
+ * تعرض إطاراً وباركود نانوي مع شريط مسح متحرك.
+ */
+const AnimatedScannerIcon = () => (
+  <div className="relative h-8 w-8 flex items-center justify-center">
+    <Scan size={28} strokeWidth={1.5} className="text-[#002d4d]" />
+    {/* شريط المسح الضوئي */}
+    <motion.div 
+      animate={{ top: ["25%", "75%", "25%"] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      className="absolute left-1.5 right-1.5 h-[1.5px] bg-[#f9a885] shadow-[0_0_10px_#f9a885] z-10"
+    />
+    {/* نمط الباركود النانوي */}
+    <div className="absolute inset-2.5 grid grid-cols-3 gap-0.5 opacity-20 pointer-events-none">
+       {[...Array(9)].map((_, i) => (
+         <div key={i} className="bg-[#002d4d] rounded-[0.5px]" />
+       ))}
+    </div>
+  </div>
+);
+
 export default function CategoryWithdrawPage({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = use(params);
   const router = useRouter();
@@ -140,7 +162,6 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
     hapticFeedback.medium();
     
     try {
-      // استدعاء واجهة البصمة الحقيقية للجهاز
       const challenge = new Uint8Array(32);
       window.crypto.getRandomValues(challenge);
       
@@ -156,10 +177,8 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
         }
       };
 
-      // إذا نجح السطر التالي، فهذا يعني أن المستخدم وضع بصمته بنجاح
       await navigator.credentials.get(options);
       
-      // تنفيذ التحويل باستخدام رمز PIN المخزن (بشكل آلي خلف الكواليس بعد نجاح البصمة)
       const res = await executeInternalTransfer(dbUser.id, recipient.id, Number(amount), dbUser.securityPin);
       if (res.success) {
         setTransactionHash(res.hash);
@@ -270,7 +289,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                          onClick={() => setIsScanning(true)}
                          className="h-16 w-16 rounded-[28px] bg-gray-50 border border-gray-100 flex items-center justify-center text-[#002d4d] active:scale-95 transition-all shadow-sm group"
                        >
-                          <Scan size={24} className="text-[#002d4d] group-hover:scale-110 transition-transform" />
+                          <AnimatedScannerIcon />
                        </button>
                     </div>
                     {error && <p className="text-red-500 text-[10px] font-bold pr-4">{error}</p>}
@@ -383,7 +402,7 @@ export default function CategoryWithdrawPage({ params }: { params: Promise<{ cat
                         variant="outline" 
                         className="h-16 rounded-full border-gray-100 bg-white text-[#002d4d] font-black text-base shadow-sm active:scale-95 transition-all flex items-center justify-center gap-3"
                       >
-                         {biometricLoading ? <Loader2 className="animate-spin" /> : <>استخدام بصمة الوجه / الإصبع <Fingerprint size={24} className="text-blue-500" /></>}
+                         {biometricLoading ? <Loader2 className="animate-spin" /> : <>استخدام بصمة الوجه / الإصبع <Fingerprint size={24} className="text-blue-50" /></>}
                       </Button>
                     )}
 
