@@ -24,8 +24,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview نافذة "من نحن" المحدثة v1.1 - No Lottie
- * استبدال الرسم المتحرك الثقيل بكرة أرضية نانوية متوهجة لضمان سرعة الصفحة.
+ * @fileOverview نافذة التعريف v1.2 - Clean Language
  */
 
 interface AboutDialogProps {
@@ -62,30 +61,30 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
                <div className="mt-6 text-center space-y-1 relative z-10">
                   <div className="flex items-center justify-center gap-2 text-[#f9a885] font-black text-[7px] md:text-[9px] uppercase tracking-widest">
                      <Sparkles size={10} />
-                     Sovereign Identity Node
+                     Asset Management Node
                   </div>
                </div>
             </div>
 
             <div className="w-1/2 p-5 md:p-16 space-y-6 md:space-y-12 bg-white relative flex flex-col justify-center">
                <div className="space-y-2 md:space-y-4 text-right">
-                  <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none">من نحن</DialogTitle>
-                  <p className="text-[6px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest opacity-40">Institutional Identity Protocol</p>
+                  <DialogTitle className="text-sm md:text-3xl font-black text-[#002d4d] leading-none">عن ناميكس</DialogTitle>
+                  <p className="text-[6px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest opacity-40">Identity Disclosure</p>
                </div>
 
                {isLoading ? (
                  <div className="py-10 flex flex-col items-center gap-4 text-center">
                     <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                    <p className="text-[8px] font-black text-gray-300 uppercase">Loading Protocol...</p>
+                    <p className="text-[8px] font-black text-gray-300 uppercase">Loading...</p>
                  </div>
                ) : (
                  <div className="space-y-5 md:space-y-10">
                     <h4 className="text-[11px] md:text-xl font-black text-blue-600 leading-tight">
-                       {legal?.tagline || "حيث تحقق راحتك المالية الاحترافية"}
+                       {legal?.tagline || "بوابتكم الموثوقة لاستثمار وتداول الأصول الرقمية"}
                     </h4>
                     <div className="max-h-[150px] md:max-h-[200px] overflow-y-auto pr-1 scrollbar-none">
                       <p className="text-gray-500 font-bold leading-[1.8] md:leading-[2.2] text-[10px] md:text-sm text-right whitespace-pre-wrap">
-                         {legal?.aboutUs || "ناميكس هي رائدتكم في الاستثمار الرقمي المتطور."}
+                         {legal?.aboutUs || "ناميكس هي المنصة الرائدة في حلول الاستثمار الرقمي المتطور."}
                       </p>
                     </div>
                  </div>
@@ -93,7 +92,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
 
                <div className="pt-6 border-t border-gray-50 mt-auto flex justify-start">
                   <Button onClick={() => onOpenChange(false)} className="h-10 md:h-14 px-6 md:px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-[9px] md:text-sm shadow-xl transition-all">
-                     إغلاق والعودة
+                     إغلاق
                   </Button>
                </div>
             </div>

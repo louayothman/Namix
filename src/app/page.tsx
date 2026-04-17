@@ -22,8 +22,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview صفحة الهبوط المحدثة v22.0 - Luxury Investment Node
- * تصميم مينيماليست يعتمد على اللغة الاحترافية الرصينة والهوية البصرية العميقة.
+ * @fileOverview بوابة ناميكس الاستثمارية v23.0 - Minimalism Refined
+ * واجهة استثمارية احترافية خالية من المصطلحات المعقدة، تركز على النمو والأمان.
  */
 export default function LandingPage() {
   const db = useFirestore();
@@ -51,11 +51,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col" dir="rtl">
       
-      {/* Background Atmosphere & Sovereign Aura */}
+      {/* Background Atmosphere - Sovereign Subtle Aura */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.02)_0%,transparent:70%)] blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.01)_0%,transparent_70%)] blur-[100px]" />
         
-        {/* Giant Sovereign Logo Aura - الختم السيادي الشفاف */}
+        {/* Giant Logo Aura */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] scale-[2.5] md:scale-[5] select-none pointer-events-none">
            <Logo size="lg" hideText animate={true} />
         </div>
@@ -65,7 +65,6 @@ export default function LandingPage() {
 
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center pt-32 pb-24">
         
-        {/* Central Intelligence Hub */}
         <section className="container mx-auto px-6 max-w-5xl text-center space-y-16">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
@@ -74,25 +73,21 @@ export default function LandingPage() {
             className="flex flex-col items-center gap-12"
           >
             <div className="space-y-8 pt-4">
-              {/* Badge Indicator */}
               <div className="flex items-center justify-center gap-3">
                  <div className="h-[0.5px] w-12 bg-[#002d4d]/10" />
-                 <span className="text-[10px] font-black text-blue-600/60 uppercase tracking-[0.5em] mr-[-0.5em]">Global Digital Asset Standard</span>
+                 <span className="text-[10px] font-black text-blue-600/40 uppercase tracking-[0.5em] mr-[-0.5em]">Global Investment Standard</span>
                  <div className="h-[0.5px] w-12 bg-[#002d4d]/10" />
               </div>
               
-              {/* Thick Professional Headline */}
               <h1 className="text-4xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-[1.1] max-w-4xl mx-auto">
-                {landingData?.welcomeTitle || "ناميكس | المنظومة العالمية لإدارة وتداول الأصول الرقمية"}
+                {landingData?.welcomeTitle || "ناميكس | المنصة الموثوقة لاستثمار وتداول الأصول الرقمية"}
               </h1>
               
-              {/* Substantial Descriptive Copy */}
               <p className="text-gray-400 text-base md:text-xl font-medium max-w-3xl mx-auto leading-[2.2] md:leading-[2.5] opacity-90 px-4">
-                {landingData?.welcomeDescription || "انضم إلى الجيل القادم من الاستثمار الذكي. ناميكس تمنحك وصولاً وميضياً للأسواق العالمية، وتجمع بين التداول الفوري المتقدم وعقود الاستثمار السيادية المؤتمتة، مدعومة بمحركات تحليل نانوية تضمن لك الشفافية المطلقة والنمو المستدام في بيئة آمنة تماماً."}
+                {landingData?.welcomeDescription || "استمتع بوصول فائق للأسواق العالمية من خلال واجهة احترافية تجمع بين كفاءة التداول الفوري وحلول تنمية المال المؤتمتة. نحن نوفر لك الأمان والشفافية في كل عملية لضمان تحقيق أهدافك المالية بثبات."}
               </p>
             </div>
 
-            {/* Tactical Execution Matrix */}
             <div className="pt-10 flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-lg px-6">
               <Link href={dashboardLink} className="w-full">
                 <motion.button 
@@ -100,16 +95,13 @@ export default function LandingPage() {
                   whileTap={{ scale: 0.98 }}
                   className="h-16 w-full rounded-full bg-[#002d4d] text-white font-black text-sm shadow-2xl hover:bg-[#001d33] transition-all flex items-center justify-center gap-4 relative overflow-hidden group"
                 >
-                  {/* Luminescent Shimmer Effect */}
                   <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
-                  
-                  <span>بدء جلسة الاستثمار السيادي</span>
+                  <span>ابدأ رحلتك الاستثمارية</span>
                   <ArrowRight className="h-5 w-5 rotate-180 transition-transform group-hover:-translate-x-1" />
                 </motion.button>
               </Link>
             </div>
 
-            {/* Functional Status Tickers */}
             <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-30 pt-10">
                <div className="flex items-center gap-3">
                   <ShieldCheck size={16} className="text-emerald-500" />
@@ -117,11 +109,11 @@ export default function LandingPage() {
                </div>
                <div className="flex items-center gap-3">
                   <Zap size={16} className="text-[#f9a885] fill-current" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Real-time Execution</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Fast Execution</span>
                </div>
                <div className="flex items-center gap-3">
                   <Activity size={16} className="text-blue-500" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Institutional Pulse</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#002d4d]">Live Market Feed</span>
                </div>
             </div>
           </motion.div>
@@ -140,7 +132,7 @@ export default function LandingPage() {
         onSupportClick={() => setIsSupportOpen(true)}
       />
       
-      {/* Sovereign Dialog Matrices */}
+      {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />

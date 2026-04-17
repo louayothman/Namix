@@ -86,7 +86,7 @@ export function Footer({
           <div className="space-y-6">
             <h4 className="font-black text-[#002d4d] text-[11px] md:text-sm uppercase tracking-normal flex items-center gap-2">
                <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-               الخدمات الاستراتيجية
+               الخدمات الاستثمارية
             </h4>
             <ul className="space-y-3">
               <li>
@@ -105,10 +105,10 @@ export function Footer({
             </h4>
             <ul className="space-y-3">
               <li>
-                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">عن Namix</button>
+                <button onClick={onAboutClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">عن ناميكس</button>
               </li>
               <li>
-                <button onClick={onFAQClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">الأسئلة الشائعة</button>
+                <button onClick={onFAQClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">المساعدة</button>
               </li>
               <li>
                 <button onClick={onPrivacyClick} className="text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal text-right outline-none">سياسة الخصوصية</button>
@@ -134,18 +134,6 @@ export function Footer({
                  );
                })}
             </div>
-            
-            <div className="pt-4 space-y-4">
-               <h4 className="font-black text-[#002d4d] text-[11px] md:text-sm uppercase tracking-normal flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  تواصل معنا
-               </h4>
-               <div className="flex flex-wrap items-center gap-3">
-                  <button onClick={onSupportClick} className="h-9 w-9 rounded-xl bg-[#002d4d] text-[#f9a885] flex items-center justify-center shadow-lg active:scale-90 transition-all" title="الدعم المباشر">
-                     <Mail size={16} />
-                  </button>
-               </div>
-            </div>
           </div>
 
           <div className="space-y-6">
@@ -166,12 +154,6 @@ export function Footer({
                    تعزيز الرصيد
                 </button>
               </li>
-              <li>
-                <button onClick={() => handleProtectedNavigation("/home")} className="flex items-center gap-2 text-[10px] md:text-sm text-gray-400 hover:text-[#002d4d] font-bold transition-colors tracking-normal group outline-none">
-                   <LayoutDashboard size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                   المركز الإداري
-                </button>
-              </li>
             </ul>
           </div>
 
@@ -183,7 +165,7 @@ export function Footer({
             <p className="text-[8px] md:text-[9px] font-black text-[#002d4d] uppercase tracking-normal">
               © 2024 Namix Universal Network. All rights reserved.
             </p>
-            <p className="text-[7px] md:text-[8px] font-bold text-gray-400 tracking-normal uppercase">بروتوكول الأصول الرقمية الموحد</p>
+            <p className="text-[7px] md:text-[8px] font-bold text-gray-400 tracking-normal uppercase">المنصة الموحدة للأصول الرقمية</p>
           </div>
         </div>
       </div>
