@@ -4,18 +4,16 @@
 import React, { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
 import { Navbar } from "@/components/landing/Navbar";
-import { MarketPulse } from "@/components/landing/MarketPulse";
-import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
 import { SupportSheet } from "@/components/support/SupportSheet";
-import { useMarketSync } from "@/hooks/use-market-sync";
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, collection, query, where } from "firebase/firestore";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { motion } from "framer-motion";
-import { Sparkles, Zap, ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck, ArrowRight, Zap, Activity } from "lucide-react";
+import { Logo } from "@/components/layout/Logo";
+import Link from "next/link";
 
-// Dynamic Imports for Heavy Components & Dialogs
-const Hero = dynamic(() => import("@/components/landing/Hero").then(m => ({ default: m.Hero })), { ssr: false });
+// Dynamic Dialogs for Performance
 const AboutDialog = dynamic(() => import("@/components/landing/AboutDialog").then(m => ({ default: m.AboutDialog })), { ssr: false });
 const ContractLabDialog = dynamic(() => import("@/components/landing/ContractLabDialog").then(m => ({ default: m.ContractLabDialog })), { ssr: false });
 const SpotTradingDialog = dynamic(() => import("@/components/landing/SpotTradingDialog").then(m => ({ default: m.SpotTradingDialog })), { ssr: false });
@@ -23,11 +21,13 @@ const FAQDialog = dynamic(() => import("@/components/landing/FAQDialog").then(m 
 const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog").then(m => ({ default: m.PrivacyDialog })), { ssr: false });
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
+/**
+ * @fileOverview صفحة الهبوط السيادية v20.0 - Sovereign Minimalism
+ * تصميم نقي، سريع، وموجه للنخبة؛ تم استئصال كافة المكونات المزدحمة والتركيز على جوهر العلامة التجارية.
+ */
 export default function LandingPage() {
   const db = useFirestore();
-  const [particles, setParticles] = useState<{ top: string; left: string; duration: number; delay: number }[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   
   // Dialog States
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -41,157 +41,110 @@ export default function LandingPage() {
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
 
-  const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
-  const { data: allSymbols } = useCollection(symbolsQuery);
-
-  useMarketSync(allSymbols || []);
-
   useEffect(() => {
     const session = localStorage.getItem("namix_user");
-    if (session) {
-      try {
-        const parsed = JSON.parse(session);
-        setIsLoggedIn(true);
-        setUserRole(parsed.role === 'admin' ? 'admin' : 'user');
-      } catch (e) {
-        setIsLoggedIn(false);
-      }
-    }
-
-    const generated = [...Array(8)].map((_, i) => ({
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      duration: 6 + i,
-      delay: i * 0.7
-    }));
-    setParticles(generated);
+    setIsLoggedIn(!!session);
   }, []);
 
-  const dashboardLink = isLoggedIn ? (userRole === 'admin' ? "/admin" : "/home") : "/login";
+  const dashboardLink = isLoggedIn ? "/home" : "/login";
 
   return (
-    <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden" dir="rtl">
+    <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col" dir="rtl">
+      
+      {/* Background Atmosphere - Ultra Light */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.03)_0%,transparent_70%)] blur-[120px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,45,77,0.02)_0%,transparent_70%)] blur-[100px]" />
       </div>
 
       <Navbar onAboutClick={() => setIsAboutOpen(true)} />
 
-      <main className="relative z-10">
-        <Hero 
-          title={landingData?.welcomeTitle} 
-          description={landingData?.welcomeDescription} 
-          ctaLink={dashboardLink}
-        />
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center pt-32 pb-20">
         
-        < MarketPulse symbols={allSymbols || []} />
-        
-        <Features />
-        
-        <section className="container mx-auto px-6 py-32">
+        {/* Central Identity Section */}
+        <section className="container mx-auto px-6 max-w-4xl text-center space-y-12">
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="group relative"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center gap-10"
           >
-            <div className="bg-[#002d4d] rounded-[64px] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl transition-all duration-700 hover:shadow-[0_50px_100px_-20px_rgba(0,45,77,0.5)]">
+            {/* Morphic Logo Shield */}
+            <div className="relative group">
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-[-40px] border border-dashed border-gray-100 rounded-full opacity-40 group-hover:opacity-100 transition-opacity"
+              />
+              <div className="relative z-10 scale-[2.2] md:scale-[2.8] drop-shadow-2xl">
+                <Logo size="lg" hideText animate={true} />
+              </div>
+            </div>
+
+            <div className="space-y-6 pt-4">
+              <div className="flex items-center justify-center gap-3">
+                 <div className="h-[0.5px] w-8 bg-blue-500/20" />
+                 <span className="text-[10px] font-black text-blue-500/60 uppercase tracking-[0.4em] mr-[-0.4em]">Sovereign Protocol</span>
+                 <div className="h-[0.5px] w-8 bg-blue-500/20" />
+              </div>
               
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <motion.div 
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    opacity: [0.1, 0.2, 0.1],
-                    rotate: [0, 90, 180, 270, 360]
-                  }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full blur-[120px]" 
-                />
-                <motion.div 
-                  animate={{ 
-                    scale: [1.2, 1, 1.2],
-                    opacity: [0.05, 0.15, 0.05],
-                    rotate: [360, 270, 180, 90, 0]
-                  }}
-                  transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                  className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#f9a885] rounded-full blur-[120px]" 
-                />
-                
-                {particles.map((p, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{ 
-                      y: [0, -60, 0],
-                      x: [0, i % 2 === 0 ? 30 : -30, 0],
-                      opacity: [0.1, 0.4, 0.1]
-                    }}
-                    transition={{ 
-                      duration: p.duration, 
-                      repeat: Infinity,
-                      delay: p.delay
-                    }}
-                    className="absolute h-1 w-1 bg-white rounded-full"
-                    style={{ 
-                      top: p.top, 
-                      left: p.left 
-                    }}
-                  />
-                ))}
-              </div>
+              <h1 className="text-4xl md:text-7xl font-black text-[#002d4d] tracking-tighter leading-[1.1]">
+                {landingData?.welcomeTitle || "ناميكس: الاقتصاد الرقمي المُعاد هندسته"}
+              </h1>
+              
+              <p className="text-gray-400 text-base md:text-xl font-medium max-w-2xl mx-auto leading-loose opacity-80">
+                {landingData?.welcomeDescription || "بروتوكول إدارة أصول رقمية متقدم، يوفر حماية سيادية وعوائد استراتيجية للنخبة عبر محركات الذكاء الاصطناعي."}
+              </p>
+            </div>
 
-              <div className="relative z-10 space-y-10">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8 }}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 backdrop-blur-md mb-4"
+            <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-5 w-full max-w-md">
+              <Link href={dashboardLink} className="w-full">
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-16 w-full rounded-full bg-[#002d4d] text-white font-black text-sm shadow-2xl hover:bg-[#001d33] transition-all flex items-center justify-center gap-4 relative overflow-hidden group"
                 >
-                  <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em]">Join The Growth Engine</span>
-                </motion.div>
+                  <div className="absolute inset-0 bg-white/5 skew-x-12 translate-x-full group-hover:translate-x-[-250%] transition-transform duration-1000" />
+                  <span>ابدأ رحلة النمو</span>
+                  <ArrowRight className="h-5 w-5 rotate-180 transition-transform group-hover:-translate-x-1" />
+                </motion.button>
+              </Link>
+              
+              <button 
+                onClick={() => setIsAboutOpen(true)}
+                className="h-16 w-full rounded-full bg-white border border-gray-100 text-[#002d4d] font-black text-sm shadow-sm hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
+              >
+                <span>ميثاق المنصة</span>
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+              </button>
+            </div>
 
-                <div className="space-y-6">
-                  <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter">
-                    ابدأ رحلتك مع <span className="text-[#f9a885] drop-shadow-[0_0_15px_rgba(249,168,133,0.3)]">ناميكس</span> اليوم
-                  </h2>
-                  <p className="text-blue-100/60 text-lg md:text-2xl font-medium max-w-2xl mx-auto leading-loose">
-                    انضم لرواد المستثمرين في ناميكس واستفد من أحدث تقنيات التحليل والذكاء الاصطناعي المتقدمة.
-                  </p>
-                </div>
-
-                <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-6">
-                  <a href={dashboardLink} className="w-full md:w-auto">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="h-20 px-12 w-full md:w-auto rounded-full bg-[#f9a885] text-[#002d4d] font-black text-xl shadow-[0_20px_50px_rgba(249,168,133,0.3)] hover:bg-white transition-all flex items-center justify-center gap-4 group/btn overflow-hidden relative"
-                    >
-                      <div className="absolute inset-0 bg-white/30 skew-x-12 translate-x-full group-hover/btn:translate-x-[-300%] transition-transform duration-1000" />
-                      <span>{isLoggedIn ? "لوحة القيادة" : "فتح حساب استثماري"}</span>
-                      <ArrowRight className="h-6 w-6 rotate-180 transition-transform group-hover/btn:-translate-x-2" />
-                    </motion.button>
-                  </a>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-16 -left-16 opacity-[0.04] pointer-events-none group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
-                <Zap size={350} strokeWidth={1} className="text-white" />
-              </div>
+            <div className="flex items-center gap-10 opacity-20 pt-10">
+               <div className="flex items-center gap-2">
+                  <Zap size={14} className="text-[#f9a885] fill-current" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Flash execution</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <Activity size={14} className="text-blue-500" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Real-time Sync</span>
+               </div>
             </div>
           </motion.div>
         </section>
+
       </main>
 
       <Footer 
         onAboutClick={() => setIsAboutOpen(true)} 
         onContractLabClick={() => setIsContractLabOpen(true)} 
         onSpotTradingClick={() => setIsSpotTradingOpen(true)}
-        onArenaClick={() => {}} // Disabled Arena
+        onArenaClick={() => {}} 
         onFAQClick={() => setIsFAQOpen(true)}
         onPrivacyClick={() => setIsPrivacyOpen(true)}
         onTermsClick={() => setIsTermsOpen(true)}
         onSupportClick={() => setIsSupportOpen(true)}
       />
       
+      {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
