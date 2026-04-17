@@ -6,9 +6,6 @@ import dynamic from 'next/dynamic';
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { SupportSheet } from "@/components/support/SupportSheet";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { motion } from "framer-motion";
 import { Logo } from "@/components/layout/Logo";
 
 // Dynamic Dialogs for Performance
@@ -20,8 +17,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v30.0 - Full Centered Minimalism
- * تم حذف الشريط العلوي نهائياً للتركيز المطلق على الهوية المركزية.
+ * @fileOverview بوابة ناميكس الاستثمارية v31.0 - Symmetrical Minimalism
+ * إعادة هيكلة الصفحة لتكون متوازنة بالكامل مع حذف الشريط العلوي وتطبيق المعايير اللونية الجديدة.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,7 +42,7 @@ export default function LandingPage() {
       
       {/* Background Atmosphere - Gray-Blue Aura */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.05)_0%,transparent_70%)] blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.08)_0%,transparent_70%)] blur-[100px]" />
         
         {/* Giant Logo Aura */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.01] scale-[2.5] md:scale-[5] select-none pointer-events-none">
@@ -53,7 +50,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center py-10">
+      <main className="relative z-10 flex-1 flex flex-col justify-center">
         <Hero />
       </main>
 
@@ -70,7 +67,7 @@ export default function LandingPage() {
       
       {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
-      <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
+      <ContractLabDialog open={isContractLabOpen} onOpenChange={isContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={isFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />

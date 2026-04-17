@@ -13,7 +13,7 @@ import { Logo } from "@/components/layout/Logo";
 /**
  * AnimatedDigit - محرك الخانة الرقمية المنزلقة
  */
-function AnimatedDigit({ digit, colorClass = "text-[#fbc02d]" }: { digit: string, colorClass?: string }) {
+function AnimatedDigit({ digit, colorClass = "text-[#f9a885]" }: { digit: string, colorClass?: string }) {
   const isNumber = !isNaN(parseInt(digit));
   if (!isNumber) return <span className={cn("inline-block px-0.5", colorClass)}>{digit}</span>;
 
@@ -37,7 +37,7 @@ function AnimatedDigit({ digit, colorClass = "text-[#fbc02d]" }: { digit: string
 }
 
 /**
- * LaurelWreath - أيقونة السنبلة الرسمية المرفقة
+ * LaurelWreath - أيقونة السنبلة الرسمية المرفقة (نسخة JSX مطهرة)
  */
 const LaurelWreath = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 940 720" className={cn("w-10 h-10 md:w-16 md:h-16", className)} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -67,6 +67,7 @@ export function Hero() {
   const db = useFirestore();
   const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
   const { data: users } = useCollection(usersQuery);
+  const [mounted, setMounted] = useState(false);
   
   const baseCount = 2314548; 
   const totalDisplayCount = useMemo(() => {
@@ -74,36 +75,49 @@ export function Hero() {
     return (baseCount + realUsers).toLocaleString();
   }, [users]);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
-    <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center px-6 md:px-12 font-body overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center px-6 md:px-12 font-body overflow-hidden" dir="rtl">
       
+      {/* 1. Header Minimalist Nodes */}
+      <div className="absolute top-8 left-0 right-0 px-10 flex items-center justify-between z-50">
+         <h1 className="text-xl font-black text-[#002d4d] tracking-[0.2em] uppercase">NAMIX</h1>
+         <Link href="/login">
+            <button className="text-[11px] font-black text-[#002d4d] hover:text-[#f9a885] transition-colors uppercase tracking-widest outline-none">دخول</button>
+         </Link>
+      </div>
+
       {/* Background Atmosphere - Slate Blue & Orange Glow */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none bg-white">
         <motion.div 
           animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.06, 0.03] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-blue-500/10 rounded-full blur-[120px]" 
+          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-[#8899AA]/25 rounded-full blur-[120px]" 
         />
         <motion.div 
-          animate={{ scale: [1.05, 1, 1.05], opacity: [0.02, 0.04, 0.02] }}
+          animate={{ scale: [1.05, 1, 1.05], opacity: [0.02, 0.05, 0.02] }}
           transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/10 rounded-full blur-[120px]" 
+          className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/15 rounded-full blur-[120px]" 
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.02)_0%,transparent_70%)]" />
       </div>
 
       <div className="max-w-6xl mx-auto w-full flex flex-col items-center text-center space-y-16 py-12 relative z-10">
         
-        {/* 1. Dynamic User Counter */}
+        {/* 2. Dynamic User Counter */}
         <div className="space-y-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-6xl md:text-[110px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_10px_20px_rgba(249,168,133,0.15)]"
+            className="text-6xl md:text-[120px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_20px_40px_rgba(249,168,133,0.15)]"
             dir="ltr"
           >
             {totalDisplayCount.split("").map((char, i) => (
-              <AnimatedDigit key={i} digit={char} colorClass="text-[#f9a885]" />
+              <AnimatedDigit key={i} digit={char} />
             ))}
           </motion.div>
           
@@ -116,19 +130,20 @@ export function Hero() {
           </motion.h2>
         </div>
 
-        {/* 2. Sovereign Ranking Hub with Center Logo */}
+        {/* 3. Symmetrical Sovereign Ranking Hub */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full flex items-center justify-center gap-6 md:gap-16"
+          className="w-full flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24"
         >
-           {/* Left Badge */}
-           <div className="flex items-center gap-2 group">
+           {/* Stat 1: Framed Client Assets */}
+           <div className="flex items-center gap-3 group">
               <LaurelWreath className="scale-x-[-1] text-[#f9a885] group-hover:rotate-[-6deg] transition-transform duration-700" />
-              <div className="space-y-0 text-center">
+              <div className="space-y-0 text-center px-4">
                  <p className="text-xl md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[8px] md:text-[12px] font-bold text-gray-400 uppercase tracking-tight mt-1">حجم التداول</p>
+                 <p className="text-[8px] md:text-[11px] font-bold text-gray-400 uppercase tracking-tight mt-1 whitespace-nowrap">أصول العملاء</p>
               </div>
+              <LaurelWreath className="text-[#f9a885] group-hover:rotate-[6deg] transition-transform duration-700" />
            </div>
 
            {/* Central Animated Identity */}
@@ -136,46 +151,49 @@ export function Hero() {
               <Logo size="sm" hideText animate={true} className="scale-125 md:scale-150" />
            </div>
 
-           {/* Right Badge */}
-           <div className="flex items-center gap-2 group">
-              <div className="space-y-0 text-center">
+           {/* Stat 2: Framed Trading Volume */}
+           <div className="flex items-center gap-3 group">
+              <LaurelWreath className="scale-x-[-1] text-[#f9a885] group-hover:rotate-[-6deg] transition-transform duration-700" />
+              <div className="space-y-0 text-center px-4">
                  <p className="text-xl md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[8px] md:text-[12px] font-bold text-gray-400 uppercase tracking-tight mt-1">أصول العملاء</p>
+                 <p className="text-[8px] md:text-[11px] font-bold text-gray-400 uppercase tracking-tight mt-1 whitespace-nowrap">حجم التداول</p>
               </div>
               <LaurelWreath className="text-[#f9a885] group-hover:rotate-[6deg] transition-transform duration-700" />
            </div>
         </motion.div>
 
-        {/* 3. CTA & Reward Matrix */}
-        <div className="flex flex-col items-center gap-8 w-full">
+        {/* 4. CTA & Reward Matrix */}
+        <div className="flex flex-col items-center gap-6 w-full">
            
            <motion.div 
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ delay: 0.8 }}
-             className="flex items-center gap-3 bg-[#8899AA]/5 px-8 py-3 rounded-full border border-[#8899AA]/10 shadow-sm"
+             className="flex flex-col items-center gap-4"
            >
-              <Sparkles className="h-5 w-5 text-[#f9a885] animate-pulse" />
-              <p className="text-sm md:text-base font-black text-[#002d4d]">
-                مكافأة استثمارية تصل إلى <span className="text-[#f9a885] font-black">$100</span> عند التسجيل اليوم
-              </p>
+              <div className="flex items-center gap-2.5 bg-[#8899AA]/5 px-8 py-3 rounded-full border border-[#8899AA]/10 shadow-sm">
+                <Sparkles className="h-4 w-4 text-[#f9a885] animate-pulse" />
+                <p className="text-sm md:text-base font-black text-[#002d4d]">
+                  مكافأة استثمارية تصل إلى <span className="text-[#f9a885] font-black">$100</span> عند التسجيل اليوم
+                </p>
+              </div>
+
+              <Link href="/login" className="w-full max-w-[320px] mt-2">
+                <motion.button 
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-16 w-full rounded-[24px] bg-[#f9a885] text-[#002d4d] font-black text-lg shadow-[0_20px_40px_rgba(249,168,133,0.2)] transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
+                >
+                  <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                  <span className="relative z-10">سجل الآن مجاناً</span>
+                  <ChevronLeft className="h-5 w-5 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={3} />
+                </motion.button>
+              </Link>
            </motion.div>
 
-           <Link href="/login" className="w-full max-w-[320px]">
-             <motion.button 
-               whileHover={{ scale: 1.02, y: -4 }}
-               whileTap={{ scale: 0.98 }}
-               className="h-16 w-full rounded-[24px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-[0_20px_40px_rgba(249,168,133,0.2)] hover:bg-[#ffb08a] transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
-             >
-               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-               <span className="relative z-10">سجل الآن مجاناً</span>
-               <ChevronLeft className="h-5 w-5 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={3} />
-             </motion.button>
-           </Link>
-
-           <div className="flex items-center justify-center gap-3 opacity-20 select-none">
+           <div className="flex items-center justify-center gap-3 opacity-20 select-none pt-4">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d] mr-[-0.5em]">Verified Global Node</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#002d4d] mr-[-0.5em]">Verified Global Asset Node</p>
            </div>
         </div>
 
@@ -183,4 +201,3 @@ export function Hero() {
     </section>
   );
 }
-
