@@ -11,8 +11,8 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v14.0 - Precision Spacing Edition
- * تم تقليل المسافات الداخلية للأوسمة وزيادة التباعد بين الكتل لضمان التوازن الفخم.
+ * @fileOverview NAMIX ELITE HERO v15.0 - Zero-Gap Precision Edition
+ * تم تصفير الفجوات بين السنابل والنصوص لضمان الالتحام البصري الكامل (Laurel Fusion).
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
@@ -87,17 +87,17 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Fixed Layout Header */}
+      {/* 1. Corner Header Strategy */}
       <div className="absolute top-10 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
          </div>
          <Link href="/login">
-            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2.5 rounded-full bg-white/40 border border-white/10 backdrop-blur-xl group">
+            <button className="relative overflow-hidden text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-8 py-3 rounded-full bg-white/5 border border-white/10 group">
               <motion.div 
-                animate={{ x: ['-200%', '200%'] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-25deg] pointer-events-none"
+                animate={{ x: ['-250%', '250%'] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent skew-x-[-25deg] pointer-events-none"
               />
               <span className="relative z-10">دخول</span>
             </button>
@@ -118,15 +118,15 @@ export function Hero() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row-reverse items-center lg:justify-between gap-12 lg:gap-20 py-24 md:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row-reverse items-center lg:justify-between gap-16 lg:gap-24 py-24 md:py-32 relative z-10">
         
         {/* RIGHT WING: Counter and Stats */}
-        <div className="flex-1 flex flex-col items-center lg:items-end space-y-10 lg:space-y-14">
+        <div className="flex-1 flex flex-col items-center lg:items-end space-y-12 lg:space-y-16">
            <div className="text-center lg:text-right space-y-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-6xl md:text-[100px] lg:text-[140px] font-black tabular-nums tracking-tighter flex items-center justify-center lg:justify-end h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(249,168,133,0.3)]"
+                className="text-7xl md:text-[120px] lg:text-[140px] font-black tabular-nums tracking-tighter flex items-center justify-center lg:justify-end h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(249,168,133,0.3)]"
                 dir="ltr"
               >
                 {totalDisplayCount.split("").map((char, i) => (
@@ -143,7 +143,7 @@ export function Hero() {
               </motion.h2>
            </div>
 
-           {/* Symmetrical Stats Hub - Optimized spacing */}
+           {/* Symmetrical Stats Hub - Zero Gap Laurel Fusion */}
            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -154,25 +154,25 @@ export function Hero() {
                 { label: "حجم التداول", id: "volume" },
                 { label: "الاستثمارات", id: "invest" }
               ].map((stat) => (
-                <div key={stat.id} className="flex items-center gap-0.5 group shrink-0">
-                   <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-5deg]" />
-                   <div className="space-y-0 text-center px-1">
-                      <p className="text-sm md:text-2xl lg:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
+                <div key={stat.id} className="flex items-center gap-0 group shrink-0">
+                   <LaurelWreath mirrored className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[-3deg]" />
+                   <div className="space-y-0 text-center px-0">
+                      <p className="text-sm md:text-3xl lg:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
                       <p className="text-[6px] md:text-[8px] font-black text-gray-400 uppercase tracking-tighter mt-1.5 whitespace-nowrap">{stat.label}</p>
                    </div>
-                   <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[5deg]" />
+                   <LaurelWreath className="text-[#f9a885] transition-transform duration-700 group-hover:rotate-[3deg]" />
                 </div>
               ))}
            </motion.div>
         </div>
 
         {/* LEFT WING: Rewards and CTA */}
-        <div className="flex-1 flex flex-col items-center lg:items-start space-y-10 lg:space-y-12">
-           <div className="space-y-8 w-full flex flex-col items-center lg:items-start">
-              {/* Clean Reward Node */}
+        <div className="flex-1 flex flex-col items-center lg:items-start space-y-12 lg:space-y-14">
+           <div className="space-y-10 w-full flex flex-col items-center lg:items-start">
+              {/* Reward Node - Minimalist */}
               <div className="flex items-center gap-3 lg:pr-4">
-                <Gift className="h-5 w-5 md:h-7 md:w-7 text-[#f9a885]" />
-                <p className="text-sm md:text-xl lg:text-2xl font-black text-[#002d4d] tracking-normal">
+                <Gift className="h-6 w-6 md:h-8 md:w-8 text-[#f9a885]" />
+                <p className="text-base md:text-xl lg:text-2xl font-black text-[#002d4d] tracking-normal">
                   مكافأة تصل الى <span className="text-[#f9a885] font-black">100$</span> عند التسجيل
                 </p>
               </div>
@@ -181,15 +181,15 @@ export function Hero() {
                 <motion.button 
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="h-16 md:h-20 w-full rounded-[28px] md:rounded-[40px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
+                  className="h-16 md:h-20 w-full rounded-[32px] md:rounded-[48px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group outline-none"
                 >
-                  {/* Subtle Background Arrow */}
+                  {/* Slow Motion Background Arrow */}
                   <motion.div 
-                    animate={{ x: [0, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-6 md:left-8 opacity-[0.08] pointer-events-none"
+                    animate={{ x: [-5, 5, -5] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute inset-0 flex items-center justify-center opacity-[0.08] pointer-events-none"
                   >
-                    <ChevronLeft size={80} strokeWidth={4} />
+                    <ChevronLeft size={80} strokeWidth={4} className="mr-[-40px]" />
                   </motion.div>
                   
                   <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "سجل الآن مجاناً"}</span>
@@ -199,7 +199,7 @@ export function Hero() {
 
            <div className="flex items-center justify-center lg:justify-start gap-3 opacity-20 select-none lg:pr-6">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v14.0</p>
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v15.0</p>
            </div>
         </div>
 
