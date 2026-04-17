@@ -11,15 +11,15 @@ import { collection } from "firebase/firestore";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview NAMIX ELITE HERO v17.0 - Left-Wing Intelligence Edition
- * أوسمة الصدارة ملتحمة نانوياً (Zero-Gap) وموزعة في الجناح الأيسر مع العداد.
- * زر الدخول العلوي نصي خالص مع لمعان فوق الحروف.
+ * @fileOverview NAMIX ELITE HERO v18.0 - Professional Alignment Edition
+ * تم تصحيح لون العداد للبرتقالي، ومعالجة تداخل السنابل، وضبط لمعان النص العلوي.
+ * تم نقل العداد والإحصائيات للجناح الأيسر في الشاشات الكبيرة.
  */
 
 const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-10 h-10 md:w-20 md:h-20 shrink-0", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-10 h-10 md:w-16 md:h-16 shrink-0", mirrored && "scale-x-[-1]", className)} 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -35,12 +35,7 @@ const LaurelWreath = ({ mirrored = false, className }: { mirrored?: boolean, cla
       <path d="m 43.731844,727.44265 c -13.50183,-59.5145 -64.782452,-65.44807 -116.173584,-66.07531 27.191044,43.28729 61.484952,83.16283 116.173584,66.07531 z" fillOpacity="1" />
       <path d="M 28.353512,639.98238 C 83.492962,613.83027 78.104003,562.48953 67.51225,512.19779 31.194121,548.17207 -0.24580513,590.33455 28.353512,639.98238 z" fillOpacity="1" />
       <path d="m 19.164595,656.99812 c -6.339212,-60.69651 -56.552533,-72.67739 -107.50569,-79.40263 21.858519,46.20969 51.174797,89.8752 107.50569,79.40263 z" fillOpacity="1" />
-      <path d="M 5.1751165,540.48644 C 64.763679,527.31633 70.982683,476.06937 71.896069,424.68233 28.458188,451.63189 -11.607558,485.70325 5.1751165,540.48644 z" fillOpacity="1" />
-      <path d="M -6.4859483,585.25321 C 10.758728,526.7136 -31.112486,496.51915 -75.668597,470.90297 c 2.620999,51.05161 13.106722,102.5897 69.1826487,114.35024 z" fillOpacity="1" />
-      <path d="m 28.616032,425.50229 c 60.950565,3.05215 80.496728,-44.72699 94.963058,-94.04387 -49.017377,14.50674 -96.665404,36.77334 -94.963058,94.04387 z" fillOpacity="1" />
-      <path d="m -10.626514,491.19264 c 36.629046,-48.8116 7.9620893,-91.74309 -24.821398,-131.32444 -15.399078,48.74424 -23.600233,100.69481 24.821398,131.32444 z" fillOpacity="1" />
-      <path d="M 55.278052,338.66716 C 116.20344,335.15204 130.50209,285.54901 139.58509,234.96301 92.410592,254.6531 47.431376,281.91098 55.278052,338.66716 z" fillOpacity="1" />
-      <path d="M 16.389532,391.33338 C 62.166776,350.9762 42.814294,303.11817 18.750788,257.70462 -6.22507,302.30663 -24.804003,351.50973 16.389532,391.33338 z" fillOpacity="1" />
+      <path d="M 28.616032,425.50229 c 60.950565,3.05215 80.496728,-44.72699 94.963058,-94.04387 -49.017377,14.50674 -96.665404,36.77334 -94.963058,94.04387 z" fillOpacity="1" />
     </g>
   </svg>
 );
@@ -88,19 +83,20 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. Elite Minimalist Header */}
+      {/* 1. Top Header - Pure Minimalism */}
       <div className="absolute top-10 left-0 right-0 px-8 md:px-16 flex items-center justify-between z-50">
          <div className="flex items-center gap-3">
             <Logo size="sm" animate={true} />
          </div>
          <Link href="/login">
-            <button className="relative text-[11px] md:text-xs font-black text-[#002d4d] hover:text-[#f9a885] transition-all uppercase tracking-widest outline-none px-6 py-2 group">
-              <span className="relative z-10">دخول</span>
-              <motion.div 
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent pointer-events-none"
-              />
+            <button className="relative px-6 py-2 outline-none group">
+              <motion.span 
+                animate={{ backgroundPosition: ['200% 0%', '-200% 0%'] }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                className="text-[11px] md:text-xs font-black uppercase tracking-widest bg-gradient-to-r from-[#002d4d] via-[#f9a885] to-[#002d4d] bg-[length:400%_auto] bg-clip-text text-transparent"
+              >
+                دخول
+              </motion.span>
             </button>
          </Link>
       </div>
@@ -110,7 +106,7 @@ export function Hero() {
         <motion.div 
           animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.08, 0.04] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-[#8899AA]/20 rounded-full blur-[120px]" 
+          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-[#8899AA]/15 rounded-full blur-[120px]" 
         />
         <motion.div 
           animate={{ scale: [1.05, 1, 1.05], opacity: [0.03, 0.06, 0.03] }}
@@ -119,36 +115,36 @@ export function Hero() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center lg:justify-between gap-16 lg:gap-24 py-24 md:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-24 py-24 md:py-32 relative z-10">
         
         {/* LEFT WING: Counter and Stats (Sovereign Hub) */}
-        <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-16">
+        <div className="flex-1 flex flex-col items-center space-y-12 lg:space-y-16">
            <div className="text-center space-y-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-7xl md:text-[120px] lg:text-[140px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(136,153,170,0.2)]"
+                className="text-7xl md:text-[110px] lg:text-[130px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_20px_50px_rgba(249,168,133,0.15)]"
                 dir="ltr"
               >
                 {totalDisplayCount.split("").map((char, i) => (
-                  <AnimatedDigit key={i} digit={char} colorClass="text-[#002d4d]" />
+                  <AnimatedDigit key={i} digit={char} colorClass="text-[#f9a885]" />
                 ))}
               </motion.div>
               
               <motion.h2 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-2xl md:text-5xl lg:text-6xl font-black text-[#002d4d] tracking-tight leading-none"
+                className="text-2xl md:text-5xl lg:text-5xl font-black text-[#002d4d] tracking-tight leading-none"
               >
                 مُستخدِم يثقون بنا
               </motion.h2>
            </div>
 
-           {/* Symmetrical Stats Hub - Nano Fusion Spacing */}
+           {/* Symmetrical Stats Hub - Centered in Wing */}
            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full flex flex-row items-center justify-center gap-4 md:gap-20 flex-nowrap overflow-x-auto scrollbar-none py-4"
+              className="w-full flex flex-row items-center justify-center gap-2 md:gap-16 flex-nowrap overflow-x-auto scrollbar-none py-4"
            >
               {[
                 { label: "أصول العملاء", id: "assets" },
@@ -156,22 +152,22 @@ export function Hero() {
                 { label: "الاستثمارات", id: "invest" }
               ].map((stat) => (
                 <div key={stat.id} className="flex items-center gap-0 group shrink-0">
-                   <LaurelWreath mirrored className="text-[#f9a885] -mx-4 md:-mx-10 transition-transform duration-700 group-hover:rotate-[-5deg]" />
-                   <div className="space-y-0 text-center px-0 min-w-max relative z-10">
+                   <LaurelWreath mirrored className="text-[#f9a885] -mx-2 md:-mx-4 transition-transform duration-700 group-hover:rotate-[-5deg]" />
+                   <div className="space-y-0 text-center px-1 min-w-max relative z-10">
                       <p className="text-xl md:text-5xl font-black text-[#002d4d] leading-none">No.1</p>
                       <p className="text-[6px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-2">{stat.label}</p>
                    </div>
-                   <LaurelWreath className="text-[#f9a885] -mx-4 md:-mx-10 transition-transform duration-700 group-hover:rotate-[5deg]" />
+                   <LaurelWreath className="text-[#f9a885] -mx-2 md:-mx-4 transition-transform duration-700 group-hover:rotate-[5deg]" />
                 </div>
               ))}
            </motion.div>
         </div>
 
         {/* RIGHT WING: Rewards and CTA (Active Engagement) */}
-        <div className="flex-1 flex flex-col items-center lg:items-end space-y-12 lg:space-y-14">
-           <div className="space-y-10 w-full flex flex-col items-center lg:items-end">
-              {/* Reward Node - Pure Minimalism */}
-              <div className="flex items-center gap-3 lg:pl-6">
+        <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-14">
+           <div className="space-y-10 w-full flex flex-col items-center">
+              {/* Reward Node */}
+              <div className="flex items-center gap-3">
                 <Gift className="h-6 w-6 md:h-8 md:w-8 text-[#f9a885]" />
                 <p className="text-base md:text-xl lg:text-2xl font-black text-[#002d4d] tracking-normal">
                   مكافأة تصل الى <span className="text-[#f9a885] font-black">100$</span> عند التسجيل
@@ -184,13 +180,13 @@ export function Hero() {
                   whileTap={{ scale: 0.98 }}
                   className="h-16 md:h-20 w-full rounded-[32px] md:rounded-[48px] bg-[#f9a885] text-[#002d4d] font-black text-lg md:text-xl shadow-2xl transition-all flex items-center justify-center relative overflow-hidden group outline-none"
                 >
-                  {/* Left-Anchored Background Push Arrow */}
+                  {/* Left-Anchored Back Arrow */}
                   <motion.div 
                     animate={{ x: [-10, 10, -10] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute left-6 inset-y-0 flex items-center justify-start opacity-[0.1] pointer-events-none"
                   >
-                    <ChevronLeft size={80} strokeWidth={4} className="md:size-[100px]" />
+                    <ChevronLeft size={70} strokeWidth={4} className="md:size-[80px]" />
                   </motion.div>
                   
                   <span className="relative z-10">{isLoggedIn ? "متابعة الاستخدام" : "سجل الآن مجاناً"}</span>
@@ -198,9 +194,9 @@ export function Hero() {
               </Link>
            </div>
 
-           <div className="flex items-center justify-center lg:justify-end gap-3 opacity-20 select-none lg:pl-10">
+           <div className="flex items-center justify-center gap-3 opacity-20 select-none">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Node v17.0</p>
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v18.0</p>
            </div>
         </div>
 
