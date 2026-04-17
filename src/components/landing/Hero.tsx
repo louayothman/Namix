@@ -36,17 +36,26 @@ function AnimatedDigit({ digit, colorClass = "text-[#fbc02d]" }: { digit: string
 }
 
 /**
- * LaurelWreath - أيقونة إكليل الغار الذهبي المخصصة
+ * LaurelWreath - أيقونة إكليل الغار الذهبي الفخم المعاد تصميمها
  */
 const LaurelWreath = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 100 100" className={cn("w-12 h-12 md:w-16 md:h-16", className)} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M35 85C25 75 15 60 15 45C15 30 25 15 35 15" stroke="#fbc02d" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-    <path d="M65 85C75 75 85 60 85 45C85 30 75 15 65 15" stroke="#fbc02d" strokeWidth="3" strokeLinecap="round" opacity="0.8" />
-    {[25, 40, 55, 70].map((y, i) => (
-      <React.Fragment key={i}>
-        <circle cx="18" cy={y} r="3" fill="#fbc02d" />
-        <circle cx="82" cy={y} r="3" fill="#fbc02d" />
-      </React.Fragment>
+  <svg viewBox="0 0 100 100" className={cn("w-10 h-10 md:w-14 md:h-14", className)} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path 
+      d="M30 85C20 75 12 55 12 40C12 25 20 10 30 5" 
+      stroke="#fbc02d" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+      opacity="0.6" 
+    />
+    {/* أوراق الغار التفصيلية */}
+    {[15, 30, 45, 60, 75].map((y, i) => (
+      <path 
+        key={i}
+        d={`M12 ${y}C8 ${y-5} 5 ${y-15} 12 ${y-10}`} 
+        stroke="#fbc02d" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+      />
     ))}
   </svg>
 );
@@ -56,24 +65,24 @@ export function Hero() {
   const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
   const { data: users } = useCollection(usersQuery);
   
-  const baseCount = 2314548; // الرقم الأساسي المطلوب
+  const baseCount = 2314548; 
   const totalDisplayCount = useMemo(() => {
     const realUsers = users?.length || 0;
     return (baseCount + realUsers).toLocaleString();
   }, [users]);
 
   return (
-    <section className="relative w-full min-h-[75vh] flex flex-col items-center justify-center px-6 md:px-12 font-body overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center px-6 md:px-12 font-body overflow-hidden" dir="rtl">
       
-      <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center space-y-12 md:space-y-16 py-12 relative z-10">
+      <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center space-y-14 md:space-y-20 py-12 relative z-10">
         
-        {/* 1. Large Dynamic Number & Trust Text */}
+        {/* 1. Large Dynamic Number & Title */}
         <div className="space-y-4">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-8xl font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden"
+            className="text-6xl md:text-[110px] font-black tabular-nums tracking-tighter flex items-center justify-center h-[1.1em] overflow-hidden drop-shadow-[0_10px_20px_rgba(251,192,45,0.1)]"
             dir="ltr"
           >
             {totalDisplayCount.split("").map((char, i) => (
@@ -85,77 +94,77 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 1 }}
-            className="text-3xl md:text-5xl font-black text-[#002d4d] tracking-tight"
+            className="text-2xl md:text-5xl font-black text-[#002d4d] tracking-tight"
           >
             مُستخدِم يثقون بنا
           </motion.h2>
         </div>
 
-        {/* 2. Ranking Badges Section */}
+        {/* 2. Professional Ranking Badges */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 1 }}
-          className="w-full flex items-center justify-center gap-4 md:gap-16"
+          className="w-full flex items-center justify-center gap-8 md:gap-24"
         >
-           {/* Badge Left */}
-           <div className="flex items-center gap-2 md:gap-6 group">
-              <LaurelWreath className="group-hover:rotate-12 transition-transform duration-700" />
-              <div className="space-y-0.5">
-                 <p className="text-xl md:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-tight">أصول العملاء</p>
+           {/* Badge Left: أصول العملاء */}
+           <div className="flex items-center gap-2 md:gap-5 group">
+              <LaurelWreath className="group-hover:rotate-6 transition-transform duration-700" />
+              <div className="space-y-0.5 text-center">
+                 <p className="text-2xl md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[10px] md:text-[12px] font-bold text-gray-400 uppercase tracking-tight">أصول العملاء</p>
               </div>
-              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-12 transition-transform duration-700" />
+              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-6 transition-transform duration-700" />
            </div>
 
-           {/* Badge Right */}
-           <div className="flex items-center gap-2 md:gap-6 group">
-              <LaurelWreath className="group-hover:rotate-12 transition-transform duration-700" />
-              <div className="space-y-0.5">
-                 <p className="text-xl md:text-3xl font-black text-[#002d4d] leading-none">No.1</p>
-                 <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-tight">حجم التداول</p>
+           {/* Badge Right: حجم التداول */}
+           <div className="flex items-center gap-2 md:gap-5 group">
+              <LaurelWreath className="group-hover:rotate-6 transition-transform duration-700" />
+              <div className="space-y-0.5 text-center">
+                 <p className="text-2xl md:text-4xl font-black text-[#002d4d] leading-none">No.1</p>
+                 <p className="text-[10px] md:text-[12px] font-bold text-gray-400 uppercase tracking-tight">حجم التداول</p>
               </div>
-              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-12 transition-transform duration-700" />
+              <LaurelWreath className="scale-x-[-1] group-hover:-rotate-6 transition-transform duration-700" />
            </div>
         </motion.div>
 
-        {/* 3. Reward & Action Section */}
-        <div className="space-y-8 w-full flex flex-col items-center">
+        {/* 3. CTA & Reward Strip */}
+        <div className="space-y-10 w-full flex flex-col items-center">
+           <Link href="/login" className="w-full max-w-[360px]">
+             <motion.button 
+               whileHover={{ scale: 1.02, y: -4 }}
+               whileTap={{ scale: 0.98 }}
+               className="h-20 w-full rounded-[28px] bg-[#fbc02d] text-[#002d4d] font-black text-xl md:text-2xl shadow-[0_20px_50px_rgba(251,192,45,0.25)] hover:bg-[#ffca28] transition-all flex items-center justify-center gap-4 relative overflow-hidden group outline-none"
+             >
+               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+               <span className="relative z-10">سجل الآن مجاناً</span>
+               <ChevronLeft className="h-6 w-6 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={4} />
+             </motion.button>
+           </Link>
+
            <motion.div 
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ delay: 0.8 }}
-             className="flex items-center gap-3 bg-gray-50/50 px-6 py-2.5 rounded-full border border-gray-100 shadow-sm"
+             className="flex items-center gap-3 bg-gray-50/50 px-8 py-3 rounded-full border border-gray-100 shadow-sm"
            >
               <Gift className="h-5 w-5 text-[#fbc02d] animate-bounce" />
               <p className="text-xs md:text-base font-black text-[#002d4d]">
-                مُكافأة تصل إلى <span className="text-[#fbc02d]">$100</span> اليوم فقط
+                مُكافأة استثمارية تصل إلى <span className="text-[#fbc02d] font-black">$100</span> عند التسجيل اليوم
               </p>
            </motion.div>
 
-           <Link href="/login" className="w-full max-w-[340px]">
-             <motion.button 
-               whileHover={{ scale: 1.02, y: -4 }}
-               whileTap={{ scale: 0.96 }}
-               className="h-20 w-full rounded-[24px] bg-[#fbc02d] text-[#002d4d] font-black text-xl md:text-2xl shadow-2xl shadow-yellow-500/20 hover:bg-[#ffca28] transition-all flex items-center justify-center gap-4 relative overflow-hidden group outline-none"
-             >
-               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-               <span className="relative z-10">إنشاء حساب</span>
-               <ChevronLeft className="h-6 w-6 relative z-10 group-hover:-translate-x-1 transition-transform" strokeWidth={3} />
-             </motion.button>
-           </Link>
-
-           <div className="flex items-center gap-3 opacity-20 select-none pt-4">
+           <div className="flex items-center gap-3 opacity-20 select-none pt-2">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Security Node</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#002d4d] mr-[-0.5em]">Verified Global Node</p>
            </div>
         </div>
 
       </div>
 
-      {/* Decorative Atmosphere */}
+      {/* Subtle Background Glow */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(251,192,45,0.02)_0%,transparent_70%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(251,192,45,0.03)_0%,transparent_75%)]" />
       </div>
     </section>
   );

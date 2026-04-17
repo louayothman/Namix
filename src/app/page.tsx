@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
-import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { SupportSheet } from "@/components/support/SupportSheet";
@@ -21,8 +20,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v27.0 - Global Minimalist Edition
- * إعادة هيكلة شاملة للتركيز على محرك الهيرو والفوتر فقط بنقاء بصري تام.
+ * @fileOverview بوابة ناميكس الاستثمارية v28.0 - Pure Hero Edition
+ * تم حذف الشريط العلوي (Navbar) للتركيز المطلق على محتوى الهيرو والتحويل المباشر.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,8 +53,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <Navbar onAboutClick={() => setIsAboutOpen(true)} />
-
       <main className="relative z-10 flex-1 flex flex-col justify-center">
         <Hero />
       </main>
@@ -75,7 +72,7 @@ export default function LandingPage() {
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
-      <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
+      <FAQDialog open={isFAQOpen} onOpenChange={isFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
       <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
       <SupportSheet open={isSupportOpen} onOpenChange={setIsSupportOpen} />
