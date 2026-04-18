@@ -1,58 +1,122 @@
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview مفاعل الجسيمات المترابطة v2.0 - Hydration Guarded
+ * @fileOverview مُفاعل النيورون الرقمي v5.0 - Neural Connectivity Engine
+ * كل نقطة بيانات تسبح بحرية وتتصل بذكاء بأقرب جارين لها فقط.
+ * تم تحسين الأداء لضمان سلاسة الحركة السينمائية (60fps).
  */
+
+interface Point {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
+
 export function MarketPulseBackground() {
-  const [points, setPoints] = useState<{id: number, x: number, y: number, duration: number}[]>([]);
+  const [points, setPoints] = useState<Point[]>([]);
+  const requestRef = useRef<number>(null);
+  const pointsCount = 35; // عدد النقاط الأمثل للأداء والجمالية
 
   useEffect(() => {
-    // توليد النقاط في بيئة العميل فقط لضمان سلامة الهيدريشن
-    const generated = Array.from({ length: 30 }).map((_, i) => ({
+    // 1. تهيئة النقاط في بيئة العميل فقط (منع خطأ الهيدريشن)
+    const initialPoints = Array.from({ length: pointsCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      duration: 20 + Math.random() * 20
+      vx: (Math.random() - 0.5) * 0.04, // سرعة هادئة جداً
+      vy: (Math.random() - 0.5) * 0.04,
     }));
-    setPoints(generated);
+    setPoints(initialPoints);
+
+    // 2. محرك التحديث الفيزيائي اللحظي
+    const update = () => {
+      setPoints((prev) =>
+        prev.map((p) => {
+          let nx = p.x + p.vx;
+          let ny = p.y + p.vy;
+          let nvx = p.vx;
+          let nvy = p.vy;
+
+          // ارتداد تكتيكي عند الحدود
+          if (nx < 0 || nx > 100) nvx *= -1;
+          if (ny < 0 || ny > 100) nvy *= -1;
+
+          return { ...p, x: nx, y: ny, vx: nvx, vy: nvy };
+        })
+      );
+      requestRef.current = requestAnimationFrame(update);
+    };
+
+    requestRef.current = requestAnimationFrame(update);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
   }, []);
+
+  // 3. خوارزمية الربط بالجارين الأقرب (Nearest Neighbor Orchestration)
+  const connections = useMemo(() => {
+    if (points.length === 0) return [];
+    
+    return points.map((p, i) => {
+      const distances = points
+        .map((p2, j) => ({
+          index: j,
+          dist: Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2))
+        }))
+        .filter((d) => d.index !== i)
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 2); // اختيار أقرب نقطتين فقط بناءً على طلبك
+
+      return distances.map(d => ({ from: i, to: d.index }));
+    }).flat();
+  }, [points]);
 
   if (points.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.4]">
-      <svg className="w-full h-full opacity-[0.08]" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {points.map((p, i) => (
-          points.slice(i + 1, i + 4).map((p2, j) => (
-            <motion.line
-              key={`line-${i}-${j}`}
-              x1={`${p.x}%`} y1={`${p.y}%`}
-              x2={`${p2.x}%`} y2={`${p2.y}%`}
+    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.35] select-none">
+      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {/* طبقة الخيوط العصبية النانوية */}
+        <g>
+          {connections.map((c, idx) => (
+            <line
+              key={`line-${idx}`}
+              x1={`${points[c.from].x}%`}
+              y1={`${points[c.from].y}%`}
+              x2={`${points[c.to].x}%`}
+              y2={`${points[c.to].y}%`}
               stroke="#002d4d"
               strokeWidth="0.05"
-              animate={{ opacity: [0.1, 0.4, 0.1] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              strokeOpacity="0.25"
+              strokeLinecap="round"
             />
-          ))
-        ))}
+          ))}
+        </g>
+        
+        {/* طبقة نقاط البيانات المتوهجة */}
+        <g>
+          {points.map((p) => (
+            <circle
+              key={`point-${p.id}`}
+              cx={`${p.x}%`}
+              cy={`${p.y}%`}
+              r="0.18"
+              fill="#f9a885"
+              className="drop-shadow-[0_0_2px_rgba(249,168,133,0.8)]"
+            />
+          ))}
+        </g>
       </svg>
-
-      {points.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute h-1 w-1 bg-[#f9a885] rounded-full blur-[0.5px]"
-          style={{ left: `${p.x}%`, top: `${p.y}%` }}
-          animate={{ 
-            x: [0, 40, -40, 0],
-            y: [0, -40, 40, 0],
-            opacity: [0.2, 0.6, 0.2]
-          }}
-          transition={{ duration: p.duration, repeat: Infinity, ease: "linear" }}
-        />
-      ))}
+      
+      {/* هالة التمويه الجانبية لمنع ظهور الحدود الفاصلة */}
+      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-40" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white opacity-40" />
     </div>
   );
 }
