@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي الملون v7.0 - Dual Color & Large Points
- * تم تكبير النقاط والخطوط وتلوينها بلون ناميكس الكحلي والبرتقالي لتعزيز هوية العلامة.
+ * @fileOverview مُفاعل النيورون الرقمي الملون v8.0 - High Visibility Edition
+ * تم تضخيم النقاط والخطوط وتلوينها بهوية ناميكس لضمان ظهورها بوضوح فائق خلف المحتوى.
  */
 
 interface Point {
@@ -19,18 +19,18 @@ interface Point {
 export function MarketPulseBackground() {
   const [points, setPoints] = useState<Point[]>([]);
   const requestRef = useRef<number>(null);
-  const pointsCount = 70;
+  const pointsCount = 80;
 
   useEffect(() => {
-    // الألوان المؤسساتية لناميكس
+    // لوني ناميكس: الكحلي والبرتقالي الثانوي
     const colors = ["#002d4d", "#f9a885"];
 
     const initialPoints = Array.from({ length: pointsCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.15, // سرعة معززة قليلاً
-      vy: (Math.random() - 0.5) * 0.15,
+      vx: (Math.random() - 0.5) * 0.18, 
+      vy: (Math.random() - 0.5) * 0.18,
       color: colors[i % colors.length]
     }));
     setPoints(initialPoints);
@@ -78,8 +78,8 @@ export function MarketPulseBackground() {
   if (points.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden opacity-[0.4] select-none">
-      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none">
+      <svg className="w-full h-full opacity-[0.6]" viewBox="0 0 100 100" preserveAspectRatio="none">
         <g>
           {connections.map((c, idx) => (
             <line
@@ -89,8 +89,8 @@ export function MarketPulseBackground() {
               x2={`${points[c.to].x}%`}
               y2={`${points[c.to].y}%`}
               stroke="#002d4d"
-              strokeWidth="0.15" // سماكة الخط معززة
-              strokeOpacity="0.15"
+              strokeWidth="0.35" 
+              strokeOpacity="0.2"
               strokeLinecap="round"
             />
           ))}
@@ -101,14 +101,15 @@ export function MarketPulseBackground() {
               key={`point-${p.id}`}
               cx={`${p.x}%`}
               cy={`${p.y}%`}
-              r="0.5" // حجم النقطة معزز
+              r="0.75" 
               fill={p.color}
-              className="drop-shadow-[0_0_4px_rgba(0,0,0,0.1)]"
+              className="drop-shadow-[0_0_6px_rgba(0,0,0,0.15)]"
             />
           ))}
         </g>
       </svg>
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white opacity-20" />
+      {/* طبقة تلاشي خفيفة لضمان راحة العين عند القراءة */}
+      <div className="absolute inset-0 bg-white/10 pointer-events-none" />
     </div>
   );
 }

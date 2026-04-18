@@ -17,8 +17,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v34.0 - Neural Clarity Edition
- * تم تطهير الصفحة من الشعار الشبحي لضمان بروز خلفية النيورون الملونة.
+ * @fileOverview بوابة ناميكس الاستثمارية v35.0 - Unified Background Edition
+ * تم إزالة bg-white للسماح لخلفية النيورون بالظهور عبر كامل مساحة الصفحة.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,12 +38,12 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col" dir="rtl">
+    <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-transparent" dir="rtl">
       
-      {/* 1. النواة المركزية: خلفية النيورون الرقمية الملونة */}
+      {/* 1. النواة المركزية: خلفية النيورون الرقمية الملونة - ثابتة خلف كل شيء */}
       <MarketPulseBackground />
 
-      <main className="relative z-10 flex-1 flex flex-col">
+      <main className="relative z-10 flex-1 flex flex-col bg-transparent">
         <Hero />
         <MarketPulse />
       </main>
