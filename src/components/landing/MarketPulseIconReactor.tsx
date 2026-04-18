@@ -5,7 +5,8 @@ import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview أوركسترا الأيقونات السيادية v12.0 - Fixed Positions Carousel
+ * @fileOverview أوركسترا الأيقونات السيادية v13.0 - 5 Icons Carousel
+ * تم تحديث المحرك ليظهر 5 أيقونات مع تركيز استراتيجي على العنصر الأوسط.
  */
 const ASSETS = [
   "BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT", 
@@ -13,11 +14,13 @@ const ASSETS = [
 ];
 
 const POSITIONS = [
-  { x: -160, y: 0, scale: 0.6, opacity: 0 },    // P0 (خارج المسرح يسار)
-  { x: -100, y: 0, scale: 0.8, opacity: 0.3 },  // P1 (يسار)
-  { x: 0,    y: -20, scale: 1.2, opacity: 1 },  // P2 (الوسط - رفع تكتيكي)
-  { x: 100,  y: 0, scale: 0.8, opacity: 0.4 },  // P3 (يمين)
-  { x: 160,  y: 0, scale: 0.6, opacity: 0.2 }   // P4 (أقصى اليمين - دخول)
+  { x: -240, y: 0, scale: 0.5, opacity: 0 },    // P0 (خارج المسرح يسار - خروج)
+  { x: -160, y: 0, scale: 0.7, opacity: 0.3 },  // P1 (أقصى اليسار)
+  { x: -80,  y: 0, scale: 0.9, opacity: 0.6 },  // P2 (يسار)
+  { x: 0,    y: -20, scale: 1.2, opacity: 1 },  // P3 (المنتصف - العنصر المميز)
+  { x: 80,   y: 0, scale: 0.9, opacity: 0.6 },  // P4 (يمين)
+  { x: 160,  y: 0, scale: 0.7, opacity: 0.3 },  // P5 (أقصى اليمين)
+  { x: 240,  y: 0, scale: 0.5, opacity: 0 }     // P6 (خارج المسرح يمين - دخول)
 ];
 
 export function MarketPulseIconReactor() {
@@ -25,8 +28,8 @@ export function MarketPulseIconReactor() {
   const nextIndex = useRef(0);
 
   useEffect(() => {
-    // تهيئة العناصر الأربعة الأولى
-    const initial = Array.from({ length: 4 }).map((_, i) => {
+    // تهيئة العناصر الخمسة الأولى في المسارات الظاهرة
+    const initial = Array.from({ length: 5 }).map((_, i) => {
       const item = { id: Math.random(), symbol: ASSETS[nextIndex.current], pos: i + 1 };
       nextIndex.current = (nextIndex.current + 1) % ASSETS.length;
       return item;
@@ -35,14 +38,14 @@ export function MarketPulseIconReactor() {
 
     const interval = setInterval(() => {
       setActiveIcons(prev => {
-        // 1. إزاحة الجميع لليسار
+        // 1. إزاحة الجميع لليسار بمرتبة واحدة
         const shifted = prev.map(item => ({ ...item, pos: item.pos - 1 }));
         
-        // 2. فلترة الخارج من P1
+        // 2. فلترة الخارج من المسرح (الموجودين في P0 أو أقل)
         const remaining = shifted.filter(item => item.pos >= 1);
         
-        // 3. حقن عنصر جديد في P4
-        const newItem = { id: Math.random(), symbol: ASSETS[nextIndex.current], pos: 4 };
+        // 3. حقن عنصر جديد في أقصى اليمين الظاهر (P5)
+        const newItem = { id: Math.random(), symbol: ASSETS[nextIndex.current], pos: 5 };
         nextIndex.current = (nextIndex.current + 1) % ASSETS.length;
         
         return [...remaining, newItem];
@@ -54,28 +57,29 @@ export function MarketPulseIconReactor() {
 
   return (
     <div className="relative h-64 w-full flex items-center justify-center overflow-visible">
-      <div className="relative w-full max-w-[400px] flex items-center justify-center">
+      <div className="relative w-full max-w-[500px] flex items-center justify-center">
         <AnimatePresence initial={false}>
           {activeIcons.map((icon) => {
-            const p = POSITIONS[icon.pos] || POSITIONS[4];
+            const p = POSITIONS[icon.pos] || POSITIONS[6];
             return (
               <motion.div
                 key={icon.id}
                 layout
-                initial={{ x: 200, opacity: 0, scale: 0.5 }}
+                initial={{ x: 250, opacity: 0, scale: 0.5 }}
                 animate={{ 
                   x: p.x, 
                   y: p.y, 
                   scale: p.scale, 
                   opacity: p.opacity,
-                  filter: icon.pos === 2 ? "blur(0px)" : "blur(1px)"
+                  filter: icon.pos === 3 ? "blur(0px)" : "blur(1.5px)"
                 }}
-                exit={{ x: -200, opacity: 0, scale: 0.5 }}
+                exit={{ x: -250, opacity: 0, scale: 0.5 }}
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
                 className="absolute"
               >
                 <div className="relative group">
-                   {icon.pos === 2 && (
+                   {/* هالة التميز للعنصر الأوسط فقط */}
+                   {icon.pos === 3 && (
                      <motion.div 
                         layoutId="glow"
                         className="absolute inset-0 bg-[#f9a885]/10 rounded-full blur-2xl -z-10"
