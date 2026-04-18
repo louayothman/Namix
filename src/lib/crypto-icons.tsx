@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v80.0
- * تم تطوير المحرك ليدعم مئات العملات الملونة ومعالجة البادئات الرقمية (1000, 1M) تلقائياً.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v95.0 - Multi-Library Deep Pulse
+ * تم تطوير المحرك ليبحث في 7 مكتبات أيقونات متخصصة لضمان عدم ظهور أي مساحة فارغة.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -48,7 +48,7 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   ),
 };
 
-// قاموس التصحيحات اليدوية للبراندات العالمية والرموز الخاصة
+// قاموس التصحيحات اليدوية للبراندات والرموز التي تتطلب دقة مؤسساتية
 const ICON_OVERRIDES: Record<string, string> = {
   'USDT': 'cryptocurrency-color:usdt',
   'BTC': 'cryptocurrency-color:btc',
@@ -61,13 +61,7 @@ const ICON_OVERRIDES: Record<string, string> = {
   'VISA': 'logos:visa',
   'MASTERCARD': 'logos:mastercard',
   'TESLA': 'logos:tesla',
-  'NVIDIA': 'logos:nvidia',
-  '1INCH': 'cryptocurrency-color:1inch',
-  'DOGE': 'cryptocurrency-color:doge',
-  'SHIB': 'cryptocurrency-color:shib',
-  'PEPE': 'cryptocurrency-color:pepe',
-  'FLOKI': 'cryptocurrency-color:floki',
-  'BONK': 'cryptocurrency-color:bonk'
+  'NVIDIA': 'logos:nvidia'
 };
 
 export const ICON_OPTIONS = [
@@ -83,34 +77,6 @@ export const ICON_OPTIONS = [
   { id: 'DOT', label: 'Polkadot (DOT)' },
   { id: 'TRX', label: 'Tron (TRX)' },
   { id: 'LINK', label: 'Chainlink (LINK)' },
-  { id: 'MATIC', label: 'Polygon (MATIC)' },
-  { id: 'SHIB', label: 'Shiba Inu (SHIB)' },
-  { id: 'LTC', label: 'Litecoin (LTC)' },
-  { id: 'BCH', label: 'Bitcoin Cash (BCH)' },
-  { id: 'NEAR', label: 'Near Protocol (NEAR)' },
-  { id: 'UNI', label: 'Uniswap (UNI)' },
-  { id: 'STX', label: 'Stacks (STX)' },
-  { id: 'FIL', label: 'Filecoin (FIL)' },
-  { id: 'ATOM', label: 'Cosmos (ATOM)' },
-  { id: 'LDO', label: 'Lido DAO (LDO)' },
-  { id: 'ICP', label: 'Internet Computer (ICP)' },
-  { id: 'HBAR', label: 'Hedera (HBAR)' },
-  { id: 'APT', label: 'Aptos (APT)' },
-  { id: 'OP', label: 'Optimism (OP)' },
-  { id: 'ARB', label: 'Arbitrum (ARB)' },
-  { id: 'VET', label: 'VeChain (VET)' },
-  { id: 'TIA', label: 'Celestia (TIA)' },
-  { id: 'SUI', label: 'Sui (SUI)' },
-  { id: 'FTM', label: 'Fantom (FTM)' },
-  { id: 'INJ', label: 'Injective (INJ)' },
-  { id: 'PEPE', label: 'Pepe (PEPE)' },
-  { id: 'THETA', label: 'Theta (THETA)' },
-  { id: 'SEI', label: 'Sui (SEI)' },
-  { id: 'GRT', label: 'The Graph (GRT)' },
-  { id: 'BONK', label: 'Bonk (BONK)' },
-  { id: 'FLOKI', label: 'Floki (FLOKI)' },
-  { id: 'WIF', label: 'dogwifhat (WIF)' },
-  { id: 'JUP', label: 'Jupiter (JUP)' },
   { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' }
 ];
@@ -128,7 +94,7 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. فحص الـ Overrides اليدوية
+  // 2. فحص الـ Overrides اليدوية المباشرة
   if (ICON_OVERRIDES[iconKey]) {
     return (
       <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
@@ -137,38 +103,59 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 3. معالجة الرموز المعقدة والبادئات الرقمية (مثل 1000SATS)
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
-  const cleanSymbol = (s: string) => {
-    let cleaned = normalize(s);
-    // إزالة البادئات الشائعة في بينانس للرموز المصغرة
+  /**
+   * دالة التطبيع (Normalization)
+   * تقوم بتنظيف كود العملة من البادئات الرقمية والزوائد لضمان مطابقة الرموز
+   */
+  const normalize = (s: string) => {
+    let cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (cleaned.startsWith('1000')) cleaned = cleaned.substring(4);
     else if (cleaned.startsWith('1m')) cleaned = cleaned.substring(2);
+    else if (cleaned.startsWith('ld')) cleaned = cleaned.substring(2);
+    // إزالة 'usdt' من نهاية أزواج العملات إذا وجدت (مثل btcusdt -> btc)
+    if (cleaned.length > 4 && cleaned.endsWith('usdt')) cleaned = cleaned.slice(0, -4);
     return cleaned;
   };
 
-  const primaryIcon = `cryptocurrency-color:${normalize(name)}`;
-  const secondaryIcon = `cryptocurrency-color:${cleanSymbol(name)}`;
+  const symbol = normalize(name);
+
+  /**
+   * مصفوفة المكتبات السبعة (The Sovereign 7 Chain)
+   * سيتم البحث في هذه المكتبات بالتسلسل حتى العثور على الأيقونة
+   */
+  const libraries = [
+    'cryptocurrency-color', // 1. الأساسية الملونة
+    'token-icons',          // 2. الشاملة للعملات الجديدة
+    'token',                // 3. رموز التوكنز
+    'cryptocurrency',       // 4. الكلاسيكية
+    'logos',                // 5. البراندات والأسهم
+    'simple-icons',         // 6. رموز البرمجيات والويب
+    'fa6-brands'            // 7. خيار أخير للبراندات
+  ];
+
+  // بناء هيكل السقوط المتسلسل (Nested Fallbacks) برمجياً لـ 7 مستويات
+  const renderIconWithChain = (libIndex: number): React.ReactNode => {
+    if (libIndex >= libraries.length) {
+      // في حال فشل كل المكتبات السبعة، نظهر أيقونة Coins كدرع حماية أخيرة
+      return <Coins size={size} className="text-gray-200" />;
+    }
+
+    const currentIcon = `${libraries[libIndex]}:${symbol}`;
+    
+    return (
+      <Icon 
+        icon={currentIcon}
+        width={size}
+        height={size}
+        style={color ? { color } : undefined}
+        fallback={renderIconWithChain(libIndex + 1)}
+      />
+    );
+  };
 
   return (
     <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
-      <Icon 
-        icon={primaryIcon} 
-        width={size} 
-        height={size} 
-        style={color ? { color } : undefined}
-        fallback={
-          <Icon 
-            icon={secondaryIcon}
-            width={size}
-            height={size}
-            style={color ? { color } : undefined}
-            // الخيار الأخير في حال فشل كل المحاولات
-            fallback={<Coins size={size} className="text-gray-200" />}
-          />
-        }
-      />
+      {renderIconWithChain(0)}
     </div>
   );
 }
