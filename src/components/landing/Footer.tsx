@@ -69,7 +69,7 @@ export function Footer({
   };
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body relative overflow-hidden" dir="rtl">
+    <footer className="bg-transparent border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
         <motion.div 
           animate={{ rotate: [0, 5, 0], scale: [1, 1.05, 1] }}
@@ -122,7 +122,7 @@ export function Footer({
           <div className="space-y-6">
             <h4 className="font-black text-[#002d4d] text-[11px] md:text-sm uppercase tracking-normal flex items-center gap-2">
                <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-               تابعنا
+               المجتمع
             </h4>
             <div className="flex flex-wrap items-center gap-3">
                {(landingData?.socialLinks || []).map((social: any) => {
