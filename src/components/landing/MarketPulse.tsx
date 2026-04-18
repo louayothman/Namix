@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -7,45 +6,25 @@ import { MarketPulseNarrative } from "./MarketPulseNarrative";
 import { MarketPulseIconReactor } from "./MarketPulseIconReactor";
 
 /**
- * @fileOverview بوابة النبض السينمائي v5.0 - Sovereign Orchestrator
- * يجمع المكونات الثلاثة (الخلفية، النص، الأيقونات) في مشهد سينمائي واحد فائق الجودة.
+ * @fileOverview مُفاعل النبض السينمائي الموحد v10.0
  */
-
-const STRATEGIC_TEXTS = [
-  "محفظة رقمية آمنة تجمع أصولك في مكان واحد موثوق.",
-  "تداول فوري مبني على السرعة والدقة في التنفيذ.",
-  "عقود استثمارية مرنة تدعم قراراتك المالية الذكية.",
-  "إيداع مباشر بتجربة سلسة وموثوقة على مدار الساعة.",
-  "سحب فوري يعكس مفهوم السيولة دون تأخير.",
-  "ميزات متقدمة صُممت لمستوى أعلى من الاحتراف المالي.",
-  "هوية استثنائية تعكس شخصية كل مستخدم داخل المنصة."
-];
-
-const ASSET_GROUPS = [
-  ["BTC", "ETH", "SOL", "BNB"],
-  ["XRP", "ADA", "AVAX", "DOT"],
-  ["LINK", "MATIC", "TRX", "LTC"],
-  ["DOGE", "SHIB", "UNI", "BCH"],
-  ["NEAR", "KAS", "ATOM", "ETC"]
-];
-
 export function MarketPulse() {
   return (
-    <section className="w-full py-32 md:py-52 relative overflow-hidden select-none font-body bg-white" dir="rtl">
-      {/* 1. مُكون الخلفية النانوية */}
+    <section className="w-full py-24 md:py-40 relative overflow-hidden select-none font-body bg-white" dir="rtl">
+      {/* 1. الخلفية النانوية المترابطة */}
       <MarketPulseBackground />
       
-      <div className="container mx-auto px-8 md:px-16 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-24 lg:gap-40">
+      <div className="container mx-auto px-8 md:px-20 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-32">
           
-          {/* 2. مُكون السرد النصي (الجانب الأيمن) */}
-          <div className="flex-1 order-2 lg:order-1">
-             <MarketPulseNarrative texts={STRATEGIC_TEXTS} />
+          {/* الجانب الأيمن: السرد العدادي */}
+          <div className="flex-1 w-full order-2 lg:order-1">
+             <MarketPulseNarrative />
           </div>
 
-          {/* 3. مُكون مفاعل الأيقونات (الجانب الأيسر) */}
-          <div className="flex-1 flex items-center justify-center order-1 lg:order-2">
-             <MarketPulseIconReactor iconGroups={ASSET_GROUPS} />
+          {/* الجانب الأيسر: أوركسترا الأيقونات الرباعية */}
+          <div className="flex-1 w-full flex items-center justify-center order-1 lg:order-2">
+             <MarketPulseIconReactor />
           </div>
 
         </div>
