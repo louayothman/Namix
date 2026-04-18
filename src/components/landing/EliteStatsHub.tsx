@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 /**
- * LaurelSide - المكون الفرعي للسنابل المستخلص من كود Inkscape الأصلي
+ * LaurelSide - المكون الفرعي للسنابل المستخلص من كود Inkscape الأصلي المرفق
  */
 const LaurelSide = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
@@ -48,14 +48,14 @@ export function EliteStatsHub() {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full flex flex-row items-center justify-center gap-1 sm:gap-4 md:gap-12 lg:gap-16 flex-nowrap py-4 select-none"
+      className="w-full flex flex-row items-center justify-center gap-4 sm:gap-6 md:gap-12 lg:gap-16 flex-nowrap py-4 select-none"
     >
       {stats.map((stat) => (
         <div key={stat.id} className="flex items-center gap-0 group shrink-0">
           {/* Left Wing (Mirrored) */}
           <LaurelSide 
             mirrored 
-            className="text-[#f9a885] -mx-3 sm:-mx-4 md:-mx-6 transition-all duration-700 group-hover:rotate-[-8deg] group-hover:scale-110" 
+            className="text-[#f9a885] -mx-4 sm:-mx-5 md:-mx-8 transition-all duration-700 group-hover:rotate-[-8deg] group-hover:scale-110" 
           />
           
           {/* Identity Core */}
@@ -66,7 +66,7 @@ export function EliteStatsHub() {
           
           {/* Right Wing (Normal) */}
           <LaurelSide 
-            className="text-[#f9a885] -mx-3 sm:-mx-4 md:-mx-6 transition-all duration-700 group-hover:rotate-[8deg] group-hover:scale-110" 
+            className="text-[#f9a885] -mx-4 sm:-mx-5 md:-mx-8 transition-all duration-700 group-hover:rotate-[8deg] group-hover:scale-110" 
           />
         </div>
       ))}
