@@ -4,8 +4,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي الملون v9.0 - Refined Nebula Edition
- * تم تقليل الأحجام والسرعات مع إضافة تأثير ضبابي ناعم لضمان خلفية احترافية غير مشتتة.
+ * @fileOverview مُفاعل النيورون الرقمي المطور v11.0 - Parallax Nebula Edition
+ * تم إضافة تأثير الإزاحة المنظورية (Parallax) حيث تتفاعل النقاط مع تمرير الصفحة،
+ * مع تكثيف الضبابية لخلق عمق تكنولوجي غائر وراقي.
  */
 
 interface Point {
@@ -15,12 +16,14 @@ interface Point {
   vx: number;
   vy: number;
   color: string;
+  depth: number; // معامل العمق للإزاحة المنظورية
 }
 
 export function MarketPulseBackground() {
   const [points, setPoints] = useState<Point[]>([]);
+  const [scrollY, setScrollY] = useState(0);
   const requestRef = useRef<number>(null);
-  const pointsCount = 65; // تعداد متوازن لضمان النقاء
+  const pointsCount = 75; // كثافة محسنة لملء الفضاء الرقمي
 
   useEffect(() => {
     // لوني ناميكس المعتمدين
@@ -30,11 +33,18 @@ export function MarketPulseBackground() {
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.06, // سرعة هادئة جداً
-      vy: (Math.random() - 0.5) * 0.06,
-      color: colors[i % colors.length]
+      vx: (Math.random() - 0.5) * 0.04, // حركة هادئة جداً
+      vy: (Math.random() - 0.5) * 0.04,
+      color: colors[i % colors.length],
+      depth: 0.2 + Math.random() * 0.8 // عمق متفاوت (0.2 بعيد، 1.0 قريب)
     }));
     setPoints(initialPoints);
+
+    // متابعة التمرير
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     const update = () => {
       setPoints((prev) =>
@@ -44,6 +54,7 @@ export function MarketPulseBackground() {
           let nvx = p.vx;
           let nvy = p.vy;
 
+          // الارتداد عند الحدود
           if (nx < 0 || nx > 100) nvx *= -1;
           if (ny < 0 || ny > 100) nvy *= -1;
 
@@ -56,12 +67,14 @@ export function MarketPulseBackground() {
     requestRef.current = requestAnimationFrame(update);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   const connections = useMemo(() => {
     if (points.length === 0) return [];
     
+    // ربط كل نقطة بأقرب جارين لإنشاء شبكة عصبية
     return points.map((p, i) => {
       const distances = points
         .map((p2, j) => ({
@@ -79,40 +92,63 @@ export function MarketPulseBackground() {
   if (points.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none">
-      <svg className="w-full h-full opacity-[0.45]" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* طبقة الروابط النانوية */}
-        <g style={{ filter: 'blur(0.8px)' }}>
-          {connections.map((c, idx) => (
-            <line
-              key={`line-${idx}`}
-              x1={`${points[c.from].x}%`}
-              y1={`${points[c.from].y}%`}
-              x2={`${points[c.to].x}%`}
-              y2={`${points[c.to].y}%`}
-              stroke="#002d4d"
-              strokeWidth="0.12" 
-              strokeOpacity="0.15"
-              strokeLinecap="round"
-            />
-          ))}
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none bg-[#fcfdfe]">
+      <svg className="w-full h-full opacity-[0.5]" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {/* تعريف الفلتر الضبابي الكثيف */}
+        <defs>
+          <filter id="nebulaBlur" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" />
+          </filter>
+          <filter id="pointBlur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+          </filter>
+        </defs>
+
+        {/* طبقة الروابط النانوية المنصهرة */}
+        <g filter="url(#nebulaBlur)">
+          {connections.map((c, idx) => {
+            const p1 = points[c.from];
+            const p2 = points[c.to];
+            
+            // حساب الإزاحة المنظورية بناءً على التمرير والعمق
+            const offset1 = (scrollY * 0.015) * p1.depth;
+            const offset2 = (scrollY * 0.015) * p2.depth;
+
+            return (
+              <line
+                key={`line-${idx}`}
+                x1={`${p1.x}%`}
+                y1={`${p1.y - offset1}%`}
+                x2={`${p2.x}%`}
+                y2={`${p2.y - offset2}%`}
+                stroke="#002d4d"
+                strokeWidth="0.15" 
+                strokeOpacity="0.2"
+                strokeLinecap="round"
+              />
+            );
+          })}
         </g>
-        {/* طبقة جزيئات البيانات */}
-        <g style={{ filter: 'blur(0.5px)' }}>
-          {points.map((p) => (
-            <circle
-              key={`point-${p.id}`}
-              cx={`${p.x}%`}
-              cy={`${p.y}%`}
-              r="0.4" 
-              fill={p.color}
-              className="opacity-60"
-            />
-          ))}
+
+        {/* طبقة جزيئات البيانات السابحة */}
+        <g filter="url(#pointBlur)">
+          {points.map((p) => {
+            const offset = (scrollY * 0.015) * p.depth;
+            return (
+              <circle
+                key={`point-${p.id}`}
+                cx={`${p.x}%`}
+                cy={`${p.y - offset}%`}
+                r={0.3 + p.depth * 0.3} 
+                fill={p.color}
+                fillOpacity={0.4 + p.depth * 0.4}
+              />
+            );
+          })}
         </g>
       </svg>
-      {/* طبقة تعزيز التباين اللطيفة */}
-      <div className="absolute inset-0 bg-white/5 pointer-events-none" />
+      {/* طبقة نسيج تكنولوجي ناعم */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/20 pointer-events-none" />
     </div>
   );
 }
