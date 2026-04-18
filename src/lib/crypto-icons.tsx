@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v67.0
- * إضافة أيقونة NAMIX_INTERNAL_USER المخصصة (User + Namix Dot).
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v68.0
+ * تم تعزيز المكون بنظام Fallback قوي لمنع ظهور أي أيقونات فارغة في شلال الهيرو.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -104,21 +104,12 @@ export const ICON_OPTIONS = [
   { id: 'JUP', label: 'Jupiter (JUP)' },
   { id: 'STRK', label: 'Starknet (STRK)' },
   { id: 'PYTH', label: 'Pyth Network (PYTH)' },
-  { id: 'APPLE', label: 'Apple Inc.' },
-  { id: 'GOOGLE', label: 'Google / Alphabet' },
-  { id: 'MICROSOFT', label: 'Microsoft' },
-  { id: 'AMAZON', label: 'Amazon' },
-  { id: 'TESLA', label: 'Tesla Motors' },
-  { id: 'META', label: 'Meta / Facebook' },
-  { id: 'NVIDIA', label: 'Nvidia' },
-  { id: 'VISA', label: 'Visa' },
-  { id: 'MASTERCARD', label: 'Mastercard' },
-  { id: 'NETFLIX', label: 'Netflix' },
 ];
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
   
+  // 1. فحص الأيقونات المخصصة (Lucide)
   const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
   if (LucideIcon && typeof LucideIcon !== 'string') {
     return (
@@ -128,8 +119,10 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
+  // 2. فحص الأيقونات الملونة (Iconify)
   let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
   
+  // تصحيحات استثنائية لبعض العملات
   const overrides: Record<string, string> = {
     'USDT': 'cryptocurrency-color:usdt',
     'BTC': 'cryptocurrency-color:btc',
@@ -158,12 +151,8 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
         width={size} 
         height={size} 
         style={color ? { color } : undefined}
-        onError={(e) => {
-          const target = e.target as any;
-          if (target && target.setAttribute) {
-            target.setAttribute('icon', 'lucide:coins');
-          }
-        }}
+        // نظام الحماية (Fallback) لضمان عدم ظهور أي فراغ
+        fallback={<Coins size={size} className="text-gray-200" />}
       />
     </div>
   );
