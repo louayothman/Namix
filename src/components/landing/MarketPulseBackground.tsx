@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي الملون v8.0 - High Visibility Edition
- * تم تضخيم النقاط والخطوط وتلوينها بهوية ناميكس لضمان ظهورها بوضوح فائق خلف المحتوى.
+ * @fileOverview مُفاعل النيورون الرقمي الملون v9.0 - Refined Nebula Edition
+ * تم تقليل الأحجام والسرعات مع إضافة تأثير ضبابي ناعم لضمان خلفية احترافية غير مشتتة.
  */
 
 interface Point {
@@ -19,18 +20,18 @@ interface Point {
 export function MarketPulseBackground() {
   const [points, setPoints] = useState<Point[]>([]);
   const requestRef = useRef<number>(null);
-  const pointsCount = 80;
+  const pointsCount = 65; // تعداد متوازن لضمان النقاء
 
   useEffect(() => {
-    // لوني ناميكس: الكحلي والبرتقالي الثانوي
+    // لوني ناميكس المعتمدين
     const colors = ["#002d4d", "#f9a885"];
 
     const initialPoints = Array.from({ length: pointsCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.18, 
-      vy: (Math.random() - 0.5) * 0.18,
+      vx: (Math.random() - 0.5) * 0.06, // سرعة هادئة جداً
+      vy: (Math.random() - 0.5) * 0.06,
       color: colors[i % colors.length]
     }));
     setPoints(initialPoints);
@@ -79,8 +80,9 @@ export function MarketPulseBackground() {
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none">
-      <svg className="w-full h-full opacity-[0.6]" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <g>
+      <svg className="w-full h-full opacity-[0.45]" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {/* طبقة الروابط النانوية */}
+        <g style={{ filter: 'blur(0.8px)' }}>
           {connections.map((c, idx) => (
             <line
               key={`line-${idx}`}
@@ -89,27 +91,28 @@ export function MarketPulseBackground() {
               x2={`${points[c.to].x}%`}
               y2={`${points[c.to].y}%`}
               stroke="#002d4d"
-              strokeWidth="0.35" 
-              strokeOpacity="0.2"
+              strokeWidth="0.12" 
+              strokeOpacity="0.15"
               strokeLinecap="round"
             />
           ))}
         </g>
-        <g>
+        {/* طبقة جزيئات البيانات */}
+        <g style={{ filter: 'blur(0.5px)' }}>
           {points.map((p) => (
             <circle
               key={`point-${p.id}`}
               cx={`${p.x}%`}
               cy={`${p.y}%`}
-              r="0.75" 
+              r="0.4" 
               fill={p.color}
-              className="drop-shadow-[0_0_6px_rgba(0,0,0,0.15)]"
+              className="opacity-60"
             />
           ))}
         </g>
       </svg>
-      {/* طبقة تلاشي خفيفة لضمان راحة العين عند القراءة */}
-      <div className="absolute inset-0 bg-white/10 pointer-events-none" />
+      {/* طبقة تعزيز التباين اللطيفة */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none" />
     </div>
   );
 }
