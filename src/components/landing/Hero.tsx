@@ -11,8 +11,8 @@ import { ActivationActionHub } from "./ActivationActionHub";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview NAMIX HERO v32.0 - Compact Identity Edition
- * تم إزالة نص التوثيق السفلي وتقليل المسافات الأفقية لضمان تماسك المشهد البصري.
+ * @fileOverview NAMIX HERO v33.0 - Compact Vertical Edition
+ * تم تقليص المسافة العمودية السفلية لسحب المكونات التالية للأعلى.
  */
 
 export function Hero() {
@@ -37,12 +37,12 @@ export function Hero() {
   if (!mounted) return null;
 
   return (
-    <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
+    <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
       {/* Hero Header (Corners) */}
       <HeroHeader />
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-24 md:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-16 pt-32 pb-4 md:pt-44 md:pb-8 relative z-10">
         
         {/* LEFT WING: Trust Core & Odometer */}
         <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-16">
