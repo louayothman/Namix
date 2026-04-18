@@ -1,11 +1,14 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview محرك السرد العدادي v5.0 - Digital Odometer Edition
+ * @fileOverview محرك السرد العدادي المتزامن v6.0 - Odometer Synchronized Edition
+ * تم ضبط التوقيت ليكون الخروج والدخول في حركة واحدة متصلة (Push effect).
  */
+
 const TEXTS = [
   { text: "محفظة رقمية آمنة تجمع أصولك في مكان واحد موثوق.", highlight: "آمنة" },
   { text: "تداول فوري مبني على السرعة والدقة في التنفيذ.", highlight: "السرعة" },
@@ -30,19 +33,22 @@ export function MarketPulseNarrative() {
   const parts = currentItem.text.split(currentItem.highlight);
 
   return (
-    <div className="relative h-32 md:h-48 w-full overflow-hidden flex flex-col justify-center text-right select-none">
-      <AnimatePresence mode="wait">
+    <div className="relative h-24 md:h-32 w-full overflow-hidden flex flex-col justify-center text-right select-none">
+      <AnimatePresence initial={false}>
         <motion.div
           key={index}
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: 60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ y: -60, opacity: 0 }}
+          transition={{ 
+            duration: 0.8, 
+            ease: [0.16, 1, 0.3, 1] 
+          }}
           className="absolute inset-0 flex items-center justify-end"
         >
-          <p className="text-xl md:text-3xl lg:text-4xl font-black text-[#002d4d] leading-[1.6]">
+          <p className="text-xl md:text-3xl lg:text-4xl font-black text-[#002d4d] leading-tight tracking-normal">
             {parts[0]}
-            <span className="text-[#f9a885] px-2">{currentItem.highlight}</span>
+            <span className="text-[#f9a885] px-1.5">{currentItem.highlight}</span>
             {parts[1]}
           </p>
         </motion.div>
