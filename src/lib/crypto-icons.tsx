@@ -18,9 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v70.0
- * تم تعزيز المكون ليدعم مئات العملات الرقمية الملونة بدقة عالية عبر Iconify.
- * يغطي هذا المكون آلياً أكثر من 600 عملة رقمية ملونة.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v80.0
+ * تم تطوير المحرك ليدعم مئات العملات الملونة ومعالجة البادئات الرقمية (1000, 1M) تلقائياً.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -49,6 +48,28 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   ),
 };
 
+// قاموس التصحيحات اليدوية للبراندات العالمية والرموز الخاصة
+const ICON_OVERRIDES: Record<string, string> = {
+  'USDT': 'cryptocurrency-color:usdt',
+  'BTC': 'cryptocurrency-color:btc',
+  'ETH': 'cryptocurrency-color:eth',
+  'BNB': 'cryptocurrency-color:bnb',
+  'SOL': 'cryptocurrency-color:sol',
+  'APPLE': 'logos:apple',
+  'GOOGLE': 'logos:google-icon',
+  'BINANCE': 'logos:binance',
+  'VISA': 'logos:visa',
+  'MASTERCARD': 'logos:mastercard',
+  'TESLA': 'logos:tesla',
+  'NVIDIA': 'logos:nvidia',
+  '1INCH': 'cryptocurrency-color:1inch',
+  'DOGE': 'cryptocurrency-color:doge',
+  'SHIB': 'cryptocurrency-color:shib',
+  'PEPE': 'cryptocurrency-color:pepe',
+  'FLOKI': 'cryptocurrency-color:floki',
+  'BONK': 'cryptocurrency-color:bonk'
+};
+
 export const ICON_OPTIONS = [
   { id: 'USDT', label: 'Tether (USDT)' },
   { id: 'BTC', label: 'Bitcoin (BTC)' },
@@ -56,7 +77,6 @@ export const ICON_OPTIONS = [
   { id: 'BNB', label: 'Binance Coin (BNB)' },
   { id: 'SOL', label: 'Solana (SOL)' },
   { id: 'XRP', label: 'Ripple (XRP)' },
-  { id: 'USDC', label: 'USD Coin (USDC)' },
   { id: 'ADA', label: 'Cardano (ADA)' },
   { id: 'AVAX', label: 'Avalanche (AVAX)' },
   { id: 'DOGE', label: 'Dogecoin (DOGE)' },
@@ -69,19 +89,14 @@ export const ICON_OPTIONS = [
   { id: 'BCH', label: 'Bitcoin Cash (BCH)' },
   { id: 'NEAR', label: 'Near Protocol (NEAR)' },
   { id: 'UNI', label: 'Uniswap (UNI)' },
-  { id: 'DAI', label: 'Dai (DAI)' },
   { id: 'STX', label: 'Stacks (STX)' },
   { id: 'FIL', label: 'Filecoin (FIL)' },
   { id: 'ATOM', label: 'Cosmos (ATOM)' },
   { id: 'LDO', label: 'Lido DAO (LDO)' },
   { id: 'ICP', label: 'Internet Computer (ICP)' },
-  { id: 'IMX', label: 'Immutable (IMX)' },
   { id: 'HBAR', label: 'Hedera (HBAR)' },
-  { id: 'KAS', label: 'Kaspa (KAS)' },
-  { id: 'ETC', label: 'Ethereum Classic (ETC)' },
   { id: 'APT', label: 'Aptos (APT)' },
   { id: 'OP', label: 'Optimism (OP)' },
-  { id: 'RNDR', label: 'Render (RNDR)' },
   { id: 'ARB', label: 'Arbitrum (ARB)' },
   { id: 'VET', label: 'VeChain (VET)' },
   { id: 'TIA', label: 'Celestia (TIA)' },
@@ -90,19 +105,12 @@ export const ICON_OPTIONS = [
   { id: 'INJ', label: 'Injective (INJ)' },
   { id: 'PEPE', label: 'Pepe (PEPE)' },
   { id: 'THETA', label: 'Theta (THETA)' },
-  { id: 'RUNE', label: 'THORChain (RUNE)' },
   { id: 'SEI', label: 'Sui (SEI)' },
   { id: 'GRT', label: 'The Graph (GRT)' },
-  { id: 'AR', label: 'Arweave (AR)' },
-  { id: 'ALGO', label: 'Algorand (ALGO)' },
-  { id: 'FLOW', label: 'Flow (FLOW)' },
-  { id: 'GALA', label: 'Gala (GALA)' },
   { id: 'BONK', label: 'Bonk (BONK)' },
-  { id: 'FLOKI', label: 'Pepe (FLOKI)' },
+  { id: 'FLOKI', label: 'Floki (FLOKI)' },
   { id: 'WIF', label: 'dogwifhat (WIF)' },
   { id: 'JUP', label: 'Jupiter (JUP)' },
-  { id: 'STRK', label: 'Starknet (STRK)' },
-  { id: 'PYTH', label: 'Pyth Network (PYTH)' },
   { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' }
 ];
@@ -120,39 +128,46 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. فحص الأيقونات الملونة من مجموعة Cryptocurrency Color (Iconify)
-  // تغطي هذه المجموعة آلياً أكثر من 600 عملة
-  let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
+  // 2. فحص الـ Overrides اليدوية
+  if (ICON_OVERRIDES[iconKey]) {
+    return (
+      <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
+        <Icon icon={ICON_OVERRIDES[iconKey]} width={size} height={size} style={color ? { color } : undefined} />
+      </div>
+    );
+  }
+
+  // 3. معالجة الرموز المعقدة والبادئات الرقمية (مثل 1000SATS)
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
   
-  // تصحيحات يدوية للعملات والشركات العالمية
-  const overrides: Record<string, string> = {
-    'USDT': 'cryptocurrency-color:usdt',
-    'BTC': 'cryptocurrency-color:btc',
-    'ETH': 'cryptocurrency-color:eth',
-    'BNB': 'cryptocurrency-color:bnb',
-    'SOL': 'cryptocurrency-color:sol',
-    'APPLE': 'logos:apple',
-    'GOOGLE': 'logos:google-icon',
-    'BINANCE': 'logos:binance',
-    'VISA': 'logos:visa',
-    'MASTERCARD': 'logos:mastercard',
-    'TESLA': 'logos:tesla',
-    'NVIDIA': 'logos:nvidia'
+  const cleanSymbol = (s: string) => {
+    let cleaned = normalize(s);
+    // إزالة البادئات الشائعة في بينانس للرموز المصغرة
+    if (cleaned.startsWith('1000')) cleaned = cleaned.substring(4);
+    else if (cleaned.startsWith('1m')) cleaned = cleaned.substring(2);
+    return cleaned;
   };
 
-  if (overrides[iconKey]) {
-    iconName = overrides[iconKey];
-  }
+  const primaryIcon = `cryptocurrency-color:${normalize(name)}`;
+  const secondaryIcon = `cryptocurrency-color:${cleanSymbol(name)}`;
 
   return (
     <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
       <Icon 
-        icon={iconName} 
+        icon={primaryIcon} 
         width={size} 
         height={size} 
         style={color ? { color } : undefined}
-        // Fallback: أيقونة Coins في حال عدم وجود الرمز المطلوب
-        fallback={<Coins size={size} className="text-gray-200" />}
+        fallback={
+          <Icon 
+            icon={secondaryIcon}
+            width={size}
+            height={size}
+            style={color ? { color } : undefined}
+            // الخيار الأخير في حال فشل كل المحاولات
+            fallback={<Coins size={size} className="text-gray-200" />}
+          />
+        }
       />
     </div>
   );
