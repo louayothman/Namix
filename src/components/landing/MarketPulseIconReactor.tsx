@@ -10,113 +10,118 @@ interface MarketPulseIconReactorProps {
 }
 
 /**
- * @fileOverview أوركسترا الأيقونات التراكمية v1.0
- * يطبق الحركة الفيزيائية (1 -> يمين 2 -> فوق 3 -> يمين 4) مع تلاشي انسيابي.
+ * @fileOverview أوركسترا الأيقونات التكتيكية v2.0
+ * حركة فيزيائية عشوائية: تتبع، إزاحة، واستبدال متزامن.
  */
 export function MarketPulseIconReactor({ iconGroups }: MarketPulseIconReactorProps) {
   const [groupIndex, setGroupIndex] = useState(0);
   const [step, setStep] = useState(0);
 
+  // إحداثيات عشوائية مدروسة (Up, Down, L, R)
+  const coords = {
+    A: { x: 60, y: -60 },
+    B: { x: -60, y: -60 },
+    C: { x: 60, y: 60 },
+    D: { x: -60, y: 60 },
+    center: { x: 0, y: 0 }
+  };
+
   useEffect(() => {
     const sequence = async () => {
-      setStep(1); // ظهور 1
-      await new Promise(r => setTimeout(r, 1800));
-      setStep(2); // إزاحة 1، دخول 2
-      await new Promise(r => setTimeout(r, 1800));
-      setStep(3); // رفع 1+2، دخول 3
-      await new Promise(r => setTimeout(r, 1800));
-      setStep(4); // إزاحة 3، دخول 4
-      await new Promise(r => setTimeout(r, 2500));
-      setStep(5); // تلاشي كلي
+      // 1. ظهور الأولى والاتجاه عشوائياً (إلى A)
+      setStep(1); 
       await new Promise(r => setTimeout(r, 1500));
       
+      // 2. ظهور الثانية والاتجاه لـ B
+      setStep(2); 
+      await new Promise(r => setTimeout(r, 1500));
+      
+      // 3. ظهور الثالثة واتجاهها لمكان الأولى (A) بينما الأولى تبتعد (لـ C)
+      setStep(3); 
+      await new Promise(r => setTimeout(r, 1500));
+      
+      // 4. ظهور الرابعة واتجاهها لمكان الثانية (B) بينما الثانية تبتعد (لـ D)
+      setStep(4); 
+      await new Promise(r => setTimeout(r, 2500));
+      
+      // 5. تلاشي الأولى واستبدالها بالمجموعة التالية
+      setStep(5);
+      await new Promise(r => setTimeout(r, 1000));
+
       setStep(0);
       setGroupIndex((prev) => (prev + 1) % iconGroups.length);
     };
 
-    const interval = setInterval(sequence, 10000);
+    const interval = setInterval(sequence, 8500);
     sequence();
     return () => clearInterval(interval);
   }, [iconGroups.length]);
 
   const currentSet = iconGroups[groupIndex];
-
-  // إحداثيات الشبكة الفيزيائية
-  const pos = {
-    step1: { x: 0, y: 0 },
-    step2_1: { x: 55, y: 0 },
-    step2_2: { x: -55, y: 0 },
-    step3_1: { x: 55, y: -55 },
-    step3_2: { x: -55, y: -55 },
-    step3_3: { x: 0, y: 55 },
-    step4_3: { x: 55, y: 55 },
-    step4_4: { x: -55, y: 55 },
-  };
-
-  const springConfig = { type: "spring", stiffness: 120, damping: 25 };
+  const springConfig = { type: "spring", stiffness: 100, damping: 20 };
 
   return (
     <div className="relative h-72 w-72 md:h-96 md:w-96 flex items-center justify-center select-none">
       <AnimatePresence>
+        {/* أيقونة 1: القائد */}
         {step >= 1 && step < 5 && (
           <motion.div
-            key={`icon1-${groupIndex}`}
-            initial={{ scale: 0, opacity: 0, filter: "blur(15px)" }}
+            key={`i1-${groupIndex}`}
+            initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
             animate={
-              step === 1 ? { scale: 1.2, opacity: 1, x: 0, y: 0, filter: "blur(0px)" } :
-              step === 2 ? { scale: 1, x: pos.step2_1.x, y: 0 } :
-              { scale: 1, x: pos.step3_1.x, y: pos.step3_1.y }
+              step === 1 ? { scale: 1.2, opacity: 1, ...coords.A } :
+              step >= 3 ? { ...coords.C } : { ...coords.A }
             }
-            exit={{ scale: 0.2, opacity: 0, filter: "blur(40px)", transition: { duration: 1.2 } }}
+            exit={{ scale: 0, opacity: 0, filter: "blur(20px)" }}
             transition={springConfig}
             className="absolute"
           >
-            <CryptoIcon name={currentSet[0]} size={90} className="md:size-[110px]" />
+            <CryptoIcon name={currentSet[0]} size={80} className="md:size-[100px]" />
           </motion.div>
         )}
 
-        {step >= 2 && step < 5 && (
+        {/* أيقونة 2 */}
+        {step >= 2 && step < 6 && (
           <motion.div
-            key={`icon2-${groupIndex}`}
-            initial={{ scale: 0, opacity: 0, x: 0 }}
+            key={`i2-${groupIndex}`}
+            initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
             animate={
-              step === 2 ? { scale: 1.2, opacity: 1, x: pos.step2_2.x, y: 0 } :
-              { scale: 1, x: pos.step3_2.x, y: pos.step3_2.y }
+              step === 2 ? { scale: 1.2, opacity: 1, ...coords.B } :
+              step >= 4 ? { ...coords.D } : { ...coords.B }
             }
-            exit={{ scale: 0.2, opacity: 0, filter: "blur(40px)", transition: { duration: 1.2 } }}
+            exit={{ scale: 0, opacity: 0, filter: "blur(20px)" }}
             transition={springConfig}
             className="absolute"
           >
-            <CryptoIcon name={currentSet[1]} size={90} className="md:size-[110px]" />
+            <CryptoIcon name={currentSet[1]} size={80} className="md:size-[100px]" />
           </motion.div>
         )}
 
-        {step >= 3 && step < 5 && (
+        {/* أيقونة 3: تتبع الأولى */}
+        {step >= 3 && step < 6 && (
           <motion.div
-            key={`icon3-${groupIndex}`}
-            initial={{ scale: 0, opacity: 0, y: 100 }}
-            animate={
-              step === 3 ? { scale: 1.2, opacity: 1, x: 0, y: pos.step3_3.y } :
-              { scale: 1, x: pos.step4_3.x, y: pos.step4_3.y }
-            }
-            exit={{ scale: 0.2, opacity: 0, filter: "blur(40px)", transition: { duration: 1.2 } }}
+            key={`i3-${groupIndex}`}
+            initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
+            animate={{ scale: 1.2, opacity: 1, ...coords.A }}
+            exit={{ scale: 0, opacity: 0, filter: "blur(20px)" }}
             transition={springConfig}
             className="absolute"
           >
-            <CryptoIcon name={currentSet[2]} size={90} className="md:size-[110px]" />
+            <CryptoIcon name={currentSet[2]} size={80} className="md:size-[100px]" />
           </motion.div>
         )}
 
-        {step >= 4 && step < 5 && (
+        {/* أيقونة 4: تتبع الثانية */}
+        {step >= 4 && step < 6 && (
           <motion.div
-            key={`icon4-${groupIndex}`}
-            initial={{ scale: 0, opacity: 0, x: 0, y: 60 }}
-            animate={{ scale: 1.2, opacity: 1, x: pos.step4_4.x, y: pos.step4_4.y }}
-            exit={{ scale: 0.2, opacity: 0, filter: "blur(40px)", transition: { duration: 1.2 } }}
+            key={`i4-${groupIndex}`}
+            initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
+            animate={{ scale: 1.2, opacity: 1, ...coords.B }}
+            exit={{ scale: 0, opacity: 0, filter: "blur(20px)" }}
             transition={springConfig}
             className="absolute"
           >
-            <CryptoIcon name={currentSet[3]} size={90} className="md:size-[110px]" />
+            <CryptoIcon name={currentSet[3]} size={80} className="md:size-[100px]" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -124,9 +129,13 @@ export function MarketPulseIconReactor({ iconGroups }: MarketPulseIconReactorPro
       {/* هالة المركز الوميضية */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div 
-          animate={{ scale: [1, 1.3, 1], opacity: [0.03, 0.08, 0.03] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="w-80 h-80 bg-[#f9a885] rounded-full blur-[100px]"
+          animate={{ 
+            scale: [1, 1.4, 1], 
+            opacity: [0.03, 0.06, 0.03],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="w-80 h-80 bg-[#f9a885] rounded-full blur-[110px]"
         />
       </div>
     </div>

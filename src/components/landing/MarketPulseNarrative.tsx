@@ -9,8 +9,8 @@ interface MarketPulseNarrativeProps {
 }
 
 /**
- * @fileOverview مُحرك السرد السينمائي v1.0
- * يدير ظهور الجمل الاستراتيجية بفيزياء انسيابية (Blur + Slide).
+ * @fileOverview مُحرك السرد السينمائي المطور v2.0
+ * يتميز بظهور وميضي (Shimmer) وتمييز الكلمات المفتاحية بلون ناميكس البرتقالي.
  */
 export function MarketPulseNarrative({ texts }: MarketPulseNarrativeProps) {
   const [index, setIndex] = useState(0);
@@ -18,32 +18,63 @@ export function MarketPulseNarrative({ texts }: MarketPulseNarrativeProps) {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % texts.length);
-    }, 4500);
+    }, 4000);
     return () => clearInterval(timer);
   }, [texts.length]);
+
+  // مصفوفة النصوص مع تحديد الكلمة المميزة
+  const processedTexts = [
+    { text: "محفظة رقمية آمنة تجمع أصولك في مكان واحد موثوق.", highlight: "آمنة" },
+    { text: "تداول فوري مبني على السرعة والدقة في التنفيذ.", highlight: "السرعة" },
+    { text: "عقود استثمارية مرنة تدعم قراراتك المالية الذكية.", highlight: "مرنة" },
+    { text: "إيداع مباشر بتجربة سلسة وموثوقة على مدار الساعة.", highlight: "سلسة" },
+    { text: "سحب فوري يعكس مفهوم السيولة دون تأخير.", highlight: "السيولة" },
+    { text: "ميزات متقدمة صُممت لمستوى أعلى من الاحتراف المالي.", highlight: "الاحتراف" },
+    { text: "هوية استثنائية تعكس شخصية كل مستخدم داخل المنصة.", highlight: "استثنائية" },
+  ];
+
+  const renderText = (item: typeof processedTexts[0]) => {
+    const parts = item.text.split(item.highlight);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-[#f9a885] drop-shadow-[0_0_8px_rgba(249,168,133,0.3)]">
+          {item.highlight}
+        </span>
+        {parts[1]}
+      </>
+    );
+  };
 
   return (
     <div className="relative min-h-[160px] md:min-h-[220px] flex flex-col justify-center text-right font-body">
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
-          initial={{ opacity: 0, x: 20, filter: "blur(20px)" }}
+          initial={{ opacity: 0, x: 20, filter: "blur(15px)" }}
           animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, x: -20, filter: "blur(20px)" }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4"
+          exit={{ opacity: 0, x: -20, filter: "blur(15px)" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="relative group"
         >
-          <p className="text-2xl md:text-4xl lg:text-5xl font-black text-[#002d4d] leading-[1.5] tracking-tight">
-            {texts[index]}
+          {/* تأثير اللمعان (Shimmer) */}
+          <motion.div
+            initial={{ left: "-100%" }}
+            animate={{ left: "100%" }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent w-full h-full skew-x-[-20deg] pointer-events-none z-10"
+          />
+
+          <p className="text-2xl md:text-4xl lg:text-5xl font-black text-[#002d4d] leading-[1.5] tracking-tight relative z-0">
+            {renderText(processedTexts[index])}
           </p>
           
-          {/* مؤشر التقدم النانوي */}
-          <div className="w-24 h-[1.5px] bg-gray-100 relative overflow-hidden rounded-full">
+          <div className="mt-6 w-24 h-[1px] bg-gray-100 relative overflow-hidden rounded-full">
             <motion.div 
               key={`bar-${index}`}
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
-              transition={{ duration: 4.5, ease: "linear" }}
+              transition={{ duration: 4, ease: "linear" }}
               className="absolute inset-y-0 right-0 bg-[#f9a885] shadow-[0_0_8px_#f9a885]" 
             />
           </div>
