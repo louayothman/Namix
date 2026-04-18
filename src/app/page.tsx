@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,6 +7,7 @@ import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { SupportSheet } from "@/components/support/SupportSheet";
 import { Logo } from "@/components/layout/Logo";
+import { MarketPulseBackground } from "@/components/landing/MarketPulseBackground";
 
 // Dynamic Dialogs for Performance
 const AboutDialog = dynamic(() => import("@/components/landing/AboutDialog").then(m => ({ default: m.AboutDialog })), { ssr: false });
@@ -18,8 +18,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v32.0 - Multi-Hero Waterfall
- * إضافة الهيرو الثاني (شلال الأيقونات) أسفل الهيرو الرئيسي لتعزيز العمق البصري.
+ * @fileOverview بوابة ناميكس الاستثمارية v33.0 - Global Intelligence Aura
+ * تم حقن مُفاعل النيورون الرقمي كخلفية ثابتة لكامل الصفحة لتعزيز التماسك البصري.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,9 +41,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col" dir="rtl">
       
-      {/* Background Atmosphere - Gray-Blue Aura */}
+      {/* 1. النواة المركزية: خلفية النيورون الرقمية لكامل الصفحة */}
+      <MarketPulseBackground />
+
+      {/* 2. هالات الغلاف الجوي - توهج ناعم مدمج */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.08)_0%,transparent_70%)] blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.05)_0%,transparent_70%)] blur-[100px]" />
         
         {/* Giant Logo Aura */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.01] scale-[2.5] md:scale-[5] select-none pointer-events-none">
@@ -52,10 +55,7 @@ export default function LandingPage() {
       </div>
 
       <main className="relative z-10 flex-1 flex flex-col">
-        {/* الهيرو الرئيسي: الهوية والعداد والإحصائيات */}
         <Hero />
-        
-        {/* الهيرو الثاني: شلال أيقونات العملات الرقمية المتعاكس */}
         <MarketPulse />
       </main>
 
