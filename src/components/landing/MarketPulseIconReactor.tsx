@@ -5,8 +5,8 @@ import { CryptoIcon } from "@/lib/crypto-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview أوركسترا الأيقونات السيادية v13.0 - 5 Icons Carousel
- * تم تحديث المحرك ليظهر 5 أيقونات مع تركيز استراتيجي على العنصر الأوسط.
+ * @fileOverview أوركسترا الأيقونات السيادية v14.0 - 5 Icons Spaced Edition
+ * تم تحديث المسافات لضمان "التنفس البصري" للأيقونة المركزية المميزة.
  */
 const ASSETS = [
   "BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT", 
@@ -14,13 +14,13 @@ const ASSETS = [
 ];
 
 const POSITIONS = [
-  { x: -240, y: 0, scale: 0.5, opacity: 0 },    // P0 (خارج المسرح يسار - خروج)
-  { x: -160, y: 0, scale: 0.7, opacity: 0.3 },  // P1 (أقصى اليسار)
-  { x: -80,  y: 0, scale: 0.9, opacity: 0.6 },  // P2 (يسار)
+  { x: -360, y: 0, scale: 0.5, opacity: 0 },    // P0 (خارج المسرح يسار - خروج)
+  { x: -240, y: 0, scale: 0.7, opacity: 0.3 },  // P1 (أقصى اليسار)
+  { x: -120,  y: 0, scale: 0.9, opacity: 0.6 },  // P2 (يسار)
   { x: 0,    y: -20, scale: 1.2, opacity: 1 },  // P3 (المنتصف - العنصر المميز)
-  { x: 80,   y: 0, scale: 0.9, opacity: 0.6 },  // P4 (يمين)
-  { x: 160,  y: 0, scale: 0.7, opacity: 0.3 },  // P5 (أقصى اليمين)
-  { x: 240,  y: 0, scale: 0.5, opacity: 0 }     // P6 (خارج المسرح يمين - دخول)
+  { x: 120,   y: 0, scale: 0.9, opacity: 0.6 },  // P4 (يمين)
+  { x: 240,  y: 0, scale: 0.7, opacity: 0.3 },  // P5 (أقصى اليمين)
+  { x: 360,  y: 0, scale: 0.5, opacity: 0 }     // P6 (خارج المسرح يمين - دخول)
 ];
 
 export function MarketPulseIconReactor() {
@@ -57,7 +57,7 @@ export function MarketPulseIconReactor() {
 
   return (
     <div className="relative h-64 w-full flex items-center justify-center overflow-visible">
-      <div className="relative w-full max-w-[500px] flex items-center justify-center">
+      <div className="relative w-full max-w-[600px] flex items-center justify-center">
         <AnimatePresence initial={false}>
           {activeIcons.map((icon) => {
             const p = POSITIONS[icon.pos] || POSITIONS[6];
@@ -65,7 +65,7 @@ export function MarketPulseIconReactor() {
               <motion.div
                 key={icon.id}
                 layout
-                initial={{ x: 250, opacity: 0, scale: 0.5 }}
+                initial={{ x: 360, opacity: 0, scale: 0.5 }}
                 animate={{ 
                   x: p.x, 
                   y: p.y, 
@@ -73,7 +73,7 @@ export function MarketPulseIconReactor() {
                   opacity: p.opacity,
                   filter: icon.pos === 3 ? "blur(0px)" : "blur(1.5px)"
                 }}
-                exit={{ x: -250, opacity: 0, scale: 0.5 }}
+                exit={{ x: -360, opacity: 0, scale: 0.5 }}
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
                 className="absolute"
               >
