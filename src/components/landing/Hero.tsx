@@ -11,8 +11,8 @@ import { ActivationActionHub } from "./ActivationActionHub";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview NAMIX HERO v31.0 - Transparency Edition
- * تم إزالة الخلفيات الهالية لترك المجال لشبكة النيورون الرقمية الملونة بالوضوح الكامل.
+ * @fileOverview NAMIX HERO v32.0 - Compact Identity Edition
+ * تم إزالة نص التوثيق السفلي وتقليل المسافات الأفقية لضمان تماسك المشهد البصري.
  */
 
 export function Hero() {
@@ -42,7 +42,7 @@ export function Hero() {
       {/* Hero Header (Corners) */}
       <HeroHeader />
 
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-24 py-24 md:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-24 md:py-32 relative z-10">
         
         {/* LEFT WING: Trust Core & Odometer */}
         <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-16">
@@ -67,11 +67,6 @@ export function Hero() {
         <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-14">
            {/* Activation Action Hub */}
            <ActivationActionHub isLoggedIn={isLoggedIn} />
-
-           <div className="flex items-center justify-center gap-3 opacity-20 select-none">
-              <ShieldCheck size={14} className="text-[#002d4d]" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v31.0</p>
-           </div>
         </div>
 
       </div>
