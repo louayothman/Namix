@@ -48,23 +48,23 @@ export function EliteStatsHub() {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full flex flex-row items-center justify-center gap-8 sm:gap-10 md:gap-16 lg:gap-20 flex-nowrap py-4 select-none"
+      className="w-full flex flex-row items-center justify-center gap-16 sm:gap-12 md:gap-20 lg:gap-24 flex-nowrap py-4 select-none"
     >
       {stats.map((stat) => (
         <div key={stat.id} className="flex items-center gap-0 group shrink-0">
-          {/* Left Wing (Mirrored) - Nano Fusion Margin */}
+          {/* Left Wing (Mirrored) - Extreme Frame Fusion */}
           <LaurelSide 
             mirrored 
             className="text-[#f9a885] -mx-5 sm:-mx-6 md:-mx-10 transition-all duration-700 group-hover:rotate-[-8deg] group-hover:scale-110" 
           />
           
-          {/* Identity Core - Fixed Dimensions for stability */}
+          {/* Identity Core - Royal Stamp Style */}
           <div className="space-y-0 text-center px-0 min-w-[50px] md:min-w-[120px] relative z-10 flex flex-col items-center">
             <p className="text-xl sm:text-2xl md:text-5xl font-black text-[#002d4d] leading-none tracking-tighter">No.1</p>
             <p className="text-[7px] sm:text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-normal mt-1.5 md:mt-3 whitespace-nowrap">{stat.label}</p>
           </div>
           
-          {/* Right Wing (Normal) - Nano Fusion Margin */}
+          {/* Right Wing (Normal) - Extreme Frame Fusion */}
           <LaurelSide 
             className="text-[#f9a885] -mx-5 sm:-mx-6 md:-mx-10 transition-all duration-700 group-hover:rotate-[8deg] group-hover:scale-110" 
           />
