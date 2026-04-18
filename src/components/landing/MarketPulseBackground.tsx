@@ -5,9 +5,8 @@ import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 /**
- * @fileOverview مُفاعل الهوية الدورانية v1.0 - Sovereign Dual-Rotation Motif
- * يجسد أيقونة ناميكس العملاقة في زوايا الشاشة، تدور بتزامن رياضي مع حركة التمرير.
- * يرمز للثبات المؤسساتي والسيادة التقنية للمنصة.
+ * @fileOverview مُفاعل الهوية الدورانية v2.0 - Optimized Clarity & Positioning
+ * يجسد أيقونة ناميكس العملاقة في زوايا الشاشة، تدور بتزامن مع التمرير بوضوح معزز.
  */
 
 export function MarketPulseBackground() {
@@ -23,34 +22,34 @@ export function MarketPulseBackground() {
 
   const DotGrid = () => (
     <div className="grid grid-cols-2 gap-8 md:gap-16">
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-2xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-2xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-2xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-2xl" />
+      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-xl" />
+      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-xl" />
+      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-xl" />
+      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-xl" />
     </div>
   );
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none bg-[#fcfdfe]">
       
-      {/* 1. الأيقونة العلوية يميناً - تبرز الهوية في قمة الصفحة */}
+      {/* 1. الأيقونة العلوية يميناً */}
       <motion.div 
         style={{ rotate: rotation }}
-        className="absolute -top-[15%] -right-[15%] md:-top-[25%] md:-right-[25%] opacity-[0.03] flex items-center justify-center transition-opacity duration-1000"
+        className="absolute -top-[10%] -right-[15%] md:-top-[15%] md:-right-[20%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
       >
          <DotGrid />
       </motion.div>
 
-      {/* 2. الأيقونة السفلية يساراً - توازن بصري في قاعدة الصفحة */}
+      {/* 2. الأيقونة السفلية يساراً - تم رفعها لتكون أعلى الفوتر وبوضوح أكبر */}
       <motion.div 
         style={{ rotate: rotation }}
-        className="absolute -bottom-[15%] -left-[15%] md:-bottom-[25%] md:-left-[25%] opacity-[0.03] flex items-center justify-center transition-opacity duration-1000"
+        className="absolute bottom-[10%] -left-[15%] md:bottom-[20%] md:-left-[20%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
       >
          <DotGrid />
       </motion.div>
 
-      {/* طبقة التنعيم النهائية */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/40" />
+      {/* طبقة تنقية لضمان تباين النصوص (بدون ضبابية) */}
+      <div className="absolute inset-0 bg-white/10" />
     </div>
   );
 }
