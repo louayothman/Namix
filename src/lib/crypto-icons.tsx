@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v98.0 - Sovereign 7-Chain Protocol
- * تم تطوير المحرك ليدعم البحث اللانهائي عبر 7 مكتبات أيقونات متخصصة لضمان تغطية آلاف العملات الرقمية.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v101.0 - Sovereign Intelligence & Text fallback
+ * تم تطوير المحرك بذكاء فائق لتنظيف الرموز والبحث في 7 مكتبات، مع نظام البديل النصي الفاخر (3 أحرف).
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -48,7 +48,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
   ),
 };
 
-// قاموس التصحيحات اليدوية للبراندات والرموز التي تتطلب دقة مؤسساتية
 const ICON_OVERRIDES: Record<string, string> = {
   'USDT': 'cryptocurrency-color:usdt',
   'BTC': 'cryptocurrency-color:btc',
@@ -64,7 +63,6 @@ const ICON_OVERRIDES: Record<string, string> = {
   'NVIDIA': 'logos:nvidia'
 };
 
-// قائمة موسعة تشمل أهم 2000 عملة رقمية عبر معالجة ديناميكية
 export const ICON_OPTIONS = [
   { id: 'USDT', label: 'Tether (USDT)' },
   { id: 'BTC', label: 'Bitcoin (BTC)' },
@@ -84,15 +82,8 @@ export const ICON_OPTIONS = [
   { id: 'LTC', label: 'Litecoin (LTC)' },
   { id: 'BCH', label: 'Bitcoin Cash (BCH)' },
   { id: 'UNI', label: 'Uniswap (UNI)' },
-  { id: 'LEO', label: 'LEO Token (LEO)' },
   { id: 'NEAR', label: 'Near Protocol (NEAR)' },
   { id: 'KAS', label: 'Kaspa (KAS)' },
-  { id: 'APT', label: 'Aptos (APT)' },
-  { id: 'OP', label: 'Optimism (OP)' },
-  { id: 'ARB', label: 'Arbitrum (ARB)' },
-  { id: 'SUI', label: 'Sui (SUI)' },
-  { id: 'TIA', label: 'Celestia (TIA)' },
-  { id: 'PEPE', label: 'Pepe (PEPE)' },
   { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' }
 ];
@@ -120,20 +111,23 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
   }
 
   /**
-   * دالة التطبيع السيادية (Sovereign Normalizer)
-   * تقوم بتنظيف كود العملة من البادئات الرقمية والزوائد لضمان مطابقة آلاف الرموز
+   * دالة التطبيع فائقة الذكاء (Ultra-Smart Normalizer)
+   * تقوم بتنظيف الكود من كافة الزوائد الرقمية واللاحقات المنصية المعقدة.
    */
   const normalize = (s: string) => {
     let cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');
     
-    // إزالة البادئات الرقمية الشائعة في بينانس (مثل 1000SATS -> SATS)
+    // إزالة البادئات الرقمية الشائعة
     if (cleaned.startsWith('1000')) cleaned = cleaned.substring(4);
     else if (cleaned.startsWith('1m')) cleaned = cleaned.substring(2);
     else if (cleaned.startsWith('ld')) cleaned = cleaned.substring(2);
     
-    // إزالة 'usdt' من نهاية أزواج العملات إذا وجدت (مثل btcusdt -> btc)
-    if (cleaned.length > 4 && (cleaned.endsWith('usdt') || cleaned.endsWith('busd'))) {
-        cleaned = cleaned.slice(0, -4);
+    // إزالة اللاحقات المنصية والتوكنات المزدوجة
+    const suffixes = ['usdt', 'busd', 'up', 'down', 'bull', 'bear', 'st'];
+    for (const suffix of suffixes) {
+      if (cleaned.length > suffix.length + 1 && cleaned.endsWith(suffix)) {
+        cleaned = cleaned.slice(0, -suffix.length);
+      }
     }
     
     return cleaned;
@@ -142,24 +136,41 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
   const symbol = normalize(name);
 
   /**
-   * مصفوفة المكتبات السبعة (The Sovereign 7-Chain Protocol)
-   * سيتم البحث في هذه المكتبات بالتسلسل حتى العثور على الأيقونة الملونة
+   * مصفوفة السقوط السباعية المتخصصة
    */
   const libraries = [
-    'cryptocurrency-color', // 1. الأساسية الملونة
-    'token-icons',          // 2. الشاملة للعملات الجديدة
-    'token',                // 3. رموز التوكنز اللحظية
-    'cryptocurrency',       // 4. المجموعة الكلاسيكية
-    'logos',                // 5. البراندات والأسهم (AAPL, TSLA...)
-    'simple-icons',         // 6. رموز البرمجيات والويب
-    'fa6-brands'            // 7. خيار أخير للبراندات المعروفة
+    'cryptocurrency-color', 
+    'token-icons',          
+    'token',                
+    'cryptocurrency',       
+    'logos',                
+    'simple-icons',         
+    'fa6-brands'            
   ];
 
-  // بناء هيكل السقوط المتسلسل (Nested Fallbacks) برمجياً لـ 7 مستويات
+  /**
+   * مُفاعل البديل النصي الفاخر (Luxury Abbreviation Node)
+   * يظهر فقط في حال فشل جميع محاولات البحث في المكتبات السبعة.
+   */
+  const renderTextFallback = () => {
+    const text = symbol.toUpperCase().slice(0, 3);
+    return (
+      <div 
+        style={{ width: size, height: size, fontSize: size * 0.35 }}
+        className={cn(
+          "rounded-full flex items-center justify-center font-black text-white shadow-inner select-none shrink-0",
+          "bg-gradient-to-br from-[#002d4d] to-[#8899AA]",
+          className
+        )}
+      >
+        {text}
+      </div>
+    );
+  };
+
   const renderIconWithChain = (libIndex: number): React.ReactNode => {
     if (libIndex >= libraries.length) {
-      // في حال فشل كل المكتبات السبعة، نظهر أيقونة Coins كدرع حماية أخيرة
-      return <Coins size={size} className="text-gray-200 opacity-40" />;
+      return renderTextFallback();
     }
 
     const currentIcon = `${libraries[libIndex]}:${symbol}`;
