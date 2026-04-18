@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion } from "framer-motion";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي v5.1 - Enhanced Visibility Edition
- * كل نقطة بيانات تسبح بحرية وتتصل بذكاء بأقرب جارين لها فقط.
- * تم زيادة حجم النقاط وسماكة الخطوط قليلاً لتعزيز العمق البصري.
+ * @fileOverview مُفاعل النيورون الرقمي v5.2 - High Velocity Edition
+ * كل نقطة بيانات تسبح بسرعة معززة وتتصل بذكاء بأقرب جارين لها فقط.
  */
 
 interface Point {
@@ -20,7 +18,7 @@ interface Point {
 export function MarketPulseBackground() {
   const [points, setPoints] = useState<Point[]>([]);
   const requestRef = useRef<number>(null);
-  const pointsCount = 35; // عدد النقاط الأمثل للأداء والجمالية
+  const pointsCount = 50; // زيادة تعداد النقاط لشبكة أكثر كثافة
 
   useEffect(() => {
     // 1. تهيئة النقاط في بيئة العميل فقط (منع خطأ الهيدريشن)
@@ -28,8 +26,8 @@ export function MarketPulseBackground() {
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.04, // سرعة هادئة جداً
-      vy: (Math.random() - 0.5) * 0.04,
+      vx: (Math.random() - 0.5) * 0.1, // زيادة السرعة (من 0.04 إلى 0.1)
+      vy: (Math.random() - 0.5) * 0.1,
     }));
     setPoints(initialPoints);
 
@@ -42,7 +40,7 @@ export function MarketPulseBackground() {
           let nvx = p.vx;
           let nvy = p.vy;
 
-          // ارتداد تكتيكي عند الحدود
+          // ارتداد تكتيكي عند الحدود لضمان بقاء النقاط داخل المشهد
           if (nx < 0 || nx > 100) nvx *= -1;
           if (ny < 0 || ny > 100) nvy *= -1;
 
@@ -70,7 +68,7 @@ export function MarketPulseBackground() {
         }))
         .filter((d) => d.index !== i)
         .sort((a, b) => a.dist - b.dist)
-        .slice(0, 2); // ارتباط ثنائي ذكي
+        .slice(0, 2); // ارتباط ثنائي ذكي لكل نقطة
 
       return distances.map(d => ({ from: i, to: d.index }));
     }).flat();
@@ -81,7 +79,7 @@ export function MarketPulseBackground() {
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.45] select-none">
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* طبقة الخيوط العصبية النانوية - زيادة السماكة قليلاً */}
+        {/* طبقة الخيوط العصبية المترابطة */}
         <g>
           {connections.map((c, idx) => (
             <line
@@ -98,7 +96,7 @@ export function MarketPulseBackground() {
           ))}
         </g>
         
-        {/* طبقة نقاط البيانات المتوهجة - زيادة القطر قليلاً */}
+        {/* طبقة نقاط البيانات المتوهجة */}
         <g>
           {points.map((p) => (
             <circle
@@ -113,7 +111,7 @@ export function MarketPulseBackground() {
         </g>
       </svg>
       
-      {/* هالة التمويه الجانبية */}
+      {/* هالات التمويه لضمان عدم وجود فواصل بصرية */}
       <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-50" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white opacity-50" />
     </div>
