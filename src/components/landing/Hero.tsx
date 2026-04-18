@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -12,8 +11,8 @@ import { ActivationActionHub } from "./ActivationActionHub";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview NAMIX RECONSTRUCTED HERO v30.0 - Modular Sovereign Architecture
- * Rebuilt from scratch with split wings: Left Wing (Trust & Stats), Right Wing (Execution).
+ * @fileOverview NAMIX HERO v31.0 - Transparency Edition
+ * تم إزالة الخلفيات الهالية لترك المجال لشبكة النيورون الرقمية الملونة بالوضوح الكامل.
  */
 
 export function Hero() {
@@ -40,29 +39,15 @@ export function Hero() {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 md:px-16 font-body overflow-hidden" dir="rtl">
       
-      {/* 1. COMPONENT: Hero Header (Corners) */}
+      {/* Hero Header (Corners) */}
       <HeroHeader />
-
-      {/* Background Atmosphere - Gray Blue Aura */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none bg-white">
-        <motion.div 
-          animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.08, 0.04] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] right-[-5%] w-[70%] h-[70%] bg-[#8899AA]/15 rounded-full blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ scale: [1.05, 1, 1.05], opacity: [0.03, 0.06, 0.03] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] left-[-5%] w-[70%] h-[70%] bg-[#f9a885]/10 rounded-full blur-[120px]" 
-        />
-      </div>
 
       <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-24 py-24 md:py-32 relative z-10">
         
-        {/* LEFT WING (Large Screens): Trust Core & Odometer */}
+        {/* LEFT WING: Trust Core & Odometer */}
         <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-16">
            <div className="text-center space-y-4">
-              {/* 2. COMPONENT: Trust Odometer */}
+              {/* Trust Odometer */}
               <TrustOdometer totalCount={totalDisplayCount} />
               
               <motion.h2 
@@ -74,18 +59,18 @@ export function Hero() {
               </motion.h2>
            </div>
 
-           {/* 3. COMPONENT: Elite Stats Hub */}
+           {/* Elite Stats Hub */}
            <EliteStatsHub />
         </div>
 
-        {/* RIGHT WING (Large Screens): Activation Hub */}
+        {/* RIGHT WING: Activation Hub */}
         <div className="flex-1 flex flex-col items-center lg:items-center space-y-12 lg:space-y-14">
-           {/* 4. COMPONENT: Activation Action Hub */}
+           {/* Activation Action Hub */}
            <ActivationActionHub isLoggedIn={isLoggedIn} />
 
            <div className="flex items-center justify-center gap-3 opacity-20 select-none">
-              <ShieldCheck size={14} className="text-emerald-500" />
-              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v30.0</p>
+              <ShieldCheck size={14} className="text-[#002d4d]" />
+              <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-[#002d4d] mr-[-0.4em]">Verified Institution Hub v31.0</p>
            </div>
         </div>
 

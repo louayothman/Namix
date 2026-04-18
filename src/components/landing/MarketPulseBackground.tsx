@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي الشامل v6.0 - Full Page Edition
- * تم تحويل المكون ليكون خلفية ثابتة (fixed) لكامل الصفحة مع زيادة الكثافة.
+ * @fileOverview مُفاعل النيورون الرقمي الملون v7.0 - Dual Color & Large Points
+ * تم تكبير النقاط والخطوط وتلوينها بلون ناميكس الكحلي والبرتقالي لتعزيز هوية العلامة.
  */
 
 interface Point {
@@ -13,25 +13,28 @@ interface Point {
   y: number;
   vx: number;
   vy: number;
+  color: string;
 }
 
 export function MarketPulseBackground() {
   const [points, setPoints] = useState<Point[]>([]);
   const requestRef = useRef<number>(null);
-  const pointsCount = 70; // زيادة التعداد لتغطية كامل الصفحة بفخامة
+  const pointsCount = 70;
 
   useEffect(() => {
-    // 1. تهيئة النقاط في بيئة العميل فقط
+    // الألوان المؤسساتية لناميكس
+    const colors = ["#002d4d", "#f9a885"];
+
     const initialPoints = Array.from({ length: pointsCount }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.1, 
-      vy: (Math.random() - 0.5) * 0.1,
+      vx: (Math.random() - 0.5) * 0.15, // سرعة معززة قليلاً
+      vy: (Math.random() - 0.5) * 0.15,
+      color: colors[i % colors.length]
     }));
     setPoints(initialPoints);
 
-    // 2. محرك التحديث الفيزيائي اللحظي
     const update = () => {
       setPoints((prev) =>
         prev.map((p) => {
@@ -55,7 +58,6 @@ export function MarketPulseBackground() {
     };
   }, []);
 
-  // 3. خوارزمية الربط بالجارين الأقرب
   const connections = useMemo(() => {
     if (points.length === 0) return [];
     
@@ -76,7 +78,7 @@ export function MarketPulseBackground() {
   if (points.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden opacity-[0.35] select-none">
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden opacity-[0.4] select-none">
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
         <g>
           {connections.map((c, idx) => (
@@ -87,8 +89,8 @@ export function MarketPulseBackground() {
               x2={`${points[c.to].x}%`}
               y2={`${points[c.to].y}%`}
               stroke="#002d4d"
-              strokeWidth="0.08" 
-              strokeOpacity="0.25"
+              strokeWidth="0.15" // سماكة الخط معززة
+              strokeOpacity="0.15"
               strokeLinecap="round"
             />
           ))}
@@ -99,14 +101,14 @@ export function MarketPulseBackground() {
               key={`point-${p.id}`}
               cx={`${p.x}%`}
               cy={`${p.y}%`}
-              r="0.25" 
-              fill="#f9a885"
-              className="drop-shadow-[0_0_3px_rgba(249,168,133,0.9)]"
+              r="0.5" // حجم النقطة معزز
+              fill={p.color}
+              className="drop-shadow-[0_0_4px_rgba(0,0,0,0.1)]"
             />
           ))}
         </g>
       </svg>
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white opacity-20" />
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { SupportSheet } from "@/components/support/SupportSheet";
-import { Logo } from "@/components/layout/Logo";
 import { MarketPulseBackground } from "@/components/landing/MarketPulseBackground";
 
 // Dynamic Dialogs for Performance
@@ -18,8 +17,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v33.0 - Global Intelligence Aura
- * تم حقن مُفاعل النيورون الرقمي كخلفية ثابتة لكامل الصفحة لتعزيز التماسك البصري.
+ * @fileOverview بوابة ناميكس الاستثمارية v34.0 - Neural Clarity Edition
+ * تم تطهير الصفحة من الشعار الشبحي لضمان بروز خلفية النيورون الملونة.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,18 +40,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col" dir="rtl">
       
-      {/* 1. النواة المركزية: خلفية النيورون الرقمية لكامل الصفحة */}
+      {/* 1. النواة المركزية: خلفية النيورون الرقمية الملونة */}
       <MarketPulseBackground />
-
-      {/* 2. هالات الغلاف الجوي - توهج ناعم مدمج */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60%] bg-[radial-gradient(circle_at_center,rgba(136,153,170,0.05)_0%,transparent_70%)] blur-[100px]" />
-        
-        {/* Giant Logo Aura */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.01] scale-[2.5] md:scale-[5] select-none pointer-events-none">
-           <Logo size="lg" hideText animate={true} />
-        </div>
-      </div>
 
       <main className="relative z-10 flex-1 flex flex-col">
         <Hero />
