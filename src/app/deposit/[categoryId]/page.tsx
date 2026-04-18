@@ -30,10 +30,6 @@ import { InternalExecutionStep } from "@/components/deposit/categories/internal/
 
 import { SuccessStep } from "@/components/deposit/steps/SuccessStep";
 
-/**
- * @fileOverview مُفاعل التحميل v2.3 - محتوى مطهر
- * تم استبدال الأيقونات والمصطلحات لتعكس الهوية الموحدة.
- */
 const SovereignLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 gap-8">
     <div className="relative">
@@ -45,7 +41,7 @@ const SovereignLoader = () => (
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.div 
           animate={{ 
-            scale: [1, 1.25, 1],
+            scale: [1, 1.2, 1],
             rotate: [0, 360]
           }}
           transition={{ 
@@ -115,6 +111,7 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
   const handleAssetSelect = async (asset: any) => {
     setSelectedAsset(asset);
     setSearchQuery("");
+    setIsSearchOpen(false);
     setWalletAddress("");
     setError(null);
     if (category?.type === 'nowpayments' || category?.type === 'binance') setStep("select_network");
@@ -174,27 +171,63 @@ export default function CategoryDepositPage({ params }: { params: Promise<{ cate
     <Shell hideMobileNav>
       <div className="flex flex-col min-h-screen bg-white font-body" dir="rtl">
         <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
-                 {category?.type === 'binance' ? (
-                   <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
-                 ) : (
-                   <div className="grid grid-cols-2 gap-1 scale-110">
-                     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-                     <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                     <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                     <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
-                   </div>
-                 )}
-              </div>
-              <div className="text-right">
-                 <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
-                 <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Online</span></div>
-              </div>
+           <div className="flex items-center gap-4 flex-1">
+              <AnimatePresence mode="wait">
+                {isSearchOpen ? (
+                  <motion.div 
+                    key="search-input"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="flex-1 max-w-sm relative"
+                  >
+                    <input 
+                      autoFocus
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="ابحث عن رمز العملة..."
+                      className="h-10 w-full rounded-2xl bg-gray-100 border-none px-10 text-right font-black text-xs shadow-inner focus:ring-2 focus:ring-blue-500/10 outline-none transition-all"
+                    />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="title-info"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="shrink-0 flex items-center justify-center text-[#002d4d]">
+                       {category?.type === 'binance' ? (
+                         <Icon icon="cryptocurrency-color:bnb" width={32} height={32} />
+                       ) : (
+                         <div className="grid grid-cols-2 gap-1 scale-110">
+                           <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                           <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                           <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                           <div className="h-2 w-2 rounded-full bg-[#002d4d]" />
+                         </div>
+                       )}
+                    </div>
+                    <div className="text-right">
+                       <h1 className="text-lg font-black text-[#002d4d] leading-none">{category?.name}</h1>
+                       <div className="flex items-center gap-1.5 opacity-40 mt-1"><div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[7px] font-black uppercase">Online</span></div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
            </div>
-           <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
+
+           <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-2xl border border-gray-100 ml-2">
               {step === "select_asset" && (
-                <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("h-9 w-9 rounded-xl flex items-center justify-center transition-all", isSearchOpen ? "text-[#002d4d] bg-white shadow-sm" : "text-gray-400")}>
+                <button 
+                  onClick={() => {
+                    setIsSearchOpen(!isSearchOpen);
+                    if (isSearchOpen) setSearchQuery("");
+                  }} 
+                  className={cn("h-9 w-9 rounded-xl flex items-center justify-center transition-all", isSearchOpen ? "text-red-500 bg-white shadow-sm" : "text-gray-400")}
+                >
                   {isSearchOpen ? <X size={16} /> : <Search size={16} />}
                 </button>
               )}

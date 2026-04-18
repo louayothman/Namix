@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CryptoIcon } from "@/lib/crypto-icons";
-import { Search, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
+import { Search, Sparkles, ChevronLeft, Loader2, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ interface BinanceCurrencyStepProps {
   isSearchOpen: boolean;
 }
 
-const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL'];
+const POPULAR_COINS = ['USDT', 'BTC', 'ETH', 'BNB', 'SOL', 'TRX', 'LTC', 'XRP', 'DOGE', 'ADA'];
 
 export function BinanceCurrencyStep({
   assets,
@@ -31,7 +31,10 @@ export function BinanceCurrencyStep({
     let list = [...assets];
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      list = list.filter(a => (a.name || "").toLowerCase().includes(q) || (a.coin || "").toLowerCase().includes(q));
+      list = list.filter(a => 
+        (a.name || "").toLowerCase().includes(q) || 
+        (a.coin || "").toLowerCase().includes(q)
+      );
     }
     
     // الترتيب: الأكثر شعبية أولاً ثم أبجدياً
@@ -52,6 +55,11 @@ export function BinanceCurrencyStep({
   const displayedAssets = filtered.slice(0, visibleCount);
   const hasMore = filtered.length > visibleCount;
 
+  // إعادة ضبط العداد عند تغيير البحث لضمان ظهور النتائج المفلترة من البداية
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [searchQuery]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -68,8 +76,15 @@ export function BinanceCurrencyStep({
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع</h3>
-        <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-2 py-0.5 rounded-md uppercase">Live Pulse</Badge>
+        <div className="text-right">
+           <h3 className="text-base font-black text-[#002d4d]">اختر عملة الإيداع</h3>
+           {searchQuery && (
+             <p className="text-[10px] font-bold text-blue-600 mt-1">نتائج البحث عن: {searchQuery}</p>
+           )}
+        </div>
+        <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[8px] px-3 py-1 rounded-md uppercase tracking-widest shadow-inner">
+           {filtered.length} NODES
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -78,24 +93,45 @@ export function BinanceCurrencyStep({
             key={asset.coin} 
             onClick={() => onSelect(asset)} 
             disabled={loading}
-            className="h-[72px] w-full p-4 rounded-[24px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-lg transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98]"
+            className="h-[76px] w-full p-4 rounded-[28px] border border-gray-100 bg-white hover:border-[#002d4d] hover:shadow-xl transition-all duration-500 flex items-center gap-4 text-right group active:scale-[0.98] relative overflow-hidden"
           >
-            <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-              <CryptoIcon name={asset.icon || asset.coin} size={36} />
+            <div className="shrink-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 relative z-10">
+              <CryptoIcon name={asset.coin} size={36} />
             </div>
-            <div className="flex-1 space-y-0.5 min-w-0">
+            <div className="flex-1 space-y-0.5 min-w-0 relative z-10">
               <div className="flex items-center gap-2">
-                <p className="font-black text-[13px] text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{asset.name || asset.coin}</p>
-                {POPULAR_COINS.includes(asset.coin.toUpperCase()) && <Sparkles size={8} className="text-orange-400 animate-pulse" />}
+                <p className="font-black text-[14px] text-[#002d4d] group-hover:text-blue-600 transition-colors truncate">{asset.name || asset.coin}</p>
+                {POPULAR_COINS.includes(asset.coin.toUpperCase()) && (
+                  <Sparkles size={10} className="text-orange-400 animate-pulse shrink-0" />
+                )}
               </div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase leading-none">{asset.coin}</p>
+              <div className="flex items-center gap-2">
+                 <Badge variant="outline" className="text-[8px] font-black border-gray-100 bg-gray-50/50 px-1.5 py-0 rounded-md text-gray-400">{asset.coin}</Badge>
+                 {asset.priceSource === 'binance' && <Zap size={8} className="text-orange-400 fill-current" />}
+              </div>
             </div>
-            <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all" />
+            <ChevronLeft className="h-4 w-4 text-gray-200 group-hover:text-[#002d4d] transition-all relative z-10" />
           </button>
         ))}
       </div>
 
-      {hasMore && <div ref={observerRef} className="h-12 flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-gray-200" /></div>}
+      {filtered.length === 0 && (
+        <div className="py-20 text-center flex flex-col items-center gap-4 bg-gray-50 rounded-[48px] border border-dashed border-gray-200 opacity-40">
+           <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center shadow-inner">
+              <Search size={24} className="text-[#002d4d]" />
+           </div>
+           <p className="text-xs font-black text-[#002d4d] uppercase tracking-widest">لم يتم العثور على نتائج</p>
+        </div>
+      )}
+
+      {hasMore && (
+        <div ref={observerRef} className="h-20 flex items-center justify-center">
+           <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-200" />
+              <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Syncing Matrix...</p>
+           </div>
+        </div>
+      )}
     </motion.div>
   );
 }
