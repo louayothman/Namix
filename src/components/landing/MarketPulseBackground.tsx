@@ -1,13 +1,12 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 
 /**
- * @fileOverview مُفاعل النيورون الرقمي v5.0 - Neural Connectivity Engine
+ * @fileOverview مُفاعل النيورون الرقمي v5.1 - Enhanced Visibility Edition
  * كل نقطة بيانات تسبح بحرية وتتصل بذكاء بأقرب جارين لها فقط.
- * تم تحسين الأداء لضمان سلاسة الحركة السينمائية (60fps).
+ * تم زيادة حجم النقاط وسماكة الخطوط قليلاً لتعزيز العمق البصري.
  */
 
 interface Point {
@@ -71,7 +70,7 @@ export function MarketPulseBackground() {
         }))
         .filter((d) => d.index !== i)
         .sort((a, b) => a.dist - b.dist)
-        .slice(0, 2); // اختيار أقرب نقطتين فقط بناءً على طلبك
+        .slice(0, 2); // ارتباط ثنائي ذكي
 
       return distances.map(d => ({ from: i, to: d.index }));
     }).flat();
@@ -80,9 +79,9 @@ export function MarketPulseBackground() {
   if (points.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.35] select-none">
+    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.45] select-none">
       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* طبقة الخيوط العصبية النانوية */}
+        {/* طبقة الخيوط العصبية النانوية - زيادة السماكة قليلاً */}
         <g>
           {connections.map((c, idx) => (
             <line
@@ -92,31 +91,31 @@ export function MarketPulseBackground() {
               x2={`${points[c.to].x}%`}
               y2={`${points[c.to].y}%`}
               stroke="#002d4d"
-              strokeWidth="0.05"
-              strokeOpacity="0.25"
+              strokeWidth="0.08" 
+              strokeOpacity="0.3"
               strokeLinecap="round"
             />
           ))}
         </g>
         
-        {/* طبقة نقاط البيانات المتوهجة */}
+        {/* طبقة نقاط البيانات المتوهجة - زيادة القطر قليلاً */}
         <g>
           {points.map((p) => (
             <circle
               key={`point-${p.id}`}
               cx={`${p.x}%`}
               cy={`${p.y}%`}
-              r="0.18"
+              r="0.25" 
               fill="#f9a885"
-              className="drop-shadow-[0_0_2px_rgba(249,168,133,0.8)]"
+              className="drop-shadow-[0_0_3px_rgba(249,168,133,0.9)]"
             />
           ))}
         </g>
       </svg>
       
-      {/* هالة التمويه الجانبية لمنع ظهور الحدود الفاصلة */}
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white opacity-40" />
+      {/* هالة التمويه الجانبية */}
+      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white opacity-50" />
     </div>
   );
 }
