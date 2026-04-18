@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
+import { MarketPulse } from "@/components/landing/MarketPulse";
 import { SupportSheet } from "@/components/support/SupportSheet";
 import { Logo } from "@/components/layout/Logo";
 
@@ -17,8 +18,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v31.0 - Symmetrical Minimalism
- * إعادة هيكلة الصفحة لتكون متوازنة بالكامل مع حذف الشريط العلوي وتطبيق المعايير اللونية الجديدة.
+ * @fileOverview بوابة ناميكس الاستثمارية v32.0 - Multi-Hero Waterfall
+ * إضافة الهيرو الثاني (شلال الأيقونات) أسفل الهيرو الرئيسي لتعزيز العمق البصري.
  */
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -50,8 +51,12 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center">
+      <main className="relative z-10 flex-1 flex flex-col">
+        {/* الهيرو الرئيسي: الهوية والعداد والإحصائيات */}
         <Hero />
+        
+        {/* الهيرو الثاني: شلال أيقونات العملات الرقمية المتعاكس */}
+        <MarketPulse />
       </main>
 
       <Footer 
