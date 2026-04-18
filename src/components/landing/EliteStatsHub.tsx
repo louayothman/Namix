@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 const LaurelSide = ({ mirrored = false, className }: { mirrored?: boolean, className?: string }) => (
   <svg 
     viewBox="0 0 940 720" 
-    className={cn("w-8 h-8 sm:w-10 sm:h-10 md:w-16 md:h-16 shrink-0 transition-transform duration-700", mirrored && "scale-x-[-1]", className)} 
+    className={cn("w-8 h-8 sm:w-10 sm:h-10 md:w-20 md:h-20 shrink-0 transition-transform duration-700", mirrored && "scale-x-[-1]", className)} 
     fill="currentColor" 
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -48,25 +48,25 @@ export function EliteStatsHub() {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full flex flex-row items-center justify-center gap-4 sm:gap-6 md:gap-12 lg:gap-16 flex-nowrap py-4 select-none"
+      className="w-full flex flex-row items-center justify-center gap-8 sm:gap-10 md:gap-16 lg:gap-20 flex-nowrap py-4 select-none"
     >
       {stats.map((stat) => (
         <div key={stat.id} className="flex items-center gap-0 group shrink-0">
-          {/* Left Wing (Mirrored) */}
+          {/* Left Wing (Mirrored) - Nano Fusion Margin */}
           <LaurelSide 
             mirrored 
-            className="text-[#f9a885] -mx-4 sm:-mx-5 md:-mx-8 transition-all duration-700 group-hover:rotate-[-8deg] group-hover:scale-110" 
+            className="text-[#f9a885] -mx-5 sm:-mx-6 md:-mx-10 transition-all duration-700 group-hover:rotate-[-8deg] group-hover:scale-110" 
           />
           
-          {/* Identity Core */}
-          <div className="space-y-0 text-center px-0 min-w-max relative z-10 flex flex-col items-center">
-            <p className="text-xl sm:text-3xl md:text-5xl font-black text-[#002d4d] leading-none tracking-tighter">No.1</p>
-            <p className="text-[6px] sm:text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-normal mt-1.5 md:mt-3 whitespace-nowrap">{stat.label}</p>
+          {/* Identity Core - Fixed Dimensions for stability */}
+          <div className="space-y-0 text-center px-0 min-w-[50px] md:min-w-[120px] relative z-10 flex flex-col items-center">
+            <p className="text-xl sm:text-2xl md:text-5xl font-black text-[#002d4d] leading-none tracking-tighter">No.1</p>
+            <p className="text-[7px] sm:text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-normal mt-1.5 md:mt-3 whitespace-nowrap">{stat.label}</p>
           </div>
           
-          {/* Right Wing (Normal) */}
+          {/* Right Wing (Normal) - Nano Fusion Margin */}
           <LaurelSide 
-            className="text-[#f9a885] -mx-4 sm:-mx-5 md:-mx-8 transition-all duration-700 group-hover:rotate-[8deg] group-hover:scale-110" 
+            className="text-[#f9a885] -mx-5 sm:-mx-6 md:-mx-10 transition-all duration-700 group-hover:rotate-[8deg] group-hover:scale-110" 
           />
         </div>
       ))}
