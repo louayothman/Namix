@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 /**
- * @fileOverview مُفاعل الهوية الدورانية v2.0 - Optimized Clarity & Positioning
- * يجسد أيقونة ناميكس العملاقة في زوايا الشاشة، تدور بتزامن مع التمرير بوضوح معزز.
+ * @fileOverview مُفاعل الهوية الدورانية v2.1 - Optimized Scale & Precision
+ * يجسد أيقونة ناميكس العملاقة في زوايا الشاشة، تم تقليص حجمها للنصف لتعزيز الأناقة المينيماليست.
  */
 
 export function MarketPulseBackground() {
@@ -21,11 +21,11 @@ export function MarketPulseBackground() {
   if (!mounted) return null;
 
   const DotGrid = () => (
-    <div className="grid grid-cols-2 gap-8 md:gap-16">
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#f9a885] shadow-xl" />
-      <div className="w-48 h-48 md:w-[400px] md:h-[400px] rounded-full bg-[#002d4d] shadow-xl" />
+    <div className="grid grid-cols-2 gap-4 md:gap-8">
+      <div className="w-24 h-24 md:w-[200px] md:h-[200px] rounded-full bg-[#002d4d] shadow-xl" />
+      <div className="w-24 h-24 md:w-[200px] md:h-[200px] rounded-full bg-[#f9a885] shadow-xl" />
+      <div className="w-24 h-24 md:w-[200px] md:h-[200px] rounded-full bg-[#f9a885] shadow-xl" />
+      <div className="w-24 h-24 md:w-[200px] md:h-[200px] rounded-full bg-[#002d4d] shadow-xl" />
     </div>
   );
 
@@ -35,7 +35,7 @@ export function MarketPulseBackground() {
       {/* 1. الأيقونة العلوية يميناً */}
       <motion.div 
         style={{ rotate: rotation }}
-        className="absolute -top-[10%] -right-[15%] md:-top-[15%] md:-right-[20%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
+        className="absolute -top-[5%] -right-[10%] md:-top-[10%] md:-right-[15%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
       >
          <DotGrid />
       </motion.div>
@@ -43,7 +43,7 @@ export function MarketPulseBackground() {
       {/* 2. الأيقونة السفلية يساراً - تم رفعها لتكون أعلى الفوتر وبوضوح أكبر */}
       <motion.div 
         style={{ rotate: rotation }}
-        className="absolute bottom-[10%] -left-[15%] md:bottom-[20%] md:-left-[20%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
+        className="absolute bottom-[10%] -left-[10%] md:bottom-[20%] md:-left-[15%] opacity-[0.06] flex items-center justify-center transition-opacity duration-1000"
       >
          <DotGrid />
       </motion.div>
