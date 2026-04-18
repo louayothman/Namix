@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v101.0 - Sovereign Intelligence & Text fallback
- * تم تطوير المحرك بذكاء فائق لتنظيف الرموز والبحث في 7 مكتبات، مع نظام البديل النصي الفاخر (3 أحرف).
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v102.0 - Sovereign Intelligence & 2x2 Grid Fallback
+ * تم تطوير المحرك بذكاء فائق ونظام بديل نصي (شبكة 2*2) بالأسود المتدرج على خلفية بيضاء.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -112,23 +112,25 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
 
   /**
    * دالة التطبيع فائقة الذكاء (Ultra-Smart Normalizer)
-   * تقوم بتنظيف الكود من كافة الزوائد الرقمية واللاحقات المنصية المعقدة.
+   * تم تحسينها لقص البادئات واللاحقات المعقدة لضمان دقة البحث.
    */
   const normalize = (s: string) => {
     let cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');
     
-    // إزالة البادئات الرقمية الشائعة
-    if (cleaned.startsWith('1000')) cleaned = cleaned.substring(4);
-    else if (cleaned.startsWith('1m')) cleaned = cleaned.substring(2);
-    else if (cleaned.startsWith('ld')) cleaned = cleaned.substring(2);
+    // إزالة البادئات الرقمية واللاحقات المنصية
+    const junk = ['1000', '1m', 'ld', 'usdt', 'busd', 'up', 'down', 'bull', 'bear', 'st'];
     
-    // إزالة اللاحقات المنصية والتوكنات المزدوجة
-    const suffixes = ['usdt', 'busd', 'up', 'down', 'bull', 'bear', 'st'];
-    for (const suffix of suffixes) {
-      if (cleaned.length > suffix.length + 1 && cleaned.endsWith(suffix)) {
+    junk.forEach(prefix => {
+      if (cleaned.startsWith(prefix) && cleaned.length > prefix.length) {
+        cleaned = cleaned.substring(prefix.length);
+      }
+    });
+
+    junk.forEach(suffix => {
+      if (cleaned.endsWith(suffix) && cleaned.length > suffix.length) {
         cleaned = cleaned.slice(0, -suffix.length);
       }
-    }
+    });
     
     return cleaned;
   };
@@ -149,21 +151,34 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
   ];
 
   /**
-   * مُفاعل البديل النصي الفاخر (Luxury Abbreviation Node)
-   * يظهر فقط في حال فشل جميع محاولات البحث في المكتبات السبعة.
+   * مُفاعل الهوية الشبكية 2x2 (Grid Identity Protocol)
+   * تصميم فخم: 4 عناصر (أحرف/أرقام) بالأسود المتدرج على خلفية بيضاء نقية.
    */
   const renderTextFallback = () => {
-    const text = symbol.toUpperCase().slice(0, 3);
+    // استخراج أول 4 خانات وملء الفراغات بمسافات لضمان توازن الشبكة
+    const rawChars = symbol.toUpperCase().slice(0, 4).split('');
+    const chars = [...rawChars];
+    while (chars.length < 4) chars.push(' ');
+
     return (
       <div 
-        style={{ width: size, height: size, fontSize: size * 0.35 }}
+        style={{ width: size, height: size }}
         className={cn(
-          "rounded-full flex items-center justify-center font-black text-white shadow-inner select-none shrink-0",
-          "bg-gradient-to-br from-[#002d4d] to-[#8899AA]",
+          "rounded-full bg-white flex items-center justify-center select-none shrink-0 p-1 transition-transform duration-500 hover:scale-110",
           className
         )}
       >
-        {text}
+        <div className="grid grid-cols-2 grid-rows-2 gap-[1px] w-full h-full">
+          {chars.map((char, i) => (
+            <div 
+              key={i} 
+              className="flex items-center justify-center font-black leading-none bg-gradient-to-br from-black via-neutral-800 to-neutral-500 bg-clip-text text-transparent"
+              style={{ fontSize: size * 0.32 }}
+            >
+              {char}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
