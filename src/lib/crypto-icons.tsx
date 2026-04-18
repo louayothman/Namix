@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v102.0 - Sovereign Intelligence & 2x2 Grid Fallback
- * تم تطوير المحرك بذكاء فائق ونظام بديل نصي (شبكة 2*2) بالأسود المتدرج على خلفية بيضاء.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v105.0 - Symmetric Grid Identity
+ * تم تطوير المحرك ليدعم شبكة هوية 2x2 متناظرة (أحرف/أرقام) باللون الأسود الخام على خلفية بيضاء.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -91,9 +91,8 @@ export const ICON_OPTIONS = [
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
   const iconKey = (name || "").toUpperCase();
   
-  // 1. فحص الأيقونات المخصصة (Lucide)
-  const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
-  if (LucideIcon && typeof LucideIcon !== 'string') {
+  if (CRYPTO_ICONS_MAP[iconKey]) {
+    const LucideIcon = CRYPTO_ICONS_MAP[iconKey];
     return (
       <div style={{ width: size, height: size }} className={cn("flex items-center justify-center shrink-0", className)}>
         <LucideIcon color={color || "currentColor"} size={size} strokeWidth={2.5} />
@@ -101,7 +100,6 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. فحص الـ Overrides اليدوية المباشرة
   if (ICON_OVERRIDES[iconKey]) {
     return (
       <div className={cn("shrink-0 flex items-center justify-center", className)} style={{ width: size, height: size }}>
@@ -110,70 +108,58 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  /**
-   * دالة التطبيع فائقة الذكاء (Ultra-Smart Normalizer)
-   * تم تحسينها لقص البادئات واللاحقات المعقدة لضمان دقة البحث.
-   */
   const normalize = (s: string) => {
     let cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    // إزالة البادئات الرقمية واللاحقات المنصية
     const junk = ['1000', '1m', 'ld', 'usdt', 'busd', 'up', 'down', 'bull', 'bear', 'st'];
-    
     junk.forEach(prefix => {
-      if (cleaned.startsWith(prefix) && cleaned.length > prefix.length) {
-        cleaned = cleaned.substring(prefix.length);
-      }
+      if (cleaned.startsWith(prefix) && cleaned.length > prefix.length) cleaned = cleaned.substring(prefix.length);
     });
-
     junk.forEach(suffix => {
-      if (cleaned.endsWith(suffix) && cleaned.length > suffix.length) {
-        cleaned = cleaned.slice(0, -suffix.length);
-      }
+      if (cleaned.endsWith(suffix) && cleaned.length > suffix.length) cleaned = cleaned.slice(0, -suffix.length);
     });
-    
     return cleaned;
   };
 
   const symbol = normalize(name);
+  const libraries = ['cryptocurrency-color', 'token-icons', 'token', 'cryptocurrency', 'logos', 'simple-icons', 'fa6-brands'];
 
   /**
-   * مصفوفة السقوط السباعية المتخصصة
-   */
-  const libraries = [
-    'cryptocurrency-color', 
-    'token-icons',          
-    'token',                
-    'cryptocurrency',       
-    'logos',                
-    'simple-icons',         
-    'fa6-brands'            
-  ];
-
-  /**
-   * مُفاعل الهوية الشبكية 2x2 (Grid Identity Protocol)
-   * تصميم فخم: 4 عناصر (أحرف/أرقام) بالأسود المتدرج على خلفية بيضاء نقية.
+   * مُفاعل الهوية الشبكية المتناظر 2x2 (Symmetric Grid Reactor)
+   * نصوص سوداء خام على خلفية بيضاء بدون حواف.
    */
   const renderTextFallback = () => {
-    // استخراج أول 4 خانات وملء الفراغات بمسافات لضمان توازن الشبكة
-    const rawChars = symbol.toUpperCase().slice(0, 4).split('');
-    const chars = [...rawChars];
-    while (chars.length < 4) chars.push(' ');
+    const chars = symbol.toUpperCase().split('').slice(0, 4);
+    const n = chars.length;
+    
+    // مصفوفة الشبكة [أعلى-يسار, أعلى-يمين, أسفل-يسار, أسفل-يمين]
+    const grid = ['', '', '', ''];
+    
+    if (n === 4) {
+      grid[0] = chars[0]; grid[1] = chars[1]; grid[2] = chars[2]; grid[3] = chars[3];
+    } else if (n === 3) {
+      grid[0] = chars[0]; grid[1] = chars[1]; grid[2] = chars[2];
+    } else if (n === 2) {
+      // قانون التناظر: الأول في الركن العلوي الأيسر، الثاني في الركن السفلي الأيمن
+      grid[0] = chars[0]; 
+      grid[3] = chars[1];
+    } else if (n === 1) {
+      grid[0] = chars[0];
+    }
 
     return (
       <div 
         style={{ width: size, height: size }}
         className={cn(
-          "rounded-full bg-white flex items-center justify-center select-none shrink-0 p-1 transition-transform duration-500 hover:scale-110",
+          "rounded-full bg-white flex items-center justify-center select-none shrink-0 p-1 transition-all duration-500 hover:scale-110",
           className
         )}
       >
-        <div className="grid grid-cols-2 grid-rows-2 gap-[1px] w-full h-full">
-          {chars.map((char, i) => (
+        <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-0">
+          {grid.map((char, i) => (
             <div 
               key={i} 
-              className="flex items-center justify-center font-black leading-none bg-gradient-to-br from-black via-neutral-800 to-neutral-500 bg-clip-text text-transparent"
-              style={{ fontSize: size * 0.32 }}
+              className="flex items-center justify-center font-black leading-none text-black"
+              style={{ fontSize: size * 0.34 }}
             >
               {char}
             </div>
@@ -184,12 +170,8 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
   };
 
   const renderIconWithChain = (libIndex: number): React.ReactNode => {
-    if (libIndex >= libraries.length) {
-      return renderTextFallback();
-    }
-
+    if (libIndex >= libraries.length) return renderTextFallback();
     const currentIcon = `${libraries[libIndex]}:${symbol}`;
-    
     return (
       <Icon 
         icon={currentIcon}
