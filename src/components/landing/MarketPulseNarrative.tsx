@@ -47,37 +47,45 @@ export function MarketPulseNarrative({ texts }: MarketPulseNarrativeProps) {
   };
 
   return (
-    <div className="relative min-h-[160px] md:min-h-[220px] flex flex-col justify-center text-right font-body">
+    <div className="relative min-h-[160px] md:min-h-[220px] flex flex-col justify-center text-right font-body overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
-          initial={{ opacity: 0, x: 20, filter: "blur(15px)" }}
-          animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, x: -20, filter: "blur(15px)" }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ 
+            opacity: 0, 
+            y: 40, 
+            scale: 0.95,
+            filter: "blur(20px)" 
+          }}
+          animate={{ 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            filter: "blur(0px)" 
+          }}
+          exit={{ 
+            opacity: 0, 
+            y: -60, 
+            scale: 1.05,
+            filter: "blur(15px)" 
+          }}
+          transition={{ 
+            duration: 1.2, 
+            ease: [0.16, 1, 0.3, 1] 
+          }}
           className="relative group"
         >
-          {/* تأثير اللمعان (Shimmer) */}
+          {/* تأثير اللمعان (Shimmer) العابر عند الظهور */}
           <motion.div
             initial={{ left: "-100%" }}
             animate={{ left: "100%" }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+            transition={{ duration: 2, ease: "easeInOut" }}
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent w-full h-full skew-x-[-20deg] pointer-events-none z-10"
           />
 
           <p className="text-2xl md:text-4xl lg:text-5xl font-black text-[#002d4d] leading-[1.5] tracking-tight relative z-0">
             {renderText(processedTexts[index])}
           </p>
-          
-          <div className="mt-6 w-24 h-[1px] bg-gray-100 relative overflow-hidden rounded-full">
-            <motion.div 
-              key={`bar-${index}`}
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 4, ease: "linear" }}
-              className="absolute inset-y-0 right-0 bg-[#f9a885] shadow-[0_0_8px_#f9a885]" 
-            />
-          </div>
         </motion.div>
       </AnimatePresence>
     </div>
