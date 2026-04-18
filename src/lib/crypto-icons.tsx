@@ -18,8 +18,9 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview ترسانة أيقونات ناميكس العالمية v68.0
- * تم تعزيز المكون بنظام Fallback قوي لمنع ظهور أي أيقونات فارغة في شلال الهيرو.
+ * @fileOverview ترسانة أيقونات ناميكس العالمية v70.0
+ * تم تعزيز المكون ليدعم مئات العملات الرقمية الملونة بدقة عالية عبر Iconify.
+ * يغطي هذا المكون آلياً أكثر من 600 عملة رقمية ملونة.
  */
 
 export const CRYPTO_ICONS_MAP: Record<string, any> = {
@@ -49,8 +50,6 @@ export const CRYPTO_ICONS_MAP: Record<string, any> = {
 };
 
 export const ICON_OPTIONS = [
-  { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' },
-  { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
   { id: 'USDT', label: 'Tether (USDT)' },
   { id: 'BTC', label: 'Bitcoin (BTC)' },
   { id: 'ETH', label: 'Ethereum (ETH)' },
@@ -104,6 +103,8 @@ export const ICON_OPTIONS = [
   { id: 'JUP', label: 'Jupiter (JUP)' },
   { id: 'STRK', label: 'Starknet (STRK)' },
   { id: 'PYTH', label: 'Pyth Network (PYTH)' },
+  { id: 'NAMIX_ID', label: 'Namix ID Transfer' },
+  { id: 'NAMIX_INTERNAL_USER', label: 'Namix User Internal' }
 ];
 
 export function CryptoIcon({ name, color, size = 24, className }: { name: string, color?: string, size?: number, className?: string }) {
@@ -119,18 +120,17 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
     );
   }
 
-  // 2. فحص الأيقونات الملونة (Iconify)
+  // 2. فحص الأيقونات الملونة من مجموعة Cryptocurrency Color (Iconify)
+  // تغطي هذه المجموعة آلياً أكثر من 600 عملة
   let iconName = `cryptocurrency-color:${iconKey.toLowerCase()}`;
   
-  // تصحيحات استثنائية لبعض العملات
+  // تصحيحات يدوية للعملات والشركات العالمية
   const overrides: Record<string, string> = {
     'USDT': 'cryptocurrency-color:usdt',
     'BTC': 'cryptocurrency-color:btc',
     'ETH': 'cryptocurrency-color:eth',
     'BNB': 'cryptocurrency-color:bnb',
     'SOL': 'cryptocurrency-color:sol',
-    'TRX': 'cryptocurrency-color:trx',
-    'MATIC': 'cryptocurrency-color:matic',
     'APPLE': 'logos:apple',
     'GOOGLE': 'logos:google-icon',
     'BINANCE': 'logos:binance',
@@ -151,7 +151,7 @@ export function CryptoIcon({ name, color, size = 24, className }: { name: string
         width={size} 
         height={size} 
         style={color ? { color } : undefined}
-        // نظام الحماية (Fallback) لضمان عدم ظهور أي فراغ
+        // Fallback: أيقونة Coins في حال عدم وجود الرمز المطلوب
         fallback={<Coins size={size} className="text-gray-200" />}
       />
     </div>
