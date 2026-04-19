@@ -130,7 +130,7 @@ export function PortfolioHero({
           <div className="flex flex-row items-center justify-between w-full">
             <div className="flex flex-col items-start text-right space-y-1">
               <div className="flex items-baseline gap-1.5">
-                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد الموثق <span className="text-[8px] opacity-60">Audited Balance</span></span>
+                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد <span className="text-[8px] opacity-60">Balance</span></span>
                  <button 
                   onClick={() => setShowBalance(!showBalance)}
                   className="h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90 ml-1"
