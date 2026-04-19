@@ -33,7 +33,7 @@ export function PortfolioHero({
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
   const [greeting, setGreeting] = useState("");
   const [showBalance, setShowBalance] = useState(true);
-  const [activeMetric, setActiveMetric] = useState<'yield' | 'invest'>('yield');
+  const [activeMetric, setActiveMetric] = useState<'yield' | 'invest'>( 'yield');
   const prices = useMarketStore(state => state.prices);
 
   const timeGreeting = useMemo(() => {

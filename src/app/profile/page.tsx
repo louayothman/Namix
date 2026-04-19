@@ -52,7 +52,7 @@ function ProfileContent() {
   const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
   const { data: tiersData } = useDoc(tiersDocRef);
 
-  // --- محرك الاحتساب المحاسبي (Sovereign Ledger Engine) ---
+  // --- محرك الاحتساب المحاسبي السيادي (Sovereign Ledger Engine) ---
 
   const investmentsQuery = useMemoFirebase(() => {
     if (!user?.id) return null;
@@ -104,7 +104,9 @@ function ProfileContent() {
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // تطبيق المعادلة السيادية الكاملة كما طلب المستثمر
+    // تطبيق المعادلة السيادية الكاملة:
+    // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
+    // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
     const balance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
                     - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals);
 

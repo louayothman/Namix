@@ -74,7 +74,7 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
-  // --- محرك تجميع البيانات التاريخية للحساب المحاسبي (Ledger Engine) ---
+  // --- محرك الاحتساب المحاسبي السيادي (Sovereign Ledger Engine) ---
   
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
@@ -100,7 +100,6 @@ export default function HomePage() {
   }, [db, localUser?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  // احتساب الإحصائيات المحاسبية وفقاً لمعادلة الرصيد المتاح المحدثة
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
@@ -129,7 +128,7 @@ export default function HomePage() {
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // تطبيق المعادلة السيادية:
+    // تطبيق المعادلة السيادية الكاملة:
     // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
     // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
     const currentBalance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
@@ -237,13 +236,9 @@ export default function HomePage() {
     try {
       for (const inv of matured) {
         const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        await updateDoc(doc(db, "users", localUser.id), { 
-          totalBalance: increment(totalPayout), 
-          totalProfits: increment(inv.expectedProfit || 0), 
-          activeInvestmentsTotal: increment(-inv.amount) 
-        });
+        // تحديث حالة العقد فقط، السجل سيقوم بتحديث الرصيد ديناميكياً
         await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-        await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+        await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
       }
     } finally {
       setProcessingPayouts(false);

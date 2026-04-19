@@ -76,7 +76,8 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
 
   const activeInvestments = useMemo(() => allInvestments?.filter(i => i.status === 'active') || [], [allInvestments]);
 
-  // احتساب الإحصائيات المحاسبية للمشرف (Ledger Engine)
+  // --- محرك الاحتساب المحاسبي السيادي (Sovereign Ledger Engine) ---
+
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !allInvestments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0, totalDeposited: 0, totalWithdrawn: 0 };
@@ -102,6 +103,9 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    // تطبيق المعادلة السيادية الكاملة:
+    // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
+    // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
     const currentBalance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
                           - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals);
 
@@ -212,11 +216,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     try {
       for (const inv of matured) {
         const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        await updateDoc(doc(db, "users", userId), {
-          totalBalance: increment(totalPayout),
-          totalProfits: increment(inv.expectedProfit || 0),
-          activeInvestmentsTotal: increment(-inv.amount)
-        });
+        // تحديث حالة العقد فقط، السجل سيقوم بتحديث الرصيد ديناميكياً
         await updateDoc(doc(db, "investments", inv.id), {
           status: "completed",
           isProcessed: true,
@@ -226,7 +226,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
         await addDoc(collection(db, "notifications"), {
           userId: userId,
           title: "اكتمل الاستثمار! 💰",
-          message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`,
+          message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير السيولة والارباح لحساب المستثمر.`,
           type: "success",
           isRead: false,
           createdAt: new Date().toISOString()
