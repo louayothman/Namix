@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, getDocs, query, where, orderBy } from "firebase/firestore";
 import { 
@@ -19,7 +18,6 @@ import {
   User, 
   Bell, 
   Loader2, 
-  Target, 
   Sparkles, 
   Zap, 
   MessageSquare, 
@@ -41,9 +39,13 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { sendBroadcastEmail } from "@/app/actions/auth-actions";
 
+// المكونات المستقلة المضافة حديثاً
+import { EmailTemplateForge } from "@/components/admin/notifications/EmailTemplateForge";
+import { BroadcastHistoryLedger } from "@/components/admin/notifications/BroadcastHistoryLedger";
+
 /**
- * @fileOverview مركز إدارة البث والاتصال الإداري v10.5
- * تم إصلاح محرك الإرسال البريدي وضمان التزامن مع قاعدة البيانات السيادية.
+ * @fileOverview مركز إدارة البث والاتصال الإداري v11.0
+ * تم دمج نظام القوالب البريدية وسجل البث المستقل لضمان احترافية الإدارة.
  */
 
 type TargetType = 'all' | 'new' | 'inactive' | 'active' | 'pending_withdraw' | 'pending_deposit' | 'single';
@@ -54,7 +56,7 @@ const BROADCAST_TEMPLATES = [
   { id: 'privacy', label: "تعديل سياسة الخصوصية", title: "تحديث سياسة حماية البيانات", message: "التزاماً منا بأعلى معايير الخصوصية، قمنا بتعزيز سياسة حماية البيانات الشخصية. تم تحسين آليات التشفير لضمان سرية حساباتكم واستثماراتكم." },
   { id: 'guide', label: "دليل الاستخدام الشامل", title: "دليل الميزات الجديدة للمنصة", message: "نضع بين يديك دليل الاستخدام المحدث الذي يشرح آليات التداول، إدارة المحفظة، وخطوات السحب والإيداع. ابدأ رحلتك الآن باطلاع كامل على كافة الأدوات المتاحة." },
   { id: 'security', label: "تحديث أمني", title: "تنبيه أمني: تعزيز حماية الحساب", message: "لضمان أمان حسابك، ننصح بتفعيل رمز PIN وتحديث كلمة المرور بشكل دوري. نظام الأمان لدينا يعمل على مدار الساعة لحماية استثماراتك." },
-  { id: 'new_plan', label: "إطلاق خطة استثمارية", title: "فرصة جديدة: إدراج خطة استثمارية بعائد مرتفع", message: "يسرنا إبلاغكم بإطلاق خطة استثمارية جديدة في قسم الاستثمار. تتميز هذه الخطة بعائد تنافسي ودورة عمل مرنة. يمكنك البدء الآن عبر لوحة التحكم." },
+  { id: 'new_plan', label: "إطلاق منتج استثماري", title: "فرصة جديدة: إدراج خطة استثمارية بعائد مرتفع", message: "يسرنا إبلاغكم بإطلاق خطة استثمارية جديدة في قسم الاستثمار. تتميز هذه الخطة بعائد تنافسي ودورة عمل مرنة. يمكنك البدء الآن عبر لوحة التحكم." },
   { id: 'bonus', label: "مكافأة شحن حصرية", title: "عرض خاص: احصل على مكافأة بنسبة 15% على إيداعك القادم", message: "لفترة محدودة، يمكنك الحصول على رصيد إضافي عند شحن محفظتك. سيتم إضافة المكافأة فورياً إلى رصيدك المتاح لدعم نمو استثماراتك." },
 ];
 
@@ -64,14 +66,24 @@ export default function AdminNotificationsPage() {
   const [channel, setChannel] = useState<BroadcastChannel>('app');
   const [singleUserId, setSingleUserId] = useState("");
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  
+  // بيانات الرسالة
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     type: "info" as "info" | "success" | "warning" | "error"
   });
 
+  // خيارات القالب البريدي
+  const [templateOptions, setTemplateOptions] = useState({
+    primaryColor: "#002d4d",
+    textColor: "#445566",
+    buttonText: "",
+    buttonLink: "",
+    footerText: "هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس."
+  });
+
   const db = useFirestore();
-  
   const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
   const { data: users, isLoading: loadingUsers } = useCollection(usersQuery);
 
@@ -92,7 +104,6 @@ export default function AdminNotificationsPage() {
   const targetUsersList = useMemo(() => {
     if (!users) return [];
     if (target === 'single') return users.filter(u => u.id === singleUserId);
-    
     if (target === 'all') return users;
     
     if (target === 'new') {
@@ -141,6 +152,7 @@ export default function AdminNotificationsPage() {
         target,
         channel,
         recipientCount: targetUsersList.length,
+        templateOptions: channel !== 'app' ? templateOptions : null,
         createdAt: new Date().toISOString()
       });
 
@@ -158,9 +170,9 @@ export default function AdminNotificationsPage() {
           });
         }
         
-        // قناة البريد الإلكتروني (تدقيق وجود البريد أولاً)
+        // قناة البريد الإلكتروني
         if ((channel === 'email' || channel === 'both') && u.email) {
-          await sendBroadcastEmail(u.email, formData.title, formData.message);
+          await sendBroadcastEmail(u.email, formData.title, formData.message, templateOptions);
         }
       });
 
@@ -186,7 +198,7 @@ export default function AdminNotificationsPage() {
               Messaging Control Hub
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">مركز البث والاتصال</h1>
-            <p className="text-muted-foreground font-bold text-xs">إرسال التنبيهات الموجهة عبر المحفظة والبريد الإلكتروني.</p>
+            <p className="text-muted-foreground font-bold text-xs">إرسال التنبيهات الموجهة عبر المحفظة والبريد الإلكتروني بهوية مخصصة.</p>
           </div>
           
           <div className="flex items-center gap-4 bg-gray-50/50 p-2 rounded-full border border-gray-100 shadow-inner">
@@ -352,6 +364,16 @@ export default function AdminNotificationsPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* مفاعل تخصيص القوالب البريدية - يظهر فقط عند اختيار قناة البريد */}
+            {(channel === 'email' || channel === 'both') && (
+              <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <EmailTemplateForge 
+                  options={templateOptions}
+                  onChange={setTemplateOptions}
+                />
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-4 space-y-10">
@@ -403,6 +425,11 @@ export default function AdminNotificationsPage() {
           </div>
         </div>
       </div>
+
+      <BroadcastHistoryLedger 
+        open={isHistoryOpen}
+        onOpenChange={setIsHistoryOpen}
+      />
     </Shell>
   );
 }
