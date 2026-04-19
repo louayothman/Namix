@@ -42,8 +42,7 @@ export default function HomePage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [processingReward, setProcessingReward] = useState(false);
-  const [rewardNotice, setRewardNotice] = useState<string | null>(null);
+  const [processingPayouts, setProcessingPayouts] = useState(false);
   const [referralCount, setReferralCount] = useState(0);
   const [now, setNow] = useState(new Date());
   const [calcAmount, setCalcAmount] = useState("1000");
@@ -75,7 +74,7 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
-  // --- محرك تجميع البيانات التاريخية للحساب الديناميكي ---
+  // --- محرك تجميع البيانات التاريخية للحساب المحاسبي ---
   
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
@@ -101,7 +100,7 @@ export default function HomePage() {
   }, [db, localUser?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  // احتساب الإحصائيات الديناميكية (Dynamic Financial Intelligence)
+  // احتساب الإحصائيات المحاسبية (Sovereign Accounting Protocol)
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
@@ -126,15 +125,20 @@ export default function HomePage() {
       .filter(t => t.result === 'lose')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    const openTradesAmount = allTrades
+      .filter(t => t.status === 'open')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
     const initialBonus = dbUser.welcomeBonus || 0;
 
-    // المعادلة السيادية: الرصيد = (البداية + إيداع + ربح استثمار + ربح تداول) - (سحب + استثمار نشط + خسارة تداول)
-    const currentBalance = initialBonus + totalDeposits + maturedProfits + tradeProfits - (totalWithdrawals + activeInvestmentsTotal + tradeLosses);
+    // الرصيد المتاح = (المبالغ الداخلة + الأرباح المحققة) - (المبالغ الخارجة + رؤوس الأموال النشطة + الخسائر)
+    const currentBalance = (initialBonus + totalDeposits + maturedProfits + tradeProfits) 
+                          - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLosses);
 
     return {
       balance: Math.max(0, currentBalance),
       profits: maturedProfits + tradeProfits,
-      activeInvestments: activeInvestmentsTotal
+      activeInvestments: activeInvestmentsTotal + openTradesAmount
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
 
@@ -220,7 +224,7 @@ export default function HomePage() {
   }, [router, db]);
 
   const processMaturedInvestments = useCallback(async () => {
-    if (!investments || !localUser?.id) return;
+    if (!investments || !localUser?.id || processingPayouts) return;
     const currentTime = now.getTime();
     const matured = investments.filter(inv => 
       inv.status === 'active' && 
@@ -228,13 +232,23 @@ export default function HomePage() {
       currentTime >= new Date(inv.endTime).getTime() + 5000
     );
 
-    for (const inv of matured) {
-      const totalPayout = inv.amount + (inv.expectedProfit || 0);
-      await updateDoc(doc(db, "users", localUser.id), { totalBalance: increment(totalPayout), totalProfits: increment(inv.expectedProfit || 0), activeInvestmentsTotal: increment(-inv.amount) });
-      await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-      await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+    if (matured.length === 0) return;
+    setProcessingPayouts(true);
+    try {
+      for (const inv of matured) {
+        const totalPayout = inv.amount + (inv.expectedProfit || 0);
+        await updateDoc(doc(db, "users", localUser.id), { 
+          totalBalance: increment(totalPayout), 
+          totalProfits: increment(inv.expectedProfit || 0), 
+          activeInvestmentsTotal: increment(-inv.amount) 
+        });
+        await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
+        await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+      }
+    } finally {
+      setProcessingPayouts(false);
     }
-  }, [investments, localUser?.id, db, now]);
+  }, [investments, localUser?.id, db, now, processingPayouts]);
 
   useEffect(() => {
     const timer = setInterval(() => { 
@@ -267,7 +281,7 @@ export default function HomePage() {
           <Suspense fallback={<SectionLoader />}><EliteWatchlist favorites={favorites} /></Suspense>
           <Suspense fallback={<SectionLoader />}><FeaturedProtocols plans={featuredPlans} onSelect={setSelectedPlan} /></Suspense>
           <Suspense fallback={<SectionLoader />}><InvestmentInventory investments={investments || null} isLoading={loadingInv} now={now} /></Suspense>
-          <Suspense fallback={<SectionLoader />}><TierProgress calculatedTier={calculatedTier} referralCount={referralCount} hasUnclaimedReward={false} processingReward={processingReward} rewardNotice={rewardNotice} onClaimReward={() => {}} onDeposit={() => setDepositOpen(true)} /></Suspense>
+          <Suspense fallback={<SectionLoader />}><TierProgress calculatedTier={calculatedTier} referralCount={referralCount} hasUnclaimedReward={false} processingReward={false} rewardNotice={null} onClaimReward={() => {}} onDeposit={() => setDepositOpen(true)} /></Suspense>
           <Suspense fallback={<SectionLoader />}><YieldSimulator marketingConfig={marketingConfig} calcAmount={calcAmount} onAmountChange={setCalcAmount} onIncrement={() => setCalcAmount(prev => (parseInt(prev || "0") + 100).toString())} onDecrement={() => setCalcAmount(prev => Math.max(0, parseInt(prev || "0") - 100).toString())} /></Suspense>
           <Suspense fallback={<SectionLoader />}><UpcomingEvents scheduledPlans={scheduledPlans} /></Suspense>
           <Suspense fallback={<SectionLoader />}><GuidanceCenter /></Suspense>

@@ -24,8 +24,8 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v21.0 - Dynamic Accounting Edition
- * تم تحديث الصفحة لاحتساب الأرصدة والأرباح ديناميكياً من السجلات المالية.
+ * @fileOverview صفحة الملف الشخصي v22.0 - Audit Ledger Edition
+ * احتساب الأرصدة والأرباح ديناميكياً من كافة السجلات المالية لضمان الدقة المطلقة.
  */
 
 function ProfileContent() {
@@ -52,7 +52,7 @@ function ProfileContent() {
   const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
   const { data: tiersData } = useDoc(tiersDocRef);
 
-  // --- محرك الاحتساب الديناميكي (Dynamic Ledger Engine) ---
+  // --- محرك الاحتساب المحاسبي (Sovereign Ledger Engine) ---
 
   const investmentsQuery = useMemoFirebase(() => {
     if (!user?.id) return null;
@@ -85,19 +85,37 @@ function ProfileContent() {
 
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
-    const activeInvestmentsTotal = investments.filter(i => i.status === 'active').reduce((sum, i) => sum + (i.amount || 0), 0);
-    const maturedProfits = investments.filter(i => i.status === 'completed').reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
-    const maturedPayouts = investments.filter(i => i.status === 'completed').reduce((sum, i) => sum + (i.amount || 0), 0);
-    const tradeProfits = allTrades.filter(t => t.result === 'win').reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
-    const tradeLosses = allTrades.filter(t => t.result === 'lose').reduce((sum, t) => sum + (t.amount || 0), 0);
+    
+    const activeInvestmentsTotal = investments
+      .filter(i => i.status === 'active')
+      .reduce((sum, i) => sum + (i.amount || 0), 0);
+      
+    const maturedProfits = investments
+      .filter(i => i.status === 'completed')
+      .reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+      
+    const tradeProfits = allTrades
+      .filter(t => t.result === 'win')
+      .reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+      
+    const tradeLosses = allTrades
+      .filter(t => t.result === 'lose')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const openTradesAmount = allTrades
+      .filter(t => t.status === 'open')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const initialBonus = dbUser.welcomeBonus || 0;
-    const balance = initialBonus + totalDeposits + maturedProfits - (totalWithdrawals + activeInvestmentsTotal + tradeLosses);
+
+    // الرصيد المتاح = المبالغ الداخلة - المبالغ الخارجة (بما فيها المبالغ المحجوزة حالياً)
+    const balance = (initialBonus + totalDeposits + maturedProfits + tradeProfits) 
+                    - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLosses);
 
     return {
       balance: Math.max(0, balance),
       profits: maturedProfits + tradeProfits,
-      activeInvestments: activeInvestmentsTotal
+      activeInvestments: activeInvestmentsTotal + openTradesAmount
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
 
