@@ -91,7 +91,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    // العقود المكتملة والمعالجة فقط
+    // العقود الاستثمارية (يضاف رأس المال والربح فقط إذا اكتمل وتمت معالجته بنجاح isProcessed true)
     const maturedInvs = allInvestments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);

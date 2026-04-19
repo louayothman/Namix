@@ -87,7 +87,7 @@ function ProfileContent() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    // العقود الاستثمارية المكتملة والمعالجة فقط
+    // العقود الاستثمارية المكتملة والمعالجة فقط (isProcessed true)
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -101,11 +101,11 @@ function ProfileContent() {
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // الصفقات الخاسرة
+    // الصفقات الخاسرة (رأس المال يخصم نهائياً)
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // الصفقات المفتوحة (تخصم من الرصيد)
+    // الصفقات المفتوحة (تخصم من الرصيد كاستثمار نشط)
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 

@@ -80,7 +80,7 @@ export default function HomePage() {
     if (!localUser?.id) return null;
     return query(collection(db, "investments"), where("userId", "==", localUser.id));
   }, [db, localUser?.id]);
-  const { data: investments } = useCollection(investmentsQuery);
+  const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
 
   const depositsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
