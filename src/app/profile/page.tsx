@@ -24,7 +24,7 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v26.0 - Auto Reinvest Logic Added
+ * @fileOverview صفحة الملف الشخصي v27.0 - Sovereign Ledger Accounting
  */
 
 function ProfileContent() {
@@ -79,6 +79,7 @@ function ProfileContent() {
   }, [db, user?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
+  // --- محرك الاحتساب المحاسبي السيادي v4.0 (Ledger Sync Edition) ---
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
@@ -88,6 +89,7 @@ function ProfileContent() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
+    // العقود المنتهية والموثقة فقط isProcessed: true
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -97,23 +99,38 @@ function ProfileContent() {
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+
     const activeInvs = investments.filter(i => i.status === 'active');
     const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const inflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
-    const outflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
-    const balance = inflow - outflow;
+    // المعادلة الذهبية المعتمدة
+    const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
+    const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
+    
+    const calculatedBalance = Math.max(0, totalInflow - totalOutflow);
 
     return {
-      balance: Math.max(0, balance),
+      balance: calculatedBalance,
       profits: maturedProfits + tradeWinProfits,
       activeInvestments: activeInvestmentsTotal + openTradesAmount
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
+
+  // مزامنة الرصيد المحسوب مع حقل totalBalance في Firestore
+  useEffect(() => {
+    if (dbUser && user?.id && Math.abs(dbUser.totalBalance - dynamicFinancials.balance) > 0.001) {
+      updateDoc(doc(db, "users", user.id), {
+        totalBalance: dynamicFinancials.balance,
+        updatedAt: new Date().toISOString()
+      }).catch(console.error);
+    }
+  }, [dynamicFinancials.balance, dbUser, user?.id, db]);
 
   const processMaturedInvestments = useCallback(async () => {
     if (!investments || !user?.id || processingPayouts || !dbUser) return;
@@ -133,7 +150,12 @@ function ProfileContent() {
                                    new Date(inv.endTime) >= new Date(dbUser.autoInvestEnabledAt);
 
         if (isAutoInvestActive) {
-          await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString(), autoReinvested: true });
+          await updateDoc(doc(db, "investments", inv.id), { 
+            status: "completed", 
+            isProcessed: true, 
+            completedAt: new Date().toISOString(), 
+            autoReinvested: true 
+          });
           const originalStart = new Date(inv.startTime).getTime();
           const originalEnd = new Date(inv.endTime).getTime();
           const durationMs = originalEnd - originalStart;
@@ -149,13 +171,24 @@ function ProfileContent() {
 
           await addDoc(collection(db, "notifications"), {
             userId: user.id, title: "تفعيل بروتوكول النمو التلقائي 🔄",
-            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة. أرباح الدورة السابقة ($${inv.expectedProfit.toFixed(2)}) أضيفت لرصيدك المتاح.`,
+            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة.`,
             type: "success", isRead: false, createdAt: new Date().toISOString()
           });
         } else {
-          const totalPayout = inv.amount + (inv.expectedProfit || 0);
-          await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-          await addDoc(collection(db, "notifications"), { userId: user.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+          await updateDoc(doc(db, "investments", inv.id), { 
+            status: "completed", 
+            isProcessed: true, 
+            completedAt: new Date().toISOString() 
+          });
+          
+          await addDoc(collection(db, "notifications"), { 
+            userId: user.id, 
+            title: "اكتمل الاستثمار! 💰", 
+            message: `اكتمل استثمار ${inv.planTitle}. تم تحرير رأس المال والارباح لمحفظتك بنجاح.`, 
+            type: "success", 
+            isRead: false, 
+            createdAt: new Date().toISOString() 
+          });
         }
       }
     } finally {

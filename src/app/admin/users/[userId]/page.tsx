@@ -22,7 +22,7 @@ import { ManagedInvestmentList } from "@/components/admin/users/ManagedInvestmen
 import { UserFinancialLedger } from "@/components/admin/users/UserFinancialLedger";
 
 /**
- * @fileOverview صفحة إدارة المستثمر للمشرف v2.2 - Managed Auto Reinvest Support
+ * @fileOverview صفحة إدارة المستثمر للمشرف v2.3 - Sovereign Ledger Sync Support
  */
 export default function ManagedDashboardPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
@@ -77,8 +77,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   }, [db, userId]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  const activeInvestments = useMemo(() => allInvestments?.filter(i => i.status === 'active') || [], [allInvestments]);
-
+  // --- محرك الاحتساب المحاسبي السيادي للمشرف v4.0 (Ledger Sync Edition) ---
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !allInvestments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0, totalDeposited: 0, totalWithdrawn: 0 };
@@ -88,6 +87,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
+    // العقود المنتهية والموثقة فقط isProcessed: true
     const maturedInvs = allInvestments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -97,39 +97,53 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
-    const activeInvestmentsTotal = activeInvestments.reduce((sum, i) => sum + (i.amount || 0), 0);
+
+    const activeInvs = allInvestments.filter(i => i.status === 'active');
+    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const inflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
-    const outflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
-    const currentBalance = inflow - outflow;
+    // المعادلة الذهبية المعتمدة
+    const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
+    const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
+    
+    const calculatedBalance = Math.max(0, totalInflow - totalOutflow);
 
     return {
-      balance: Math.max(0, currentBalance),
+      balance: calculatedBalance,
       profits: maturedProfits + tradeWinProfits,
       activeInvestments: activeInvestmentsTotal + openTradesAmount,
       totalDeposited: totalDeposits,
       totalWithdrawn: totalWithdrawals
     };
-  }, [dbUser, allDeposits, allWithdrawals, allInvestments, allTrades, activeInvestments]);
+  }, [dbUser, allDeposits, allWithdrawals, allInvestments, allTrades]);
+
+  // مزامنة الرصيد المحسوب مع حقل totalBalance في Firestore للمشرف أيضاً
+  useEffect(() => {
+    if (dbUser && userId && Math.abs(dbUser.totalBalance - dynamicFinancials.balance) > 0.001) {
+      updateDoc(doc(db, "users", userId), {
+        totalBalance: dynamicFinancials.balance,
+        updatedAt: new Date().toISOString()
+      }).catch(console.error);
+    }
+  }, [dynamicFinancials.balance, dbUser, userId, db]);
 
   const liveStats = useMemo(() => {
-    if (!activeInvestments || activeInvestments.length === 0) return { accruedProfit: 0 };
-    return activeInvestments.reduce((acc, inv) => {
+    if (!allInvestments || allInvestments.length === 0) return { accruedProfit: 0 };
+    const activeOnes = allInvestments.filter(i => i.status === 'active');
+    return activeOnes.reduce((acc, inv) => {
       try {
         const start = parseISO(inv.startTime);
         const end = parseISO(inv.endTime);
-        const totalMs = differenceInMilliseconds(end, start);
-        const elapsedMs = differenceInMilliseconds(now, start);
-        const progress = Math.min(Math.max(elapsedMs / totalMs, 0), 1);
-        const currentProfit = progress * (inv.expectedProfit || 0);
-        return { accruedProfit: acc.accruedProfit + currentProfit };
+        const progress = Math.min(Math.max(differenceInMilliseconds(now, start) / differenceInMilliseconds(end, start), 0), 1);
+        return { accruedProfit: acc.accruedProfit + (progress * (inv.expectedProfit || 0)) };
       } catch (e) { return acc; }
     }, { accruedProfit: 0 });
-  }, [activeInvestments, now]);
+  }, [allInvestments, now]);
 
   const calculatedTier = useMemo(() => {
     if (!dbUser || !tiersData?.list) return null;
@@ -202,9 +216,10 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   }, [userId, db]);
 
   const processMaturedInvestments = useCallback(async () => {
-    if (!activeInvestments || activeInvestments.length === 0 || processingPayouts || !userId || !dbUser) return;
+    if (!allInvestments || allInvestments.length === 0 || processingPayouts || !userId || !dbUser) return;
     const currentTime = now.getTime();
-    const matured = activeInvestments.filter(inv => 
+    const matured = allInvestments.filter(inv => 
+      inv.status === 'active' &&
       !inv.isProcessed && 
       currentTime >= new Date(inv.endTime).getTime() + 5000
     );
@@ -234,19 +249,18 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
 
           await addDoc(collection(db, "notifications"), {
             userId: userId, title: "تفعيل بروتوكول النمو التلقائي (بواسطة المشرف) 🔄",
-            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة. أرباح الدورة السابقة ($${inv.expectedProfit.toFixed(2)}) أضيفت لرصيد المستثمر.`,
+            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة.`,
             type: "info", isRead: false, createdAt: new Date().toISOString()
           });
         } else {
-          const totalPayout = inv.amount + (inv.expectedProfit || 0);
           await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-          await addDoc(collection(db, "notifications"), { userId: userId, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظة المستثمر.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+          await addDoc(collection(db, "notifications"), { userId: userId, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle}. تم تحرير رأس المال والارباح لمحفظة المستثمر بنجاح.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
         }
       }
     } finally {
       setProcessingPayouts(false);
     }
-  }, [activeInvestments, userId, db, processingPayouts, now, dbUser]);
+  }, [allInvestments, userId, db, processingPayouts, now, dbUser]);
 
   useEffect(() => {
     processMaturedInvestments();
@@ -290,7 +304,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
 
             <TabsContent value="active" className="mt-0 outline-none">
               <ManagedInvestmentList 
-                investments={activeInvestments}
+                investments={allInvestments?.filter(i => i.status === 'active') || []}
                 isLoading={loadingInv}
                 getProgressData={getProgressData}
               />
