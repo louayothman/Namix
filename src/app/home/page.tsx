@@ -105,36 +105,29 @@ export default function HomePage() {
       return { balance: 0, profits: 0, activeInvestments: 0 };
     }
 
-    // --- الموجبات (Inflow) ---
     const initialBonus = dbUser.welcomeBonus || 0;
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
-    // العقود الاستثمارية المكتملة والموثقة (isProcessed true)
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // صفقات التداول الرابحة
     const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // --- السوالب (Outflow) ---
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    // العقود النشطة (تخصم من الرصيد كاستثمار جاري)
     const activeInvs = investments.filter(i => i.status === 'active');
     const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // الصفقات المفتوحة والخاسرة
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // --- تطبيق المعادلة الذهبية ---
     const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
     const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
     
@@ -229,7 +222,7 @@ export default function HomePage() {
   }, [router, db]);
 
   const processMaturedInvestments = useCallback(async () => {
-    if (!investments || !localUser?.id || processingPayouts) return;
+    if (!investments || !localUser?.id || processingPayouts || !dbUser) return;
     const currentTime = now.getTime();
     const matured = investments.filter(inv => 
       inv.status === 'active' && 
@@ -241,14 +234,63 @@ export default function HomePage() {
     setProcessingPayouts(true);
     try {
       for (const inv of matured) {
-        const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-        await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+        // التحقق من بروتوكول النمو التلقائي اللاحق للتفعيل
+        const isAutoInvestActive = dbUser?.isAutoInvestEnabled && 
+                                   dbUser?.autoInvestEnabledAt && 
+                                   new Date(inv.endTime) >= new Date(dbUser.autoInvestEnabledAt);
+
+        if (isAutoInvestActive) {
+          // 1. إكمال العقد الحالي
+          await updateDoc(doc(db, "investments", inv.id), { 
+            status: "completed", 
+            isProcessed: true, 
+            completedAt: new Date().toISOString(),
+            autoReinvested: true 
+          });
+
+          // 2. إعادة استثمار رأس المال في دورة جديدة
+          const originalStart = new Date(inv.startTime).getTime();
+          const originalEnd = new Date(inv.endTime).getTime();
+          const durationMs = originalEnd - originalStart;
+          const newStartTime = new Date().toISOString();
+          const newEndTime = new Date(Date.now() + durationMs).toISOString();
+
+          await addDoc(collection(db, "investments"), {
+            userId: localUser.id,
+            userName: dbUser.displayName,
+            planId: inv.planId,
+            planTitle: inv.planTitle,
+            amount: inv.amount,
+            profitPercent: inv.profitPercent,
+            expectedProfit: (inv.amount * inv.profitPercent) / 100,
+            status: "active",
+            isProcessed: false,
+            startTime: newStartTime,
+            endTime: newEndTime,
+            createdAt: newStartTime,
+            parentInvestmentId: inv.id
+          });
+
+          // 3. إشعار العميل بالنمو التلقائي
+          await addDoc(collection(db, "notifications"), {
+            userId: localUser.id,
+            title: "تفعيل بروتوكول النمو التلقائي 🔄",
+            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة. أرباح الدورة السابقة ($${inv.expectedProfit.toFixed(2)}) أضيفت لرصيدك المتاح.`,
+            type: "success",
+            isRead: false,
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          // المعالجة القياسية بدون إعادة استثمار
+          const totalPayout = inv.amount + (inv.expectedProfit || 0);
+          await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
+          await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+        }
       }
     } finally {
       setProcessingPayouts(false);
     }
-  }, [investments, localUser?.id, db, now, processingPayouts]);
+  }, [investments, localUser?.id, db, now, processingPayouts, dbUser]);
 
   useEffect(() => {
     const timer = setInterval(() => { 

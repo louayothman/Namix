@@ -19,7 +19,17 @@ export function GrowthSection({ dbUser, onToggleSuccess }: GrowthSectionProps) {
   const handleToggleAutoInvest = async (val: boolean) => {
     if (!dbUser?.id) return;
     try {
-      await updateDoc(doc(db, "users", dbUser.id), { isAutoInvestEnabled: val });
+      const updateData: any = { 
+        isAutoInvestEnabled: val,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // تسجيل بصمة التفعيل لضمان إعادة استثمار العقود اللاحقة فقط
+      if (val) {
+        updateData.autoInvestEnabledAt = new Date().toISOString();
+      }
+      
+      await updateDoc(doc(db, "users", dbUser.id), updateData);
       onToggleSuccess(val);
     } catch (e) {}
   };

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/layout/Shell";
 import { 
@@ -14,7 +14,7 @@ import {
   ZapOff
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
+import { doc, onSnapshot, query, collection, where, updateDoc, addDoc } from "firebase/firestore";
 
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { GrowthSection } from "@/components/profile/GrowthSection";
@@ -24,8 +24,7 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v25.0 - Full Ledger Accounting Formula
- * تم تحديث محرك الاحتساب ليشمل مكافآت الإيداع وتحرير السيولة الموثقة.
+ * @fileOverview صفحة الملف الشخصي v26.0 - Auto Reinvest Logic Added
  */
 
 function ProfileContent() {
@@ -33,6 +32,8 @@ function ProfileContent() {
   const [referralCount, setReferralCount] = useState(0);
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
+  const [processingPayouts, setProcessingPayouts] = useState(false);
+  const [now, setNow] = useState(new Date());
   
   const router = useRouter();
   const db = useFirestore();
@@ -44,6 +45,8 @@ function ProfileContent() {
     } else {
       router.push("/login");
     }
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, [router]);
 
   const userDocRef = useMemoFirebase(() => user?.id ? doc(db, "users", user.id) : null, [db, user?.id]);
@@ -51,8 +54,6 @@ function ProfileContent() {
 
   const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
   const { data: tiersData } = useDoc(tiersDocRef);
-
-  // --- محرك الاحتساب المحاسبي السيادي (Sovereign Ledger Engine) ---
 
   const investmentsQuery = useMemoFirebase(() => {
     if (!user?.id) return null;
@@ -83,39 +84,28 @@ function ProfileContent() {
       return { balance: 0, profits: 0, activeInvestments: 0 };
     }
 
-    // --- الموجبات (Inflow) ---
     const initialBonus = dbUser.welcomeBonus || 0;
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
-    // العقود الاستثمارية المكتملة والموثقة فقط (isProcessed true)
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // الصفقات المكتملة والرابحة
     const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // --- السوالب (Outflow) ---
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
-
-    // العقود النشطة (تخصم من الرصيد)
     const activeInvs = investments.filter(i => i.status === 'active');
     const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
-
-    // الصفقات المفتوحة والخاسرة
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // --- تطبيق المعادلة السيادية النهائية ---
     const inflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
     const outflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
-    
     const balance = inflow - outflow;
 
     return {
@@ -124,6 +114,58 @@ function ProfileContent() {
       activeInvestments: activeInvestmentsTotal + openTradesAmount
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
+
+  const processMaturedInvestments = useCallback(async () => {
+    if (!investments || !user?.id || processingPayouts || !dbUser) return;
+    const currentTime = now.getTime();
+    const matured = investments.filter(inv => 
+      inv.status === 'active' && 
+      !inv.isProcessed && 
+      currentTime >= new Date(inv.endTime).getTime() + 5000
+    );
+
+    if (matured.length === 0) return;
+    setProcessingPayouts(true);
+    try {
+      for (const inv of matured) {
+        const isAutoInvestActive = dbUser?.isAutoInvestEnabled && 
+                                   dbUser?.autoInvestEnabledAt && 
+                                   new Date(inv.endTime) >= new Date(dbUser.autoInvestEnabledAt);
+
+        if (isAutoInvestActive) {
+          await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString(), autoReinvested: true });
+          const originalStart = new Date(inv.startTime).getTime();
+          const originalEnd = new Date(inv.endTime).getTime();
+          const durationMs = originalEnd - originalStart;
+          const newStartTime = new Date().toISOString();
+          const newEndTime = new Date(Date.now() + durationMs).toISOString();
+
+          await addDoc(collection(db, "investments"), {
+            userId: user.id, userName: dbUser.displayName, planId: inv.planId, planTitle: inv.planTitle, amount: inv.amount,
+            profitPercent: inv.profitPercent, expectedProfit: (inv.amount * inv.profitPercent) / 100,
+            status: "active", isProcessed: false, startTime: newStartTime, endTime: newEndTime, createdAt: newStartTime,
+            parentInvestmentId: inv.id
+          });
+
+          await addDoc(collection(db, "notifications"), {
+            userId: user.id, title: "تفعيل بروتوكول النمو التلقائي 🔄",
+            message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة. أرباح الدورة السابقة ($${inv.expectedProfit.toFixed(2)}) أضيفت لرصيدك المتاح.`,
+            type: "success", isRead: false, createdAt: new Date().toISOString()
+          });
+        } else {
+          const totalPayout = inv.amount + (inv.expectedProfit || 0);
+          await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
+          await addDoc(collection(db, "notifications"), { userId: user.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+        }
+      }
+    } finally {
+      setProcessingPayouts(false);
+    }
+  }, [investments, user?.id, db, now, processingPayouts, dbUser]);
+
+  useEffect(() => {
+    processMaturedInvestments();
+  }, [processMaturedInvestments]);
 
   useEffect(() => {
     if (user?.id) {
