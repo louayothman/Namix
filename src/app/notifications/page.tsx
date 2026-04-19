@@ -30,9 +30,9 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview صفحة الإشعارات المحدثة v5.0 - Modern Ledger Edition
- * تم تحديث البطاقات لتصبح أكثر عصرية مع إضافة مؤشر لوني جانبي للرسائل غير المقروءة.
- * تم توحيد أزرار التحكم في كبسولة نانوية أنيقة وتصغير العناصر للموبايل.
+ * @fileOverview صفحة الإشعارات المحدثة v6.0 - Type-Edge Identity
+ * تم إضافة مؤشر لوني لنوع التنبيه على يمين البطاقة (Edge Color).
+ * دمج الأيقونات الخلفية الضخمة مع كبسولة تحكم نانوية موحدة.
  */
 
 export default function NotificationsPage() {
@@ -85,13 +85,13 @@ export default function NotificationsPage() {
     <Shell hideMobileNav>
       <div className="max-w-[1400px] mx-auto space-y-8 px-5 md:px-10 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Header - Compact Capsule Controls */}
+        {/* Header - Unified Nano Capsule */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6">
           <div className="space-y-0.5 text-right">
-            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">الإشعارات</h1>
+            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">التنبيهات والرسائل</h1>
             <div className="flex items-center gap-1.5 opacity-40">
                <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-               <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest">Digital Communication Ledger</span>
+               <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest leading-none">Security Ledger Active</span>
             </div>
           </div>
           
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
                         !n.isRead ? cn("border-r-[4px]", config.border) : "border-r-[4px] border-transparent"
                       )}>
                         
-                        {/* Huge Background Icon - Subtle Deep Depth */}
+                        {/* Huge Ghost Background Icon */}
                         <div className={cn(
                           "absolute top-0 right-0 p-6 opacity-[0.02] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-0",
                           config.text
@@ -201,7 +201,7 @@ export default function NotificationsPage() {
                           </div>
                         </CardContent>
                         
-                        {/* Hover Overlay Light Glow */}
+                        {/* Subtle Interaction Glow */}
                         <div className="absolute inset-0 bg-gradient-to-l from-gray-50/20 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                       </Card>
                     </motion.div>
@@ -243,7 +243,7 @@ export default function NotificationsPage() {
 
         {/* Footer Signature */}
         <div className="flex flex-col items-center gap-3 pt-20 opacity-10 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em] text-center">Namix Communication Hub</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em] text-center">Namix Communication Ledger</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
