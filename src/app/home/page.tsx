@@ -105,35 +105,40 @@ export default function HomePage() {
       return { balance: 0, profits: 0, activeInvestments: 0 };
     }
 
+    // --- الموجبات (Inflow) ---
     const initialBonus = dbUser.welcomeBonus || 0;
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
-    const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
-    // العقود الاستثمارية (يضاف رأس المال والربح فقط إذا اكتمل وتمت معالجته)
+    // العقود الاستثمارية المكتملة والموثقة (isProcessed true)
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // العقود النشطة (تخصم من الرصيد)
-    const activeInvs = investments.filter(i => i.status === 'active');
-    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
-
-    // الصفقات (يضاف رأس المال والربح في حال الربح، ويخصم رأس المال في حال الخسارة أو إذا كانت مفتوحة)
+    // صفقات التداول الرابحة
     const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
-    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+    // --- السوالب (Outflow) ---
+    const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
+    // العقود النشطة (تخصم من الرصيد كاستثمار جاري)
+    const activeInvs = investments.filter(i => i.status === 'active');
+    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+
+    // الصفقات المفتوحة والخاسرة
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // تطبيق المعادلة السيادية الكاملة:
-    // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
-    // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
-    const currentBalance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
-                          - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals);
+    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
+    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // --- تطبيق المعادلة الذهبية ---
+    const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
+    const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
+    
+    const currentBalance = totalInflow - totalOutflow;
 
     return {
       balance: Math.max(0, currentBalance),
@@ -237,7 +242,6 @@ export default function HomePage() {
     try {
       for (const inv of matured) {
         const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        // تحديث حالة العقد فقط وبصمة المعالجة، السجل سيقوم بتحرير السيولة آلياً
         await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
         await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
       }
