@@ -30,8 +30,9 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview صفحة الإشعارات المحدثة v4.0 - Minimalist Identity Edition
- * تم دمج أزرار العودة والقراءة في كبسولة واحدة، وتصغير أحجام العناصر للموبايل.
+ * @fileOverview صفحة الإشعارات المحدثة v5.0 - Modern Ledger Edition
+ * تم تحديث البطاقات لتصبح أكثر عصرية مع إضافة مؤشر لوني جانبي للرسائل غير المقروءة.
+ * تم توحيد أزرار التحكم في كبسولة نانوية أنيقة وتصغير العناصر للموبايل.
  */
 
 export default function NotificationsPage() {
@@ -69,10 +70,10 @@ export default function NotificationsPage() {
 
   const getIconConfig = (type: string) => {
     switch (type) {
-      case 'success': return { icon: CheckCircle2, text: "text-emerald-500" };
-      case 'warning': return { icon: AlertCircle, text: "text-orange-500" };
-      case 'error': return { icon: AlertCircle, text: "text-red-500" };
-      default: return { icon: Info, text: "text-blue-500" };
+      case 'success': return { icon: CheckCircle2, text: "text-emerald-500", border: "border-r-emerald-500" };
+      case 'warning': return { icon: AlertCircle, text: "text-orange-500", border: "border-r-orange-500" };
+      case 'error': return { icon: AlertCircle, text: "text-red-500", border: "border-r-red-500" };
+      default: return { icon: Info, text: "text-blue-500", border: "border-r-blue-500" };
     }
   };
 
@@ -87,10 +88,10 @@ export default function NotificationsPage() {
         {/* Header - Compact Capsule Controls */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6">
           <div className="space-y-0.5 text-right">
-            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">التنبيهات</h1>
+            <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight">الإشعارات</h1>
             <div className="flex items-center gap-1.5 opacity-40">
                <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
-               <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest">Communication Feed</span>
+               <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest">Digital Communication Ledger</span>
             </div>
           </div>
           
@@ -121,9 +122,9 @@ export default function NotificationsPage() {
             <div className="flex items-start gap-4">
                <AlertCircle size={20} className="text-red-500 shrink-0" />
                <div className="space-y-1">
-                  <AlertTitle className="font-black text-sm">مطلوب إنشاء فهرس</AlertTitle>
+                  <AlertTitle className="font-black text-sm">مطلوب مزامنة البيانات</AlertTitle>
                   <AlertDescription className="text-[10px] font-bold opacity-80 leading-relaxed">
-                    يرجى إنشاء الفهرس المطلوب في قاعدة البيانات لضمان جلب التنبيهات التاريخية.
+                    يرجى مراجعة إعدادات قاعدة البيانات لضمان عرض السجلات التاريخية بشكل صحيح.
                   </AlertDescription>
                   {error.message.includes("https://") && (
                     <a 
@@ -132,7 +133,7 @@ export default function NotificationsPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 font-black text-[9px] uppercase underline mt-2"
                     >
-                      <ExternalLink size={12} /> إنشاء الفهرس الآن
+                      <ExternalLink size={12} /> تحديث الفهرس
                     </a>
                   )}
                </div>
@@ -144,7 +145,7 @@ export default function NotificationsPage() {
           {isLoading && visibleCount === 10 ? (
             <div className="flex flex-col items-center justify-center py-40 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-gray-100" />
-              <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">تزامن البيانات...</p>
+              <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">جاري جلب السجلات...</p>
             </div>
           ) : notifications && notifications.length > 0 ? (
             <div className="grid gap-4">
@@ -160,10 +161,10 @@ export default function NotificationsPage() {
                     >
                       <Card className={cn(
                         "border-none shadow-sm rounded-[32px] md:rounded-[44px] overflow-hidden transition-all duration-500 group relative bg-white",
-                        !n.isRead && "border-r-[4px] border-r-blue-500"
+                        !n.isRead ? cn("border-r-[4px]", config.border) : "border-r-[4px] border-transparent"
                       )}>
                         
-                        {/* Huge Background Icon */}
+                        {/* Huge Background Icon - Subtle Deep Depth */}
                         <div className={cn(
                           "absolute top-0 right-0 p-6 opacity-[0.02] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-0",
                           config.text
@@ -175,22 +176,33 @@ export default function NotificationsPage() {
                           <div className="space-y-4">
                              <div className="flex items-start justify-between gap-4">
                                 <div className="space-y-1">
-                                   <h3 className="font-black text-[#002d4d] text-sm md:text-xl tracking-tight transition-colors group-hover:text-blue-600">{n.title}</h3>
+                                   <h3 className={cn(
+                                     "font-black text-sm md:text-xl tracking-tight transition-colors duration-500",
+                                     !n.isRead ? "text-[#002d4d]" : "text-gray-400"
+                                   )}>
+                                     {n.title}
+                                   </h3>
                                    <div className="flex items-center gap-1.5 text-[8px] md:text-[9px] text-gray-400 font-black uppercase tracking-widest">
                                       <Clock size={10} className="text-[#f9a885]" />
                                       {n.createdAt && formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ar })}
                                    </div>
                                 </div>
                                 {!n.isRead && (
-                                  <Badge className="bg-blue-500 text-white border-none font-black text-[7px] px-2.5 py-0.5 rounded-lg shadow-sm animate-pulse shrink-0">جديد</Badge>
+                                  <Badge className={cn("text-white border-none font-black text-[7px] px-2.5 py-0.5 rounded-lg shadow-sm animate-pulse shrink-0", config.text.replace('text-', 'bg-'))}>جديد</Badge>
                                 )}
                              </div>
                              
-                             <p className="text-[11px] md:text-sm text-gray-500 leading-relaxed font-bold text-right max-w-5xl">
+                             <p className={cn(
+                               "text-[11px] md:text-sm leading-relaxed font-bold text-right max-w-5xl transition-colors duration-500",
+                               !n.isRead ? "text-gray-500" : "text-gray-300"
+                             )}>
                                 {n.message}
                              </p>
                           </div>
                         </CardContent>
+                        
+                        {/* Hover Overlay Light Glow */}
+                        <div className="absolute inset-0 bg-gradient-to-l from-gray-50/20 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                       </Card>
                     </motion.div>
                   );
@@ -207,7 +219,7 @@ export default function NotificationsPage() {
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
                       <>
-                        عرض المزيد
+                        عرض المزيد من الرسائل
                         <ChevronDown className="mr-2 h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
                       </>
                     )}
@@ -221,20 +233,20 @@ export default function NotificationsPage() {
                 <Inbox size={32} className="text-gray-200" />
               </div>
               <div className="space-y-1">
-                <p className="text-base font-black text-[#002d4d] uppercase tracking-widest">لا توجد رسائل</p>
-                <p className="text-[10px] font-bold text-gray-400">صندوق الوارد الخاص بك فارغ حالياً.</p>
+                <p className="text-base font-black text-[#002d4d] uppercase tracking-widest">صندوق الوارد فارغ</p>
+                <p className="text-[10px] font-bold text-gray-400">لا توجد تنبيهات نشطة في الوقت الحالي.</p>
               </div>
               <Button onClick={() => router.push('/home')} variant="ghost" className="text-blue-500 font-black text-[9px] uppercase tracking-widest hover:bg-blue-50 rounded-full px-8 h-10 transition-all">العودة للرئيسية</Button>
             </div>
           )}
         </div>
 
-        {/* Brand Footer Signature */}
+        {/* Footer Signature */}
         <div className="flex flex-col items-center gap-3 pt-20 opacity-10 select-none">
-           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em] text-center">Namix Communication Node</p>
+           <p className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.6em] text-center">Namix Communication Hub</p>
            <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-1 w-1 rounded-full bg-gray-300" />
+                <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
               ))}
            </div>
         </div>
