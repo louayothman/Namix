@@ -21,6 +21,10 @@ import { ManagedPortfolioHero } from "@/components/admin/users/ManagedPortfolioH
 import { ManagedInvestmentList } from "@/components/admin/users/ManagedInvestmentList";
 import { UserFinancialLedger } from "@/components/admin/users/UserFinancialLedger";
 
+/**
+ * @fileOverview صفحة إدارة المستثمر للمشرف v2.0 - Sovereign Ledger Engine
+ * تم توحيد منطق الاحتساب المالي لضمان دقة السيادة المالية.
+ */
 export default function ManagedDashboardPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
   const [dbUser, setDbUser] = useState<any>(null);
@@ -87,9 +91,10 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    const completedInvs = allInvestments.filter(i => i.status === 'completed');
-    const maturedProfits = completedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
-    const maturedCapitals = completedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+    // العقود المكتملة والمعالجة فقط
+    const maturedInvs = allInvestments.filter(i => i.status === 'completed' && i.isProcessed === true);
+    const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
     const activeInvestmentsTotal = activeInvestments.reduce((sum, i) => sum + (i.amount || 0), 0);
 
@@ -216,7 +221,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     try {
       for (const inv of matured) {
         const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        // تحديث حالة العقد فقط، السجل سيقوم بتحديث الرصيد ديناميكياً
+        // تحديث حالة العقد وبصمة المعالجة، السجل سيقوم بتحرير السيولة ديناميكياً
         await updateDoc(doc(db, "investments", inv.id), {
           status: "completed",
           isProcessed: true,

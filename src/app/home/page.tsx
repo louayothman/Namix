@@ -80,7 +80,7 @@ export default function HomePage() {
     if (!localUser?.id) return null;
     return query(collection(db, "investments"), where("userId", "==", localUser.id));
   }, [db, localUser?.id]);
-  const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
+  const { data: investments } = useCollection(investmentsQuery);
 
   const depositsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
@@ -109,15 +109,16 @@ export default function HomePage() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    // العقود الاستثمارية
-    const completedInvs = investments.filter(i => i.status === 'completed');
-    const maturedProfits = completedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
-    const maturedCapitals = completedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+    // العقود الاستثمارية (يضاف رأس المال والربح فقط إذا اكتمل وتمت معالجته)
+    const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
+    const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
+    // العقود النشطة (تخصم من الرصيد)
     const activeInvs = investments.filter(i => i.status === 'active');
     const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // الصفقات
+    // الصفقات (يضاف رأس المال والربح في حال الربح، ويخصم رأس المال في حال الخسارة أو إذا كانت مفتوحة)
     const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -236,7 +237,7 @@ export default function HomePage() {
     try {
       for (const inv of matured) {
         const totalPayout = inv.amount + (inv.expectedProfit || 0);
-        // تحديث حالة العقد فقط، السجل سيقوم بتحديث الرصيد ديناميكياً
+        // تحديث حالة العقد فقط وبصمة المعالجة، السجل سيقوم بتحرير السيولة آلياً
         await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
         await addDoc(collection(db, "notifications"), { userId: localUser.id, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle} لمبلغ $${totalPayout.toFixed(2)}. تم تحرير رأس المال والارباح لمحفظتك.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
       }

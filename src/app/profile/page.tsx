@@ -24,8 +24,8 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v23.0 - Full Ledger Accounting
- * احتساب الأرصدة والأرباح ديناميكياً من كافة السجلات المالية المعتمدة.
+ * @fileOverview صفحة الملف الشخصي v24.0 - Full Ledger Accounting
+ * تم تحديث محرك الاحتساب ليعتمد على السجلات السيادية الموثقة فقط.
  */
 
 function ProfileContent() {
@@ -87,24 +87,29 @@ function ProfileContent() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
 
-    const completedInvs = investments.filter(i => i.status === 'completed');
-    const maturedProfits = completedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
-    const maturedCapitals = completedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+    // العقود الاستثمارية المكتملة والمعالجة فقط
+    const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
+    const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
+    // العقود النشطة (تخصم من الرصيد)
     const activeInvs = investments.filter(i => i.status === 'active');
     const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
+    // الصفقات المكتملة والرابحة
     const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    // الصفقات الخاسرة
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    // الصفقات المفتوحة (تخصم من الرصيد)
     const openTrades = allTrades.filter(t => t.status === 'open');
     const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // تطبيق المعادلة السيادية الكاملة:
+    // تطبيق المعادلة السيادية:
     // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
     // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
     const balance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
