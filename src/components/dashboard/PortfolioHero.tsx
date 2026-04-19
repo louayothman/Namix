@@ -130,7 +130,7 @@ export function PortfolioHero({
           <div className="flex flex-row items-center justify-between w-full">
             <div className="flex flex-col items-start text-right space-y-1">
               <div className="flex items-baseline gap-1.5">
-                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد <span className="text-[8px] opacity-60">balance</span></span>
+                 <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">الرصيد الموثق <span className="text-[8px] opacity-60">Audited Balance</span></span>
                  <button 
                   onClick={() => setShowBalance(!showBalance)}
                   className="h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-white/30 hover:text-white outline-none active:scale-90 ml-1"
@@ -191,7 +191,7 @@ export function PortfolioHero({
                        <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
                          ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                        </p>
-                       <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">الأرباح</p>
+                       <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">الأرباح المحققة</p>
                     </motion.div>
                   ) : (
                     <motion.div 
@@ -205,7 +205,7 @@ export function PortfolioHero({
                        <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
                          ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                        </p>
-                       <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">الاستثمارات</p>
+                       <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">رأس المال النشط</p>
                     </motion.div>
                   )}
                </AnimatePresence>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, query, where, onSnapshot, doc, orderBy, increment, arrayUnion, limit, addDoc, updateDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, orderBy, increment, limit, addDoc, updateDoc } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
@@ -57,9 +57,6 @@ export default function HomePage() {
   const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
   const { data: tiersData } = useDoc(tiersDocRef);
 
-  const vaultDocRef = useMemoFirebase(() => doc(db, "system_settings", "vault_bonus"), [db]);
-  const { data: vaultConfig } = useDoc(vaultDocRef);
-
   const symbolsQuery = useMemoFirebase(() => query(collection(db, "trading_symbols"), where("isActive", "==", true)), [db]);
   const { data: allSymbols } = useCollection(symbolsQuery);
 
@@ -78,11 +75,68 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
+  // --- محرك تجميع البيانات التاريخية للحساب الديناميكي ---
+  
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
-    return query(collection(db, "investments"), where("userId", "==", localUser.id), orderBy("createdAt", "desc"), limit(10));
+    return query(collection(db, "investments"), where("userId", "==", localUser.id), orderBy("createdAt", "desc"));
   }, [db, localUser?.id]);
   const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
+
+  const depositsQuery = useMemoFirebase(() => {
+    if (!localUser?.id) return null;
+    return query(collection(db, "deposit_requests"), where("userId", "==", localUser.id), where("status", "==", "approved"));
+  }, [db, localUser?.id]);
+  const { data: allDeposits } = useCollection(depositsQuery);
+
+  const withdrawalsQuery = useMemoFirebase(() => {
+    if (!localUser?.id) return null;
+    return query(collection(db, "withdraw_requests"), where("userId", "==", localUser.id), where("status", "==", "approved"));
+  }, [db, localUser?.id]);
+  const { data: allWithdrawals } = useCollection(withdrawalsQuery);
+
+  const tradesQuery = useMemoFirebase(() => {
+    if (!localUser?.id) return null;
+    return query(collection(db, "trades"), where("userId", "==", localUser.id));
+  }, [db, localUser?.id]);
+  const { data: allTrades } = useCollection(tradesQuery);
+
+  // احتساب الإحصائيات الديناميكية (Dynamic Financial Intelligence)
+  const dynamicFinancials = useMemo(() => {
+    if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
+      return { balance: 0, profits: 0, activeInvestments: 0 };
+    }
+
+    const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    
+    const activeInvestmentsTotal = investments
+      .filter(i => i.status === 'active')
+      .reduce((sum, i) => sum + (i.amount || 0), 0);
+      
+    const maturedProfits = investments
+      .filter(i => i.status === 'completed')
+      .reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+      
+    const tradeProfits = allTrades
+      .filter(t => t.result === 'win')
+      .reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+      
+    const tradeLosses = allTrades
+      .filter(t => t.result === 'lose')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const initialBonus = dbUser.welcomeBonus || 0;
+
+    // المعادلة السيادية: الرصيد = (البداية + إيداع + ربح استثمار + ربح تداول) - (سحب + استثمار نشط + خسارة تداول)
+    const currentBalance = initialBonus + totalDeposits + maturedProfits + tradeProfits - (totalWithdrawals + activeInvestmentsTotal + tradeLosses);
+
+    return {
+      balance: Math.max(0, currentBalance),
+      profits: maturedProfits + tradeProfits,
+      activeInvestments: activeInvestmentsTotal
+    };
+  }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
 
   const displayUser = dbUser || localUser;
 
@@ -104,19 +158,18 @@ export default function HomePage() {
     }, { accruedProfit: 0 });
   }, [investments, now]);
 
-  const totalLiveProfits = displayUser ? (displayUser.totalProfits || 0) + liveStats.accruedProfit : 0;
+  const totalLiveProfits = dynamicFinancials.profits + liveStats.accruedProfit;
 
   const calculatedTier = useMemo(() => {
     if (!displayUser || !tiersData?.list) return null;
     const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
     const currentStats = { 
-      balance: displayUser.totalBalance || 0, 
-      profits: displayUser.totalProfits || 0, 
-      historical: (displayUser.activeInvestmentsTotal || 0) + (displayUser.totalProfits || 0), 
+      balance: dynamicFinancials.balance, 
+      profits: dynamicFinancials.profits, 
+      historical: dynamicFinancials.activeInvestments + dynamicFinancials.profits, 
       invites: referralCount 
     };
 
-    // Find current tier (highest where ALL requirements met)
     let currentTier = list[0];
     for (let i = list.length - 1; i >= 0; i--) {
       const t = list[i];
@@ -150,7 +203,7 @@ export default function HomePage() {
     }
 
     return { current: currentTier, next: nextTier, progress, remaining };
-  }, [tiersData, displayUser, referralCount]);
+  }, [tiersData, displayUser, referralCount, dynamicFinancials]);
 
   useEffect(() => {
     const userSession = localStorage.getItem("namix_user");
@@ -200,7 +253,13 @@ export default function HomePage() {
     <Shell>
       <div className="pb-32 bg-[#fcfdfe] relative" dir="rtl">
         <Suspense fallback={<SectionLoader />}>
-          <PortfolioHero user={displayUser} totalLiveProfits={totalLiveProfits} unreadCount={unreadCount} onDeposit={() => setDepositOpen(true)} onWithdraw={() => setWithdrawOpen(true)} />
+          <PortfolioHero 
+            user={{ ...displayUser, totalBalance: dynamicFinancials.balance, activeInvestmentsTotal: dynamicFinancials.activeInvestments }} 
+            totalLiveProfits={totalLiveProfits} 
+            unreadCount={unreadCount} 
+            onDeposit={() => setDepositOpen(true)} 
+            onWithdraw={() => setWithdrawOpen(true)} 
+          />
         </Suspense>
 
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">

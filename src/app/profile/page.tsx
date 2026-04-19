@@ -13,7 +13,7 @@ import {
   Zap,
   ZapOff
 } from "lucide-react";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, onSnapshot, query, collection, where } from "firebase/firestore";
 
 import { ProfileHero } from "@/components/profile/ProfileHero";
@@ -24,8 +24,8 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v20.0 - Stability & Speed Edition
- * تم تطهير كافة مسببات التعطل (RangeError) والتخلص من النوافذ المنبثقة المزدحمة.
+ * @fileOverview صفحة الملف الشخصي v21.0 - Dynamic Accounting Edition
+ * تم تحديث الصفحة لاحتساب الأرصدة والأرباح ديناميكياً من السجلات المالية.
  */
 
 function ProfileContent() {
@@ -52,6 +52,55 @@ function ProfileContent() {
   const tiersDocRef = useMemoFirebase(() => doc(db, "system_settings", "investor_tiers"), [db]);
   const { data: tiersData } = useDoc(tiersDocRef);
 
+  // --- محرك الاحتساب الديناميكي (Dynamic Ledger Engine) ---
+
+  const investmentsQuery = useMemoFirebase(() => {
+    if (!user?.id) return null;
+    return query(collection(db, "investments"), where("userId", "==", user.id));
+  }, [db, user?.id]);
+  const { data: investments } = useCollection(investmentsQuery);
+
+  const depositsQuery = useMemoFirebase(() => {
+    if (!user?.id) return null;
+    return query(collection(db, "deposit_requests"), where("userId", "==", user.id), where("status", "==", "approved"));
+  }, [db, user?.id]);
+  const { data: allDeposits } = useCollection(depositsQuery);
+
+  const withdrawalsQuery = useMemoFirebase(() => {
+    if (!user?.id) return null;
+    return query(collection(db, "withdraw_requests"), where("userId", "==", user.id), where("status", "==", "approved"));
+  }, [db, user?.id]);
+  const { data: allWithdrawals } = useCollection(withdrawalsQuery);
+
+  const tradesQuery = useMemoFirebase(() => {
+    if (!user?.id) return null;
+    return query(collection(db, "trades"), where("userId", "==", user.id));
+  }, [db, user?.id]);
+  const { data: allTrades } = useCollection(tradesQuery);
+
+  const dynamicFinancials = useMemo(() => {
+    if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
+      return { balance: 0, profits: 0, activeInvestments: 0 };
+    }
+
+    const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    const activeInvestmentsTotal = investments.filter(i => i.status === 'active').reduce((sum, i) => sum + (i.amount || 0), 0);
+    const maturedProfits = investments.filter(i => i.status === 'completed').reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedPayouts = investments.filter(i => i.status === 'completed').reduce((sum, i) => sum + (i.amount || 0), 0);
+    const tradeProfits = allTrades.filter(t => t.result === 'win').reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+    const tradeLosses = allTrades.filter(t => t.result === 'lose').reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const initialBonus = dbUser.welcomeBonus || 0;
+    const balance = initialBonus + totalDeposits + maturedProfits - (totalWithdrawals + activeInvestmentsTotal + tradeLosses);
+
+    return {
+      balance: Math.max(0, balance),
+      profits: maturedProfits + tradeProfits,
+      activeInvestments: activeInvestmentsTotal
+    };
+  }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
+
   useEffect(() => {
     if (user?.id) {
       const q = query(collection(db, "users"), where("referredBy", "==", user.id));
@@ -64,9 +113,9 @@ function ProfileContent() {
     if (!dbUser || !tiersData?.list) return null;
     const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
     const currentStats = {
-      balance: dbUser.totalBalance || 0,
-      profits: dbUser.totalProfits || 0,
-      historical: (dbUser.activeInvestmentsTotal || 0) + (dbUser.totalProfits || 0),
+      balance: dynamicFinancials.balance,
+      profits: dynamicFinancials.profits,
+      historical: dynamicFinancials.activeInvestments + dynamicFinancials.profits,
       invites: referralCount
     };
 
@@ -84,7 +133,7 @@ function ProfileContent() {
       }
     }
     return currentTier;
-  }, [dbUser, tiersData, referralCount]);
+  }, [dbUser, tiersData, referralCount, dynamicFinancials]);
 
   if (!user) return (
     <div className="h-screen flex items-center justify-center bg-white">
@@ -96,7 +145,6 @@ function ProfileContent() {
     <Shell isAdmin={dbUser?.role === 'admin'}>
       <div className="max-w-6xl mx-auto space-y-12 px-6 pt-8 pb-32 font-body text-right" dir="rtl">
         
-        {/* Header with Nav Capsule - Transparent & Minimalist */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight leading-none">ملفي الشخصي</h1>
@@ -125,9 +173,9 @@ function ProfileContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
            <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
               <ProfileHero 
-                user={dbUser || user} 
+                user={{ ...dbUser, totalBalance: dynamicFinancials.balance }} 
                 referralCount={referralCount} 
-                totalInvestments={dbUser?.activeInvestmentsTotal || 0} 
+                totalInvestments={dynamicFinancials.activeInvestments} 
                 calculatedTier={calculatedTier}
               />
               <div className="hidden lg:block">
@@ -153,8 +201,10 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d]" /></div>}>
-      <ProfileContent />
-    </Suspense>
+    <Shell isPublic>
+      <Suspense fallback={<div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d]" /></div>}>
+        <ProfileContent />
+      </Suspense>
+    </Shell>
   );
 }
