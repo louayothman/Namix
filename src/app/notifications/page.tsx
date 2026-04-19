@@ -16,7 +16,7 @@ import {
   CheckCircle2, 
   Loader2, 
   Check, 
-  ChevronRight, 
+  ChevronLeft, 
   ChevronDown, 
   MailOpen,
   Inbox,
@@ -31,8 +31,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview صفحة مركز التنبيهات v2.0 - Elegant Responsive Edition
- * تم إعادة هندسة الواجهة لتكون أكثر فخامة وانسيابية على كافة الأجهزة.
+ * @fileOverview صفحة الإشعارات المحدثة v3.0 - Elegant Full-Width Edition
+ * تم نقل زر العودة لليسار، وتحويل الأيقونات لعناصر خلفية فخمة، وتوسيع البطاقات.
  */
 
 export default function NotificationsPage() {
@@ -69,10 +69,10 @@ export default function NotificationsPage() {
 
   const getIconConfig = (type: string) => {
     switch (type) {
-      case 'success': return { icon: CheckCircle2, bg: "bg-emerald-50", text: "text-emerald-500" };
-      case 'warning': return { icon: AlertCircle, bg: "bg-orange-50", text: "text-orange-500" };
-      case 'error': return { icon: AlertCircle, bg: "bg-red-50", text: "text-red-500" };
-      default: return { icon: Info, bg: "bg-blue-50", text: "text-blue-500" };
+      case 'success': return { icon: CheckCircle2, text: "text-emerald-500" };
+      case 'warning': return { icon: AlertCircle, text: "text-orange-500" };
+      case 'error': return { icon: AlertCircle, text: "text-red-500" };
+      default: return { icon: Info, text: "text-blue-500" };
     }
   };
 
@@ -82,27 +82,26 @@ export default function NotificationsPage() {
 
   return (
     <Shell>
-      <div className="max-w-3xl mx-auto space-y-8 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
+      <div className="max-w-7xl mx-auto space-y-12 px-4 md:px-10 pt-10 pb-32 font-body text-right" dir="rtl">
         
-        {/* Modern Minimalist Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+        {/* Header - Back button on the LEFT */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-8">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-[0.3em] justify-start">
+            <div className="flex items-center gap-2 text-[#002d4d] font-black text-[10px] uppercase tracking-widest justify-start">
                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-               Communication Ledger Node
+               Communication Ledger
             </div>
-            <h1 className="text-3xl font-black text-[#002d4d] tracking-tight">مركز التنبيهات</h1>
-            <p className="text-muted-foreground font-bold text-[10px]">مراجعة كافة الرسائل الإدارية وتحديثات الحساب المعتمدة.</p>
+            <h1 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-tight">التنبيهات والرسائل</h1>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
              {notifications && notifications.some(n => !n.isRead) && (
                <Button 
                  onClick={markAllAsRead}
                  variant="ghost" 
-                 className="h-11 rounded-full bg-white border border-gray-100 px-6 font-black text-[10px] text-[#002d4d] hover:bg-gray-50 transition-all shadow-sm group"
+                 className="h-12 rounded-full bg-white border border-gray-100 px-6 font-black text-[10px] text-[#002d4d] hover:bg-gray-50 transition-all shadow-sm hidden md:flex"
                >
-                 <MailOpen className="ml-2 h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
+                 <MailOpen className="ml-2 h-4 w-4 text-blue-500" />
                  قراءة الكل
                </Button>
              )}
@@ -110,9 +109,9 @@ export default function NotificationsPage() {
                onClick={() => router.back()} 
                variant="ghost" 
                size="icon" 
-               className="rounded-2xl bg-white shadow-sm h-11 w-11 border border-gray-50 active:scale-95 transition-all"
+               className="rounded-2xl bg-white shadow-sm h-12 w-12 border border-gray-100 active:scale-95 transition-all"
              >
-               <ChevronRight className="h-5 w-5 text-[#002d4d]" />
+               <ChevronLeft className="h-6 w-6 text-[#002d4d]" />
              </Button>
           </div>
         </div>
@@ -124,7 +123,7 @@ export default function NotificationsPage() {
                <div className="space-y-2">
                   <AlertTitle className="font-black text-lg">مطلوب إنشاء فهرس للبيانات</AlertTitle>
                   <AlertDescription className="text-[11px] font-bold opacity-80 leading-relaxed">
-                    يرجى إنشاء الفهرس المطلوب في Firebase Console لضمان جلب التنبيهات بشكل صحيح.
+                    يرجى إنشاء الفهرس المطلوب في قاعدة البيانات لضمان جلب التنبيهات.
                   </AlertDescription>
                   <div className="pt-4">
                     {error.message.includes("https://") && (
@@ -132,7 +131,7 @@ export default function NotificationsPage() {
                         href={"https://" + error.message.split("https://")[1].split(" ")[0]} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-[#002d4d] text-[#f9a885] px-6 py-3 rounded-full font-black text-[9px] shadow-lg"
+                        className="inline-flex items-center gap-2 bg-[#002d4d] text-white px-6 py-3 rounded-full font-black text-[9px]"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         إنشاء الفهرس الآن
@@ -144,50 +143,58 @@ export default function NotificationsPage() {
           </Alert>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {isLoading && visibleCount === 10 ? (
             <div className="flex flex-col items-center justify-center py-40 gap-4">
               <Loader2 className="h-10 w-10 animate-spin text-gray-200" />
-              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest animate-pulse">جاري جرد الرسائل...</p>
+              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">تحديث القائمة...</p>
             </div>
           ) : notifications && notifications.length > 0 ? (
-            <div className="grid gap-4">
+            <div className="grid gap-6">
               <AnimatePresence mode="popLayout">
                 {notifications.map((n, i) => {
                   const config = getIconConfig(n.type);
                   return (
                     <motion.div 
                       key={n.id} 
-                      initial={{ opacity: 0, y: 15 }} 
+                      initial={{ opacity: 0, y: 20 }} 
                       animate={{ opacity: 1, y: 0 }} 
                       transition={{ delay: i * 0.05 }}
                     >
                       <Card className={cn(
-                        "border-none shadow-sm rounded-[40px] overflow-hidden transition-all duration-500 group relative",
-                        !n.isRead ? "bg-white ring-2 ring-blue-50/50" : "bg-white/40 opacity-70 saturate-[0.8]"
+                        "border-none shadow-sm rounded-[44px] md:rounded-[56px] overflow-hidden transition-all duration-700 group relative bg-white",
+                        !n.isRead && "ring-2 ring-blue-50/50"
                       )}>
-                        {/* Status Glow for unread */}
+                        
+                        {/* Huge Background Icon */}
+                        <div className={cn(
+                          "absolute top-0 right-0 p-10 opacity-[0.03] -rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-0",
+                          config.text
+                        )}>
+                          <config.icon className="h-48 w-48 md:h-64 md:w-64" />
+                        </div>
+
+                        {/* Status Line for unread */}
                         {!n.isRead && (
-                          <div className="absolute top-0 right-0 h-full w-1.5 bg-blue-500" />
+                          <div className="absolute top-0 right-0 h-full w-2 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
                         )}
                         
-                        <CardContent className="p-6 md:p-8 flex items-start gap-6">
-                          <div className={cn(
-                            "h-14 w-14 rounded-[22px] flex items-center justify-center shrink-0 shadow-inner transition-transform group-hover:scale-110 duration-500",
-                            config.bg
-                          )}>
-                            <config.icon className={cn("h-6 w-6", config.text)} />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0 pt-1 space-y-2">
-                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <h3 className="font-black text-[#002d4d] text-base md:text-lg leading-tight group-hover:text-blue-600 transition-colors truncate">{n.title}</h3>
-                                <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold uppercase tracking-widest shrink-0 bg-gray-50 px-2.5 py-1 rounded-lg">
-                                   <Clock className="h-3 w-3" />
-                                   {n.createdAt && formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ar })}
+                        <CardContent className="p-8 md:p-14 relative z-10">
+                          <div className="space-y-6">
+                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="space-y-2">
+                                   <h3 className="font-black text-[#002d4d] text-lg md:text-2xl tracking-tight transition-colors group-hover:text-blue-600">{n.title}</h3>
+                                   <div className="flex items-center gap-2 text-[8px] md:text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                                      <Clock className="h-3.5 w-3.5 text-[#f9a885]" />
+                                      {n.createdAt && formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ar })}
+                                   </div>
                                 </div>
+                                {!n.isRead && (
+                                  <Badge className="bg-blue-500 text-white border-none font-black text-[8px] px-4 py-1.5 rounded-full shadow-lg shadow-blue-900/20 animate-pulse self-start">تنبيه جديد</Badge>
+                                )}
                              </div>
-                             <p className="text-[12px] md:text-[13px] text-gray-500 leading-relaxed font-bold max-w-2xl">
+                             
+                             <p className="text-[13px] md:text-base text-gray-500 leading-[2.2] font-bold text-right max-w-5xl">
                                 {n.message}
                              </p>
                           </div>
@@ -199,16 +206,16 @@ export default function NotificationsPage() {
               </AnimatePresence>
               
               {notifications.length >= visibleCount && (
-                <div className="flex justify-center pt-8">
+                <div className="flex justify-center pt-10">
                   <Button 
                     onClick={handleShowMore} 
                     disabled={isLoading}
-                    className="h-14 px-12 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-2xl active:scale-95 transition-all group"
+                    className="h-16 px-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-2xl active:scale-95 transition-all group"
                   >
-                    {isLoading ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : (
+                    {isLoading ? <Loader2 className="ml-2 h-5 w-5 animate-spin" /> : (
                       <>
-                        عرض رسائل سابقة
-                        <ChevronDown className="mr-2 h-4 w-4 group-hover:translate-y-1 transition-transform text-[#f9a885]" />
+                        عرض المزيد من الرسائل
+                        <ChevronDown className="mr-3 h-5 w-5 group-hover:translate-y-1 transition-transform text-[#f9a885]" />
                       </>
                     )}
                   </Button>
@@ -221,16 +228,16 @@ export default function NotificationsPage() {
                 <Inbox className="h-12 w-12 text-gray-200" />
               </div>
               <div className="space-y-2">
-                <p className="text-xl font-black text-[#002d4d] uppercase tracking-widest">No New Alerts</p>
-                <p className="text-sm font-bold text-gray-400">صندوق الوارد الخاص بك فارغ حالياً.</p>
+                <p className="text-xl font-black text-[#002d4d] uppercase tracking-widest">صندوق الوارد فارغ</p>
+                <p className="text-sm font-bold text-gray-400">لا توجد رسائل إدارية جديدة في حسابك حالياً.</p>
               </div>
-              <Button onClick={() => router.push('/home')} variant="ghost" className="text-blue-500 font-black text-[10px] uppercase tracking-widest">العودة للرئيسية</Button>
+              <Button onClick={() => router.push('/home')} variant="ghost" className="text-blue-500 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-blue-50 rounded-full px-8 h-12 transition-all">العودة للرئيسية</Button>
             </div>
           )}
         </div>
 
-        {/* Brand Footer */}
-        <div className="flex flex-col items-center gap-4 pt-20 opacity-20 select-none">
+        {/* Brand Footer Signature */}
+        <div className="flex flex-col items-center gap-4 pt-24 opacity-10 select-none">
            <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em] text-center">Namix Communication Node</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
