@@ -29,7 +29,6 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   const [unreadCount, setUnreadCount] = useState(0);
   const [processingPayouts, setProcessingPayouts] = useState(false);
   const [now, setNow] = useState(new Date());
-  const [aggregateStats, setAggregateStats] = useState({ totalDeposited: 0, totalWithdrawn: 0 });
   const [referralCount, setReferralCount] = useState(0);
   
   const router = useRouter();
@@ -54,7 +53,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     return query(
       collection(db, "deposit_requests"),
       where("userId", "==", userId),
-      orderBy("createdAt", "desc")
+      where("status", "==", "approved")
     );
   }, [db, userId]);
   const { data: allDeposits } = useCollection(depositsQuery);
@@ -64,12 +63,56 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     return query(
       collection(db, "withdraw_requests"),
       where("userId", "==", userId),
-      orderBy("createdAt", "desc")
+      where("status", "==", "approved")
     );
   }, [db, userId]);
   const { data: allWithdrawals } = useCollection(withdrawalsQuery);
 
+  const tradesQuery = useMemoFirebase(() => {
+    if (!userId) return null;
+    return query(collection(db, "trades"), where("userId", "==", userId));
+  }, [db, userId]);
+  const { data: allTrades } = useCollection(tradesQuery);
+
   const activeInvestments = useMemo(() => allInvestments?.filter(i => i.status === 'active') || [], [allInvestments]);
+
+  // احتساب الإحصائيات المحاسبية للمشرف (Ledger Engine)
+  const dynamicFinancials = useMemo(() => {
+    if (!dbUser || !allDeposits || !allWithdrawals || !allInvestments || !allTrades) {
+      return { balance: 0, profits: 0, activeInvestments: 0, totalDeposited: 0, totalWithdrawn: 0 };
+    }
+
+    const initialBonus = dbUser.welcomeBonus || 0;
+    const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+
+    const completedInvs = allInvestments.filter(i => i.status === 'completed');
+    const maturedProfits = completedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedCapitals = completedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+
+    const activeInvestmentsTotal = activeInvestments.reduce((sum, i) => sum + (i.amount || 0), 0);
+
+    const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
+    const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+    const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
+    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const openTrades = allTrades.filter(t => t.status === 'open');
+    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const currentBalance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
+                          - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals);
+
+    return {
+      balance: Math.max(0, currentBalance),
+      profits: maturedProfits + tradeWinProfits,
+      activeInvestments: activeInvestmentsTotal + openTradesAmount,
+      totalDeposited: totalDeposits,
+      totalWithdrawn: totalWithdrawals
+    };
+  }, [dbUser, allDeposits, allWithdrawals, allInvestments, allTrades, activeInvestments]);
 
   const liveStats = useMemo(() => {
     if (!activeInvestments || activeInvestments.length === 0) return { accruedProfit: 0 };
@@ -86,21 +129,13 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     }, { accruedProfit: 0 });
   }, [activeInvestments, now]);
 
-  useEffect(() => {
-    if (allDeposits && allWithdrawals) {
-      const depSum = allDeposits.filter(d => d.status === 'approved').reduce((sum, d) => sum + (d.amount || 0), 0);
-      const withSum = allWithdrawals.filter(w => w.status === 'approved').reduce((sum, w) => sum + (w.amount || 0), 0);
-      setAggregateStats({ totalDeposited: depSum, totalWithdrawn: withSum });
-    }
-  }, [allDeposits, allWithdrawals]);
-
   const calculatedTier = useMemo(() => {
     if (!dbUser || !tiersData?.list) return null;
     const list = [...tiersData.list].sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
     const currentStats = {
-      balance: dbUser.totalBalance || 0,
-      profits: dbUser.totalProfits || 0,
-      historical: (dbUser.activeInvestmentsTotal || 0) + (dbUser.totalProfits || 0),
+      balance: dynamicFinancials.balance,
+      profits: dynamicFinancials.profits,
+      historical: dynamicFinancials.activeInvestments + dynamicFinancials.profits,
       invites: referralCount
     };
 
@@ -119,9 +154,9 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     }
 
     return currentTier;
-  }, [dbUser, tiersData, referralCount]);
+  }, [dbUser, tiersData, referralCount, dynamicFinancials]);
 
-  const totalLiveProfits = dbUser ? (dbUser.totalProfits || 0) + liveStats.accruedProfit : 0;
+  const totalLiveProfits = dynamicFinancials.profits + liveStats.accruedProfit;
 
   const getProgressData = (startTime: string, endTime: string, expectedProfit: number) => {
     try {
@@ -219,11 +254,11 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
       <div className="space-y-10 pb-24">
         
         <ManagedPortfolioHero 
-          user={dbUser}
+          user={{ ...dbUser, totalBalance: dynamicFinancials.balance, activeInvestmentsTotal: dynamicFinancials.activeInvestments }}
           totalLiveProfits={totalLiveProfits}
           unreadCount={unreadCount}
           calculatedTier={calculatedTier}
-          aggregateStats={aggregateStats}
+          aggregateStats={{ totalDeposited: dynamicFinancials.totalDeposited, totalWithdrawn: dynamicFinancials.totalWithdrawn }}
           onDeposit={() => setDepositOpen(true)}
           onWithdraw={() => setWithdrawOpen(true)}
           onInvest={() => router.push(`/admin/users/${userId}/invest`)}

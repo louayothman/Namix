@@ -74,11 +74,11 @@ export default function HomePage() {
     return allPlans.filter(p => p.isScheduled && new Date(p.launchTime) > now);
   }, [allPlans, now]);
 
-  // --- محرك تجميع البيانات التاريخية للحساب المحاسبي ---
+  // --- محرك تجميع البيانات التاريخية للحساب المحاسبي (Ledger Engine) ---
   
   const investmentsQuery = useMemoFirebase(() => {
     if (!localUser?.id) return null;
-    return query(collection(db, "investments"), where("userId", "==", localUser.id), orderBy("createdAt", "desc"));
+    return query(collection(db, "investments"), where("userId", "==", localUser.id));
   }, [db, localUser?.id]);
   const { data: investments, isLoading: loadingInv } = useCollection(investmentsQuery);
 
@@ -100,44 +100,44 @@ export default function HomePage() {
   }, [db, localUser?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  // احتساب الإحصائيات المحاسبية (Sovereign Accounting Protocol)
+  // احتساب الإحصائيات المحاسبية وفقاً لمعادلة الرصيد المتاح المحدثة
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
     }
 
+    const initialBonus = dbUser.welcomeBonus || 0;
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
-    
-    const activeInvestmentsTotal = investments
-      .filter(i => i.status === 'active')
-      .reduce((sum, i) => sum + (i.amount || 0), 0);
-      
-    const maturedProfits = investments
-      .filter(i => i.status === 'completed')
-      .reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
-      
-    const tradeProfits = allTrades
-      .filter(t => t.result === 'win')
-      .reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
-      
-    const tradeLosses = allTrades
-      .filter(t => t.result === 'lose')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const openTradesAmount = allTrades
-      .filter(t => t.status === 'open')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // العقود الاستثمارية
+    const completedInvs = investments.filter(i => i.status === 'completed');
+    const maturedProfits = completedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
+    const maturedCapitals = completedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    const initialBonus = dbUser.welcomeBonus || 0;
+    const activeInvs = investments.filter(i => i.status === 'active');
+    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // الرصيد المتاح = (المبالغ الداخلة + الأرباح المحققة) - (المبالغ الخارجة + رؤوس الأموال النشطة + الخسائر)
-    const currentBalance = (initialBonus + totalDeposits + maturedProfits + tradeProfits) 
-                          - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLosses);
+    // الصفقات
+    const winTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'win');
+    const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
+    const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
+    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const openTrades = allTrades.filter(t => t.status === 'open');
+    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // تطبيق المعادلة السيادية:
+    // (المكافأة + الإيداعات + أرباح المكتملة + رؤوس أموال المكتملة + أرباح الصفقات الرابحة + رؤوس أموال الصفقات الرابحة)
+    // - (السحوبات + رؤوس أموال العقود النشطة + رؤوس أموال الصفقات المفتوحة + رؤوس أموال الصفقات الخاسرة)
+    const currentBalance = (initialBonus + totalDeposits + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals) 
+                          - (totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals);
 
     return {
       balance: Math.max(0, currentBalance),
-      profits: maturedProfits + tradeProfits,
+      profits: maturedProfits + tradeWinProfits,
       activeInvestments: activeInvestmentsTotal + openTradesAmount
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
