@@ -6,8 +6,8 @@ import { Resend } from 'resend';
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * @fileOverview NAMIX AUTH ACTIONS v28.0 - Dynamic Template Engine
- * تم تحديث المحرك ليدعم تخصيص الهوية البصرية للرسائل البريدية (ألوان، أزرار، روابط).
+ * @fileOverview NAMIX AUTH ACTIONS v30.0 - Advanced Broadcast Engine
+ * تم تحديث المحرك ليدعم حقن كود HTML المخصص بالكامل من محرر الإدارة.
  */
 
 export async function sendOTPEmail(email: string, otp: string) {
@@ -44,41 +44,22 @@ export async function sendBroadcastEmail(
   email: string, 
   title: string, 
   message: string, 
-  templateOptions?: {
-    primaryColor?: string;
-    textColor?: string;
-    buttonText?: string;
-    buttonLink?: string;
-    footerText?: string;
+  options?: {
+    htmlOverride?: string;
   }
 ) {
   try {
-    const pColor = templateOptions?.primaryColor || '#002d4d';
-    const tColor = templateOptions?.textColor || '#445566';
-    const btnText = templateOptions?.buttonText;
-    const btnLink = templateOptions?.buttonLink;
-    const footer = templateOptions?.footerText || 'هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس.';
-
-    const htmlContent = `
+    const htmlContent = options?.htmlOverride || `
       <div dir="rtl" style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 32px; background-color: #ffffff;">
         <div style="text-align: center; margin-bottom: 40px;">
-          <h1 style="color: ${pColor}; margin: 0; font-size: 28px;">Namix</h1>
+          <h1 style="color: #002d4d; margin: 0; font-size: 28px;">Namix</h1>
         </div>
         <div style="background-color: #fcfdfe; padding: 40px; border-radius: 24px;">
-          <h2 style="color: ${pColor}; font-size: 20px; margin-bottom: 20px;">${title}</h2>
-          <p style="color: ${tColor}; line-height: 1.8; font-size: 15px; margin-bottom: 30px;">${message.replace(/\n/g, '<br>')}</p>
-          
-          ${btnText && btnLink ? `
-            <div style="text-align: center; margin: 40px 0;">
-              <a href="${btnLink}" style="background-color: ${pColor}; color: #ffffff; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
-                ${btnText}
-              </a>
-            </div>
-          ` : ''}
+          <h2 style="color: #002d4d; font-size: 20px; margin-bottom: 20px;">${title}</h2>
+          <p style="color: #445566; line-height: 1.8; font-size: 15px;">${message.replace(/\n/g, '<br>')}</p>
         </div>
-        <div style="margin-top: 40px; text-align: center; color: #99aabb; font-size: 11px; line-height: 1.6;">
-          <p>${footer}</p>
-          <p style="margin-top: 10px; opacity: 0.5;">© 2024 Namix Universal Network</p>
+        <div style="margin-top: 40px; text-align: center; color: #99aabb; font-size: 11px;">
+          <p>© 2024 Namix Universal Network</p>
         </div>
       </div>
     `;

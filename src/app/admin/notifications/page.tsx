@@ -11,11 +11,11 @@ import { EmailBroadcastForm } from "@/components/admin/notifications/EmailBroadc
 import { GlobalBroadcastForm } from "@/components/admin/notifications/GlobalBroadcastForm";
 import { HistoryLedgerView } from "@/components/admin/notifications/HistoryLedgerView";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Bell, History, Sparkles } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 /**
- * @fileOverview مركز إدارة الاتصال المؤسساتي v12.0
- * منظومة مجزأة تعتمد على محطات عمل معزولة لإدارة بث البيانات والسجلات التاريخية.
+ * @fileOverview مركز إدارة الاتصال المؤسساتي v15.0 - Integrated Command Console
+ * نظام مجزأ يعتمد على محطات عمل معزولة لإدارة بث البيانات والاستهداف الذكي.
  */
 
 type ViewState = 'menu' | 'channels' | 'form_app' | 'form_email' | 'form_global' | 'history';
@@ -33,22 +33,22 @@ export default function AdminNotificationsPage() {
     <Shell isAdmin>
       <div className="max-w-[1600px] mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
         
-        {/* Dynamic Header Hub */}
+        {/* Navigation Control Hub */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-gray-100 pb-10">
-          <div className="space-y-2">
+          <div className="space-y-2 text-right">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] justify-start">
               <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
               Communication Operations Center
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">
-              {view === 'menu' && "مركز الاتصال المؤسساتي"}
+              {view === 'menu' && "إدارة الاتصال المؤسساتي"}
               {view === 'channels' && "تحديد قناة البث"}
-              {view === 'form_app' && "بث تنبيهات التطبيق"}
+              {view === 'form_app' && "بث إشعارات التطبيق"}
               {view === 'form_email' && "بث الرسائل البريدية"}
               {view === 'form_global' && "البث الموحد الشامل"}
               {view === 'history' && "أرشيف العمليات التاريخي"}
             </h1>
-            <p className="text-muted-foreground font-bold text-xs">إدارة وتوثيق تدفق المعلومات عبر القنوات الرسمية للمنصة.</p>
+            <p className="text-muted-foreground font-bold text-xs">تحكم مركزي في تدفق المعلومات والاستهداف الموجه للقاعدة.</p>
           </div>
           
           {view !== 'menu' && (
@@ -103,7 +103,7 @@ export default function AdminNotificationsPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Messaging Infrastructure v12.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Messaging Infrastructure v15.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />

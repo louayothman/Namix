@@ -5,23 +5,20 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { 
   Send, 
   Mail, 
   Loader2, 
-  Settings2, 
-  Palette, 
-  Users,
-  Layout
+  Sparkles,
+  Info
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { sendBroadcastEmail } from "@/app/actions/auth-actions";
-import { EmailTemplateForge } from "./EmailTemplateForge";
+import { EmailTemplateForge, EmailBlock } from "./EmailTemplateForge";
+import { TargetAudienceSelector } from "./TargetAudienceSelector";
 
 interface EmailBroadcastFormProps {
   onSuccess: () => void;
@@ -30,39 +27,67 @@ interface EmailBroadcastFormProps {
 export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
-  const [targetType, setTargetType] = useState('all');
-  const [formData, setFormData] = useState({ title: "", message: "" });
-  
-  const [templateOptions, setTemplateOptions] = useState({
-    primaryColor: "#002d4d",
-    textColor: "#445566",
-    buttonText: "",
-    buttonLink: "",
-    footerText: "هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس."
-  });
-
-  const usersQuery = useMemoFirebase(() => collection(db, "users"), [db]);
-  const { data: users } = useCollection(usersQuery);
+  const [targetAudience, setTargetAudience] = useState('all');
+  const [title, setTitle] = useState("");
+  const [blocks, setBlocks] = useState<EmailBlock[]>([]);
+  const [footer, setFooter] = useState("هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس.");
 
   const handleSend = async () => {
-    if (!formData.title || !formData.message) return;
+    if (!title || blocks.length === 0) {
+      toast({ variant: "destructive", title: "بيانات ناقصة", description: "يرجى كتابة عنوان وإضافة محتوى للرسالة." });
+      return;
+    }
     setLoading(true);
     try {
-      const targetList = (users || []).filter(u => !!u.email);
-      
-      const ops = targetList.map(u => sendBroadcastEmail(u.email, formData.title, formData.message, templateOptions));
+      // Build HTML from blocks for the email service
+      const renderHtml = () => {
+        return `
+          <div dir="rtl" style="font-family: sans-serif; background-color: #ffffff; padding: 40px; border-radius: 40px; border: 1px solid #f0f0f0;">
+            <div style="text-align: center; margin-bottom: 50px;">
+              <h1 style="color: #002d4d; margin: 0; font-size: 28px;">Namix</h1>
+            </div>
+            ${blocks.map(b => {
+              if (block.type === 'text') {
+                return `<p style="font-size: ${b.style.fontSize}; color: ${b.style.color}; font-weight: ${b.style.fontWeight}; text-align: ${b.style.textAlign}; font-style: ${b.style.italic ? 'italic' : 'normal'}; text-decoration: ${b.style.underline ? 'underline' : 'none'}; line-height: 1.8; margin-bottom: 20px;">${b.content}</p>`;
+              }
+              if (block.type === 'button') {
+                return `
+                  <div style="text-align: ${b.style.textAlign}; margin: 30px 0;">
+                    <a href="${b.style.link || '#'}" style="background-color: ${b.style.backgroundColor}; color: ${b.style.color}; padding: 14px 40px; border-radius: ${b.style.borderRadius}; text-decoration: none; font-weight: ${b.style.fontWeight}; font-size: ${b.style.fontSize}; display: inline-block;">
+                      ${b.content}
+                    </a>
+                  </div>
+                `;
+              }
+              return '';
+            }).join('')}
+            <div style="margin-top: 50px; pt-30px; border-top: 1px solid #f5f5f5; text-align: center; color: #99aabb; font-size: 11px;">
+              <p>${footer}</p>
+              <p style="margin-top: 15px; opacity: 0.5;">© 2024 Namix Universal Network</p>
+            </div>
+          </div>
+        `;
+      };
+
+      // Fetch targets
+      const usersCol = collection(db, "users");
+      let targetUsers: any[] = [];
+      const snap = await getDocs(usersCol);
+      targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => !!u.email);
+
+      const htmlContent = renderHtml();
+      const ops = targetUsers.map(u => sendBroadcastEmail(u.email, title, "", { htmlOverride: htmlContent }));
       await Promise.all(ops);
       
       await addDoc(collection(db, "broadcast_logs"), {
-        title: formData.title,
-        message: formData.message,
+        title,
         channel: 'email',
-        recipientCount: targetList.length,
-        templateOptions,
+        target: targetAudience,
+        recipientCount: targetUsers.length,
         createdAt: new Date().toISOString()
       });
 
-      toast({ title: "تم بث الرسائل البريدية بنجاح" });
+      toast({ title: "تم إطلاق الحملة البريدية بنجاح" });
       onSuccess();
     } catch (e) {
       toast({ variant: "destructive", title: "فشل الإرسال" });
@@ -72,51 +97,40 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
   };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-12 text-right" dir="rtl">
-      <div className="lg:col-span-7 space-y-8">
-        <Card className="border-none shadow-xl rounded-[56px] overflow-hidden bg-white">
-          <CardHeader className="bg-orange-500 p-10 text-white relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10"><Mail size={120} /></div>
-            <CardTitle className="text-2xl font-black flex items-center gap-4 relative z-10">
-              <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner">
-                <Mail size={28} />
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      
+      <Card className="border-none shadow-2xl rounded-[64px] overflow-hidden bg-white">
+        <CardHeader className="bg-orange-500 p-12 text-white relative">
+          <div className="absolute top-0 right-0 p-10 opacity-10"><Mail size={140} /></div>
+          <CardTitle className="text-3xl font-black flex items-center gap-6 relative z-10">
+            <div className="h-16 w-16 rounded-[22px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
+              <Mail size={32} />
+            </div>
+            قُمرة بث الحملات البريدية
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-12 space-y-10 text-right" dir="rtl">
+           <div className="grid gap-10 md:grid-cols-2">
+              <TargetAudienceSelector value={targetAudience} onChange={setTargetAudience} />
+              <div className="space-y-3">
+                 <Label className="text-[10px] font-black text-gray-400 uppercase pr-4 tracking-widest">عنوان الرسالة (الموضوع)</Label>
+                 <Input value={title} onChange={e => setTitle(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner" placeholder="أدخل موضوع البريد..." />
               </div>
-              صياغة الحملة البريدية المؤسساتية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-10 space-y-8">
-            <div className="space-y-3">
-              <Label className="text-[10px] font-black text-gray-400 uppercase pr-4">الفئة المستهدفة</Label>
-              <Select value={targetType} onValueChange={setTargetType}>
-                <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black text-xs px-8 shadow-inner"><SelectValue /></SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-2xl" dir="rtl">
-                  <SelectItem value="all" className="font-bold text-right py-3">جميع المسجلين (Email Verified)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+           </div>
+        </CardContent>
+      </Card>
 
-            <div className="space-y-3">
-               <Label className="text-[10px] font-black text-gray-400 uppercase pr-4">عنوان الرسالة الرئيسي</Label>
-               <Input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner" placeholder="مثال: إشعار تحديث بيانات المحفظة" />
-            </div>
+      <EmailTemplateForge 
+        blocks={blocks} 
+        onChange={setBlocks} 
+        footer={footer} 
+        onFooterChange={setFooter} 
+      />
 
-            <div className="space-y-3">
-               <Label className="text-[10px] font-black text-gray-400 uppercase pr-4">محتوى البريد الإلكتروني</Label>
-               <Textarea value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} className="min-h-[220px] rounded-[32px] bg-gray-50 border-none font-bold text-sm p-8 leading-loose shadow-inner" placeholder="اكتب تفاصيل الرسالة بأسلوب رسمي..." />
-            </div>
-
-            <Button onClick={handleSend} disabled={loading || !formData.title} className="w-full h-20 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-xl transition-all">
-              {loading ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-3"><span>إطلاق الحملة البريدية</span> <Send size={24} className="rotate-180" /></div>}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="lg:col-span-5">
-        <EmailTemplateForge 
-          options={templateOptions}
-          onChange={setTemplateOptions}
-        />
+      <div className="flex justify-center pt-6">
+        <Button onClick={handleSend} disabled={loading || !title || blocks.length === 0} className="w-full max-w-2xl h-20 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-xl shadow-2xl transition-all group">
+          {loading ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>إطلاق الحملة المخصصة الآن</span> <Send size={24} className="rotate-180" /></div>}
+        </Button>
       </div>
     </div>
   );
