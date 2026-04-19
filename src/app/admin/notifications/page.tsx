@@ -33,7 +33,8 @@ import {
   Mail,
   Globe,
   Wand2,
-  History
+  History,
+  Target
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
