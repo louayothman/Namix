@@ -97,8 +97,8 @@ export default function ManagedInvestPage({ params }: { params: Promise<{ userId
 
       await addDoc(collection(db, "notifications"), {
         userId: userId,
-        title: "تم تفعيل استثمار نيابة عنك",
-        message: `قام المشرف بتفعيل ${selectedPlan.title} بمبلغ $${amount} في حسابك. ينتهي العقد في ${new Date(endTime).toLocaleString('ar-EG')}.`,
+        title: "بدء استثمار جديد",
+        message: `تم تفعيل خطة استثمارية بقيمة $${amount} في حسابك. يمكنك متابعة الأرباح من خلال لوحة التحكم الخاصة بك.`,
         type: "info",
         isRead: false,
         createdAt: new Date().toISOString()
@@ -164,11 +164,11 @@ export default function ManagedInvestPage({ params }: { params: Promise<{ userId
           </DialogHeader>
           <div className="space-y-4 py-3">
             <Label className="font-bold text-xs text-[#002d4d]">أدخل مبلغ الاستثمار ($)</Label>
-            <Input 
+            <input 
               type="number" 
               value={investAmount}
               onChange={e => setInvestAmount(e.target.value)}
-              className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl text-emerald-600"
+              className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl text-emerald-600 outline-none w-full"
             />
             {error && <p className="text-red-500 text-[10px] font-bold text-center">{error}</p>}
           </div>

@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview NAMIX SOVEREIGN TRADING ACTIONS v3.7 - Clean Core
- * Idempotent trade execution and settlement logic. Telegram logic removed.
+ * @fileOverview NAMIX TRADING ACTIONS v3.8 - Professional Strings
+ * تم إزالة الرموز التعبيرية وتحويل النصوص لصيغ رسمية.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -55,8 +55,8 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       // App Notification
       await addDoc(collection(firestore, "notifications"), {
         userId: trade.userId,
-        title: "صفقة رابحة! 💰",
-        message: `اكتملت صفقة ${trade.symbolCode} بنجاح. حققت ربحاً قدره $${profit.toFixed(2)}.`,
+        title: "إتمام صفقة ناجحة",
+        message: `تم إغلاق صفقة ${trade.symbolCode} بنجاح وتحقيق ربح بقيمة $${profit.toFixed(2)}.`,
         type: "success",
         isRead: false,
         createdAt: new Date().toISOString()
@@ -64,8 +64,8 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
     } else {
       await addDoc(collection(firestore, "notifications"), {
         userId: trade.userId,
-        title: "انتهت الصفقة (خسارة) 📉",
-        message: `نعتذر، انتهت صفقة ${trade.symbolCode} بخسارة المبلغ المستثمر. حاول مجدداً باستراتيجية مختلفة.`,
+        title: "إغلاق صفقة",
+        message: `تم إغلاق صفقة ${trade.symbolCode} عند سعر السوق الحالي دون تحقيق أرباح.`,
         type: "error",
         isRead: false,
         createdAt: new Date().toISOString()

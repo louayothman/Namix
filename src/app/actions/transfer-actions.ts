@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/
 
 /**
  * تنفيذ عملية التحويل الداخلي بين الحسابات مع نظام إشعارات وتوثيق رقمي
+ * تم تطهير الإشعارات من الرموز التعبيرية.
  */
 export async function executeInternalTransfer(fromId: string, toId: string, amount: number, pin: string) {
   try {
@@ -31,7 +32,7 @@ export async function executeInternalTransfer(fromId: string, toId: string, amou
     const bonus = senderData.welcomeBonus || 0;
     const available = senderData.totalBalance - bonus;
     if (available < amount) {
-      return { success: false, error: "عجز في الرصيد المتاح للتحويل (المبالغ الممنوحة كهدية غير قابلة للإرسال)." };
+      return { success: false, error: "عجز في الرصيد المتاح للتحويل (المبالغ الممنوحة كهدية مخصصة للاستثمار فقط)." };
     }
 
     // 4. توليد رقم هاش فريد (أرقام فقط)
@@ -79,8 +80,8 @@ export async function executeInternalTransfer(fromId: string, toId: string, amou
     // 9. إرسال الإشعار للمرسل
     await addDoc(collection(firestore, "notifications"), {
       userId: fromId,
-      title: transactionHash,
-      message: `تم إرسال مبلغ $${amount.toLocaleString()} إلى المستخدم ${recipientData.displayName}`,
+      title: "تأكيد تحويل صادر",
+      message: `تم تحويل مبلغ بقيمة $${amount.toLocaleString()} إلى المستخدم ${recipientData.displayName} بنجاح. المرجع: ${transactionHash}`,
       type: "info",
       isRead: false,
       createdAt: new Date().toISOString()
@@ -89,8 +90,8 @@ export async function executeInternalTransfer(fromId: string, toId: string, amou
     // 10. إرسال الإشعار للمستقبل
     await addDoc(collection(firestore, "notifications"), {
       userId: toId,
-      title: transactionHash,
-      message: `تم استلام مبلغ $${amount.toLocaleString()} من المستخدم ${senderData.displayName}`,
+      title: "استلام تحويل مالي",
+      message: `تم استلام مبلغ بقيمة $${amount.toLocaleString()} من المستخدم ${senderData.displayName} في حسابك. المرجع: ${transactionHash}`,
       type: "success",
       isRead: false,
       createdAt: new Date().toISOString()

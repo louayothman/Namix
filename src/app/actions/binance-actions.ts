@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview آلية التحقق من إيداعات بينانس v11.0 - Real-time Valuation Engine
- * تم تحديث المحرك ليقوم بتقييم العملات المودعة بالدولار (USDT) بناءً على سعر السوق اللحظي.
+ * @fileOverview آلية التحقق من إيداعات بينانس v11.1 - Professional Strings
+ * تم تطهير الإشعارات من الرموز التعبيرية والمصطلحات غير الرسمية.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -157,8 +157,8 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
     // 5. إرسال تنبيه مفصل
     await addDoc(collection(firestore, "notifications"), {
       userId,
-      title: "تم اعتماد الإيداع وتقييمه آلياً",
-      message: `تم رصد ${coinAmount} ${asset}. القيمة المعتمدة بسعر السوق الحالي هي $${amountInUSD.toFixed(2)} ${bonus > 0 ? `بالإضافة لمكافأة $${bonus.toFixed(2)}` : ''}.`,
+      title: "تأكيد إيداع الرصيد",
+      message: `تم رصد إيداع بقيمة ${coinAmount} ${asset}. القيمة المعتمدة في حسابك هي $${amountInUSD.toFixed(2)} ${bonus > 0 ? `بالإضافة إلى مكافأة بقيمة $${bonus.toFixed(2)}` : ''}.`,
       type: "success",
       isRead: false,
       createdAt: new Date().toISOString()

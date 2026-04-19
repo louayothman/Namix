@@ -5,8 +5,7 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 /**
- * @fileOverview مراقب الإيداع الآلي السيادي v12.0 - Outcome Price Logic
- * تم تحديث المنطق ليعتمد على المبلغ النهائي (outcome_amount) كما طلب المستخدم لضمان عدالة الرصيد.
+ * @fileOverview مراقب الإيداع الآلي v12.1 - Professional Strings
  */
 
 export async function POST(req: Request) {
@@ -72,8 +71,6 @@ export async function POST(req: Request) {
     // إذا كانت الحالة "approved" ولم يتم معالجتها مسبقاً -> إضافة الرصيد بناءً على Outcome Price
     if (newStatus === "approved" && depositData.status !== "approved") {
       
-      // الاعتماد الكلي على Outcome Amount (سعر المخرج) لضمان الدقة كما طلب المستخدم
-      // في حال عدم توفره يتم العودة للسعر الأصلي كاحتياط تقني
       const finalAmountUSD = Number(outcome_amount || price_amount);
 
       // جلب إعدادات مكافآت الإيداع من الخزنة
@@ -109,8 +106,8 @@ export async function POST(req: Request) {
       // إرسال تنبيه تأكيد الإيداع اللحظي
       await addDoc(collection(firestore, "notifications"), {
         userId,
-        title: "تم تأكيد الإيداع الآلي ✅",
-        message: `تمت مزامنة مبلغ $${finalAmountUSD.toFixed(2)} مع محفظتك بنجاح وفقاً لقيمة الفاتورة النهائية. القناة: ${pay_currency.toUpperCase()}.`,
+        title: "تأكيد الإيداع",
+        message: `تمت إضافة مبلغ بقيمة $${finalAmountUSD.toFixed(2)} إلى محفظتك بنجاح عبر بوابة الدفع الآلي.`,
         type: "success",
         isRead: false,
         createdAt: timestamp
