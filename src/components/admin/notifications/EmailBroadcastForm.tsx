@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFirestore } from "@/firebase";
-import { collection, addDoc, getDocs, query, where, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { 
   Send, 
   Mail, 
@@ -31,7 +31,15 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
   const [targetAudience, setTargetAudience] = useState('all');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [blocks, setBlocks] = useState<EmailBlock[]>([]);
+  const [headerTitle, setHeaderTitle] = useState("Namix");
+  const [blocks, setBlocks] = useState<EmailBlock[]>([
+    {
+      id: 'initial',
+      type: 'text',
+      content: 'ابدأ بكتابة محتوى الرسالة هنا...',
+      style: { fontSize: '3', color: '#445566', textAlign: 'right' }
+    }
+  ]);
   const [footer, setFooter] = useState("هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس لإدارة الأصول الرقمية.");
 
   const handleSend = async () => {
@@ -45,7 +53,7 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
         return `
           <div dir="rtl" style="font-family: sans-serif; background-color: #ffffff; padding: 50px; border-radius: 56px; border: 1px solid #f0f0f0; max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 60px;">
-              <h1 style="color: #002d4d; margin: 0; font-size: 32px; font-weight: 900; font-style: italic;">Namix</h1>
+              <h1 style="color: #002d4d; margin: 0; font-size: 32px; font-weight: 900; font-style: italic;">${headerTitle}</h1>
             </div>
             ${blocks.map(b => {
               if (b.type === 'text') {
@@ -105,7 +113,6 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
       
-      {/* Setup Card */}
       <Card className="max-w-5xl mx-auto border-none shadow-2xl rounded-[56px] overflow-hidden bg-white">
         <CardHeader className="bg-orange-500 p-10 text-white relative">
           <div className="absolute top-0 right-0 p-10 opacity-10"><Mail size={140} /></div>
@@ -131,9 +138,10 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
         </CardContent>
       </Card>
 
-      {/* The Unified WYSIWYG Editor */}
       <div className="max-w-[1200px] mx-auto">
         <EmailTemplateForge 
+          headerTitle={headerTitle}
+          onHeaderTitleChange={setHeaderTitle}
           blocks={blocks} 
           onChange={setBlocks} 
           footer={footer} 
@@ -158,4 +166,3 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
     </div>
   );
 }
-

@@ -6,8 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Bold, 
   Italic, 
@@ -17,14 +15,16 @@ import {
   AlignLeft,
   Plus,
   Trash2,
-  Type,
   Link as LinkIcon,
   Palette,
   Sparkles,
   MousePointer2,
   GripVertical,
-  Type as TypeIcon
+  Type as TypeIcon,
+  Heading1,
+  Type
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Reorder, motion, AnimatePresence } from "framer-motion";
 
@@ -42,13 +42,22 @@ export interface EmailBlock {
 }
 
 interface EmailTemplateForgeProps {
+  headerTitle: string;
+  onHeaderTitleChange: (val: string) => void;
   blocks: EmailBlock[];
   onChange: (blocks: EmailBlock[]) => void;
   footer: string;
   onFooterChange: (val: string) => void;
 }
 
-export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }: EmailTemplateForgeProps) {
+export function EmailTemplateForge({ 
+  headerTitle, 
+  onHeaderTitleChange, 
+  blocks, 
+  onChange, 
+  footer, 
+  onFooterChange 
+}: EmailTemplateForgeProps) {
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const addBlock = (type: EmailBlock['type']) => {
@@ -57,7 +66,7 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
       type,
       content: type === 'text' ? "ابدأ بكتابة محتوى الرسالة هنا..." : "اضغط للتوجيه",
       style: {
-        fontSize: "3", // Default browser font size scale
+        fontSize: "3", 
         color: type === 'button' ? "#ffffff" : "#445566",
         textAlign: "right",
         backgroundColor: type === 'button' ? "#002d4d" : "transparent",
@@ -89,11 +98,10 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
   return (
     <div className="w-full space-y-10 font-body text-right select-none" dir="rtl">
       
-      {/* 1. TACTICAL TOOLBAR - محرك التنسيق المجهري */}
+      {/* TACTICAL TOOLBAR */}
       <Card className="rounded-[32px] border-none shadow-2xl bg-white/90 backdrop-blur-xl sticky top-24 z-[150] border border-gray-100 p-2 max-w-4xl mx-auto">
          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-2">
             
-            {/* Standard Formatting Group */}
             <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner">
                <button onClick={() => execCommand('bold')} className="h-9 w-9 rounded-xl flex items-center justify-center text-[#002d4d] hover:bg-white hover:shadow-sm transition-all active:scale-90" title="عريض"><Bold size={16}/></button>
                <button onClick={() => execCommand('italic')} className="h-9 w-9 rounded-xl flex items-center justify-center text-[#002d4d] hover:bg-white hover:shadow-sm transition-all active:scale-90" title="مائل"><Italic size={16}/></button>
@@ -102,7 +110,6 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
 
             <div className="h-6 w-px bg-gray-200 hidden md:block" />
 
-            {/* Alignment Group */}
             <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner">
                <button onClick={() => execCommand('justifyRight')} className="h-9 w-9 rounded-xl flex items-center justify-center text-[#002d4d] hover:bg-white hover:shadow-sm transition-all" title="يمين"><AlignRight size={16}/></button>
                <button onClick={() => execCommand('justifyCenter')} className="h-9 w-9 rounded-xl flex items-center justify-center text-[#002d4d] hover:bg-white hover:shadow-sm transition-all" title="وسط"><AlignCenter size={16}/></button>
@@ -111,7 +118,6 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
 
             <div className="h-6 w-px bg-gray-200 hidden md:block" />
 
-            {/* Advanced Tools Group */}
             <div className="flex items-center gap-4">
                <div className="flex items-center gap-2">
                   <TypeIcon size={14} className="text-gray-400" />
@@ -160,18 +166,25 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
          </div>
       </Card>
 
-      {/* 2. THE SOVEREIGN CANVAS - مساحة التحرير البصري المباشر */}
+      {/* THE SOVEREIGN CANVAS */}
       <div className="flex justify-center w-full px-4 py-10 bg-gray-100/40 rounded-[64px] border border-gray-100 shadow-inner min-h-[900px]">
          <div className="w-full max-w-[650px] bg-white rounded-[56px] shadow-[0_40px_100px_-20px_rgba(0,45,77,0.12)] border border-gray-100 overflow-hidden flex flex-col p-12 md:p-20 space-y-12 relative animate-in fade-in zoom-in-95 duration-1000">
             
             <div className="absolute top-0 right-0 p-8 opacity-[0.02] -rotate-12 pointer-events-none"><Sparkles size={200} /></div>
 
-            {/* Header Branding */}
+            {/* Editable Header Title */}
             <div className="text-center mb-16 relative z-10">
-               <h1 className="text-4xl font-black text-[#002d4d] tracking-tighter italic select-none">Namix</h1>
+               <h1 
+                 contentEditable
+                 suppressContentEditableWarning
+                 onBlur={(e) => onHeaderTitleChange(e.currentTarget.innerText)}
+                 className="text-4xl font-black text-[#002d4d] tracking-tighter italic outline-none hover:text-blue-500 transition-colors focus:text-blue-600 cursor-text"
+               >
+                 {headerTitle}
+               </h1>
             </div>
 
-            {/* Blocks Area with Draggable Reorder */}
+            {/* Main Content Area */}
             <Reorder.Group axis="y" values={blocks} onReorder={onChange} className="space-y-6 flex-1 relative z-10">
                <AnimatePresence initial={false}>
                   {blocks.map((block) => (
@@ -184,17 +197,14 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
                       )}
                       onDragStart={() => setActiveBlockId(block.id)}
                     >
-                      {/* Drag Handle */}
                       <div className="absolute right-[-50px] top-1/2 -translate-y-1/2 h-10 w-10 flex items-center justify-center text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
                          <GripVertical size={20} />
                       </div>
 
-                      {/* Block Management Overlay */}
                       <div className="absolute left-[-20px] top-0 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all">
                          <button onClick={() => removeBlock(block.id)} className="h-8 w-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 shadow-sm transition-all"><Trash2 size={14}/></button>
                       </div>
 
-                      {/* Content Logic */}
                       {block.type === 'text' ? (
                         <div 
                           contentEditable
@@ -274,7 +284,6 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
                </AnimatePresence>
             </Reorder.Group>
 
-            {/* Footer Static Logic */}
             <div className="mt-24 pt-12 border-t border-gray-50 text-center relative z-10 group/footer">
                <div 
                  contentEditable
@@ -290,7 +299,6 @@ export function EmailTemplateForge({ blocks, onChange, footer, onFooterChange }:
                </div>
             </div>
 
-            {/* Interactive Canvas Identifier */}
             <div className="absolute bottom-6 right-1/2 translate-x-1/2 flex items-center gap-4 opacity-5 select-none pointer-events-none">
                <div className="h-[0.5px] w-12 bg-[#002d4d]" />
                <div className="flex items-center gap-3">
