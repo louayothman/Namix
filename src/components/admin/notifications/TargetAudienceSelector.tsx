@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Users, Zap, TrendingUp, Award, UserMinus, ShieldCheck, 
   Wallet, UserX, User, Search, Loader2, X, CheckCircle2 
@@ -131,7 +131,7 @@ export function TargetAudienceSelector({
                     <Button 
                       onClick={handleSearch} 
                       disabled={isSearching || !searchTerm.trim()}
-                      className="h-12 px-6 rounded-xl bg-[#002d4d] text-white font-black text-[10px] shadow-lg active:scale-95 transition-all"
+                      className="h-12 px-6 rounded-xl bg-[#002d4d] text-white font-black text-[10px] shadow-lg active:scale-95"
                     >
                       {isSearching ? <Loader2 className="animate-spin h-4 w-4" /> : "بحث"}
                     </Button>
