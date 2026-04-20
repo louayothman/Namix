@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useFirestore } from "@/firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { Send, Globe, Loader2, Sparkles, Zap, Mail, Bell } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { sendBroadcastEmail } from "@/app/actions/auth-actions";
@@ -22,6 +22,7 @@ export function GlobalBroadcastForm({ onSuccess }: GlobalBroadcastFormProps) {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [targetAudience, setTargetAudience] = useState('all');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: "", message: "" });
 
   const handleSend = async () => {
@@ -29,8 +30,15 @@ export function GlobalBroadcastForm({ onSuccess }: GlobalBroadcastFormProps) {
     setLoading(true);
     try {
       const usersCol = collection(db, "users");
-      const snap = await getDocs(usersCol);
-      const targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      let targetUsers: {id: string, email?: string}[] = [];
+
+      if (targetAudience === 'single_user' && selectedUserId) {
+        const uSnap = await getDoc(doc(db, "users", selectedUserId));
+        if (uSnap.exists()) targetUsers = [{ id: uSnap.id, email: uSnap.data().email }];
+      } else {
+        const snap = await getDocs(usersCol);
+        targetUsers = snap.docs.map(d => ({ id: d.id, email: d.data().email }));
+      }
       
       const ops = targetUsers.flatMap(u => {
         const tasks = [];
@@ -78,7 +86,11 @@ export function GlobalBroadcastForm({ onSuccess }: GlobalBroadcastFormProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-12 space-y-10 text-right" dir="rtl">
-        <TargetAudienceSelector value={targetAudience} onChange={setTargetAudience} />
+        <TargetAudienceSelector 
+          value={targetAudience} 
+          onChange={setTargetAudience} 
+          onUserSelect={(id) => setSelectedUserId(id)}
+        />
 
         <div className="space-y-4">
            <Label className="text-[10px] font-black text-gray-400 uppercase pr-6 tracking-widest">عنوان الحملة الموحد</Label>
@@ -107,7 +119,11 @@ export function GlobalBroadcastForm({ onSuccess }: GlobalBroadcastFormProps) {
            </div>
         </div>
 
-        <Button onClick={handleSend} disabled={loading || !formData.title} className="w-full h-20 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-black text-xl shadow-2xl transition-all">
+        <Button 
+          onClick={handleSend} 
+          disabled={loading || !formData.title || (targetAudience === 'single_user' && !selectedUserId)} 
+          className="w-full h-20 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-black text-xl shadow-xl transition-all"
+        >
           {loading ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>إطلاق البث الشامل الموجه</span> <Send size={24} className="rotate-180" /></div>}
         </Button>
       </CardContent>

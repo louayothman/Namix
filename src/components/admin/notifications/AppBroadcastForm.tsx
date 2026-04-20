@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, query, getDocs, where } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, query, getDocs, where, doc, getDoc } from "firebase/firestore";
 import { Send, Bell, Loader2, Target, MessageSquare, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TargetAudienceSelector } from "./TargetAudienceSelector";
@@ -22,26 +22,27 @@ export function AppBroadcastForm({ onSuccess }: AppBroadcastFormProps) {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [targetAudience, setTargetAudience] = useState('all');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: "", message: "", type: "info" });
 
   const handleSend = async () => {
     if (!formData.title || !formData.message) return;
     setLoading(true);
     try {
-      // Fetch targets based on audience selector
-      let targetUsers: any[] = [];
+      let targetUsers: {id: string}[] = [];
       const usersCol = collection(db, "users");
       
-      if (targetAudience === 'all') {
+      if (targetAudience === 'single_user' && selectedUserId) {
+        targetUsers = [{ id: selectedUserId }];
+      } else if (targetAudience === 'all') {
         const snap = await getDocs(usersCol);
-        targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        targetUsers = snap.docs.map(d => ({ id: d.id }));
       } else if (targetAudience === 'admins') {
         const snap = await getDocs(query(usersCol, where("role", "==", "admin")));
-        targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        targetUsers = snap.docs.map(d => ({ id: d.id }));
       } else {
-        // Fallback to all for MVP targeting logic
         const snap = await getDocs(usersCol);
-        targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        targetUsers = snap.docs.map(d => ({ id: d.id }));
       }
       
       const ops = targetUsers.map(u => addDoc(collection(db, "notifications"), {
@@ -89,6 +90,7 @@ export function AppBroadcastForm({ onSuccess }: AppBroadcastFormProps) {
         <TargetAudienceSelector 
           value={targetAudience}
           onChange={setTargetAudience}
+          onUserSelect={(id) => setSelectedUserId(id)}
         />
 
         <div className="grid gap-8 md:grid-cols-2 pt-4">
@@ -114,7 +116,7 @@ export function AppBroadcastForm({ onSuccess }: AppBroadcastFormProps) {
            <Textarea value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} className="min-h-[160px] rounded-[32px] bg-gray-50 border-none font-bold text-sm p-8 leading-loose shadow-inner" placeholder="اكتب نص الرسالة هنا..." />
         </div>
 
-        <Button onClick={handleSend} disabled={loading || !formData.title} className="w-full h-20 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xl shadow-xl transition-all">
+        <Button onClick={handleSend} disabled={loading || !formData.title || (targetAudience === 'single_user' && !selectedUserId)} className="w-full h-20 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xl shadow-xl transition-all">
           {loading ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>إرسال الإشعارات الفورية</span> <Send size={24} className="rotate-180" /></div>}
         </Button>
       </CardContent>

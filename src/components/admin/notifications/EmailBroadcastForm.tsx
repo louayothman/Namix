@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFirestore } from "@/firebase";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { 
   Send, 
   Mail, 
@@ -28,6 +28,7 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [targetAudience, setTargetAudience] = useState('all');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [blocks, setBlocks] = useState<EmailBlock[]>([]);
   const [footer, setFooter] = useState("هذا البريد مرسل إليك بصفتك مستثمراً مسجلاً في منصة ناميكس.");
@@ -39,7 +40,6 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
     }
     setLoading(true);
     try {
-      // Build HTML from blocks for the email service
       const renderHtml = () => {
         return `
           <div dir="rtl" style="font-family: sans-serif; background-color: #ffffff; padding: 40px; border-radius: 40px; border: 1px solid #f0f0f0;">
@@ -47,10 +47,10 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
               <h1 style="color: #002d4d; margin: 0; font-size: 28px;">Namix</h1>
             </div>
             ${blocks.map(b => {
-              if (block.type === 'text') {
+              if (b.type === 'text') {
                 return `<p style="font-size: ${b.style.fontSize}; color: ${b.style.color}; font-weight: ${b.style.fontWeight}; text-align: ${b.style.textAlign}; font-style: ${b.style.italic ? 'italic' : 'normal'}; text-decoration: ${b.style.underline ? 'underline' : 'none'}; line-height: 1.8; margin-bottom: 20px;">${b.content}</p>`;
               }
-              if (block.type === 'button') {
+              if (b.type === 'button') {
                 return `
                   <div style="text-align: ${b.style.textAlign}; margin: 30px 0;">
                     <a href="${b.style.link || '#'}" style="background-color: ${b.style.backgroundColor}; color: ${b.style.color}; padding: 14px 40px; border-radius: ${b.style.borderRadius}; text-decoration: none; font-weight: ${b.style.fontWeight}; font-size: ${b.style.fontSize}; display: inline-block;">
@@ -69,14 +69,19 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
         `;
       };
 
-      // Fetch targets
       const usersCol = collection(db, "users");
-      let targetUsers: any[] = [];
-      const snap = await getDocs(usersCol);
-      targetUsers = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => !!u.email);
+      let targetUsers: {email?: string}[] = [];
+      
+      if (targetAudience === 'single_user' && selectedUserId) {
+        const uSnap = await getDoc(doc(db, "users", selectedUserId));
+        if (uSnap.exists()) targetUsers = [{ email: uSnap.data().email }];
+      } else {
+        const snap = await getDocs(usersCol);
+        targetUsers = snap.docs.map(d => ({ email: d.data().email })).filter(u => !!u.email);
+      }
 
       const htmlContent = renderHtml();
-      const ops = targetUsers.map(u => sendBroadcastEmail(u.email, title, "", { htmlOverride: htmlContent }));
+      const ops = targetUsers.map(u => sendBroadcastEmail(u.email!, title, "", { htmlOverride: htmlContent }));
       await Promise.all(ops);
       
       await addDoc(collection(db, "broadcast_logs"), {
@@ -111,7 +116,11 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
         </CardHeader>
         <CardContent className="p-12 space-y-10 text-right" dir="rtl">
            <div className="grid gap-10 md:grid-cols-2">
-              <TargetAudienceSelector value={targetAudience} onChange={setTargetAudience} />
+              <TargetAudienceSelector 
+                value={targetAudience} 
+                onChange={setTargetAudience} 
+                onUserSelect={(id) => setSelectedUserId(id)}
+              />
               <div className="space-y-3">
                  <Label className="text-[10px] font-black text-gray-400 uppercase pr-4 tracking-widest">عنوان الرسالة (الموضوع)</Label>
                  <Input value={title} onChange={e => setTitle(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-8 shadow-inner" placeholder="أدخل موضوع البريد..." />
@@ -128,7 +137,11 @@ export function EmailBroadcastForm({ onSuccess }: EmailBroadcastFormProps) {
       />
 
       <div className="flex justify-center pt-6">
-        <Button onClick={handleSend} disabled={loading || !title || blocks.length === 0} className="w-full max-w-2xl h-20 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-xl shadow-2xl transition-all group">
+        <Button 
+          onClick={handleSend} 
+          disabled={loading || !title || blocks.length === 0 || (targetAudience === 'single_user' && !selectedUserId)} 
+          className="w-full max-w-2xl h-20 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-xl shadow-xl transition-all group"
+        >
           {loading ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>إطلاق الحملة المخصصة الآن</span> <Send size={24} className="rotate-180" /></div>}
         </Button>
       </div>
