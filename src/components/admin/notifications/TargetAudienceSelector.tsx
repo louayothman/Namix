@@ -1,10 +1,10 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { 
   Users, Zap, TrendingUp, Award, UserMinus, ShieldCheck, 
   Wallet, UserX, User, Search, Loader2, X, CheckCircle2 
@@ -16,14 +16,13 @@ import { motion, AnimatePresence } from "framer-motion";
 interface TargetAudienceSelectorProps {
   value: string;
   onChange: (val: string) => void;
-  selectedUserId?: string | null;
-  onUserSelect?: (userId: string | null, userName: string | null) => void;
+  onUserSelect?: (userId: string | null) => void;
   className?: string;
 }
 
 const AUDIENCE_OPTIONS = [
   { id: 'all', label: 'جميع المسجلين', icon: Users, color: 'text-blue-500' },
-  { id: 'single_user', label: 'مستثمر محدد (بحث)', icon: User, color: 'text-[#f9a885]' },
+  { id: 'single_user', label: 'مستثمر محدد (بحث)', icon: User, color: 'text-orange-500' },
   { id: 'active_investors', label: 'المستثمرون النشطون (لديهم عقود)', icon: Zap, color: 'text-emerald-500' },
   { id: 'new_users', label: 'المسجلون الجدد (آخر 7 أيام)', icon: TrendingUp, color: 'text-blue-600' },
   { id: 'whales', label: 'كبار المستثمرين (إيداع > 5000$)', icon: Wallet, color: 'text-purple-500' },
@@ -39,7 +38,6 @@ const AUDIENCE_OPTIONS = [
 export function TargetAudienceSelector({ 
   value, 
   onChange, 
-  selectedUserId, 
   onUserSelect,
   className 
 }: TargetAudienceSelectorProps) {
@@ -56,7 +54,7 @@ export function TargetAudienceSelector({
       const res = await findUserByIdOrEmail(searchTerm);
       if (res.success && res.user) {
         setFoundUser({ id: res.user.id, displayName: res.user.displayName });
-        if (onUserSelect) onUserSelect(res.user.id, res.user.displayName);
+        if (onUserSelect) onUserSelect(res.user.id);
       } else {
         setSearchError(res.error || "لم يتم العثور على المستخدم.");
         setFoundUser(null);
@@ -71,14 +69,14 @@ export function TargetAudienceSelector({
   const clearUser = () => {
     setFoundUser(null);
     setSearchTerm("");
-    if (onUserSelect) onUserSelect(null, null);
+    if (onUserSelect) onUserSelect(null);
   };
 
   return (
     <div className={cn("space-y-6", className)}>
       <div className="space-y-3">
         <Label className="text-[10px] font-black text-gray-400 uppercase pr-4 tracking-widest">تحديد الفئة المستهدفة</Label>
-        <Select value={value} onValueChange={onChange}>
+        <Select value={value} onValueChange={(val) => { onChange(val); if(val !== 'single_user') clearUser(); }}>
           <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-black text-xs px-8 shadow-inner text-right">
             <SelectValue placeholder="اختر الفئة المراد استهدافها..." />
           </SelectTrigger>
