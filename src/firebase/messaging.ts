@@ -1,12 +1,11 @@
-
 'use client';
 
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 import { firebaseApp } from "./index";
 
 /**
- * @fileOverview محرك إدارة إشعارات الدفع v1.0 - Push Messaging Engine
- * يدير عملية الحصول على رموز الأجهزة وطلب الأذونات من المتصفح.
+ * @fileOverview محرك إدارة إشعارات الدفع v1.1 - Push Messaging Engine
+ * تم تحديث مفتاح VAPID المعتمد لتمكين تسجيل الأجهزة بشكل مؤمن وحل أخطاء التوثيق.
  */
 
 export async function requestNotificationPermission(): Promise<string | null> {
@@ -16,10 +15,9 @@ export async function requestNotificationPermission(): Promise<string | null> {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const messaging = getMessaging(firebaseApp);
-      // ملاحظة: الـ vapidKey هو مفتاح عام يُستخدم لتشفير الرسائل بين السيرفر والجهاز.
-      // يرجى تحديث هذا المفتاح من إعدادات Firebase Cloud Messaging في الكونسول.
+      // استخدام المفتاح المعتمد من لوحة تحكم Firebase لضمان التوافق مع معيار P-256
       const token = await getToken(messaging, { 
-        vapidKey: 'BPaGZ4R-9Xf_E0R6R7-X-XXXXXXXXXXXXXXX' 
+        vapidKey: 'olhOpQSARBtzM4X5TyeLkhMtJvOxAR89mCCy3CUBNy4' 
       });
       return token;
     }
