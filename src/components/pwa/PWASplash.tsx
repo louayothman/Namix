@@ -77,7 +77,7 @@ export function PWASplash() {
                  transition={{ delay: 1, duration: 1 }}
                  className="text-[9px] font-black uppercase tracking-[0.6em] text-[#002d4d] ml-[0.6em]"
                >
-                 Loading Node
+                 جاري المزامنة
                </motion.p>
             </div>
           </div>

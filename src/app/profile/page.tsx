@@ -286,7 +286,6 @@ function ProfileContent() {
                 calculatedTier={calculatedTier}
               />
               
-              {/* قسم توثيق حالة الجهاز */}
               <div className="p-6 bg-white rounded-[40px] border border-gray-100 shadow-sm space-y-4">
                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -329,8 +328,8 @@ function ProfileContent() {
            </div>
         </div>
 
-        <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="بروتوكول إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
-        <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل بروتوكول إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />
+        <SuccessDialog open={autoInvestSuccess} onOpenChange={setAutoInvestSuccess} title="تم تنشيط محرك النمو" description="نظام إعادة الاستثمار التلقائي فعال الآن." icon={Zap} type="auto-invest" />
+        <SuccessDialog open={autoInvestOffSuccess} onOpenChange={setAutoInvestOffSuccess} title="تم تعليق محرك النمو" description="لقد تم تعطيل آلية إعادة الاستثمار التلقائي بنجاح." icon={ZapOff} type="auto-invest-off" />
       </div>
     </Shell>
   );

@@ -159,7 +159,7 @@ export function PWAInstaller() {
                   
                   <div className="pt-2 flex justify-center opacity-30 border-t border-white/10 mt-4">
                     <ShieldCheck size={12} className="text-emerald-400" />
-                    <span className="text-[8px] font-black mr-1.5 uppercase tracking-widest">Safe Installation Guide</span>
+                    <span className="text-[8px] font-black mr-1.5 uppercase tracking-widest">آلية تثبيت آمنة</span>
                   </div>
                 </div>
               </div>

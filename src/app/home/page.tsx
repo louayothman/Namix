@@ -14,6 +14,7 @@ import { Logo } from "@/components/layout/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronLeft, Zap, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
 const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
@@ -229,7 +230,6 @@ export default function HomePage() {
       const unsubNotifs = onSnapshot(query(collection(db, "notifications"), where("userId", "==", parsed.id), where("isRead", "==", false)), (snap) => setUnreadCount(snap.size));
       const unsubRef = onSnapshot(query(collection(db, "users"), where("referredBy", "==", parsed.id)), (snap) => setReferralCount(snap.size));
       
-      // التحقق من حالة التشغيل (PWA)
       const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
       setIsStandalone(!!standalone);
 
@@ -342,7 +342,6 @@ export default function HomePage() {
 
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">
           
-          {/* بطاقة مهمة التثبيت - تظهر فقط في وضع المتصفح */}
           <AnimatePresence>
             {!isStandalone && (
               <motion.div 
