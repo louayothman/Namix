@@ -4,8 +4,8 @@ import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging
 import { firebaseApp } from "./index";
 
 /**
- * @fileOverview محرك إدارة إشعارات الدفع v1.1 - Push Messaging Engine
- * تم تحديث مفتاح VAPID المعتمد لتمكين تسجيل الأجهزة بشكل مؤمن وحل أخطاء التوثيق.
+ * @fileOverview محرك إدارة إشعارات الدفع v1.2 - Push Messaging Engine
+ * تم تحديث مفتاح VAPID الكامل لضمان التوافق مع معايير التشفير العالمية وتفعيل التنبيهات.
  */
 
 export async function requestNotificationPermission(): Promise<string | null> {
@@ -15,9 +15,9 @@ export async function requestNotificationPermission(): Promise<string | null> {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const messaging = getMessaging(firebaseApp);
-      // استخدام المفتاح المعتمد من لوحة تحكم Firebase لضمان التوافق مع معيار P-256
+      // استخدام المفتاح العام الكامل (P-256) المستخرج من لوحة تحكم Firebase
       const token = await getToken(messaging, { 
-        vapidKey: 'olhOpQSARBtzM4X5TyeLkhMtJvOxAR89mCCy3CUBNy4' 
+        vapidKey: 'BMIQpPrGZ0jNwxP2uz_qZTtRjyBCwWZhsHr_5yGoUz9OXOJd9_nryI_RPnKmR_uRFoMFsAFgUV0CerGXNAoc8XQ' 
       });
       return token;
     }
