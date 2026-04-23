@@ -15,7 +15,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, setDoc, getDoc, deleteDoc, addDoc, collection } from "firebase/firestore";
 import { sendOTPEmail } from "@/app/actions/auth-actions";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -100,6 +100,18 @@ export function ChangePasswordDialog({ userId, dbUser, onOpenChange }: ChangePas
         password: passData.next, 
         updatedAt: new Date().toISOString() 
       });
+
+      // إطلاق تنبيه في قاعدة البيانات لعرضه كـ Push
+      await addDoc(collection(db, "notifications"), {
+        userId: userId,
+        title: "تغيير كلمة المرور 🛡️",
+        message: "تم تحديث كلمة المرور الخاصة بحسابك بنجاح. إذا لم تقم بهذا الإجراء، يرجى التواصل مع الدعم فوراً.",
+        type: "warning",
+        url: "/settings",
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+
       setStep('success');
     } catch (e) { 
       setError("فشل الحفظ."); 

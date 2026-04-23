@@ -4,15 +4,15 @@
 import React, { useEffect, useState } from "react";
 import { requestNotificationPermission } from "@/firebase/messaging";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
 import { Bell, ShieldCheck, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مدير التنبيهات الذكي v1.2 - Success Feedback Node
- * تم استبدال التوست بتنويه داخلي فخم يظهر عند نجاح الربط لتأكيد تفعيل الإشارات.
+ * @fileOverview مدير التنبيهات الذكي v2.0 - Live System Observer
+ * تم إضافة مستمع لحظي يقوم بتحويل سجلات الإشعارات في Firestore إلى تنبيهات نظام (Push) حقيقية.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -22,16 +22,55 @@ export function NotificationManager() {
   useEffect(() => {
     const userSession = localStorage.getItem("namix_user");
     if (!userSession) return;
+    const user = JSON.parse(userSession);
 
+    // 1. طلب الإذن وإدارة الظهور
     const hasPermission = 'Notification' in window && Notification.permission === 'granted';
     const isDismissed = localStorage.getItem("namix_notif_prompt_dismissed");
 
     if (!hasPermission && !isDismissed) {
-      // إظهار الطلب بعد فترة وجيزة لضمان جاهزية المستثمر
       const timer = setTimeout(() => setShowPrompt(true), 8000);
       return () => clearTimeout(timer);
     }
-  }, []);
+
+    // 2. محرك المراقبة اللحظي (Live Notification Observer)
+    // يقوم بمراقبة أي إشعار جديد مضاف للمستخدم ويظهره كتنبيه نظام
+    if (hasPermission) {
+      const q = query(
+        collection(db, "notifications"),
+        where("userId", "==", user.id),
+        where("isRead", "==", false),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === "added") {
+            const data = change.doc.data();
+            // التأكد أن الإشعار جديد (خلال آخر 30 ثانية) لمنع تكرار الإشعارات القديمة عند الفتح
+            const isRecent = new Date().getTime() - new Date(data.createdAt).getTime() < 30000;
+            
+            if (isRecent && 'serviceWorker' in navigator) {
+              const registration = await navigator.serviceWorker.ready;
+              registration.showNotification(data.title, {
+                body: data.message,
+                icon: '/icon-192.png',
+                badge: '/icon-192.png',
+                dir: 'rtl',
+                lang: 'ar',
+                data: { url: data.url || '/notifications' },
+                tag: change.doc.id, // منع تكرار نفس الإشعار
+                renotify: true
+              });
+            }
+          }
+        });
+      });
+
+      return () => unsubscribe();
+    }
+  }, [db]);
 
   const handleGrantPermission = async () => {
     const token = await requestNotificationPermission();
@@ -44,10 +83,7 @@ export function NotificationManager() {
           updatedAt: new Date().toISOString()
         });
         
-        // إظهار تنويه النجاح الداخلي بدلاً من التوست
         setIsSuccess(true);
-        
-        // إغلاق النافذة تلقائياً بعد عرض رسالة النجاح
         setTimeout(() => setShowPrompt(false), 3000);
         return;
       }

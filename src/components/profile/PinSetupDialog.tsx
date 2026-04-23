@@ -12,7 +12,7 @@ import {
   Zap
 } from "lucide-react";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, setDoc, getDoc, deleteDoc, addDoc, collection } from "firebase/firestore";
 import { sendOTPEmail } from "@/app/actions/auth-actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function PinSetupDialog({ dbUser, onOpenChange }: PinSetupDialogProps) {
   useEffect(() => {
     setStep(hasPin ? 'verify_current' : 'new_pin');
     setPin(""); setOtp(""); setError(null);
-  }, [hasPin]);
+  }, [hasPin, open]);
 
   const handleVerifyCurrent = () => {
     if (pin !== dbUser?.securityPin) { 
@@ -77,6 +77,18 @@ export function PinSetupDialog({ dbUser, onOpenChange }: PinSetupDialogProps) {
         securityPin: pin, 
         updatedAt: new Date().toISOString() 
       });
+
+      // إطلاق تنبيه في قاعدة البيانات (سيقوم NotificationManager بالتقاطه وعرضه كـ Push)
+      await addDoc(collection(db, "notifications"), {
+        userId: dbUser.id,
+        title: "تحديث رمز الأمان 🔐",
+        message: "لقد تم تحديث رمز PIN الخاص بخزنتك بنجاح. يرجى حفظ الرمز الجديد بعناية.",
+        type: "success",
+        url: "/settings",
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+
       setStep('success');
     } catch (e) { 
       setError("فشل التحديث."); 
