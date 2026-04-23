@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
@@ -51,8 +52,6 @@ export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [calcAmount, setCalcAmount] = useState("1000");
   const [isStandalone, setIsStandalone] = useState(true);
-  const [isAndroid, setIsAndroid] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
   
   const router = useRouter();
   const db = useFirestore();
@@ -235,10 +234,6 @@ export default function HomePage() {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
       setIsStandalone(!!standalone);
 
-      const ua = navigator.userAgent.toLowerCase();
-      setIsAndroid(/android/.test(ua));
-      setIsDesktop(!(/iphone|ipad|ipod|android/.test(ua)));
-
       return () => { unsubUser(); unsubNotifs(); unsubRef(); };
     }
   }, [router, db]);
@@ -353,7 +348,7 @@ export default function HomePage() {
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">
           
           <AnimatePresence>
-            {(!isStandalone && (isAndroid || isDesktop)) && (
+            {!isStandalone && (
               <PWAInstallCard onInstall={handleManualInstallTrigger} />
             )}
           </AnimatePresence>

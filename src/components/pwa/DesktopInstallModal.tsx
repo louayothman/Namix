@@ -3,7 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { X, Layout, Sparkles, ChevronLeft } from "lucide-react";
+import { X, Layout, Sparkles, ChevronLeft, Zap, Activity, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -28,13 +28,13 @@ export function DesktopInstallModal({ onClose, onInstall }: DesktopInstallModalP
 
         <div className="space-y-10">
           <div className="flex items-center gap-6">
-             <div className="h-20 w-20 rounded-[28px] bg-white overflow-hidden flex items-center justify-center shadow-2xl border border-gray-50">
+             <div className="h-20 w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Image 
                   src="/icon-512.png" 
                   alt="Namix App" 
                   width={80} 
-                  height={80}
-                  className="object-cover"
+                  height={80} 
+                  className="object-contain"
                   data-ai-hint="app icon"
                 />
              </div>
@@ -49,12 +49,18 @@ export function DesktopInstallModal({ onClose, onInstall }: DesktopInstallModalP
 
           <div className="space-y-6">
              <p className="text-sm font-bold text-gray-500 leading-[2.2] text-right">
-               حول متصفحك إلى محطة تداول احترافية. تثبيت ناميكس كبرنامج مستقل يمنحك سرعة أعلى في تحليل الرسوم البيانية واستقراراً أكبر في الاتصال بالشبكة.
+               قم بتحويل متصفحك إلى محطة تداول احترافية مستقلة لضمان استقرار الاتصال وسرعة التحليل.
              </p>
              
-             <div className="p-6 bg-blue-50/50 rounded-[32px] border border-blue-100 flex items-center gap-4 shadow-inner">
-                <Layout className="text-blue-500 shrink-0" size={24} />
-                <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed">تجرية عرض واسعة النطاق محسنة لشاشات التداول الكبيرة.</p>
+             <div className="grid gap-3">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-inner">
+                   <Layout className="text-blue-500 shrink-0" size={20} />
+                   <p className="text-[11px] font-bold text-blue-800/60 leading-relaxed text-right">مساحة عرض واسعة مخصصة لشاشات التداول الاحترافية.</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-inner">
+                   <Activity className="text-orange-400 shrink-0" size={20} />
+                   <p className="text-[11px] font-bold text-orange-800/60 leading-relaxed text-right">مزامنة لحظية للأسعار مع استهلاك أقل لموارد النظام.</p>
+                </div>
              </div>
           </div>
 

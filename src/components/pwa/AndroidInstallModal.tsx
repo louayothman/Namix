@@ -3,7 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { X, Zap, Activity, Sparkles, ChevronLeft } from "lucide-react";
+import { X, Zap, Activity, Sparkles, ChevronLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -28,18 +28,18 @@ export function AndroidInstallModal({ onClose, onInstall }: AndroidInstallModalP
 
         <div className="space-y-8">
           <div className="flex items-center gap-5">
-             <div className="h-16 w-16 rounded-[22px] bg-white overflow-hidden flex items-center justify-center shadow-xl border border-gray-50">
+             <div className="h-16 w-16 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Image 
                   src="/icon-192.png" 
                   alt="Namix App" 
                   width={64} 
                   height={64}
-                  className="object-cover"
+                  className="object-contain"
                   data-ai-hint="app icon"
                 />
              </div>
              <div className="text-right">
-                <h3 className="text-xl font-black text-[#002d4d]">تثبيت تطبيق ناميكس</h3>
+                <h3 className="text-xl font-black text-[#002d4d]">تثبيت نظام ناميكس</h3>
                 <div className="flex items-center gap-2 text-[#f9a885] font-black text-[9px] uppercase tracking-widest mt-1">
                   <Sparkles size={10} />
                   Android Access System
@@ -47,26 +47,39 @@ export function AndroidInstallModal({ onClose, onInstall }: AndroidInstallModalP
              </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
              <p className="text-[13px] font-bold text-gray-500 leading-[2.2] text-right">
-               ثبّت التطبيق الآن للحصول على وصول فوري ومؤمن لأصولك، واستقبال إشارات تداول ذكية مباشرة على شاشة القفل.
+               احصل على وصول فوري ومؤمن لأصولك الاستثمارية عبر تثبيت التطبيق الرسمي للمنصة.
              </p>
              
-             <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center gap-1.5 shadow-inner">
-                   <Zap size={14} className="text-orange-400" />
-                   <span className="text-[9px] font-black text-[#002d4d]">سرعة فائقة</span>
+             <div className="grid grid-cols-1 gap-3">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4">
+                   <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-orange-400"><Zap size={18} /></div>
+                   <div className="text-right">
+                      <p className="text-[11px] font-black text-[#002d4d]">سرعة فائقة في التنفيذ</p>
+                      <p className="text-[9px] text-gray-400 font-bold">معالجة أوامر وميضية عبر التطبيق.</p>
+                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center gap-1.5 shadow-inner">
-                   <Activity size={14} className="text-blue-500" />
-                   <span className="text-[9px] font-black text-[#002d4d]">تنبيهات حية</span>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4">
+                   <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-blue-500"><Activity size={18} /></div>
+                   <div className="text-right">
+                      <p className="text-[11px] font-black text-[#002d4d]">تنبيهات إشارات NAMIX AI</p>
+                      <p className="text-[9px] text-gray-400 font-bold">استلام توصيات التداول مباشرة على شاشتك.</p>
+                   </div>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4">
+                   <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-emerald-500"><ShieldCheck size={18} /></div>
+                   <div className="text-right">
+                      <p className="text-[11px] font-black text-[#002d4d]">تأمين الدخول الحيوي</p>
+                      <p className="text-[9px] text-gray-400 font-bold">حماية المحفظة ببصمة الوجه والأصبع.</p>
+                   </div>
                 </div>
              </div>
           </div>
 
           <div className="pt-2">
              <Button onClick={onInstall} className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all group">
-                <span>تثبيت التطبيق الآن</span>
+                <span>تثبيت التطبيق المعتمد</span>
                 <ChevronLeft size={20} className="transition-transform group-hover:-translate-x-1" />
              </Button>
           </div>
