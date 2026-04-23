@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -14,10 +13,11 @@ import { sendBroadcastEmail } from "@/app/actions/auth-actions";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview صفحة بناء حملات البريد الإلكتروني الاحترافية v1.0
- * بيئة عمل معزولة لبناء رسائل بريدية متجاوبة باستخدام نظام الكتل.
+ * @fileOverview صفحة بناء حملات البريد الإلكتروني الاحترافية v1.1
+ * تم إصلاح خطأ استيراد دالة cn وضمان استقرار محاكي العرض المتجاوب.
  */
 
 export default function EmailBuilderPage() {
@@ -30,7 +30,7 @@ export default function EmailBuilderPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
   const [blocks, setBlocks] = useState<any[]>([
-    { id: 'h1', type: 'header', content: { title: 'Namix' } }
+    { id: 'h1', type: 'header', content: { title: 'Namix', fontSize: '24px', color: '#002d4d' } }
   ]);
 
   const handleSend = async () => {
