@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
@@ -335,8 +334,7 @@ export default function HomePage() {
   if (!localUser) return null;
 
   const handleManualInstallTrigger = () => {
-    const event = new Event('beforeinstallprompt');
-    window.dispatchEvent(event);
+    window.dispatchEvent(new CustomEvent('namix-show-install-prompt'));
   };
 
   return (
