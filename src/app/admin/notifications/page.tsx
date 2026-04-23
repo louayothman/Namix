@@ -7,26 +7,35 @@ import { AnimatePresence, motion } from "framer-motion";
 import { DashboardMenu } from "@/components/admin/notifications/DashboardMenu";
 import { ChannelSelector } from "@/components/admin/notifications/ChannelSelector";
 import { AppBroadcastForm } from "@/components/admin/notifications/AppBroadcastForm";
-import { EmailBroadcastForm } from "@/components/admin/notifications/EmailBroadcastForm";
 import { GlobalBroadcastForm } from "@/components/admin/notifications/GlobalBroadcastForm";
 import { HistoryLedgerView } from "@/components/admin/notifications/HistoryLedgerView";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview مركز إدارة الاتصال المؤسساتي v15.0 - Integrated Command Console
- * نظام مجزأ يعتمد على محطات عمل معزولة لإدارة بث البيانات والاستهداف الذكي.
+ * @fileOverview مركز إدارة الاتصال المؤسساتي v16.0
+ * تم تحديث الواجهة لتوجيه المشرف إلى صفحة مخصصة لبناء البريد الإلكتروني.
  */
 
-type ViewState = 'menu' | 'channels' | 'form_app' | 'form_email' | 'form_global' | 'history';
+type ViewState = 'menu' | 'channels' | 'form_app' | 'form_global' | 'history';
 
 export default function AdminNotificationsPage() {
   const [view, setView] = useState<ViewState>('menu');
+  const router = useRouter();
 
   const handleBack = () => {
     if (view === 'channels' || view === 'history') setView('menu');
     else if (view.startsWith('form_')) setView('channels');
     else setView('menu');
+  };
+
+  const handleChannelSelect = (id: string) => {
+    if (id === 'form_email') {
+      router.push("/admin/notifications/email-builder");
+    } else {
+      setView(id as any);
+    }
   };
 
   return (
@@ -44,7 +53,6 @@ export default function AdminNotificationsPage() {
               {view === 'menu' && "إدارة الاتصال المؤسساتي"}
               {view === 'channels' && "تحديد قناة البث"}
               {view === 'form_app' && "بث إشعارات التطبيق"}
-              {view === 'form_email' && "بث الرسائل البريدية"}
               {view === 'form_global' && "البث الموحد الشامل"}
               {view === 'history' && "أرشيف العمليات التاريخي"}
             </h1>
@@ -72,19 +80,13 @@ export default function AdminNotificationsPage() {
 
             {view === 'channels' && (
               <motion.div key="channels" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}>
-                <ChannelSelector onSelect={setView} />
+                <ChannelSelector onSelect={handleChannelSelect} />
               </motion.div>
             )}
 
             {view === 'form_app' && (
               <motion.div key="app" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
                 <AppBroadcastForm onSuccess={() => setView('history')} />
-              </motion.div>
-            )}
-
-            {view === 'form_email' && (
-              <motion.div key="email" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-                <EmailBroadcastForm onSuccess={() => setView('history')} />
               </motion.div>
             )}
 
@@ -103,7 +105,7 @@ export default function AdminNotificationsPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Messaging Infrastructure v15.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Messaging Infrastructure</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
