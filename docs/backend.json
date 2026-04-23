@@ -15,15 +15,24 @@
         "gender": { "type": "string" },
         "birthDate": { "type": "string", "format": "date" },
         "isVerified": { "type": "boolean" },
-        "isBiometricEnabled": { "type": "boolean", "description": "Whether the user has enabled biometric authentication." },
-        "password": { "type": "string" },
-        "securityPin": { "type": "string" },
+        "isBiometricEnabled": { "type": "boolean" },
+        "fcmTokens": { "type": "array", "items": { "type": "string" }, "description": "List of device tokens for push notifications." },
+        "notificationSettings": {
+          "type": "object",
+          "properties": {
+            "priceAlerts": { "type": "boolean", "default": true },
+            "accountAlerts": { "type": "boolean", "default": true }
+          }
+        },
         "totalBalance": { "type": "number" },
+        "welcomeBonus": { "type": "number" },
         "activeInvestmentsTotal": { "type": "number" },
         "totalProfits": { "type": "number" },
         "referralCode": { "type": "string" },
         "referredBy": { "type": "string" },
+        "referralEarnings": { "type": "number" },
         "isAutoInvestEnabled": { "type": "boolean" },
+        "autoInvestEnabledAt": { "type": "string", "format": "date-time" },
         "favoriteSymbols": { "type": "array", "items": { "type": "string" } },
         "lastActive": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -33,7 +42,7 @@
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["password"]
   },
   "firestore": {
     "structure": [
@@ -41,7 +50,7 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
-          "description": "Stores user profiles."
+          "description": "Stores user profiles and notification tokens."
         }
       }
     ]

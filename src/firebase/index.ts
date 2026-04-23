@@ -5,11 +5,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 /**
- * تهيئة Firebase للاستخدام مع Firestore و Auth.
- * تم إضافة خدمة المصادقة لدعم الدخول الاجتماعي (Google/Apple).
+ * تهيئة Firebase للاستخدام مع Firestore و Auth و Messaging.
  */
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+export const firebaseApp = app;
+
 export function initializeFirebase() {
-  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   return {
     firebaseApp: app,
     firestore: getFirestore(app),

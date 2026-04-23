@@ -1,0 +1,41 @@
+
+'use client';
+
+import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
+import { firebaseApp } from "./index";
+
+/**
+ * @fileOverview محرك إدارة إشعارات الدفع v1.0 - Push Messaging Engine
+ * يدير عملية الحصول على رموز الأجهزة وطلب الأذونات من المتصفح.
+ */
+
+export async function requestNotificationPermission(): Promise<string | null> {
+  if (typeof window === 'undefined' || !('Notification' in window)) return null;
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      const messaging = getMessaging(firebaseApp);
+      // ملاحظة: الـ vapidKey هو مفتاح عام يُستخدم لتشفير الرسائل بين السيرفر والجهاز.
+      // يرجى تحديث هذا المفتاح من إعدادات Firebase Cloud Messaging في الكونسول.
+      const token = await getToken(messaging, { 
+        vapidKey: 'BPaGZ4R-9Xf_E0R6R7-X-XXXXXXXXXXXXXXX' 
+      });
+      return token;
+    }
+    return null;
+  } catch (error) {
+    console.error("FCM Token Error:", error);
+    return null;
+  }
+}
+
+export function onMessageListener() {
+  if (typeof window === 'undefined') return;
+  const messaging = getMessaging(firebaseApp);
+  return new Promise((resolve) => {
+    onMessage(messaging, (payload) => {
+      resolve(payload);
+    });
+  });
+}

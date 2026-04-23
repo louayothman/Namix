@@ -6,12 +6,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
 import { PWASplash } from "@/components/pwa/PWASplash";
+import { NotificationManager } from "@/components/pwa/NotificationManager";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
 
-/**
- * محرك توليد الميتاداتا الديناميكي
- */
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
   const host = headersList.get('host') || 'namix.pro';
@@ -26,49 +24,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: SITE_CONFIG.description,
     applicationName: 'Namix',
-    keywords: SITE_CONFIG.keywords,
-    authors: [{ name: 'Namix Universal Network' }],
-    themeColor: '#002d4d',
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
       title: 'Namix',
-    },
-    openGraph: {
-      type: 'website',
-      locale: 'ar_SA',
-      url: currentDomain,
-      siteName: SITE_CONFIG.name,
-      title: SITE_CONFIG.name,
-      description: SITE_CONFIG.description,
-      images: [
-        {
-          url: '/og-image.png',
-          width: SITE_CONFIG.ogImageWidth,
-          height: SITE_CONFIG.ogImageHeight,
-          alt: `${SITE_CONFIG.name} - Professional Interface`,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: SITE_CONFIG.name,
-      description: SITE_CONFIG.description,
-      images: ['/og-image.png'],
-      creator: SITE_CONFIG.twitterHandle,
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
+    }
   };
 }
 
@@ -92,6 +53,7 @@ export default async function RootLayout({
           <SWRegistration />
           <PWASplash />
           {children}
+          <NotificationManager />
           <PWAInstaller />
           <Toaster />
         </FirebaseClientProvider>
