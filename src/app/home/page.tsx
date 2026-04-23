@@ -51,6 +51,7 @@ export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [calcAmount, setCalcAmount] = useState("1000");
   const [isStandalone, setIsStandalone] = useState(true);
+  const [isAndroid, setIsAndroid] = useState(false);
   
   const router = useRouter();
   const db = useFirestore();
@@ -233,6 +234,9 @@ export default function HomePage() {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
       setIsStandalone(!!standalone);
 
+      const ua = navigator.userAgent.toLowerCase();
+      setIsAndroid(/android/.test(ua));
+
       return () => { unsubUser(); unsubNotifs(); unsubRef(); };
     }
   }, [router, db]);
@@ -343,7 +347,7 @@ export default function HomePage() {
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">
           
           <AnimatePresence>
-            {!isStandalone && (
+            {(!isStandalone && isAndroid) && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }} 
                 animate={{ opacity: 1, height: 'auto' }} 
@@ -357,7 +361,7 @@ export default function HomePage() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                        <div className="flex items-center gap-5 text-right">
                           <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner group-hover:scale-110 transition-transform">
-                             <Zap className="h-7 w-7 text-[#f9a885] fill-current" />
+                             <Logo size="sm" hideText />
                           </div>
                           <div className="space-y-1">
                              <h4 className="text-base font-black">تفعيل ميزات الوصول السريع</h4>
