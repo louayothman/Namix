@@ -2,20 +2,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { requestNotificationPermission, onMessageListener } from "@/firebase/messaging";
+import { requestNotificationPermission } from "@/firebase/messaging";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
-import { toast } from "@/hooks/use-toast";
-import { Bell, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Bell, ShieldCheck, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مدير التنبيهات الذكي v1.1 - Smart Alert Node
- * نافذة شاملة لتمكين الإشعارات الفورية بأسلوب مهني ومبسط.
+ * @fileOverview مدير التنبيهات الذكي v1.2 - Success Feedback Node
+ * تم استبدال التوست بتنويه داخلي فخم يظهر عند نجاح الربط لتأكيد تفعيل الإشارات.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const db = useFirestore();
 
   useEffect(() => {
@@ -42,10 +43,13 @@ export function NotificationManager() {
           fcmTokens: arrayUnion(token),
           updatedAt: new Date().toISOString()
         });
-        toast({
-          title: "تم تفعيل التنبيهات",
-          description: "ستصلك الآن تحديثات السوق وتطورات الحساب فوراً."
-        });
+        
+        // إظهار تنويه النجاح الداخلي بدلاً من التوست
+        setIsSuccess(true);
+        
+        // إغلاق النافذة تلقائياً بعد عرض رسالة النجاح
+        setTimeout(() => setShowPrompt(false), 3000);
+        return;
       }
     }
     setShowPrompt(false);
@@ -72,31 +76,74 @@ export function NotificationManager() {
              </div>
              
              <div className="flex items-center gap-4 relative z-10">
-                <div className="h-12 w-12 rounded-[20px] bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
-                   <Bell size={24} className="animate-pulse" />
+                <div className={cn(
+                  "h-12 w-12 rounded-[20px] flex items-center justify-center shadow-inner transition-colors duration-500",
+                  isSuccess ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                )}>
+                   {isSuccess ? (
+                     <CheckCircle2 size={24} className="animate-in zoom-in duration-500" />
+                   ) : (
+                     <Bell size={24} className="animate-pulse" />
+                   )}
                 </div>
                 <div className="text-right">
-                   <h4 className="text-base font-black text-[#002d4d]">التنبيهات الفورية</h4>
-                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Activity Monitor</p>
+                   <h4 className="text-base font-black text-[#002d4d]">
+                     {isSuccess ? "تم تفعيل التنبيهات" : "التنبيهات الفورية"}
+                   </h4>
+                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                     {isSuccess ? "Sync Active" : "Live Activity Monitor"}
+                   </p>
                 </div>
-                <button onClick={handleDismiss} className="mr-auto text-gray-300 hover:text-red-500 transition-colors">
-                   <X size={18} />
-                </button>
+                {!isSuccess && (
+                  <button onClick={handleDismiss} className="mr-auto text-gray-300 hover:text-red-500 transition-colors">
+                     <X size={18} />
+                  </button>
+                )}
              </div>
 
-             <p className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2">
-                ابقَ على اتصال دائم مع تحركات السوق وتطورات محفظتك الاستثمارية فور حدوثها لضمان سرعة الاستجابة والنمو.
-             </p>
-
-             <div className="pt-2">
-                <Button 
-                  onClick={handleGrantPermission}
-                  className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-                >
-                   <span>تفعيل التنبيهات الذكية</span>
-                   <Sparkles size={16} className="text-[#f9a885]" />
-                </Button>
+             <div className="relative min-h-[40px]">
+                <AnimatePresence mode="wait">
+                  {isSuccess ? (
+                    <motion.div 
+                      key="success-text"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3"
+                    >
+                       <ShieldCheck size={16} className="text-emerald-500" />
+                       <p className="text-[11px] font-black text-emerald-800">
+                          نظام الإشعارات مفعل الآن. ستصلك تحديثات السوق وتطورات الحساب فوراً.
+                       </p>
+                    </motion.div>
+                  ) : (
+                    <motion.p 
+                      key="idle-text"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2"
+                    >
+                       ابقَ على اتصال دائم مع تحركات السوق وتطورات محفظتك الاستثمارية فور حدوثها لضمان سرعة الاستجابة والنمو.
+                    </motion.p>
+                  )}
+                </AnimatePresence>
              </div>
+
+             <AnimatePresence>
+                {!isSuccess && (
+                  <motion.div 
+                    exit={{ opacity: 0, height: 0 }}
+                    className="pt-2"
+                  >
+                    <Button 
+                      onClick={handleGrantPermission}
+                      className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                       <span>تفعيل التنبيهات الذكية</span>
+                       <Sparkles size={16} className="text-[#f9a885]" />
+                    </Button>
+                  </motion.div>
+                )}
+             </AnimatePresence>
 
              <div className="flex items-center justify-center gap-2 opacity-20">
                 <ShieldCheck size={10} className="text-emerald-500" />
