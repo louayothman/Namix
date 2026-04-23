@@ -11,10 +11,15 @@ import {
   Sparkles,
   ShieldCheck,
   Zap,
-  ZapOff
+  ZapOff,
+  Smartphone,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, onSnapshot, query, collection, where, updateDoc, addDoc } from "firebase/firestore";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { GrowthSection } from "@/components/profile/GrowthSection";
@@ -24,7 +29,8 @@ import { LogoutButton } from "@/components/profile/LogoutButton";
 import { SuccessDialog } from "@/components/profile/SuccessDialog";
 
 /**
- * @fileOverview صفحة الملف الشخصي v27.0 - Sovereign Ledger Accounting
+ * @fileOverview صفحة الملف الشخصي v28.0 - Trusted Device Support
+ * تم إضافة قسم توثيق حالة الجهاز (متصفح أم تطبيق مثبت).
  */
 
 function ProfileContent() {
@@ -33,6 +39,7 @@ function ProfileContent() {
   const [autoInvestSuccess, setAutoInvestSuccess] = useState(false);
   const [autoInvestOffSuccess, setAutoInvestOffSuccess] = useState(false);
   const [processingPayouts, setProcessingPayouts] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const [now, setNow] = useState(new Date());
   
   const router = useRouter();
@@ -45,6 +52,11 @@ function ProfileContent() {
     } else {
       router.push("/login");
     }
+    
+    // التحقق من حالة التطبيق (Standalone)
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsStandalone(!!standalone);
+
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, [router]);
@@ -79,7 +91,6 @@ function ProfileContent() {
   }, [db, user?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  // --- محرك الاحتساب المحاسبي السيادي v4.0 (Ledger Sync Edition) ---
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
@@ -89,7 +100,6 @@ function ProfileContent() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
-    // العقود المنتهية والموثقة فقط isProcessed: true
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -109,7 +119,6 @@ function ProfileContent() {
     const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
     const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // المعادلة الذهبية المعتمدة
     const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
     const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
     
@@ -122,7 +131,6 @@ function ProfileContent() {
     };
   }, [dbUser, allDeposits, allWithdrawals, investments, allTrades]);
 
-  // مزامنة الرصيد المحسوب مع حقل totalBalance في Firestore
   useEffect(() => {
     if (dbUser && user?.id && Math.abs(dbUser.totalBalance - dynamicFinancials.balance) > 0.001) {
       updateDoc(doc(db, "users", user.id), {
@@ -170,7 +178,7 @@ function ProfileContent() {
           });
 
           await addDoc(collection(db, "notifications"), {
-            userId: user.id, title: "تفعيل بروتوكول النمو التلقائي 🔄",
+            userId: user.id, title: "إعادة استثمار تلقائي 🔄",
             message: `اكتملت دورة ${inv.planTitle}. تم إعادة استثمار مبلغ $${inv.amount.toLocaleString()} تلقائياً لبدء دورة نمو جديدة.`,
             type: "success", isRead: false, createdAt: new Date().toISOString()
           });
@@ -183,7 +191,7 @@ function ProfileContent() {
           
           await addDoc(collection(db, "notifications"), { 
             userId: user.id, 
-            title: "اكتمل الاستثمار! 💰", 
+            title: "اكتمال دورة الاستثمار! 💰", 
             message: `اكتمل استثمار ${inv.planTitle}. تم تحرير رأس المال والارباح لمحفظتك بنجاح.`, 
             type: "success", 
             isRead: false, 
@@ -249,7 +257,7 @@ function ProfileContent() {
             <h1 className="text-xl md:text-3xl font-black text-[#002d4d] tracking-tight leading-none">ملفي الشخصي</h1>
             <div className="flex items-center gap-2 text-blue-500 font-black text-[9px] uppercase tracking-widest mt-1">
                <Sparkles size={10} className="text-[#f9a885]" />
-               Sovereign Account Control
+               Account Control Node
             </div>
           </div>
 
@@ -277,6 +285,36 @@ function ProfileContent() {
                 totalInvestments={dynamicFinancials.activeInvestments} 
                 calculatedTier={calculatedTier}
               />
+              
+              {/* قسم توثيق حالة الجهاز */}
+              <div className="p-6 bg-white rounded-[40px] border border-gray-100 shadow-sm space-y-4">
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                       <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shadow-inner transition-colors", isStandalone ? "bg-emerald-50 text-emerald-600" : "bg-gray-50 text-gray-400")}>
+                          <Smartphone size={20} />
+                       </div>
+                       <div className="text-right">
+                          <p className="text-[10px] font-black text-[#002d4d]">حالة الجهاز</p>
+                          <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Device Verification</p>
+                       </div>
+                    </div>
+                    {isStandalone ? (
+                       <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                          <CheckCircle2 size={8} /> موثق
+                       </Badge>
+                    ) : (
+                       <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[7px] px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                          <AlertCircle size={8} /> غير موثق
+                       </Badge>
+                    )}
+                 </div>
+                 <p className="text-[9px] font-bold text-gray-400 leading-loose pr-1">
+                    {isStandalone 
+                      ? "أنت الآن تستخدم تطبيق ناميكس المعتمد. هذا الجهاز موثق لعمليات الوصول السريع." 
+                      : "يرجى تثبيت التطبيق لتوثيق هذا الجهاز والحصول على حماية إضافية وإشعارات لحظية."}
+                 </p>
+              </div>
+
               <div className="hidden lg:block">
                 <LogoutButton onLogout={() => { localStorage.removeItem("namix_user"); window.location.href = "/"; }} />
               </div>

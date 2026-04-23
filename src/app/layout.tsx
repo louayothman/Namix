@@ -5,6 +5,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
+import { PWASplash } from "@/components/pwa/PWASplash";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
 
@@ -27,6 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: 'Namix',
     keywords: SITE_CONFIG.keywords,
     authors: [{ name: 'Namix Universal Network' }],
+    themeColor: '#002d4d',
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
@@ -88,6 +90,7 @@ export default async function RootLayout({
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">
         <FirebaseClientProvider>
           <SWRegistration />
+          <PWASplash />
           {children}
           <PWAInstaller />
           <Toaster />

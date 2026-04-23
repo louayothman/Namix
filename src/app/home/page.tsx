@@ -8,9 +8,12 @@ import { Shell } from "@/components/layout/Shell";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, where, onSnapshot, doc, orderBy, increment, limit, addDoc, updateDoc } from "firebase/firestore";
 import { differenceInMilliseconds, parseISO } from "date-fns";
+import { useMarketStore } from "@/store/use-market-store";
 import { useMarketSync } from "@/hooks/use-market-sync";
 import { Logo } from "@/components/layout/Logo";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, ChevronLeft, Zap, Smartphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const PortfolioHero = dynamic(() => import("@/components/dashboard/PortfolioHero").then(m => ({ default: m.PortfolioHero })), { ssr: false });
 const EliteWatchlist = dynamic(() => import("@/components/dashboard/EliteWatchlist").then(m => ({ default: m.EliteWatchlist })), { ssr: false });
@@ -46,6 +49,7 @@ export default function HomePage() {
   const [referralCount, setReferralCount] = useState(0);
   const [now, setNow] = useState(new Date());
   const [calcAmount, setCalcAmount] = useState("1000");
+  const [isStandalone, setIsStandalone] = useState(true);
   
   const router = useRouter();
   const db = useFirestore();
@@ -224,6 +228,11 @@ export default function HomePage() {
       const unsubUser = onSnapshot(doc(db, "users", parsed.id), (snap) => { if (snap.exists()) setDbUser(snap.data()); });
       const unsubNotifs = onSnapshot(query(collection(db, "notifications"), where("userId", "==", parsed.id), where("isRead", "==", false)), (snap) => setUnreadCount(snap.size));
       const unsubRef = onSnapshot(query(collection(db, "users"), where("referredBy", "==", parsed.id)), (snap) => setReferralCount(snap.size));
+      
+      // التحقق من حالة التشغيل (PWA)
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+      setIsStandalone(!!standalone);
+
       return () => { unsubUser(); unsubNotifs(); unsubRef(); };
     }
   }, [router, db]);
@@ -332,6 +341,45 @@ export default function HomePage() {
         </Suspense>
 
         <div className="container mx-auto px-6 space-y-12 relative z-10 mt-12">
+          
+          {/* بطاقة مهمة التثبيت - تظهر فقط في وضع المتصفح */}
+          <AnimatePresence>
+            {!isStandalone && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }} 
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                 <Card className="border-none shadow-xl rounded-[40px] bg-[#002d4d] text-white p-6 relative group overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-[0.05] -rotate-12 group-hover:rotate-0 transition-transform duration-1000 pointer-events-none">
+                       <Smartphone size={160} />
+                    </div>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                       <div className="flex items-center gap-5 text-right">
+                          <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner group-hover:scale-110 transition-transform">
+                             <Zap className="h-7 w-7 text-[#f9a885] fill-current" />
+                          </div>
+                          <div className="space-y-1">
+                             <h4 className="text-base font-black">تفعيل ميزات الوصول السريع</h4>
+                             <p className="text-[11px] text-blue-100/60 font-bold leading-relaxed">
+                               ثبّت التطبيق الآن للحصول على إشارات تداول NAMIX AI فورية وتأمين حسابك بشكل كامل.
+                             </p>
+                          </div>
+                       </div>
+                       <Button 
+                        onClick={() => window.location.reload()}
+                        className="h-11 px-8 rounded-full bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2 group/btn"
+                       >
+                          <span>ابدأ التثبيت</span>
+                          <ChevronLeft size={16} className="transition-transform group-hover/btn:-translate-x-1" />
+                       </Button>
+                    </div>
+                 </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <Suspense fallback={<SectionLoader />}><ServiceGateway /></Suspense>
           <Suspense fallback={<SectionLoader />}><EliteWatchlist favorites={favorites} /></Suspense>
           <Suspense fallback={<SectionLoader />}><FeaturedProtocols plans={featuredPlans} onSelect={setSelectedPlan} /></Suspense>
