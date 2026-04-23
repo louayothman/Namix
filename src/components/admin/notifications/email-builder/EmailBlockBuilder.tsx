@@ -15,22 +15,18 @@ import {
   Minus, 
   Layout, 
   Settings2,
-  ChevronUp,
-  ChevronDown,
   Palette,
-  AlignRight,
-  AlignCenter,
-  AlignLeft,
-  Link as LinkIcon,
-  Variable
+  Variable,
+  Zap,
+  Image
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reorder, motion, AnimatePresence } from "framer-motion";
 import { VariablePicker } from "./VariablePicker";
 
 /**
- * @fileOverview محرك بناء الكتل البريدية v1.0
- * يدير إضافة وتعديل وترتيب كتل البريد الإلكتروني مع دعم حقن المتغيرات.
+ * @fileOverview محرك بناء الكتل البريدية v2.5 - Dynamic Injection Edition
+ * يدير إضافة وتعديل وترتيب كتل البريد الإلكتروني مع دعم حقن الأزرار والشعارات داخل النصوص.
  */
 
 export type BlockType = 'header' | 'hero' | 'text' | 'button' | 'divider' | 'footer';
@@ -64,7 +60,7 @@ export function EmailBlockBuilder({ blocks, onChange, previewMode }: EmailBlockB
     switch(type) {
       case 'header': return { title: 'Namix', fontSize: '24px', color: '#002d4d' };
       case 'hero': return { imageUrl: 'https://picsum.photos/seed/1/600/300', alt: 'Hero Image' };
-      case 'text': return { text: 'مرحباً {{NAME}}، يسعدنا انضمامك إلينا...', fontSize: '14px', color: '#445566', align: 'right' };
+      case 'text': return { text: 'مرحباً {{NAME}}، يسعدنا انضمامك إلينا...\n\n[LOGO]\n\n[BUTTON|ابدأ الاستثمار|https://namix.pro/home]', fontSize: '14px', color: '#445566', align: 'right' };
       case 'button': return { label: 'فتح المحفظة', link: 'https://namix.pro', bgColor: '#002d4d', color: '#ffffff', align: 'center' };
       case 'divider': return { color: '#f1f5f9', thickness: '1px' };
       case 'footer': return { text: 'جميع الحقوق محفوظة © 2024 ناميكس', fontSize: '10px', color: '#94a3b8' };
@@ -181,13 +177,17 @@ function BlockView({ block }: { block: EmailBlock }) {
         </div>
       );
     case 'text':
+      // محرك معالجة العناصر المحقونة (Logo & Buttons)
+      const parsedText = content.text
+        .replace(/\[LOGO\]/g, `<div style="text-align: center; margin: 20px 0;"><div style="display: inline-grid; grid-template-cols: repeat(2, 1fr); gap: 4px;"><div style="width: 8px; height: 8px; border-radius: 50%; background-color: #002d4d;"></div><div style="width: 8px; height: 8px; border-radius: 50%; background-color: #f9a885;"></div><div style="width: 8px; height: 8px; border-radius: 50%; background-color: #f9a885;"></div><div style="width: 8px; height: 8px; border-radius: 50%; background-color: #002d4d;"></div></div></div>`)
+        .replace(/\[BUTTON\|([^|]+)\|([^\]]+)\]/g, `<div style="text-align: center; margin: 15px 0;"><div style="display: inline-block; padding: 10px 30px; background-color: #002d4d; color: white; border-radius: 20px; font-weight: 900; font-size: 11px;">$1</div></div>`);
+
       return (
         <div 
           style={{ color: content.color, fontSize: content.fontSize, textAlign: content.align as any }}
           className="font-bold leading-[2] whitespace-pre-wrap"
-        >
-           {content.text}
-        </div>
+          dangerouslySetInnerHTML={{ __html: parsedText }}
+        />
       );
     case 'button':
       return (
@@ -226,14 +226,35 @@ function BlockSettings({ block, update }: { block: EmailBlock, update: (id: stri
        {type === 'text' && (
          <>
             <div className="space-y-3 md:col-span-2">
-               <div className="flex items-center justify-between px-2">
-                  <Label className="text-[9px] font-black text-gray-400 uppercase">المحتوى النصي</Label>
-                  <VariablePicker onSelect={(v) => update(block.id, { text: content.text + v })} />
+               <div className="flex flex-wrap items-center justify-between gap-4 px-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[9px] font-black text-gray-400 uppercase">المحتوى النصي</Label>
+                    <VariablePicker onSelect={(v) => update(block.id, { text: content.text + v })} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <Button 
+                       onClick={() => update(block.id, { text: content.text + '\n[LOGO]\n' })}
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 rounded-lg bg-white border border-gray-200 text-[9px] font-black gap-2"
+                     >
+                        <Zap size={12} className="text-orange-400" /> إدراج شعار
+                     </Button>
+                     <Button 
+                       onClick={() => update(block.id, { text: content.text + '\n[BUTTON|نص الزر|https://]' })}
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 rounded-lg bg-white border border-gray-200 text-[9px] font-black gap-2"
+                     >
+                        <Square size={12} className="text-blue-500" /> إدراج زر
+                     </Button>
+                  </div>
                </div>
                <textarea 
                  value={content.text} 
                  onChange={e => update(block.id, { text: e.target.value })}
                  className="w-full h-32 rounded-2xl bg-white border-none p-5 font-bold text-xs leading-loose shadow-sm"
+                 placeholder="استخدم [LOGO] للشعار أو [BUTTON|Label|Link] للأزرار..."
                />
             </div>
             <div className="space-y-3">
@@ -292,3 +313,4 @@ function BlockSettings({ block, update }: { block: EmailBlock, update: (id: stri
     </div>
   );
 }
+

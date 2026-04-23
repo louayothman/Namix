@@ -6,8 +6,8 @@ import { Resend } from 'resend';
 const resend = new Resend('re_GJABmije_GN8S3yKMsCxjNkhm3YvWMnLk');
 
 /**
- * @fileOverview NAMIX AUTH ACTIONS v31.0 - Modular Broadcast Engine
- * تم تحديث المحرك ليدعم معالجة الكتل المتجاوبة وحقن المتغيرات الذكية.
+ * @fileOverview NAMIX AUTH ACTIONS v32.0 - Advanced Modular Injection
+ * تم تحديث المحرك ليدعم حقن الأزرار والشعارات داخل كتل النصوص بشكل ديناميكي.
  */
 
 export async function sendOTPEmail(email: string, otp: string) {
@@ -51,12 +51,12 @@ export async function sendBroadcastEmail(
   try {
     let finalHtml = options?.htmlOverride || "";
 
-    // إذا كان هناك كتل مودولار، نقوم بتحويلها إلى HTML
+    // إذا كان هناك كتل مودولار، نقوم بتحويلها إلى HTML مع حقن العناصر الديناميكية
     if (options?.blocks) {
       finalHtml = renderBlocksToHtml(options.blocks);
     }
 
-    // حقن المتغيرات الذكية
+    // حقن المتغيرات الذكية النهائية
     if (options?.variables) {
       Object.entries(options.variables).forEach(([key, val]) => {
         const regex = new RegExp(`{{${key}}}`, 'g');
@@ -65,7 +65,7 @@ export async function sendBroadcastEmail(
       });
     }
 
-    // إذا لم يتوفر HTML، نستخدم القالب الافتراضي المحدث
+    // إذا لم يتوفر HTML، نستخدم القالب الافتراضي
     if (!finalHtml) {
       finalHtml = `
         <div dir="rtl" style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 32px; background-color: #ffffff;">
@@ -95,7 +95,7 @@ export async function sendBroadcastEmail(
 }
 
 /**
- * محرك تحويل الكتل البرمجية إلى HTML متوافق مع تطبيقات البريد
+ * محرك تحويل الكتل البرمجية إلى HTML متوافق مع تطبيقات البريد مع دعم الحقن الجزيئي
  */
 function renderBlocksToHtml(blocks: any[]): string {
   let html = `<div dir="rtl" style="font-family: sans-serif; background-color: #f8fafc; padding: 20px 0;">`;
@@ -115,8 +115,34 @@ function renderBlocksToHtml(blocks: any[]): string {
         </div>`;
         break;
       case 'text':
+        // معالجة العناصر المحقونة داخل النص
+        let textContent = content.text.replace(/\n/g, '<br>');
+        
+        // 1. حقن الشعار [LOGO]
+        textContent = textContent.replace(/\[LOGO\]/g, `
+          <div style="text-align: center; margin: 25px 0;">
+            <table align="center" border="0" cellpadding="0" cellspacing="4">
+              <tr>
+                <td><div style="width: 10px; height: 10px; border-radius: 5px; background-color: #002d4d;"></div></td>
+                <td><div style="width: 10px; height: 10px; border-radius: 5px; background-color: #f9a885;"></div></td>
+              </tr>
+              <tr>
+                <td><div style="width: 10px; height: 10px; border-radius: 5px; background-color: #f9a885;"></div></td>
+                <td><div style="width: 10px; height: 10px; border-radius: 5px; background-color: #002d4d;"></div></td>
+              </tr>
+            </table>
+          </div>
+        `);
+
+        // 2. حقن الأزرار [BUTTON|Label|Link]
+        textContent = textContent.replace(/\[BUTTON\|([^|]+)\|([^\]]+)\]/g, `
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="$2" style="display: inline-block; padding: 14px 40px; background-color: #002d4d; color: #ffffff; border-radius: 24px; text-decoration: none; font-weight: 900; font-size: 13px; box-shadow: 0 10px 30px rgba(0,45,77,0.15);">$1</a>
+          </div>
+        `);
+
         html += `<div style="padding: 40px; text-align: ${content.align || 'right'}; color: ${content.color || '#445566'}; font-size: ${content.fontSize || '14px'}; line-height: 2; font-weight: bold;">
-          ${content.text.replace(/\n/g, '<br>')}
+          ${textContent}
         </div>`;
         break;
       case 'button':
