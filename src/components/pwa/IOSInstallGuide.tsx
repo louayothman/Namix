@@ -26,13 +26,13 @@ export function IOSInstallGuide({ onClose }: IOSInstallGuideProps) {
         
         <div className="space-y-8">
           <div className="flex items-center gap-4">
-             <div className="h-12 w-12 flex items-center justify-center transition-transform">
+             <div className="h-12 w-12 rounded-[14px] overflow-hidden flex items-center justify-center transition-transform shadow-md border border-white/10">
                 <Image 
                   src="/icon-192.png" 
                   alt="Namix" 
                   width={48} 
                   height={48} 
-                  className="object-contain"
+                  className="object-cover"
                   data-ai-hint="app icon"
                 />
              </div>

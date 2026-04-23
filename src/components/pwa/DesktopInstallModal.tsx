@@ -28,13 +28,13 @@ export function DesktopInstallModal({ onClose, onInstall }: DesktopInstallModalP
 
         <div className="space-y-10">
           <div className="flex items-center gap-6">
-             <div className="h-20 w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+             <div className="h-20 w-20 rounded-3xl overflow-hidden flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border border-gray-50">
                 <Image 
                   src="/icon-512.png" 
                   alt="Namix App" 
                   width={80} 
                   height={80} 
-                  className="object-contain"
+                  className="object-cover"
                   data-ai-hint="app icon"
                 />
              </div>

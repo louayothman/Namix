@@ -28,13 +28,13 @@ export function AndroidInstallModal({ onClose, onInstall }: AndroidInstallModalP
 
         <div className="space-y-8">
           <div className="flex items-center gap-5">
-             <div className="h-16 w-16 flex items-center justify-center group-hover:scale-110 transition-transform">
+             <div className="h-16 w-16 rounded-2xl overflow-hidden flex items-center justify-center shadow-md group-hover:scale-110 transition-transform border border-gray-50">
                 <Image 
                   src="/icon-192.png" 
                   alt="Namix App" 
                   width={64} 
                   height={64}
-                  className="object-contain"
+                  className="object-cover"
                   data-ai-hint="app icon"
                 />
              </div>
