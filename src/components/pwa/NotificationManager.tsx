@@ -11,8 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 /**
- * @fileOverview مدير تنبيهات شاشة القفل v1.0
- * يظهر طلب إذن التنبيهات بأسلوب استثماري محفز.
+ * @fileOverview مدير التنبيهات الذكي v1.1 - Smart Alert Node
+ * نافذة شاملة لتمكين الإشعارات الفورية بأسلوب مهني ومبسط.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -22,13 +22,12 @@ export function NotificationManager() {
     const userSession = localStorage.getItem("namix_user");
     if (!userSession) return;
 
-    const parsed = JSON.parse(userSession);
     const hasPermission = 'Notification' in window && Notification.permission === 'granted';
     const isDismissed = localStorage.getItem("namix_notif_prompt_dismissed");
 
     if (!hasPermission && !isDismissed) {
-      // إظهار الطلب بعد 10 ثوانٍ من دخول المستثمر لضمان عدم الإزعاج
-      const timer = setTimeout(() => setShowPrompt(true), 10000);
+      // إظهار الطلب بعد فترة وجيزة لضمان جاهزية المستثمر
+      const timer = setTimeout(() => setShowPrompt(true), 8000);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -45,7 +44,7 @@ export function NotificationManager() {
         });
         toast({
           title: "تم تفعيل التنبيهات",
-          description: "ستصلك الآن إشارات الأسعار وتحديثات المحفظة فورياً."
+          description: "ستصلك الآن تحديثات السوق وتطورات الحساب فوراً."
         });
       }
     }
@@ -77,8 +76,8 @@ export function NotificationManager() {
                    <Bell size={24} className="animate-pulse" />
                 </div>
                 <div className="text-right">
-                   <h4 className="text-base font-black text-[#002d4d]">تنبيهات الأسعار الفورية</h4>
-                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Price Pulse Node</p>
+                   <h4 className="text-base font-black text-[#002d4d]">التنبيهات الفورية</h4>
+                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Live Activity Monitor</p>
                 </div>
                 <button onClick={handleDismiss} className="mr-auto text-gray-300 hover:text-red-500 transition-colors">
                    <X size={18} />
@@ -86,7 +85,7 @@ export function NotificationManager() {
              </div>
 
              <p className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2">
-                فعّل التنبيهات للحصول على تحديثات أسعار BTC و ETH كل 30 دقيقة، بالإضافة إلى إشارات التداول اللحظية على شاشة القفل.
+                ابقَ على اتصال دائم مع تحركات السوق وتطورات محفظتك الاستثمارية فور حدوثها لضمان سرعة الاستجابة والنمو.
              </p>
 
              <div className="pt-2">
@@ -101,7 +100,7 @@ export function NotificationManager() {
 
              <div className="flex items-center justify-center gap-2 opacity-20">
                 <ShieldCheck size={10} className="text-emerald-500" />
-                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Secure Notification System</p>
+                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Secure Messaging System</p>
              </div>
           </div>
         </motion.div>
