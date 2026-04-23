@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Smartphone, ChevronLeft, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/layout/Logo";
+import Image from "next/image";
 
 interface PWAInstallCardProps {
   onInstall: () => void;
@@ -27,8 +27,15 @@ export function PWAInstallCard({ onInstall }: PWAInstallCardProps) {
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5 text-right w-full md:w-auto">
-            <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner group-hover:scale-110 transition-transform">
-              <Logo size="sm" hideText />
+            <div className="h-14 w-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+              <Image 
+                src="/icon-192.png" 
+                alt="Namix App" 
+                width={56} 
+                height={56} 
+                className="object-cover"
+                data-ai-hint="app icon"
+              />
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">

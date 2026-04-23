@@ -3,9 +3,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { X, Download, ShieldCheck, Sparkles, ChevronLeft, Zap, Activity } from "lucide-react";
+import { X, Zap, Activity, Sparkles, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/layout/Logo";
+import Image from "next/image";
 
 interface AndroidInstallModalProps {
   onClose: () => void;
@@ -28,8 +28,15 @@ export function AndroidInstallModal({ onClose, onInstall }: AndroidInstallModalP
 
         <div className="space-y-8">
           <div className="flex items-center gap-5">
-             <div className="h-16 w-16 rounded-[22px] bg-[#002d4d] flex items-center justify-center shadow-xl">
-                <Logo size="sm" lightText hideText />
+             <div className="h-16 w-16 rounded-[22px] bg-white overflow-hidden flex items-center justify-center shadow-xl border border-gray-50">
+                <Image 
+                  src="/icon-192.png" 
+                  alt="Namix App" 
+                  width={64} 
+                  height={64}
+                  className="object-cover"
+                  data-ai-hint="app icon"
+                />
              </div>
              <div className="text-right">
                 <h3 className="text-xl font-black text-[#002d4d]">تثبيت تطبيق ناميكس</h3>

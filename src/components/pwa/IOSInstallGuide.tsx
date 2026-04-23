@@ -3,8 +3,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { X, Share, PlusSquare, Smartphone, ShieldCheck } from "lucide-react";
-import { Logo } from "@/components/layout/Logo";
+import { X, Share, PlusSquare, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 interface IOSInstallGuideProps {
   onClose: () => void;
@@ -26,8 +26,15 @@ export function IOSInstallGuide({ onClose }: IOSInstallGuideProps) {
         
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-             <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
-                <Logo size="sm" hideText />
+             <div className="h-12 w-12 rounded-2xl bg-white overflow-hidden flex items-center justify-center border border-white/20 shadow-inner">
+                <Image 
+                  src="/icon-192.png" 
+                  alt="Namix" 
+                  width={48} 
+                  height={48} 
+                  className="object-cover"
+                  data-ai-hint="app icon"
+                />
              </div>
              <div className="text-right">
                 <p className="text-base font-black">أضف ناميكس لشاشتك</p>

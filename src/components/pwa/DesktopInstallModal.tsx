@@ -3,9 +3,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { X, Monitor, ShieldCheck, Sparkles, ChevronLeft, Layout } from "lucide-react";
+import { X, Layout, Sparkles, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/layout/Logo";
+import Image from "next/image";
 
 interface DesktopInstallModalProps {
   onClose: () => void;
@@ -28,8 +28,15 @@ export function DesktopInstallModal({ onClose, onInstall }: DesktopInstallModalP
 
         <div className="space-y-10">
           <div className="flex items-center gap-6">
-             <div className="h-20 w-20 rounded-[28px] bg-[#002d4d] flex items-center justify-center shadow-2xl">
-                <Logo size="md" lightText hideText />
+             <div className="h-20 w-20 rounded-[28px] bg-white overflow-hidden flex items-center justify-center shadow-2xl border border-gray-50">
+                <Image 
+                  src="/icon-512.png" 
+                  alt="Namix App" 
+                  width={80} 
+                  height={80}
+                  className="object-cover"
+                  data-ai-hint="app icon"
+                />
              </div>
              <div className="text-right">
                 <h3 className="text-2xl font-black text-[#002d4d]">نسخة سطح المكتب</h3>

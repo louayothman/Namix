@@ -3,11 +3,11 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Logo } from "@/components/layout/Logo";
+import Image from "next/image";
 
 /**
- * @fileOverview شاشة الترحيب السينمائية v1.0 - Cinematic Splash Node
- * تظهر عند فتح التطبيق المثبت فقط لإعطاء طابع التطبيقات الأصلية.
+ * @fileOverview شاشة الترحيب السينمائية v1.1 - Branded Icon Splash
+ * تعرض أيقونة التطبيق الرسمية الكبيرة (icon-512) عند فتح التطبيق المثبت.
  */
 export function PWASplash() {
   const [isVisible, setIsVisible] = useState(false);
@@ -17,7 +17,6 @@ export function PWASplash() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     
     if (isStandalone) {
-      // إظهار الشاشة فقط عند الفتح الأول للجلسة
       const sessionKey = 'namix_splash_shown';
       const hasShown = sessionStorage.getItem(sessionKey);
       
@@ -39,7 +38,6 @@ export function PWASplash() {
           transition={{ duration: 0.8, ease: "easeInOut" }}
           className="fixed inset-0 z-[3000] bg-white flex flex-col items-center justify-center overflow-hidden pointer-events-none"
         >
-          {/* Background Ambient Glow */}
           <motion.div 
             animate={{ 
               scale: [1, 1.2, 1],
@@ -52,10 +50,18 @@ export function PWASplash() {
           <div className="relative flex flex-col items-center gap-12">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.25, opacity: 1 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
+              className="h-32 w-32 md:h-48 md:w-48 rounded-[44px] overflow-hidden shadow-2xl border border-gray-100 bg-white"
             >
-              <Logo size="lg" animate={true} />
+              <Image 
+                src="/icon-512.png" 
+                alt="Namix App" 
+                width={192} 
+                height={192} 
+                className="object-cover"
+                data-ai-hint="app icon"
+              />
             </motion.div>
 
             <div className="flex flex-col items-center gap-4">
@@ -83,7 +89,7 @@ export function PWASplash() {
           </div>
 
           <div className="absolute bottom-12 text-center opacity-10">
-             <p className="text-[7px] font-black uppercase tracking-widest">Namix Financial Infrastructure v1.0</p>
+             <p className="text-[7px] font-black uppercase tracking-widest">Namix Financial Infrastructure v1.1</p>
           </div>
         </motion.div>
       )}
