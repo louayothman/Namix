@@ -22,8 +22,8 @@ import { runNamix } from "@/lib/namix-orchestrator";
 import { broadcastSignalToTelegram } from "@/app/actions/telegram-actions";
 
 /**
- * @fileOverview مدير التنبيهات المطور v12.0 - High Frequency Telegram & Push
- * إرسال إشارات تلغرام كل 5 دقائق حتى لو الثقة 1%.
+ * @fileOverview مدير التنبيهات المطور v13.0 - Maximum Frequency & Visual Pulse
+ * تم تكثيف معدل بث تلغرام كل 5 دقائق مع تجاهل عتبات الثقة لضمان الحيوية.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -54,7 +54,7 @@ export function NotificationManager() {
       return () => clearTimeout(timer);
     }
 
-    // محرك المسح السوقي والبث الشامل (Telegram + Push)
+    // محرك المسح السوقي والبث المكثف (Telegram + Push)
     const runMarketScan = async () => {
       try {
         const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
@@ -63,34 +63,30 @@ export function NotificationManager() {
         const now = Date.now();
         const lastHighTime = parseInt(localStorage.getItem("namix_last_high_signal") || "0");
         const minutesSinceLastHigh = lastHighTime === 0 ? 999 : (now - lastHighTime) / (1000 * 60);
-        const isFirstSignalSent = localStorage.getItem("namix_first_signal_sent") === "true";
         
-        // بروتوكول الثقة: 
-        // 1. أول إشارة بعد دقيقة: أي ثقة (0%+)
-        // 2. بعد 30 دقيقة هدوء: ثقة (20%+)
-        // 3. الوضع الطبيعي: ثقة (50%+)
-        let threshold = 50;
-        if (!isFirstSignalSent) threshold = 0; 
-        else if (minutesSinceLastHigh >= 30) threshold = 20;
+        // بروتوكول التنبيهات المتصفح (Browser Push)
+        // يتم الإبقاء على العتبة العالية هنا لعدم إزعاج المستخدم بنوافذ المتصفح
+        let pushThreshold = minutesSinceLastHigh >= 30 ? 20 : 50;
 
         for (const sym of symbols) {
           const analysis = await runNamix(sym.binanceSymbol || sym.code);
           const confidence = Math.round(analysis.score * 100);
 
-          // إرسال لـ تلغرام دائماً كل 5 دقائق (حتى لو الثقة 1%) لضمان الاستمرارية
+          // 1. بث تلغرام (أقصى كثافة - كل 5 دقائق - أي ثقة طالما ليست HOLD)
           if (analysis.decision !== 'HOLD') {
+             // إرسال إشارة تليجرام فورية لكل فئة بصرية
              broadcastSignalToTelegram(analysis, sym).catch(console.error);
           }
 
-          // إرسال Push للمتصفح بناءً على العتبة الذكية
-          if (confidence >= threshold && analysis.decision !== 'HOLD') {
+          // 2. إرسال Push للمتصفح بناءً على العتبة التقليدية
+          if (confidence >= pushThreshold && analysis.decision !== 'HOLD') {
             const lastNote = lastNotifiedRef.current[sym.id];
             const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
-            const isTimeElapsed = !lastNote || (now - lastNote.time > 600000); // 10 mins
+            const isTimeElapsed = !lastNote || (now - lastNote.time > 600000); 
 
             if (isDifferentTrend || isTimeElapsed) {
-              const title = `توصية ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'}: ${sym.code}`;
-              const message = `ثقة %${confidence}. السعر: $${analysis.agents.tech.last.toLocaleString()}`;
+              const title = `تحديث السوق: ${sym.code}`;
+              const message = `توصية ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} بنسبة ثقة %${confidence}.`;
               const targetUrl = `/trade/${sym.id}`;
               
               if (user) {
@@ -106,7 +102,6 @@ export function NotificationManager() {
                   icon: '/icon-192.png',
                   badge: '/icon-192.png',
                   vibrate: [200, 100, 200],
-                  dir: 'rtl',
                   data: { url: targetUrl },
                   tag: `signal_${sym.id}`,
                   renotify: true
@@ -114,7 +109,6 @@ export function NotificationManager() {
               }
               
               lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
-              if (!isFirstSignalSent) localStorage.setItem("namix_first_signal_sent", "true");
               if (confidence >= 50) localStorage.setItem("namix_last_high_signal", now.toString());
               break; 
             }
@@ -126,7 +120,6 @@ export function NotificationManager() {
     const timeSinceInstall = Date.now() - parseInt(installTime);
     const oneMinute = 60000;
 
-    // جدولة إشارة الدقيقة الأولى
     if (timeSinceInstall < oneMinute && !isFirstScanScheduled.current) {
       isFirstScanScheduled.current = true;
       setTimeout(runMarketScan, oneMinute - timeSinceInstall);
@@ -134,7 +127,7 @@ export function NotificationManager() {
       runMarketScan();
     }
 
-    // مسح دوري كل 5 دقائق
+    // المسح الدوري (كل 5 دقائق بالضبط) لضمان حيوية البوت
     const signalInterval = setInterval(runMarketScan, 300000);
     return () => clearInterval(signalInterval);
   }, [db]);
@@ -155,7 +148,7 @@ export function NotificationManager() {
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
         reg.showNotification('مرحباً بك في ناميكس', {
-          body: 'تم تفعيل التنبيهات بنجاح. ستصلك أحدث تحديثات محفظتك والفرص هنا.',
+          body: 'تم تفعيل مركز التنبيهات بنجاح. ستصلك أحدث الفرص هنا.',
           icon: '/icon-192.png',
           badge: '/icon-192.png',
           data: { url: '/home' }
