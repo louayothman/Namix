@@ -6,7 +6,7 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, setD
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام الموحد v5.0 - Cinematic Pulse Signals
+ * @fileOverview محرك عمليات تلغرام الموحد v6.0 - High Frequency Vital Signals
  * تم تطوير المحرك لإرسال إشارات مصورة وعصرية تليق بهوية ناميكس النخبوية.
  */
 
@@ -18,17 +18,16 @@ interface TelegramBot {
   botUsername: string;
 }
 
-// مصفوفة صور عصرية للرسوم البيانية لإعطاء روح للرسالة
 const CHART_IMAGES = [
   "https://images.unsplash.com/photo-1611974714024-4607a0a715f8?auto=format&fit=crop&q=80&w=1000",
   "https://images.unsplash.com/photo-1642790103547-1757df15039a?auto=format&fit=crop&q=80&w=1000",
   "https://images.unsplash.com/photo-1644659399105-3e284a1e9447?auto=format&fit=crop&q=80&w=1000",
-  "https://images.unsplash.com/photo-1611974714024-4607a0a715f8?auto=format&fit=crop&q=80&w=1000"
+  "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&q=80&w=1000",
+  "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&q=80&w=1000"
 ];
 
 /**
  * إرسال إشارة تداول مصورة لكافة البوتات النشطة في النظام
- * تدعم الإرسال الفوري لضمان نبض مستمر للمستثمر
  */
 export async function broadcastSignalToTelegram(signal: any, symbol: any) {
   try {
@@ -42,7 +41,6 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any) {
     const accentEmoji = isBuy ? '🟢' : '🔴';
     const actionLabel = isBuy ? 'شراء | LONG' : 'بيع | SHORT';
     
-    // سرد تكتيكي للرسالة (صديق لمحركات البحث البشري)
     const caption = `
 ${accentEmoji} *تحليل فرصة تداول: ${symbol.code}*
 
@@ -57,7 +55,7 @@ ${accentEmoji} *تحليل فرصة تداول: ${symbol.code}*
 🎯 الهدف 2: $${(symbol.currentPrice * (isBuy ? 1.01 : 0.99)).toFixed(2)}
 🚀 الهدف الأقصى: $${(symbol.currentPrice * (isBuy ? 1.02 : 0.98)).toFixed(2)}
 
-🛑 وقف الخسارة المعتمد: $${(symbol.currentPrice * (isBuy ? 0.99 : 1.01)).toFixed(2)}
+🛑 وقف الخسارة المعتمد: $${(signal.invalidated_at || symbol.currentPrice * (isBuy ? 0.99 : 1.01)).toFixed(2)}
 
 ---
 _تم التحليل بواسطة NAMIX AI_
@@ -72,7 +70,9 @@ _تم التحليل بواسطة NAMIX AI_
       const botOps = subsSnap.docs.map(subDoc => {
         const chatId = subDoc.id;
         const buttonEmoji = isBuy ? "🟢" : "🔴";
-        const tmaUrl = `https://t.me/${bot.botUsername}/app?startapp=${symbol.id}`;
+        const host = headers().get('host');
+        const protocol = host?.includes('localhost') ? 'http' : 'https';
+        const tmaUrl = `${protocol}://${host}/trade/${symbol.id}`;
 
         return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
           method: 'POST',
@@ -84,7 +84,7 @@ _تم التحليل بواسطة NAMIX AI_
             parse_mode: 'Markdown',
             reply_markup: {
               inline_keyboard: [[
-                { text: `${buttonEmoji} تنفيذ الصفقة فوراً`, url: tmaUrl }
+                { text: `${buttonEmoji} تنفيذ الصفقة فوراً`, web_app: { url: tmaUrl } }
               ]]
             }
           })
@@ -107,6 +107,7 @@ _تم التحليل بواسطة NAMIX AI_
 
     return { success: true };
   } catch (e: any) {
+    console.error("Telegram Broadcast Error:", e.message);
     return { success: false, error: e.message };
   }
 }
@@ -125,7 +126,7 @@ export async function addNewTelegramBot(name: string, token: string) {
     const botId = Math.random().toString(36).substr(2, 9);
     const botUsername = data.result.username;
 
-    const headersList = await headers();
+    const headersList = headers();
     const host = headersList.get('host');
     const protocol = host?.includes('localhost') ? 'http' : 'https';
     const webhookUrl = `${protocol}://${host}/api/telegram/webhook/${botId}`;

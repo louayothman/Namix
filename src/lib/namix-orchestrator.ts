@@ -20,9 +20,11 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
 
   const decisionScore = (tech.score * 0.7) + (volume.score * 0.3);
 
+  // تحديث الحساسية: جعل النظام يتخذ قراراً عند أي انحراف عن 0.5 (التعادل)
+  // لضمان وجود إشارات دائمية حتى لو كانت الثقة 1%
   let decision = "HOLD";
-  if (decisionScore > 0.58) decision = "BUY";
-  else if (decisionScore < 0.42) decision = "SELL";
+  if (decisionScore > 0.501) decision = "BUY";
+  else if (decisionScore < 0.499) decision = "SELL";
 
   const confidence = Math.round(decisionScore * 100);
 
