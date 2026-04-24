@@ -18,12 +18,13 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v38.0 - Pure White Edition
- * تم إزالة الخلفية الدورانية لضمان مظهر أبيض ناصع ونقي تماماً.
+ * @fileOverview بوابة ناميكس الاستثمارية v39.0 - Standalone Bypass Edition
+ * تم تحديث محرك التوجيه ليقوم بتجاوز الصفحة تماماً في وضع التطبيق المثبت.
  */
 export default function LandingPage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   
   // Dialog States
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -39,22 +40,31 @@ export default function LandingPage() {
     const hasUser = !!userSession;
     setIsLoggedIn(hasUser);
 
-    // محرك التوجيه الذكي للتطبيق المثبت
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    // كشف حالة التطبيق المثبت
+    const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsStandalone(!!standaloneMode);
     
-    if (isStandalone && hasUser) {
-      try {
-        const parsed = JSON.parse(userSession);
-        if (parsed.role === 'admin') {
-          router.replace("/admin");
-        } else {
-          router.replace("/home");
+    if (standaloneMode) {
+      // بروتوكول التوجيه القسري في وضع التطبيق: صفحة الهبوط محظورة تماماً
+      if (hasUser) {
+        try {
+          const parsed = JSON.parse(userSession);
+          if (parsed.role === 'admin') {
+            router.replace("/admin");
+          } else {
+            router.replace("/home");
+          }
+        } catch (e) {
+          router.replace("/login");
         }
-      } catch (e) {
-        console.error("Redirect Engine Error");
+      } else {
+        router.replace("/login");
       }
     }
   }, [router]);
+
+  // إذا كان التطبيق مثبتاً، لا نعرض شيئاً حتى يتم التوجيه (أو نعرض خلفية بيضاء صافية)
+  if (isStandalone) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-white" dir="rtl">
@@ -79,7 +89,7 @@ export default function LandingPage() {
       
       {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
-      <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
+      <ContractLabDialog open={isContractLabOpen} onOpenChange={isContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
       <FAQDialog open={isFAQOpen} onOpenChange={setIsFAQOpen} onContactClick={() => setIsSupportOpen(true)} />
       <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
