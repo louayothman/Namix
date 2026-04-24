@@ -20,18 +20,20 @@ import {
   Globe,
   Settings2,
   X,
-  ChevronLeft
+  ChevronLeft,
+  Layers,
+  Cpu
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { addNewTelegramBot } from "@/app/actions/telegram-actions";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview جرد مصفوفة البوتات v1.0
- * يدير عرض البوتات الحالية وإضافة بوتات جديدة عبر مفاتيح API.
+ * @fileOverview جرد مصفوفة البوتات v2.0 - Inline Forge Edition
+ * تم تحويل نموذج الإضافة ليكون مضمناً بالكامل في الصفحة بدلاً من النوافذ المنبثقة.
  */
 
 export function BotsInventory() {
@@ -69,21 +71,113 @@ export function BotsInventory() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12 font-body text-right" dir="rtl">
+      
+      {/* 1. The Inline Bot Forge - مفاعل صهر البوتات المضمن */}
+      <AnimatePresence>
+        {isAddOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, y: -20 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: "circOut" }}
+            className="overflow-hidden"
+          >
+            <Card className="rounded-[56px] border-none shadow-2xl bg-white overflow-hidden mb-10 group">
+              <CardHeader className="bg-[#002d4d] p-10 text-white relative flex flex-row items-center justify-between">
+                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] -rotate-12 pointer-events-none group-hover:rotate-0 duration-1000">
+                    <Cpu size={160} />
+                 </div>
+                 <div className="flex items-center gap-6 relative z-10">
+                    <div className="h-16 w-16 rounded-[28px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
+                       <Plus className="h-8 w-8 text-[#f9a885]" />
+                    </div>
+                    <div className="space-y-0.5">
+                       <CardTitle className="text-2xl font-black">ربط محطة بث جديدة</CardTitle>
+                       <p className="text-[10px] font-black text-blue-200/40 uppercase tracking-[0.3em] mt-1">New Telegram Node Forge</p>
+                    </div>
+                 </div>
+                 <Button 
+                   variant="ghost" 
+                   onClick={() => setIsAddOpen(false)}
+                   className="rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-[10px] px-8 h-12 border border-white/10"
+                 >
+                    إلغاء وإخفاء المفاعل
+                 </Button>
+              </CardHeader>
+              <CardContent className="p-10 space-y-8">
+                 <div className="grid gap-10 md:grid-cols-2">
+                    <div className="space-y-6">
+                       <div className="space-y-3">
+                          <Label className="text-[11px] font-black text-gray-400 pr-4 uppercase tracking-widest">اسم البوت الإداري</Label>
+                          <Input 
+                            value={newBot.name} 
+                            onChange={e => setNewBot({...newBot, name: e.target.value})} 
+                            className="h-14 rounded-2xl bg-gray-50 border-none font-black text-sm px-8 shadow-inner" 
+                            placeholder="مثلاً: Namix Core Bot" 
+                          />
+                       </div>
+                       <div className="space-y-3">
+                          <Label className="text-[11px] font-black text-gray-400 pr-4 uppercase tracking-widest">بوت توكن (Bot API Token)</Label>
+                          <Input 
+                            value={newBot.token} 
+                            onChange={e => setNewBot({...newBot, token: e.target.value})} 
+                            className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-[10px] px-8 shadow-inner text-left" 
+                            dir="ltr"
+                            placeholder="123456789:ABCDefGhI..." 
+                          />
+                       </div>
+                    </div>
+                    
+                    <div className="flex flex-col justify-between gap-6">
+                       <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100/50 flex items-start gap-6">
+                          <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                             <ShieldCheck className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <p className="text-[11px] font-bold text-blue-800/60 leading-[2.2]">
+                            سيقوم النظام بالاتصال بخوادم تلغرام فوراً للتحقق من صلاحية التوكن. تأكد من تفعيل صلاحية إرسال الرسائل بداخل BotFather لضمان بث الإشارات.
+                          </p>
+                       </div>
+                       
+                       <Button 
+                         onClick={handleAdd} 
+                         disabled={loading || !newBot.name || !newBot.token}
+                         className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                       >
+                          {loading ? <Loader2 className="animate-spin h-6 w-6" /> : (
+                            <>
+                               <span>تنشيط البوت في المصفوفة</span>
+                               <Zap className="h-5 w-5 text-[#f9a885] fill-current" />
+                            </>
+                          )}
+                       </Button>
+                    </div>
+                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Grid of Active Bots & Trigger Card */}
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {/* Add Bot Action Card */}
-        <button 
-          onClick={() => setIsAddOpen(true)}
-          className="p-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[56px] flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-blue-500 hover:shadow-2xl transition-all group active:scale-95"
-        >
-          <div className="h-20 w-20 rounded-[28px] bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-blue-500 transition-colors">
-            <Plus size={32} />
-          </div>
-          <div className="text-center space-y-1">
-             <h4 className="font-black text-lg text-[#002d4d]">إدراج بوت جديد</h4>
-             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connect New Telegram Node</p>
-          </div>
-        </button>
+        {/* The Action Trigger Card */}
+        {!isAddOpen && (
+          <motion.button 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={() => setIsAddOpen(true)}
+            className="p-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[56px] flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-blue-500 hover:shadow-2xl transition-all group active:scale-95 h-full min-h-[300px]"
+          >
+            <div className="h-20 w-20 rounded-[28px] bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-blue-500 transition-colors">
+              <Plus size={32} />
+            </div>
+            <div className="text-center space-y-1">
+               <h4 className="font-black text-lg text-[#002d4d]">إدراج بوت جديد</h4>
+               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Connect New Telegram Node</p>
+            </div>
+          </motion.button>
+        )}
 
         {isLoading ? (
           <div className="col-span-2 flex items-center justify-center py-20">
@@ -107,7 +201,7 @@ export function BotsInventory() {
 
                 <div className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner space-y-3">
                    <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">API Endpoint Token</span>
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">API Endpoint Token</span>
                       <KeyRound size={12} className="text-gray-200" />
                    </div>
                    <p className="text-[10px] font-mono text-[#002d4d] truncate max-w-full opacity-60" dir="ltr">{bot.token}</p>
@@ -125,58 +219,6 @@ export function BotsInventory() {
           </Card>
         ))}
       </div>
-
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-         <DialogContent className="rounded-[56px] border-none shadow-2xl p-0 max-w-[440px] overflow-hidden font-body text-right outline-none" dir="rtl">
-            <div className="bg-[#002d4d] p-10 text-white relative text-center">
-               <div className="absolute top-0 right-0 p-8 opacity-[0.03] -rotate-12 pointer-events-none"><Zap size={160} /></div>
-               <div className="h-20 w-20 rounded-[32px] bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner mx-auto mb-6">
-                  <Bot size={40} className="text-[#f9a885]" />
-               </div>
-               <DialogTitle className="text-2xl font-black">ربط محطة بث جديدة</DialogTitle>
-               <p className="text-[10px] font-black text-blue-200/40 uppercase tracking-[0.3em] mt-2">New Bot Integration Node</p>
-            </div>
-
-            <div className="p-10 space-y-8 bg-white">
-               <div className="space-y-6">
-                  <div className="space-y-2">
-                     <Label className="text-[11px] font-black text-gray-400 pr-4 uppercase">اسم البوت (للمرجع الإداري)</Label>
-                     <Input 
-                       value={newBot.name} 
-                       onChange={e => setNewBot({...newBot, name: e.target.value})} 
-                       className="h-14 rounded-2xl bg-gray-50 border-none font-black text-sm px-8 shadow-inner" 
-                       placeholder="مثلاً: Namix Signals Bot" 
-                     />
-                  </div>
-                  <div className="space-y-2">
-                     <Label className="text-[11px] font-black text-gray-400 pr-4 uppercase">بوت توكن (Bot API Token)</Label>
-                     <Input 
-                       value={newBot.token} 
-                       onChange={e => setNewBot({...newBot, token: e.target.value})} 
-                       className="h-14 rounded-2xl bg-gray-50 border-none font-mono text-[10px] px-8 shadow-inner text-left" 
-                       dir="ltr"
-                       placeholder="123456789:ABCDefGhI..." 
-                     />
-                  </div>
-               </div>
-
-               <div className="p-6 bg-blue-50/50 rounded-[32px] border border-blue-100/50 flex items-start gap-4">
-                  <ShieldCheck size={20} className="text-blue-600 shrink-0" />
-                  <p className="text-[10px] font-bold text-blue-800/60 leading-loose">
-                    يتم التحقق من صحة التوكن لحظياً قبل الحفظ. تأكد من تفعيل صلاحيات الإرسال في إعدادات BotFather.
-                  </p>
-               </div>
-
-               <Button 
-                 onClick={handleAdd} 
-                 disabled={loading || !newBot.name || !newBot.token}
-                 className="w-full h-18 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-               >
-                  {loading ? <Loader2 className="animate-spin h-6 w-6" /> : "تنشيط البوت في المصفوفة"}
-               </Button>
-            </div>
-         </DialogContent>
-      </Dialog>
     </div>
   );
 }
