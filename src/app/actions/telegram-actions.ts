@@ -2,11 +2,12 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, setDoc } from 'firebase/firestore';
+import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام الموحد v1.0
- * يدير إرسال الإشارات وتوثيقها عبر كافة البوتات النشطة.
+ * @fileOverview محرك عمليات تلغرام الموحد v2.0
+ * يدير إرسال الإشارات، إضافة البوتات، وتفعيل الـ Webhook للاستجابة التلقائية.
  */
 
 interface TelegramBot {
@@ -14,6 +15,7 @@ interface TelegramBot {
   name: string;
   token: string;
   isActive: boolean;
+  botUsername: string;
 }
 
 /**
@@ -30,7 +32,6 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any) {
     const accentEmoji = isBuy ? '🟢' : '🔴';
     const actionLabel = isBuy ? 'شراء | BUY' : 'بيع | SELL';
     
-    // صياغة الرسالة الاحترافية
     const message = `
 ${accentEmoji} *توصية تداول ذكية: ${symbol.code}*
 
@@ -48,17 +49,14 @@ ${accentEmoji} *توصية تداول ذكية: ${symbol.code}*
 _تم التحليل بواسطة محرك NAMIX AI_
     `;
 
-    // إرسال الرسالة لكل بوت
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
-      
-      // جلب كافة المشتركين في هذا البوت (يتم تخزينهم عند بدء المحادثة)
       const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
       
       const botOps = subsSnap.docs.map(subDoc => {
         const chatId = subDoc.id;
-        const buttonColor = isBuy ? "🟢" : "🔴";
-        const tmaUrl = `https://t.me/${bot.name.replace('@', '')}/app?startapp=${symbol.id}`;
+        const buttonEmoji = isBuy ? "🟢" : "🔴";
+        const tmaUrl = `https://t.me/${bot.botUsername}/app?startapp=${symbol.id}`;
 
         return fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
@@ -69,7 +67,7 @@ _تم التحليل بواسطة محرك NAMIX AI_
             parse_mode: 'Markdown',
             reply_markup: {
               inline_keyboard: [[
-                { text: `${buttonColor} تنفيذ الصفقة في المحطة`, url: tmaUrl }
+                { text: `${buttonEmoji} تنفيذ الصفقة في المحطة`, url: tmaUrl }
               ]]
             }
           })
@@ -81,7 +79,6 @@ _تم التحليل بواسطة محرك NAMIX AI_
 
     await Promise.all(sendOps);
 
-    // توثيق عملية البث
     await addDoc(collection(firestore, "telegram_broadcast_logs"), {
       symbolId: symbol.id,
       symbolCode: symbol.code,
@@ -98,35 +95,49 @@ _تم التحليل بواسطة محرك NAMIX AI_
 }
 
 /**
- * إضافة بوت جديد للمنظومة
+ * إضافة بوت جديد وتفعيل الـ Webhook الخاص به
  */
 export async function addNewTelegramBot(name: string, token: string) {
   try {
     const { firestore } = initializeFirebase();
-    // التحقق من صحة التوكن عبر API تلغرام قبل الحفظ
+    
+    // 1. التحقق من صحة التوكن وجلب بيانات البوت
     const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await res.json();
     
     if (!data.ok) throw new Error("توكن البوت غير صحيح أو غير صالح.");
 
-    const botRef = doc(collection(firestore, "system_settings", "telegram", "bots"));
+    const botId = Math.random().toString(36).substr(2, 9);
+    const botUsername = data.result.username;
+
+    // 2. ربط الـ Webhook للاستجابة لرسالة /start
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const webhookUrl = `${protocol}://${host}/api/telegram/webhook/${botId}`;
+
+    const webhookRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl })
+    });
+    const webhookData = await webhookRes.json();
+    if (!webhookData.ok) throw new Error("فشل في ربط الـ Webhook مع تلغرام.");
+
+    // 3. حفظ البيانات في القاعدة
+    const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
     await setDoc(botRef, {
-      id: botRef.id,
-      name: name.startsWith('@') ? name : `@${name}`,
+      id: botId,
+      name: name,
       token: token,
       isActive: true,
-      botUsername: data.result.username,
+      botUsername: botUsername,
+      webhookUrl: webhookUrl,
       createdAt: new Date().toISOString()
     });
 
-    return { success: true, id: botRef.id };
+    return { success: true, id: botId };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
-}
-
-async function setDoc(botRef: any, arg1: { id: any; name: string; token: string; isActive: boolean; botUsername: any; createdAt: string; }) {
-    const { firestore } = initializeFirebase();
-    const { doc, setDoc } = await import('firebase/firestore');
-    await setDoc(botRef, arg1);
 }
