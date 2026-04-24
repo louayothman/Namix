@@ -13,7 +13,8 @@ import {
   Coins, 
   PlayCircle, 
   Loader2,
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,8 +34,8 @@ interface ParameterConsoleProps {
 }
 
 /**
- * @fileOverview قُمرة التنفيذ الموحدة v10.0 - Unified Sovereign Hub
- * دمج المبلغ، المدة، وزر التنفيذ في بطاقة واحدة فخمة تتفاعل مع نبض التحليل.
+ * @fileOverview قُمرة التنفيذ الموحدة v11.0 - Liquidity Safety Protocol
+ * تم إضافة محرك فحص الرصيد اللحظي لضمان سلامة التنفيذ ومنع الأخطاء المالية.
  */
 export function ParameterConsole({ 
   amount, 
@@ -58,20 +59,27 @@ export function ParameterConsole({
   const isBuy = decision === 'BUY';
   const isSell = decision === 'SELL';
   const isHold = decision === 'HOLD';
+  const isInsufficient = balance < amount;
 
   return (
     <div className="p-1 font-body select-none" dir="rtl">
       <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] overflow-hidden flex flex-col group transition-all duration-700 hover:shadow-2xl">
         
-        {/* Section 1: Amount Control - الدقة الرقمية */}
+        {/* Section 1: Amount Control - التدقيق المالي */}
         <div className="p-8 space-y-5">
           <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
                 <Coins size={14} className="text-[#f9a885]" />
                 <span className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">حقن السيولة</span>
              </div>
-             <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-none font-black text-[8px] px-3 py-1 rounded-full tabular-nums">
-                Avl: ${balance.toLocaleString()}
+             <Badge 
+               variant="outline" 
+               className={cn(
+                 "border-none font-black text-[8px] px-3 py-1 rounded-full tabular-nums shadow-inner transition-colors duration-500",
+                 isInsufficient ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"
+               )}
+             >
+                {isInsufficient ? "عجز في الرصيد" : `Avl: $${balance.toLocaleString()}`}
              </Badge>
           </div>
 
@@ -89,7 +97,10 @@ export function ParameterConsole({
                   type="number"
                   value={amount}
                   onChange={(e) => onAmountChange(Number(e.target.value))}
-                  className="h-14 w-full rounded-2xl bg-gray-50 border-none font-black text-center text-2xl text-[#002d4d] shadow-inner focus:ring-2 focus:ring-blue-500/10 transition-all outline-none tabular-nums"
+                  className={cn(
+                    "h-14 w-full rounded-2xl bg-gray-50 border-none font-black text-center text-2xl shadow-inner focus:ring-2 transition-all outline-none tabular-nums",
+                    isInsufficient ? "text-red-500 focus:ring-red-100" : "text-[#002d4d] focus:ring-blue-500/10"
+                  )}
                 />
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-200 pointer-events-none">
                    <span className="text-sm font-bold">$</span>
@@ -124,7 +135,8 @@ export function ParameterConsole({
                       : "bg-transparent border-transparent text-gray-400 hover:text-gray-600"
                   )}
                 >
-                  {d.label}
+                  {duration === d.seconds && <motion.div layoutId="active-dur-min" className="absolute inset-0 bg-[#f9a885]/5" />}
+                  <span className="relative z-10">{d.label}</span>
                 </button>
               ))}
            </div>
@@ -134,9 +146,10 @@ export function ParameterConsole({
         <div className="p-4 bg-gray-50/50 border-t border-gray-50">
            <Button
              onClick={onExecute}
-             disabled={isExecuting || isHold}
+             disabled={isExecuting || isHold || isInsufficient}
              className={cn(
                "w-full h-18 rounded-[32px] text-white font-black text-lg shadow-xl transition-all duration-1000 group active:scale-[0.98] relative overflow-hidden",
+               isInsufficient ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none" :
                isBuy ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/20" :
                isSell ? "bg-red-600 hover:bg-red-700 shadow-red-900/20" :
                "bg-gray-200 text-gray-400 border-none shadow-none"
@@ -155,7 +168,12 @@ export function ParameterConsole({
                    animate={{ opacity: 1, y: 0 }}
                    className="flex items-center gap-3"
                  >
-                    {isHold ? (
+                    {isInsufficient ? (
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle className="h-5 w-5" />
+                        <span>رصيد غير كافٍ للتنفيذ</span>
+                      </div>
+                    ) : isHold ? (
                       <span className="opacity-60">بانتظار الإشارة الاستباقية...</span>
                     ) : (
                       <>
@@ -167,7 +185,7 @@ export function ParameterConsole({
                )}
              </AnimatePresence>
 
-             {!isHold && (
+             {(!isHold && !isInsufficient) && (
                <motion.div 
                  animate={{ opacity: [0.1, 0.3, 0.1] }}
                  transition={{ duration: 2, repeat: Infinity }}
