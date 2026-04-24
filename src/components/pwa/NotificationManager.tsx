@@ -24,8 +24,8 @@ import { cn } from "@/lib/utils";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات ومحرك الإشارات العالمي v9.1 - Unified Multi-Channel Protocol
- * تم تحويل واجهة تفعيل التنبيهات لتشمل كافة جوانب المنصة (أمان، مالية، ذكاء اصطناعي) بأسلوب راقٍ.
+ * @fileOverview مدير التنبيهات المطور v10.0 - Professional Trading Edition
+ * لغة بسيطة وراقية، بث مباشر لشاشة القفل، ودعم إشارة الدقيقة الأولى.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -36,7 +36,6 @@ export function NotificationManager() {
   const isFirstScanScheduled = useRef(false);
 
   useEffect(() => {
-    // التحقق من وجود نافذة المتصفح ودعم التنبيهات
     if (typeof window === 'undefined' || !('Notification' in window)) return;
 
     const userSession = localStorage.getItem("namix_user");
@@ -65,9 +64,12 @@ export function NotificationManager() {
         const now = Date.now();
         const lastHighTime = parseInt(localStorage.getItem("namix_last_high_signal") || now.toString());
         const minutesSinceLastHigh = (now - lastHighTime) / (1000 * 60);
+        const isFirstSignalSent = localStorage.getItem("namix_first_signal_sent") === "true";
         
-        // بروتوكول الثقة: 50% افتراضي، 20% بعد 30 دقيقة صمت
-        const threshold = minutesSinceLastHigh >= 30 ? 20 : 50;
+        // 1. تحديد عتبة الثقة (0% للإشارة الأولى، 50% كحد أدنى، 20% في حال الركود)
+        let threshold = 50;
+        if (!isFirstSignalSent) threshold = 0; // إرسال أول إشارة مهما كانت القوة
+        else if (minutesSinceLastHigh >= 30) threshold = 20;
 
         for (const sym of symbols) {
           const analysis = await runNamix(sym.binanceSymbol || sym.code);
@@ -79,23 +81,24 @@ export function NotificationManager() {
             const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); 
 
             if (isDifferentTrend || isTimeElapsed) {
-              const title = `إشارة تداول: ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} ${sym.code}`;
+              const title = `فرصة تداول: ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} ${sym.code}`;
               const message = `توصية NAMIX AI بنسبة ثقة %${confidence}. السعر الحالي: $${analysis.agents.tech.last.toLocaleString()}`;
+              const targetUrl = `/trade/${sym.id}`;
               
-              // 1. التوثيق السحابي للمسجلين (Cloud Sync)
+              // أ. التوثيق السحابي للمسجلين
               if (user) {
                 await addDoc(collection(db, "notifications"), {
                   userId: user.id,
                   title,
                   message,
                   type: "success",
-                  url: `/trade/${sym.id}`,
+                  url: targetUrl,
                   isRead: false,
                   createdAt: new Date().toISOString()
                 });
               }
 
-              // 2. إطلاق إشعار Push حقيقي لشاشة القفل (Service Worker Push)
+              // ب. إطلاق إشعار Push حقيقي لشاشة القفل
               if ('serviceWorker' in navigator && window.Notification.permission === 'granted') {
                 const registration = await navigator.serviceWorker.ready;
                 registration.showNotification(title, {
@@ -105,16 +108,20 @@ export function NotificationManager() {
                   vibrate: [200, 100, 200],
                   dir: 'rtl',
                   lang: 'ar',
-                  data: { url: `/trade/${sym.id}` },
-                  tag: `signal_${sym.id}`, // تحديث نفس التنبيه بدلاً من التكرار
+                  data: { url: targetUrl },
+                  tag: `signal_${sym.id}`,
                   renotify: true
                 });
               }
               
               lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
+              if (!isFirstSignalSent) localStorage.setItem("namix_first_signal_sent", "true");
               if (confidence >= 50) {
                 localStorage.setItem("namix_last_high_signal", now.toString());
               }
+              
+              // نكتفي بإشارة واحدة في كل مسح للتركيز
+              break; 
             }
           }
         }
@@ -129,48 +136,14 @@ export function NotificationManager() {
 
     if (timeSinceInstall < oneMinute && !isFirstScanScheduled.current) {
       isFirstScanScheduled.current = true;
-      setTimeout(() => {
-        runMarketScan();
-      }, oneMinute - timeSinceInstall);
+      setTimeout(runMarketScan, oneMinute - timeSinceInstall);
     } else if (timeSinceInstall >= oneMinute) {
       runMarketScan();
     }
 
     const signalInterval = setInterval(runMarketScan, 300000);
 
-    // مراقب FCM للمسجلين (مزامنة العمليات المالية وغيرها)
-    let unsubscribe: any;
-    if (user && hasPermission) {
-      const q = query(
-        collection(db, "notifications"),
-        where("userId", "==", user.id),
-        where("isRead", "==", false),
-        orderBy("createdAt", "desc"),
-        limit(1)
-      );
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          if (change.type === "added") {
-            const data = change.doc.data();
-            // نمنع الازدواجية مع إشارات التداول التي تم إرسالها بالفعل
-            if (new Date().getTime() - new Date(data.createdAt).getTime() < 10000 && !data.title.includes('إشارة تداول')) {
-              const reg = await navigator.serviceWorker.ready;
-              reg.showNotification(data.title, { 
-                body: data.message, 
-                icon: '/icon-192.png', 
-                badge: '/icon-192.png',
-                data: { url: data.url || '/home' } 
-              });
-            }
-          }
-        });
-      });
-    }
-
-    return () => {
-      clearInterval(signalInterval);
-      if (unsubscribe) unsubscribe();
-    };
+    return () => clearInterval(signalInterval);
   }, [db]);
 
   const handleGrantPermission = async () => {
@@ -184,6 +157,18 @@ export function NotificationManager() {
           updatedAt: new Date().toISOString()
         });
       }
+      
+      // إرسال إشعار ترحيبي فوري لشاشة القفل
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('مرحباً بك في ناميكس', {
+          body: 'تم تفعيل التنبيهات بنجاح. ستصلك أحدث الفرص وتحديثات حسابك هنا.',
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          data: { url: '/home' }
+        });
+      }
+
       setIsSuccess(true);
       setTimeout(() => setShowPrompt(false), 3000);
     } else {
@@ -224,10 +209,10 @@ export function NotificationManager() {
                 </div>
                 <div className="text-right">
                    <h4 className="text-base font-black text-[#002d4d]">
-                     {isSuccess ? "تم تفعيل التنبيهات" : "مركز التنبيهات الموحد"}
+                     {isSuccess ? "تم تفعيل التنبيهات" : "تفعيل التنبيهات الذكية"}
                    </h4>
                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                     {isSuccess ? "Communication Active" : "Sovereign Communication Hub"}
+                     {isSuccess ? "Active" : "Notifications Center"}
                    </p>
                 </div>
                 {!isSuccess && (
@@ -248,7 +233,7 @@ export function NotificationManager() {
                     >
                        <ShieldCheck size={16} className="text-emerald-500" />
                        <p className="text-[11px] font-black text-emerald-800">
-                          نظام الاتصال الموحد نشط الآن. ستصلك كافة التحديثات المالية والأمنية وإشارات الذكاء الاصطناعي مباشرة على شاشتك.
+                          شكراً لك، ستقوم ناميكس الآن بإخطارك بكافة الفرص وتحديثات حسابك مباشرة على شاشة جهازك.
                        </p>
                     </motion.div>
                   ) : (
@@ -258,7 +243,7 @@ export function NotificationManager() {
                       animate={{ opacity: 1 }}
                       className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2"
                     >
-                       فعل التنبيهات الذكية لاستلام تحديثات محفظتك اللحظية، تنبيهات الأمان السيادية، وأحدث رؤى NAMIX AI مباشرة على شاشتك.
+                       احصل على وصول فوري لأحدث إشارات التداول، وتحديثات محفظتك اللحظية، وتنبيهات الأمان مباشرة على شاشة قفل جهازك.
                     </motion.p>
                   )}
                 </AnimatePresence>
@@ -270,16 +255,11 @@ export function NotificationManager() {
                    onClick={handleGrantPermission}
                    className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
                  >
-                    <span>تفعيل التنبيهات الموحدة</span>
+                    <span>تفعيل التنبيهات</span>
                     <Sparkles size={16} className="text-[#f9a885]" />
                  </Button>
                </div>
              )}
-
-             <div className="flex items-center justify-center gap-2 opacity-20">
-                <ShieldCheck size={10} className="text-emerald-500" />
-                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Sovereign Network Infrastructure</p>
-             </div>
           </div>
         </motion.div>
       )}
