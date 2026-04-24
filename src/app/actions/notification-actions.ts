@@ -5,8 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 /**
- * @fileOverview نظام التنبيهات المتقدم v6.0
- * تم تحديث اللغة لتكون رسمية تماماً وخالية من الكلمات المرفوضة والرموز التعبيرية.
+ * @fileOverview نظام التنبيهات المتقدم v7.0
+ * تم تحديث اللغة لتكون رسمية تماماً وإزالة قيود الثقة الصلبة لدعم محرك الإشارات الديناميكي.
  */
 
 /**
@@ -32,25 +32,20 @@ export async function sendPriceDeviationNotification(userId: string, coin: strin
 }
 
 /**
- * وظيفة إرسال إشارة تداول (ثقة أكبر من 60%)
+ * وظيفة إرسال إشارة تداول (تم تحرير العتبة لدعم المحرك الذكي)
  */
 export async function sendAISignalNotification(userId: string, coin: string, confidence: number, decision: string) {
-  if (confidence < 60) return { success: false, reason: "نسبة الثقة أقل من المعيار المطلوب" };
-
+  // تم إزالة التحقق من الثقة هنا لأن المحرك الخلفي (NotificationManager) يديرها ديناميكياً (20% أو 50%)
   const { firestore } = initializeFirebase();
   const typeLabel = decision === 'BUY' ? "شراء" : "بيع";
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
-    title: "إشارة تداول فنية",
+    title: "إشارة تداول ذكية",
     message: `رصد نظام التحليل فرصة ${typeLabel} لعملة ${coin} بنسبة ثقة بلغت ${confidence} في المئة.`,
     type: "success",
     url: `/trade/${coin.toUpperCase()}`,
     isRead: false,
-    actions: [
-      { action: 'view_market', title: 'فتح السوق' },
-      { action: 'dismiss', title: 'تجاهل' }
-    ],
     createdAt: new Date().toISOString()
   });
 

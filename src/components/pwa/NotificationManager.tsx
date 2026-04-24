@@ -1,22 +1,37 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { requestNotificationPermission } from "@/firebase/messaging";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, arrayUnion, collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
+import { 
+  doc, 
+  updateDoc, 
+  arrayUnion, 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  orderBy, 
+  limit, 
+  getDocs 
+} from "firebase/firestore";
 import { Bell, ShieldCheck, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات الذكي v2.0 - Live System Observer
- * تم إضافة مستمع لحظي يقوم بتحويل سجلات الإشعارات في Firestore إلى تنبيهات نظام (Push) حقيقية.
+ * @fileOverview مدير التنبيهات ومحرك الإشارات v3.0 - Intelligent Signal Reactor
+ * تم إضافة "مفاعل إشارات السوق" الذي يقوم بمسح الأسواق المتاحة وتوليد تنبيهات بناءً على قواعد الثقة (20/50).
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [lastHighConfidenceTime, setLastHighConfidenceTime] = useState<number>(Date.now());
+  const lastNotifiedRef = useRef<Record<string, { type: string, time: number }>>({});
+  
   const db = useFirestore();
 
   useEffect(() => {
@@ -34,7 +49,6 @@ export function NotificationManager() {
     }
 
     // 2. محرك المراقبة اللحظي (Live Notification Observer)
-    // يقوم بمراقبة أي إشعار جديد مضاف للمستخدم ويظهره كتنبيه نظام
     if (hasPermission) {
       const q = query(
         collection(db, "notifications"),
@@ -48,7 +62,6 @@ export function NotificationManager() {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
             const data = change.doc.data();
-            // التأكد أن الإشعار جديد (خلال آخر 30 ثانية) لمنع تكرار الإشعارات القديمة عند الفتح
             const isRecent = new Date().getTime() - new Date(data.createdAt).getTime() < 30000;
             
             if (isRecent && 'serviceWorker' in navigator) {
@@ -60,7 +73,7 @@ export function NotificationManager() {
                 dir: 'rtl',
                 lang: 'ar',
                 data: { url: data.url || '/notifications' },
-                tag: change.doc.id, // منع تكرار نفس الإشعار
+                tag: change.doc.id,
                 renotify: true
               });
             }
@@ -68,9 +81,56 @@ export function NotificationManager() {
         });
       });
 
-      return () => unsubscribe();
+      // 3. مفاعل إشارات السوق (Market Signal Reactor)
+      // يقوم بالمسح الدوري كل 5 دقائق لجميع الأسواق المفتوحة
+      const runMarketScan = async () => {
+        try {
+          const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
+          const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+          
+          const now = Date.now();
+          const minutesSinceLastHigh = (now - lastHighConfidenceTime) / (1000 * 60);
+          
+          // القاعدة: إذا مضى 30 دقيقة بدون إشارة > 50%، ننزل لثقة 20%
+          const threshold = minutesSinceLastHigh >= 30 ? 20 : 50;
+
+          for (const sym of symbols) {
+            const analysis = await runNamix(sym.binanceSymbol || sym.code);
+            const confidence = Math.round(analysis.score * 100);
+
+            if (confidence >= threshold && analysis.decision !== 'HOLD') {
+              // منع تكرار الإرسال لنفس العملة في فترات متقاربة
+              const lastNote = lastNotifiedRef.current[sym.id];
+              const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
+              const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); // 30 دقيقة راحة لنفس الرمز
+
+              if (isDifferentTrend || isTimeElapsed) {
+                // إرسال الإشعار عبر الأكشن المعتمد
+                const { sendAISignalNotification } = await import("@/app/actions/notification-actions");
+                await sendAISignalNotification(user.id, sym.code, confidence, analysis.decision);
+                
+                // تحديث السجلات المحلية
+                lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
+                if (confidence > 50) {
+                  setLastHighConfidenceTime(now);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Signal Reactor Fail:", e);
+        }
+      };
+
+      const signalInterval = setInterval(runMarketScan, 300000); // كل 5 دقائق
+      runMarketScan(); // إطلاق أولي
+
+      return () => {
+        unsubscribe();
+        clearInterval(signalInterval);
+      };
     }
-  }, [db]);
+  }, [db, lastHighConfidenceTime]);
 
   const handleGrantPermission = async () => {
     const token = await requestNotificationPermission();
