@@ -18,13 +18,14 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v39.0 - Standalone Bypass Edition
- * تم تحديث محرك التوجيه ليقوم بتجاوز الصفحة تماماً في وضع التطبيق المثبت.
+ * @fileOverview بوابة ناميكس الاستثمارية v40.0 - Stealth Standalone Mode
+ * تم تحويل الصفحة لتكون صامتة تماماً في وضع التطبيق لمنع أي وميض بصري قبل شاشة الترحيب.
  */
 export default function LandingPage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [checking, setChecking] = useState(true);
   
   // Dialog States
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -36,24 +37,19 @@ export default function LandingPage() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   useEffect(() => {
+    const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsStandalone(!!standaloneMode);
+    setChecking(false);
+
     const userSession = localStorage.getItem("namix_user");
     const hasUser = !!userSession;
     setIsLoggedIn(hasUser);
-
-    // كشف حالة التطبيق المثبت
-    const standaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    setIsStandalone(!!standaloneMode);
     
     if (standaloneMode) {
-      // بروتوكول التوجيه القسري في وضع التطبيق: صفحة الهبوط محظورة تماماً
       if (hasUser) {
         try {
           const parsed = JSON.parse(userSession);
-          if (parsed.role === 'admin') {
-            router.replace("/admin");
-          } else {
-            router.replace("/home");
-          }
+          router.replace(parsed.role === 'admin' ? "/admin" : "/home");
         } catch (e) {
           router.replace("/login");
         }
@@ -63,8 +59,9 @@ export default function LandingPage() {
     }
   }, [router]);
 
-  // إذا كان التطبيق مثبتاً، لا نعرض شيئاً حتى يتم التوجيه (أو نعرض خلفية بيضاء صافية)
-  if (isStandalone) return <div className="min-h-screen bg-white" />;
+  // بروتوكول الصمت: إذا كنا في وضع التطبيق أو جاري التحقق، لا نعرض سوى شاشة بيضاء صافية
+  // هذا يمنع صفحة الهبوط من الظهور لأجزاء من الثانية
+  if (checking || isStandalone) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-white" dir="rtl">
