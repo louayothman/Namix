@@ -5,25 +5,25 @@ import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 /**
- * @fileOverview نظام التنبيهات المتقدم v7.0
- * تم تحديث اللغة لتكون رسمية تماماً وإزالة قيود الثقة الصلبة لدعم محرك الإشارات الديناميكي.
+ * @fileOverview نظام التنبيهات المتقدم v8.0 - Comprehensive Push Matrix
+ * تم تحديث اللغة لتكون رسمية تماماً ودعم كافة فئات الإشعارات المطلوبة.
  */
 
 /**
- * وظيفة إرسال تنبيه تغير سعري مفاجئ (أكبر من 2%)
+ * إرسال تنبيه حركة سعرية مفاجئة (تقلب السوق)
  */
 export async function sendPriceDeviationNotification(userId: string, coin: string, price: number, change: number) {
-  if (Math.abs(change) < 2) return { success: false, reason: "التغير أقل من العتبة المحددة" };
+  if (Math.abs(change) < 2) return { success: false };
 
   const { firestore } = initializeFirebase();
   const direction = change >= 0 ? "صعود" : "هبوط";
   
   await addDoc(collection(firestore, "notifications"), {
     userId,
-    title: "تنبيه حركة سعرية",
-    message: `سجلت عملة ${coin} حركة ${direction} بنسبة ${Math.abs(change).toFixed(2)} في المئة. السعر الحالي هو ${price.toLocaleString()} دولار.`,
+    title: "تنبيه تقلب السوق",
+    message: `سجلت عملة ${coin} حركة ${direction} حادة بنسبة ${Math.abs(change).toFixed(2)}%. السعر الحالي: $${price.toLocaleString()}.`,
     type: "info",
-    url: `/trade/${coin.toUpperCase()}USDT`,
+    url: `/trade/${coin.toUpperCase()}`,
     isRead: false,
     createdAt: new Date().toISOString()
   });
@@ -32,17 +32,16 @@ export async function sendPriceDeviationNotification(userId: string, coin: strin
 }
 
 /**
- * وظيفة إرسال إشارة تداول (تم تحرير العتبة لدعم المحرك الذكي)
+ * إرسال إشارة تداول ذكية
  */
 export async function sendAISignalNotification(userId: string, coin: string, confidence: number, decision: string) {
-  // تم إزالة التحقق من الثقة هنا لأن المحرك الخلفي (NotificationManager) يديرها ديناميكياً (20% أو 50%)
   const { firestore } = initializeFirebase();
   const typeLabel = decision === 'BUY' ? "شراء" : "بيع";
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
     title: "إشارة تداول ذكية",
-    message: `رصد نظام التحليل فرصة ${typeLabel} لعملة ${coin} بنسبة ثقة بلغت ${confidence} في المئة.`,
+    message: `رصد محرك NAMIX AI فرصة ${typeLabel} لعملة ${coin} بنسبة ثقة %${confidence}.`,
     type: "success",
     url: `/trade/${coin.toUpperCase()}`,
     isRead: false,
@@ -53,7 +52,7 @@ export async function sendAISignalNotification(userId: string, coin: string, con
 }
 
 /**
- * وظيفة إرسال الملخص المالي اليومي
+ * إرسال ملخص الأداء المالي
  */
 export async function sendDailySummaryNotification(userId: string) {
   const { firestore } = initializeFirebase();
@@ -71,12 +70,12 @@ export async function sendDailySummaryNotification(userId: string) {
   const wins = snap.docs.filter(d => d.data().result === 'win').length;
   const totalProfit = snap.docs.reduce((sum, d) => sum + (d.data().profit || 0), 0);
 
-  if (totalTrades === 0) return { success: false, reason: "لا يوجد نشاط اليوم" };
+  if (totalTrades === 0) return { success: false };
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
-    title: "تقرير الأداء اليومي",
-    message: `أتممت اليوم ${totalTrades} عمليات تداول، بنسبة نجاح بلغت ${Math.round((wins/totalTrades)*100)} في المئة. صافي الأرباح المحققة هو ${totalProfit.toFixed(2)} دولار.`,
+    title: "ملخص النشاط اليومي",
+    message: `أتممت اليوم ${totalTrades} عمليات، بنسبة نجاح %${Math.round((wins/totalTrades)*100)}. صافي الأرباح: $${totalProfit.toFixed(2)}.`,
     type: "info",
     url: "/profile",
     isRead: false,
@@ -87,22 +86,42 @@ export async function sendDailySummaryNotification(userId: string) {
 }
 
 /**
- * تنبيهات الأمان وتحديث البيانات
+ * تنبيهات الأمان والوصول
  */
-export async function sendSecurityNotification(userId: string, actionType: 'pin' | 'password' | 'login') {
+export async function sendSecurityNotification(userId: string, actionType: 'pin' | 'password' | 'login' | 'device') {
   const { firestore } = initializeFirebase();
   let message = "";
   
-  if (actionType === 'login') message = "تم تسجيل دخول جديد لحسابك من جهاز غير معروف.";
-  else if (actionType === 'pin') message = "تم تحديث رمز التعريف الشخصي الخاص بالخزنة بنجاح.";
+  if (actionType === 'login') message = "تم رصد تسجيل دخول جديد لحسابك.";
+  else if (actionType === 'device') message = "تم ربط جهاز جديد بهويتك الرقمية.";
+  else if (actionType === 'pin') message = "تم تحديث رمز PIN الخاص بالخزنة بنجاح.";
   else message = "تم تغيير كلمة المرور الخاصة بحسابك.";
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
-    title: "تنبيه أمني",
+    title: "تنبيه أمني هام",
     message,
     type: "warning",
     url: "/settings",
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
+
+  return { success: true };
+}
+
+/**
+ * إشعارات انتهاء الخطط وتوزيع الأرباح
+ */
+export async function sendInvestmentExpiryNotification(userId: string, planTitle: string, amount: number) {
+  const { firestore } = initializeFirebase();
+  
+  await addDoc(collection(firestore, "notifications"), {
+    userId,
+    title: "اكتمال دورة الاستثمار",
+    message: `انتهت مدة عقد ${planTitle} بنجاح. تم تحرير مبلغ $${amount.toLocaleString()} إلى محفظتك الجارية.`,
+    type: "success",
+    url: "/my-investments",
     isRead: false,
     createdAt: new Date().toISOString()
   });

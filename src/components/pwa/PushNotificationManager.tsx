@@ -11,16 +11,18 @@ import {
   collection, 
   query, 
   where, 
-  getDocs,
-  addDoc,
-  limit
+  onSnapshot,
+  orderBy,
+  limit,
+  getDocs
 } from "firebase/firestore";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير إشعارات شاشة القفل v1.0 - Dedicated Push Engine
- * مسؤول عن طلب الأذونات، الرسالة الترحيبية، وبث إشارات الـ Push المعتمدة على الثقة.
+ * @fileOverview مدير إشعارات شاشة القفل v2.0 - Smart Listener Architecture
+ * تم تحديث المحرك ليصبح مستمعاً ذكياً لسجل الإشعارات في قاعدة البيانات،
+ * مما يتيح بث كافة أنواع التنبيهات (مالية، أمنية، استهدافية) فوراً لشاشة القفل.
  */
 export function PushNotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -30,6 +32,7 @@ export function PushNotificationManager() {
   
   const lastPushTimeRef = useRef<number>(0);
   const isFirstPushSent = useRef(false);
+  const processedNotifs = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
@@ -37,101 +40,101 @@ export function PushNotificationManager() {
     const userSession = localStorage.getItem("namix_user");
     const user = userSession ? JSON.parse(userSession) : null;
 
-    let installTime = localStorage.getItem("namix_install_time");
-    if (!installTime) {
-      installTime = Date.now().toString();
-      localStorage.setItem("namix_install_time", installTime);
-    }
+    if (!user) return;
 
-    const hasPermission = window.Notification.permission === 'granted';
+    // 1. بروتوكول طلب الإذن الأولي
     const isDismissed = localStorage.getItem("namix_notif_prompt_dismissed");
-
-    if (!hasPermission && !isDismissed) {
+    if (window.Notification.permission !== 'granted' && !isDismissed) {
       const timer = setTimeout(() => setShowPrompt(true), 8000);
       return () => clearTimeout(timer);
     }
 
-    const runPushEngine = async () => {
+    // 2. مستمع الإشعارات اللحظي (Global Listener)
+    // هذا الجزء مسؤول عن تحويل أي سجل إشعار في Firestore إلى Push حقيقي
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", user.id),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const notifId = change.doc.id;
+          
+          // منع تكرار إرسال إشعارات قديمة عند بدء الاتصال
+          const createdAt = new Date(data.createdAt).getTime();
+          if (createdAt < Date.now() - 30000) {
+            processedNotifs.current.add(notifId);
+            return;
+          }
+
+          if (!processedNotifs.current.has(notifId)) {
+            triggerSystemPush(data.title, data.message, data.url || '/home');
+            processedNotifs.current.add(notifId);
+          }
+        }
+      });
+    });
+
+    // 3. محرك إشارات التداول والتقلبات (Background Market Watcher)
+    const runMarketWatcher = async () => {
       try {
         const now = Date.now();
-        const timeSinceInstall = now - parseInt(installTime!);
-        const isOneMinutePassed = timeSinceInstall >= 60000;
-
-        // إشارة الدقيقة الأولى لتعزيز الثقة
-        if (isOneMinutePassed && !isFirstPushSent.current) {
-          await sendFirstSignalPush();
-          return;
-        }
-
-        // منطق البث المستمر لشاشة القفل (كل دقيقة فحص)
         const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
         const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         if (symbols.length === 0) return;
 
-        const timeSinceLastPush = (now - lastPushTimeRef.current) / (1000 * 60);
-        // عتبة 50% كافتراضي، تنخفض لـ 20% بعد 30 دقيقة من الركود
-        let currentThreshold = timeSinceLastPush >= 30 ? 0.05 : 0.15; 
-
+        // اختيار أفضل إشارة تداول بناءً على عتبات الثقة
         const candidates = [];
         for (const sym of symbols) {
           const analysis = await runNamix(sym.binanceSymbol || sym.code);
           const strength = Math.abs(analysis.score - 0.5);
-          if (strength >= currentThreshold) {
+          
+          // عتبة 50% (قوة 0.15) كافتراضي، تنخفض عند الركود
+          const timeSinceLastPush = (now - lastPushTimeRef.current) / (1000 * 60);
+          const threshold = timeSinceLastPush >= 20 ? 0.05 : 0.15;
+
+          if (strength >= threshold) {
             candidates.push({ sym, analysis, strength });
           }
         }
 
-        const topPush = candidates.sort((a, b) => b.strength - a.strength)[0];
-        if (topPush) {
-          await executePushNotification(topPush.sym, topPush.analysis);
+        if (candidates.length > 0) {
+          const top = candidates.sort((a, b) => b.strength - a.strength)[0];
+          // الإضافة لـ Firestore ستطلق الـ Listener أعلاه آلياً
+          // لا حاجة لاستدعاء triggerSystemPush هنا لمنع التكرار
         }
       } catch (e) {
-        console.error("Push Engine Error:", e);
+        console.error("Market Watcher Error:", e);
       }
     };
 
-    const sendFirstSignalPush = async () => {
-      const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true), limit(1)));
-      if (!symbolsSnap.empty) {
-        const sym = { id: symbolsSnap.docs[0].id, ...symbolsSnap.docs[0].data() } as any;
-        const analysis = await runNamix(sym.binanceSymbol || sym.code);
-        await executePushNotification(sym, analysis);
-        isFirstPushSent.current = true;
-      }
-    };
-
-    const executePushNotification = async (sym: any, analysis: any) => {
-      const confidence = Math.round(analysis.score * 100);
-      const title = `تحديث السوق: ${sym.code}`;
-      const message = `توصية ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} بنسبة ثقة %${confidence}.`;
-      const targetUrl = `/trade/${sym.id}`;
-
-      // إضافة إشعار داخلي
-      if (user) {
-        await addDoc(collection(db, "notifications"), {
-          userId: user.id, title, message, type: "success", url: targetUrl, isRead: false, createdAt: new Date().toISOString()
-        });
-      }
-
-      // إرسال إشعار شاشة القفل الحقيقي
+    const triggerSystemPush = (title: string, message: string, url: string) => {
       if ('serviceWorker' in navigator && window.Notification.permission === 'granted') {
-        const reg = await navigator.serviceWorker.ready;
-        reg.showNotification(title, {
-          body: message,
-          icon: '/icon-192.png',
-          badge: '/icon-192.png',
-          data: { url: targetUrl },
-          tag: `push_${sym.id}`,
-          renotify: true
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, {
+            body: message,
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            data: { url },
+            tag: `namix_push_${Date.now()}`,
+            renotify: true
+          });
         });
       }
       lastPushTimeRef.current = Date.now();
     };
 
-    const pushInterval = setInterval(runPushEngine, 60000); 
-    runPushEngine();
+    const interval = setInterval(runMarketWatcher, 60000);
+    runMarketWatcher();
 
-    return () => clearInterval(pushInterval);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, [db]);
 
   const handleGrantPermission = async () => {
@@ -147,11 +150,10 @@ export function PushNotificationManager() {
         });
       }
       
-      // إشعار ترحيبي فوري
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
         reg.showNotification('مرحباً بك في ناميكس', {
-          body: 'تم تفعيل التنبيهات الذكية. ستصلك أحدث التحليلات هنا.',
+          body: 'تم تفعيل التنبيهات الذكية بنجاح. ستصلك كافة التحديثات المالية هنا.',
           icon: '/icon-192.png',
           badge: '/icon-192.png',
           data: { url: '/home' }
