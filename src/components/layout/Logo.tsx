@@ -14,8 +14,8 @@ interface LogoProps {
 }
 
 /**
- * @fileOverview مكون الهوية البصرية v5.0 - Precision Alignment
- * تم تحديث الهيكل لضمان محاذاة هندسية مثالية بين الأيقونة والنص.
+ * @fileOverview مكون الهوية البصرية v5.1 - Horizontal Baseline Fix
+ * تم تحديث الهيكل لضمان محاذاة هندسية مثالية بين الأيقونة والنص على خط واحد.
  */
 export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
@@ -42,7 +42,7 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
       
       {!hideText && (
         <span className={cn(
-          "font-normal tracking-tight leading-none select-none ml-3 inline-block align-middle",
+          "font-black tracking-[0.15em] leading-none select-none ml-3 inline-block uppercase",
           textSize,
           lightText ? "text-white" : "text-[#002d4d]"
         )}>

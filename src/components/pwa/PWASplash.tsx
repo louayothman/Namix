@@ -7,8 +7,8 @@ import { Logo } from "@/components/layout/Logo";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview شاشة الترحيب النخبوية v12.0 - Orbital Frame Edition
- * تصميم مينيماليست يضم مؤشر تحميل مستطيلي دوار وترحيب شخصي بالمستثمر.
+ * @fileOverview شاشة الترحيب النخبوية v13.0 - Perfect Fill Edition
+ * تم ضبط الشعار ليملأ المساحة داخل إطار التحميل المستطيل بدقة هندسية ومحاذاة احترافية.
  */
 
 const NAMIX_BLUE = "#002d4d";
@@ -23,7 +23,6 @@ export function PWASplash() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     
     if (isStandalone) {
-      // جلب بيانات المستخدم للترحيب الشخصي
       const session = localStorage.getItem("namix_user");
       if (session) {
         try {
@@ -38,7 +37,6 @@ export function PWASplash() {
       if (!hasShown) {
         setIsVisible(true);
         sessionStorage.setItem(sessionKey, 'true');
-        // مدة العرض الكافية للتجربة السينمائية
         const timer = setTimeout(() => setIsVisible(false), 5500);
         return () => clearTimeout(timer);
       }
@@ -70,11 +68,11 @@ export function PWASplash() {
           {/* 2. كتلة الهوية المركزية مع مؤشر التحميل المستطيل */}
           <div className="relative flex items-center justify-center p-12">
              
-             {/* مستطيل التحميل المداري (Orbital Rect) */}
-             <svg width="220" height="90" viewBox="0 0 220 90" className="absolute">
+             {/* مستطيل التحميل المداري (Orbital Rect) - أبعاد متوافقة مع المحتوى */}
+             <svg width="240" height="90" viewBox="0 0 240 90" className="absolute">
                 {/* الإطار الخافت الثابت */}
                 <rect 
-                  x="2" y="2" width="216" height="86" rx="28" 
+                  x="2" y="2" width="236" height="86" rx="30" 
                   fill="none" 
                   stroke={NAMIX_BLUE} 
                   strokeWidth="0.5" 
@@ -82,34 +80,31 @@ export function PWASplash() {
                 />
                 {/* النبضة الضوئية الدوارة */}
                 <motion.rect 
-                  x="2" y="2" width="216" height="86" rx="28" 
+                  x="2" y="2" width="236" height="86" rx="30" 
                   fill="none" 
                   stroke={NAMIX_ORANGE} 
-                  strokeWidth="1.5"
-                  strokeDasharray="60 540"
-                  animate={{ strokeDashoffset: [600, 0] }}
+                  strokeWidth="2"
+                  strokeDasharray="80 570"
+                  animate={{ strokeDashoffset: [650, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  className="opacity-40"
+                  className="opacity-50"
                 />
              </svg>
 
-             {/* الهوية (Logo + Name) - محاذاة مطلقة */}
+             {/* الهوية (Logo + Name) - تم تكبيرها لتملأ المساحة داخل المستطيل */}
              <motion.div 
-               initial={{ opacity: 0, scale: 0.98 }}
-               animate={{ opacity: [0.6, 1, 0.6] }}
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: [0.7, 1, 0.7] }}
                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-               className="relative z-10 flex items-center justify-center gap-3 px-8" 
+               className="relative z-10 flex items-center justify-center h-[90px] w-[240px] px-8" 
                dir="ltr"
              >
-                <Logo size="sm" hideText animate={false} className="mb-[1px]" />
-                <h2 className="text-xl md:text-2xl font-black text-[#002d4d] tracking-[0.18em] uppercase leading-none">
-                  NAMIX
-                </h2>
+                <Logo size="md" hideText={false} animate={false} className="mb-0" />
              </motion.div>
           </div>
 
           {/* 3. منطقة الترحيب الشخصي (Bottom Info) */}
-          <div className="absolute bottom-20 flex flex-col items-center gap-4 text-center">
+          <div className="absolute bottom-24 flex flex-col items-center gap-4 text-center">
              <AnimatePresence>
                 {userName && (
                   <motion.div 
