@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * @fileOverview شاشة الترحيب السينمائية v15.0 - Cinematic Intro Edition
- * تم إزالة كافة الحركات المورفية والفقاعات لصالح إنترو سينمائي مركز يعتمد على التبلور والوميض الضوئي.
+ * @fileOverview شاشة الترحيب السينمائية v16.0 - Energy Pulse & Trading Bars Edition
+ * يتضمن الإنترو نبضاً طاقياً يدور حول الشعار مرتين ثم ينزلق ليشكل أعمدة التداول.
  */
 
 export function PWASplash() {
@@ -32,13 +32,13 @@ export function PWASplash() {
       if (!hasShown) {
         setIsVisible(true);
         sessionStorage.setItem(sessionKey, 'true');
-        const timer = setTimeout(() => setIsVisible(false), 5500);
+        const timer = setTimeout(() => setIsVisible(false), 6000);
         return () => clearTimeout(timer);
       }
     }
   }, []);
 
-  const cinematicEase = [0.19, 1, 0.22, 1]; // Power4 Out ease
+  const cinematicEase = [0.19, 1, 0.22, 1];
 
   return (
     <AnimatePresence>
@@ -49,17 +49,14 @@ export function PWASplash() {
           transition={{ duration: 1.5, ease: "easeInOut" }}
           className="fixed inset-0 z-[3000] bg-white flex flex-col items-center justify-center overflow-hidden pointer-events-none select-none"
         >
-          {/* خلفية بيضاء ناصعة صافية كلياً */}
-          <div className="absolute inset-0 bg-white" />
-
           {/* محرك التبلور السينمائي للشعار */}
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex flex-col items-center justify-center">
              
              {/* ومضة الانفجار الضوئي (Flash Flare) */}
              <motion.div 
                initial={{ opacity: 0, scale: 0 }}
                animate={{ 
-                 opacity: [0, 0.8, 0], 
+                 opacity: [0, 0.6, 0], 
                  scale: [0, 2.5, 3] 
                }}
                transition={{ delay: 0.5, duration: 1.2, ease: "easeOut" }}
@@ -81,23 +78,64 @@ export function PWASplash() {
                 <Logo size="md" hideText={false} animate={true} className="scale-125" />
              </motion.div>
 
-             {/* خط النور الأفقي السينمائي */}
-             <motion.div 
-               initial={{ width: 0, opacity: 0 }}
-               animate={{ width: "240px", opacity: 0.05 }}
-               transition={{ delay: 1, duration: 2, ease: cinematicEase }}
-               className="absolute -bottom-12 h-[0.5px] bg-[#002d4d] rounded-full"
-             />
+             {/* مفاعل الخط الطاقي المداري (Energy Frame) */}
+             <div className="absolute inset-[-30px] md:inset-[-40px] z-20 flex items-center justify-center">
+                <svg width="100%" height="100%" viewBox="0 0 200 120" fill="none" className="overflow-visible">
+                   {/* مسار الإطار المستطيل مستدير الزوايا */}
+                   <rect 
+                     x="10" y="10" width="180" height="100" rx="40" 
+                     className="stroke-gray-50/50" strokeWidth="0.5" 
+                   />
+                   
+                   {/* الخط الطاقي المتحرك */}
+                   <motion.rect
+                     x="10" y="10" width="180" height="100" rx="40"
+                     stroke="#f9a885"
+                     strokeWidth="1.5"
+                     strokeLinecap="round"
+                     initial={{ pathLength: 0, pathOffset: 0, opacity: 0 }}
+                     animate={{ 
+                       pathLength: [0, 0.3, 0.3],
+                       pathOffset: [0, 1, 2],
+                       opacity: [0, 1, 1, 0],
+                       y: [0, 0, 80] // ينزل للأسفل بعد دورتين
+                     }}
+                     transition={{ 
+                       duration: 4, 
+                       times: [0, 0.2, 0.8, 1],
+                       ease: "easeInOut",
+                       delay: 0.8
+                     }}
+                   />
+                </svg>
+             </div>
+
+             {/* أعمدة التداول (تظهر بعد نزول الخط الطاقي) */}
+             <div className="absolute -bottom-16 flex items-end gap-1.5 h-10">
+                {[
+                  { delay: 4.2, height: 12, color: "bg-emerald-400" },
+                  { delay: 4.3, height: 24, color: "bg-emerald-500" },
+                  { delay: 4.4, height: 16, color: "bg-emerald-400" }
+                ].map((bar, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: bar.height, opacity: 0.4 }}
+                    transition={{ delay: bar.delay, duration: 0.8, ease: cinematicEase }}
+                    className={cn("w-1 rounded-full", bar.color)}
+                  />
+                ))}
+             </div>
           </div>
 
-          {/* ظهور بيانات المستثمر بأسلوب هادئ */}
+          {/* ظهور بيانات المستثمر */}
           <div className="absolute bottom-32 flex flex-col items-center gap-4 text-center">
              <AnimatePresence>
                 {userName && (
                   <motion.div 
                     initial={{ opacity: 0, y: 15, filter: "blur(10px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{ delay: 2.5, duration: 1.5, ease: cinematicEase }}
+                    transition={{ delay: 3, duration: 1.5, ease: cinematicEase }}
                     className="space-y-1"
                   >
                      <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.5em] mb-2">Authenticated Session</p>
@@ -107,19 +145,19 @@ export function PWASplash() {
              </AnimatePresence>
           </div>
 
-          {/* التوقيع الرقمي السيادي بأسلوب التباعد السينمائي (Tracking) */}
+          {/* التوقيع الرقمي السيادي */}
           <div className="absolute bottom-12 flex flex-col items-center gap-2">
              <motion.div 
                initial={{ opacity: 0 }}
                animate={{ opacity: 0.2 }}
-               transition={{ delay: 3, duration: 2 }}
+               transition={{ delay: 3.5, duration: 2 }}
                className="flex items-center gap-6"
              >
                 <div className="h-[0.5px] w-6 bg-[#002d4d]" />
                 <motion.p 
                   initial={{ letterSpacing: "0.2em" }}
                   animate={{ letterSpacing: "1.2em" }}
-                  transition={{ delay: 3, duration: 4, ease: "linear" }}
+                  transition={{ delay: 3.5, duration: 4, ease: "linear" }}
                   className="text-[8px] font-black uppercase text-[#002d4d] mr-[-1.2em]"
                 >
                   NAMIX
@@ -129,10 +167,10 @@ export function PWASplash() {
              <motion.p 
                initial={{ opacity: 0 }}
                animate={{ opacity: 0.1 }}
-               transition={{ delay: 4, duration: 1 }}
+               transition={{ delay: 4.5, duration: 1 }}
                className="text-[6px] font-bold text-gray-400 uppercase tracking-widest"
              >
-               Sovereign Node v15.0.2
+               Sovereign Node v16.0.0
              </motion.p>
           </div>
 
@@ -141,3 +179,5 @@ export function PWASplash() {
     </AnimatePresence>
   );
 }
+
+import { cn } from "@/lib/utils";
