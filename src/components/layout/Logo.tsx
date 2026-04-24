@@ -14,8 +14,8 @@ interface LogoProps {
 }
 
 /**
- * @fileOverview مكون الهوية البصرية v6.0 - Precise Baseline Alignment
- * تم استخدام flex items-center مع h-fit وتطهير الهوامش لضمان محاذاة النص والأيقونة هندسياً.
+ * @fileOverview مكون الهوية البصرية v7.0 - Breathable Symmetry
+ * تم إضافة هوامش (ml-4) لتوفير مساحة تنفس بين الأيقونة والاسم، مع تثبيت المحاذاة الأفقية.
  */
 export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
@@ -26,6 +26,7 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
 
   return (
     <div className={cn("relative inline-flex items-center justify-center group cursor-pointer leading-none h-fit m-0 p-0", className)} dir="ltr">
+      {/* أيقونة المصفوفة الرباعية */}
       <div className="relative flex items-center justify-center shrink-0 m-0 p-0">
         <motion.div 
           animate={animate ? { rotate: [0, 90, 180, 270, 360] } : {}}
@@ -40,9 +41,10 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
         </motion.div>
       </div>
       
+      {/* اسم المنصة مع هامش أمان (ml-4) لمنع التلاصق */}
       {!hideText && (
         <span className={cn(
-          "font-black tracking-[0.15em] leading-none select-none ml-3 inline-block uppercase m-0 p-0",
+          "font-bold tracking-[0.2em] leading-none select-none ml-4 inline-block uppercase m-0 p-0",
           textSize,
           lightText ? "text-white" : "text-[#002d4d]"
         )}>

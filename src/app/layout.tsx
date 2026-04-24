@@ -21,7 +21,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic'],
   variable: '--font-ibm-plex-sans-arabic',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600'], // تم حصر الأوزان لضمان الرقة والنقاء
   display: 'swap',
 });
 

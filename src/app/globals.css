@@ -31,9 +31,10 @@
 @layer base {
   * {
     @apply border-border;
-    /* الترتيب: اللاتيني والأرقام أولاً من Plus Jakarta، ثم العربي من IBM Plex */
+    /* الترتيب السيادي: الإنجليزية والأرقام أولاً من Plus Jakarta، ثم العربي المعتدل من IBM Plex */
     font-family: var(--font-plus-jakarta-sans), var(--font-ibm-plex-sans-arabic), sans-serif !important;
     letter-spacing: 0 !important;
+    font-weight: 500; /* تعيين وزن متوسط قياسي للرقة والفخامة */
   }
   
   body {
@@ -41,18 +42,22 @@
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1, "lnum" 1;
     overflow-x: hidden;
   }
+
+  h1, h2, h3, h4, .font-black {
+    font-weight: 700 !important; /* تقليل العرض من 800-900 إلى 700 ليكون أرشق */
+  }
 }
 
-/* تنسيق الأرقام والإنجليزية لضمان استخدام Plus Jakarta Sans */
-:lang(en), .font-mono, .tabular-nums, [dir="ltr"] {
+/* ضمان أن الأرقام والإنجليزية تستخدم Plus Jakarta حصراً وبشكل واضح */
+:lang(en), .font-mono, .tabular-nums, [dir="ltr"], input, button {
   font-family: var(--font-plus-jakarta-sans), sans-serif !important;
-  font-feature-settings: "tnum" 1, "lnum" 1 !important; /* تفعيل أرقام الجداول الثابتة */
+  font-feature-settings: "tnum" 1, "lnum" 1 !important;
 }
 
-/* استخدام IBM Plex Sans Arabic للنصوص العربية حصراً */
+/* ضمان استخدام IBM Plex Sans Arabic للنصوص العربية حصراً وبوزن رشيق */
 [dir="rtl"] {
   letter-spacing: 0 !important;
-  font-family: var(--font-ibm-plex-sans-arabic), var(--font-plus-jakarta-sans), sans-serif !important;
+  font-family: var(--font-ibm-plex-sans-arabic), sans-serif !important;
 }
 
 @keyframes pulse-ring {
