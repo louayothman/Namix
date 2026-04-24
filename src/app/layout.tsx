@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Outfit, IBM_Plex_Sans_Arabic } from 'next/font/google';
@@ -6,7 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
 import { SWRegistration } from "@/components/pwa/SWRegistration";
 import { PWASplash } from "@/components/pwa/PWASplash";
-import { NotificationManager } from "@/components/pwa/NotificationManager";
+import { PushNotificationManager } from "@/components/pwa/PushNotificationManager";
+import { TelegramBroadcastManager } from "@/components/pwa/TelegramBroadcastManager";
 import { SITE_CONFIG } from '@/lib/site-config';
 
 // استدعاء الخطوط السيادية من محرك غوغل لضمان الاستقرار والأداء
@@ -59,7 +61,11 @@ export default function RootLayout({
           <SWRegistration />
           <PWASplash />
           {children}
-          <NotificationManager />
+          
+          {/* محركات التنبيهات المستقلة */}
+          <PushNotificationManager />
+          <TelegramBroadcastManager />
+          
           <PWAInstaller />
           <Toaster />
         </FirebaseClientProvider>
