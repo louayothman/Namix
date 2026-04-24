@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -14,8 +13,8 @@ interface LogoProps {
 }
 
 /**
- * @fileOverview مكون الهوية البصرية v7.0 - Breathable Symmetry
- * تم إضافة هوامش (ml-4) لتوفير مساحة تنفس بين الأيقونة والاسم، مع تثبيت المحاذاة الأفقية.
+ * @fileOverview مكون الهوية البصرية v8.0 - Local Font Optimization
+ * تم ضبط التراصف السطري بدقة وإضافة هامش أمان (ml-3) لضمان التنفس البصري.
  */
 export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
@@ -26,8 +25,8 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
 
   return (
     <div className={cn("relative inline-flex items-center justify-center group cursor-pointer leading-none h-fit m-0 p-0", className)} dir="ltr">
-      {/* أيقونة المصفوفة الرباعية */}
-      <div className="relative flex items-center justify-center shrink-0 m-0 p-0">
+      {/* أيقونة المصفوفة الرباعية - محاذاة مركزية صارمة */}
+      <div className="relative flex items-center justify-center shrink-0 m-0 p-0 overflow-hidden">
         <motion.div 
           animate={animate ? { rotate: [0, 90, 180, 270, 360] } : {}}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -41,10 +40,11 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
         </motion.div>
       </div>
       
-      {/* اسم المنصة مع هامش أمان (ml-4) لمنع التلاصق */}
+      {/* اسم المنصة بخط Quicksand مع هامش تنفس (ml-3) وتراصف Baseline */}
       {!hideText && (
         <span className={cn(
-          "font-bold tracking-[0.2em] leading-none select-none ml-4 inline-block uppercase m-0 p-0",
+          "font-bold tracking-[0.2em] leading-none select-none ml-3 inline-block uppercase m-0 p-0",
+          "translate-y-[0.5px]", // تصحيح نانوي للمحاذاة البصرية مع مركز الأيقونة
           textSize,
           lightText ? "text-white" : "text-[#002d4d]"
         )}>

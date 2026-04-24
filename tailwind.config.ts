@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -11,8 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-plus-jakarta-sans)', 'var(--font-ibm-plex-sans-arabic)', 'sans-serif'],
-        body: ['var(--font-ibm-plex-sans-arabic)', 'var(--font-plus-jakarta-sans)', 'sans-serif'],
+        // تحديث مصفوفة الخطوط لتشمل الخطوط المحلية الجديدة
+        sans: ['var(--font-quicksand)', 'var(--font-ibm-plex-arabic)', 'sans-serif'],
+        body: ['var(--font-ibm-plex-arabic)', 'var(--font-quicksand)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

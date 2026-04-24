@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -31,33 +30,36 @@
 @layer base {
   * {
     @apply border-border;
-    /* الترتيب السيادي: الإنجليزية والأرقام أولاً من Plus Jakarta، ثم العربي المعتدل من IBM Plex */
-    font-family: var(--font-plus-jakarta-sans), var(--font-ibm-plex-sans-arabic), sans-serif !important;
+    /* الترتيب السيادي: Quicksand للأرقام والإنجليزية، ثم IBM Plex Arabic للعربية */
+    font-family: var(--font-quicksand), var(--font-ibm-plex-arabic), sans-serif !important;
     letter-spacing: 0 !important;
-    font-weight: 500; /* تعيين وزن متوسط قياسي للرقة والفخامة */
   }
   
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1, "lnum" 1;
     overflow-x: hidden;
+    /* تعيين وزن رقيق كافتراضي للعربية لضمان الفخامة */
+    font-weight: 300;
   }
 
   h1, h2, h3, h4, .font-black {
-    font-weight: 700 !important; /* تقليل العرض من 800-900 إلى 700 ليكون أرشق */
+    font-weight: 600 !important; /* وزن متوسط رقيق للعناوين بدلاً من العريض جداً */
   }
 }
 
-/* ضمان أن الأرقام والإنجليزية تستخدم Plus Jakarta حصراً وبشكل واضح */
-:lang(en), .font-mono, .tabular-nums, [dir="ltr"], input, button {
-  font-family: var(--font-plus-jakarta-sans), sans-serif !important;
-  font-feature-settings: "tnum" 1, "lnum" 1 !important;
-}
-
-/* ضمان استخدام IBM Plex Sans Arabic للنصوص العربية حصراً وبوزن رشيق */
+/* تخصيص العربية بوزن IBM Plex الرقيق */
 [dir="rtl"] {
   letter-spacing: 0 !important;
-  font-family: var(--font-ibm-plex-sans-arabic), sans-serif !important;
+  font-family: var(--font-ibm-plex-arabic), var(--font-quicksand), sans-serif !important;
+  font-weight: 300;
+}
+
+/* الأرقام والإنجليزية بخط Quicksand المستدير */
+:lang(en), .font-mono, .tabular-nums, [dir="ltr"], input, button {
+  font-family: var(--font-quicksand), sans-serif !important;
+  font-feature-settings: "tnum" 1, "lnum" 1 !important;
+  font-weight: 500;
 }
 
 @keyframes pulse-ring {

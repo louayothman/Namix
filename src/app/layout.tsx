@@ -1,7 +1,6 @@
-
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic } from 'next/font/google';
+import localFont from 'next/font/local';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
@@ -11,17 +10,31 @@ import { NotificationManager } from "@/components/pwa/NotificationManager";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
-  weight: ['400', '500', '600', '700', '800'],
+// استدعاء خط Quicksand المحلي (للإنجليزي والأرقام)
+const quicksand = localFont({
+  src: [
+    { path: '../../public/fonts/Quicksand-Light.ttf', weight: '300', style: 'normal' },
+    { path: '../../public/fonts/Quicksand-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/Quicksand-Medium.ttf', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/Quicksand-SemiBold.ttf', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/Quicksand-Bold.ttf', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-quicksand',
   display: 'swap',
 });
 
-const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
-  subsets: ['arabic'],
-  variable: '--font-ibm-plex-sans-arabic',
-  weight: ['300', '400', '500', '600'], // تم حصر الأوزان لضمان الرقة والنقاء
+// استدعاء خط IBM Plex Sans Arabic المحلي (للعربية)
+const ibmPlexArabic = localFont({
+  src: [
+    { path: '../../public/fonts/IBMPlexSansArabic-Thin.ttf', weight: '100', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-ExtraLight.ttf', weight: '200', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-Light.ttf', weight: '300', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-Medium.ttf', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-SemiBold.ttf', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/IBMPlexSansArabic-Bold.ttf', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-ibm-plex-arabic',
   display: 'swap',
 });
 
@@ -62,7 +75,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${plusJakartaSans.variable} ${ibmPlexSansArabic.variable}`}>
+    <html lang="ar" dir="rtl" className={`${quicksand.variable} ${ibmPlexArabic.variable}`}>
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">
         <FirebaseClientProvider>
           <SWRegistration />
