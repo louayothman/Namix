@@ -13,8 +13,8 @@ import { runNamix } from "@/lib/namix-orchestrator";
 import { broadcastSignalToTelegram } from "@/app/actions/telegram-actions";
 
 /**
- * @fileOverview محرك بث تلغرام المستقل v1.0 - Dedicated Telegram Pulse
- * يعمل بشكل معزول تماماً عن إشعارات المتصفح، ويقوم بالبث كل 5 دقائق.
+ * @fileOverview محرك بث تلغرام المستقل v2.0 - Deep Intelligence Node
+ * يعمل بشكل معزول تماماً ويقوم بمسح السوق كل 5 دقائق لبث أفضل الفرص المتاحة.
  */
 export function TelegramBroadcastManager() {
   const db = useFirestore();
@@ -32,31 +32,32 @@ export function TelegramBroadcastManager() {
         const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         if (symbols.length === 0) return;
 
-        // 2. تحليل كافة الأسواق واختيار أفضل إشارة (أعلى نسبة ثقة)
+        // 2. تحليل كافة الأسواق واختيار أفضل إشارة
         const analyses = [];
         for (const sym of symbols) {
+          // جلب تحليل عميق لملء كافة حقول الإشارة الجديدة
           const analysis = await runNamix(sym.binanceSymbol || sym.code);
           // القوة هي الانحراف عن السكور المحايد 0.5
           const strength = Math.abs(analysis.score - 0.5);
           analyses.push({ sym, analysis, strength });
         }
 
-        // 3. اختيار الفرصة الذهبية في هذه الدورة
+        // 3. اختيار الفرصة الذهبية في هذه الدورة (الأعلى ثقة)
         const best = analyses.sort((a, b) => b.strength - a.strength)[0];
 
-        // 4. البث الفوري لتلغرام (يتجاهل عتبات الثقة لضمان الكثافة)
+        // 4. البث الفوري لتلغرام بنظام البطاقة المصورة الجديد
         if (best && best.analysis.decision !== 'HOLD') {
           await broadcastSignalToTelegram(best.analysis, best.sym);
         }
       } catch (e) {
-        console.error("Telegram Cycle Error:", e);
+        console.error("Telegram Intelligence Cycle Error:", e);
       }
     };
 
     // تشغيل المحرك: دورة كل 5 دقائق (300,000 مللي ثانية)
     const interval = setInterval(runTelegramCycle, 300000);
     
-    // تشغيل أولي فوري عند الدخول
+    // تشغيل أولي فوري عند الدخول لتنشيط البوت
     runTelegramCycle();
 
     return () => {
@@ -65,5 +66,5 @@ export function TelegramBroadcastManager() {
     };
   }, [db]);
 
-  return null; // مكون وظيفي يعمل في الخلفية
+  return null;
 }

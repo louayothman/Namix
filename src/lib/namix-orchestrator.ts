@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview محرك التحليل الاستنتاجي المطور v5.0
- * ربط إشعارات الذكاء الاصطناعي بنسبة ثقة 60% وفق المعايير المطلوبة.
+ * @fileOverview محرك التحليل الاستنتاجي المطور v6.0 - Professional Signal Engine
+ * يقوم بتوليد بيانات إشارة متكاملة تشمل الأهداف، وقف الخسارة، وتحليل المخاطر.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -20,48 +20,56 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
 
   const decisionScore = (tech.score * 0.7) + (volume.score * 0.3);
 
-  // تحديث الحساسية: جعل النظام يتخذ قراراً عند أي انحراف عن 0.5 (التعادل)
-  // لضمان وجود إشارات دائمية حتى لو كانت الثقة 1%
-  let decision = "HOLD";
-  if (decisionScore > 0.501) decision = "BUY";
-  else if (decisionScore < 0.499) decision = "SELL";
+  let decision: 'BUY' | 'SELL' | 'HOLD' = "HOLD";
+  if (decisionScore > 0.505) decision = "BUY";
+  else if (decisionScore < 0.495) decision = "SELL";
 
   const confidence = Math.round(decisionScore * 100);
 
-  // إطلاق تنبيه إشارة التداول إذا تجاوزت الثقة 60% وكان هناك مستخدم مستهدف
+  // إطلاق تنبيه إشارة التداول إذا تجاوزت الثقة 60%
   if (userId && confidence >= 60 && decision !== 'HOLD') {
     sendAISignalNotification(userId, cleanSymbol, confidence, decision).catch(() => {});
   }
 
   const risk = riskEngine(decision, tech, volume);
-  const dialogue = generateVastAgentDialogue(decision, tech, volume, decisionScore, duration);
-  const reasoning = generateVastReasoning(decision, tech, volume, duration);
-
   const currentPrice = tech.last;
   const volatility = tech.high - tech.low;
-  const atrProxy = volatility * 0.2;
+  const atrProxy = volatility * 0.25;
 
+  // هندسة الأهداف الاستراتيجية (Targets Architecture)
+  const isLong = decision === 'BUY';
   const targets = {
-    tp1: decision === "BUY" ? 1 + (atrProxy / currentPrice * 0.4) : 1 - (atrProxy / currentPrice * 0.4),
-    tp2: decision === "BUY" ? 1 + (atrProxy / currentPrice * 0.9) : 1 - (atrProxy / currentPrice * 0.9),
-    tp3: decision === "BUY" ? 1 + (atrProxy / currentPrice * 1.8) : 1 - (atrProxy / currentPrice * 1.8)
+    tp1: isLong ? currentPrice + (atrProxy * 1.5) : currentPrice - (atrProxy * 1.5),
+    tp2: isLong ? currentPrice + (atrProxy * 3.5) : currentPrice - (atrProxy * 3.5),
+    tp3: isLong ? currentPrice + (atrProxy * 7.0) : currentPrice - (atrProxy * 7.0),
+    sl: isLong ? currentPrice - (atrProxy * 2.5) : currentPrice + (atrProxy * 2.5)
   };
 
-  const entryMin = currentPrice * (decision === "BUY" ? 0.9995 : 1.0005);
-  const entryMax = currentPrice;
+  const entryMin = currentPrice * (isLong ? 0.999 : 1.001);
+  const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
+
+  const dialogue = generateVastAgentDialogue(decision, tech, volume, decisionScore, duration);
+  const reason = isLong ? "Breakout + Strong Volume Support" : decision === 'SELL' ? "Resistance Rejection + Distribution" : "Market Equilibrium";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
   return {
-    pair: symbol,
+    pair: cleanSymbol,
     decision,
+    type: isLong ? "LONG" : decision === 'SELL' ? "SHORT" : "NEUTRAL",
     score: decisionScore,
-    risk,
-    reasoning,
-    dialogue,
+    confidence,
+    risk: {
+      ...risk,
+      label: risk.level === 'LOW' ? 'منخفضة' : risk.level === 'HIGH' ? 'متوسطة' : 'عالية'
+    },
+    reason,
+    trend: isLong ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي",
+    volume: volume.score > 0.7 ? "عالي" : volume.score > 0.4 ? "متوسط" : "منخفض",
     targets,
-    entry_zone: `${entryMin.toLocaleString(undefined, {minimumFractionDigits: 2})} - ${entryMax.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
-    invalidated_at: decision === "BUY" ? currentPrice - (atrProxy * 1.2) : currentPrice + (atrProxy * 1.2),
+    entry_range: `${entryMin.toLocaleString(undefined, {minimumFractionDigits: 2})} – ${entryMax.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+    invalidated_at: targets.sl,
+    timeframe: duration ? (duration < 3600 ? "سكالبينج" : "إنتراداي") : "تداول يومي",
     agents: { tech, volume },
     timestamp: new Date().toISOString()
   };
@@ -85,11 +93,4 @@ function generateVastAgentDialogue(decision: string, tech: any, volume: any, sco
     { agent: "Alpha", icon: "Zap", color: "bg-orange-500", message: alphaPool[status][seed] },
     { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق الفني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق الفني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كافٍ. التوصية: الترقب.` }
   ];
-}
-
-function generateVastReasoning(decision: string, tech: any, volume: any, duration?: number): string {
-  const durLabel = duration ? (duration < 60 ? `${duration}ثانية` : `${Math.floor(duration/60)}دقيقة`) : "الحالية";
-  if (decision === 'BUY') return `تحليل البيانات الأخيرة يظهر تحسناً في مستويات الدعم خلال إطار ${durLabel}.`;
-  if (decision === 'SELL') return `ضغط تصريفي يظهر في الدقائق الأخيرة نحو مستويات أدنى في إطار ${durLabel}.`;
-  return `حالة توازن بين العرض والطلب؛ يفضل الانتظار في إطار ${durLabel}.`;
 }
