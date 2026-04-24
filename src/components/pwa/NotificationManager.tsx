@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات ومحرك الإشارات v8.0 - Universal Push Engine
+ * @fileOverview مدير التنبيهات ومحرك الإشارات v8.1 - Fix userSession Scope
  * يدعم إرسال إشارات التداول لجميع الأجهزة (مسجلين وضيوف).
  * يبدأ أول إرسال بعد دقيقة واحدة من التثبيت.
  */
@@ -38,6 +38,10 @@ export function NotificationManager() {
   const isFirstScanScheduled = useRef(false);
 
   useEffect(() => {
+    // 0. جلب الجلسة الحالية بشكل سيادي لتكون متاحة لكافة المهام
+    const userSession = typeof window !== 'undefined' ? localStorage.getItem("namix_user") : null;
+    const user = userSession ? JSON.parse(userSession) : null;
+
     // 1. تتبع وقت التثبيت (بصمة التثبيت)
     let installTime = localStorage.getItem("namix_install_time");
     if (!installTime) {
@@ -57,9 +61,6 @@ export function NotificationManager() {
     // 3. مفاعل إشارات السوق (Universal Market Signal Reactor)
     const runMarketScan = async () => {
       try {
-        const userSession = localStorage.getItem("namix_user");
-        const user = userSession ? JSON.parse(userSession) : null;
-
         const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
         const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         
@@ -142,8 +143,7 @@ export function NotificationManager() {
 
     // 6. مراقب الإشعارات التقليدي للمسجلين (لأغراض المزامنة)
     let unsubscribe: any;
-    if (userSession && hasPermission) {
-      const user = JSON.parse(userSession);
+    if (user && hasPermission) {
       const q = query(
         collection(db, "notifications"),
         where("userId", "==", user.id),
