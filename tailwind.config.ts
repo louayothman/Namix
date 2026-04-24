@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // تحديث مصفوفة الخطوط لتشمل الخطوط المحلية الجديدة
-        sans: ['var(--font-quicksand)', 'var(--font-ibm-plex-arabic)', 'sans-serif'],
-        body: ['var(--font-ibm-plex-arabic)', 'var(--font-quicksand)', 'sans-serif'],
+        // تحديث مصفوفة الخطوط لتشمل Outfit و IBM Plex Arabic
+        sans: ['var(--font-outfit)', 'var(--font-ibm-plex-arabic)', 'sans-serif'],
+        body: ['var(--font-ibm-plex-arabic)', 'var(--font-outfit)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

@@ -30,8 +30,8 @@
 @layer base {
   * {
     @apply border-border;
-    /* الترتيب السيادي: Quicksand للأرقام والإنجليزية، ثم IBM Plex Arabic للعربية */
-    font-family: var(--font-quicksand), var(--font-ibm-plex-arabic), sans-serif !important;
+    /* الترتيب السيادي: Outfit للأرقام، ثم IBM Plex Arabic للعربية */
+    font-family: var(--font-outfit), var(--font-ibm-plex-arabic), sans-serif !important;
     letter-spacing: 0 !important;
   }
   
@@ -39,27 +39,28 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1, "lnum" 1;
     overflow-x: hidden;
-    /* تعيين وزن رقيق كافتراضي للعربية لضمان الفخامة */
+    /* الرقة العربية المعتمدة: وزن 200/300 لمنع التضخم */
     font-weight: 300;
   }
 
   h1, h2, h3, h4, .font-black {
-    font-weight: 600 !important; /* وزن متوسط رقيق للعناوين بدلاً من العريض جداً */
+    /* العناوين لم تعد عريضة جداً، تم تخفيفها لوزن 500 لضمان النخبوية */
+    font-weight: 500 !important;
   }
 }
 
-/* تخصيص العربية بوزن IBM Plex الرقيق */
+/* تخصيص العربية بوزن IBM Plex الرقيق جداً */
 [dir="rtl"] {
   letter-spacing: 0 !important;
-  font-family: var(--font-ibm-plex-arabic), var(--font-quicksand), sans-serif !important;
-  font-weight: 300;
+  font-family: var(--font-ibm-plex-arabic), var(--font-outfit), sans-serif !important;
+  font-weight: 200;
 }
 
-/* الأرقام والإنجليزية بخط Quicksand المستدير */
+/* الأرقام والإنجليزية بخط Outfit العصري */
 :lang(en), .font-mono, .tabular-nums, [dir="ltr"], input, button {
-  font-family: var(--font-quicksand), sans-serif !important;
+  font-family: var(--font-outfit), sans-serif !important;
   font-feature-settings: "tnum" 1, "lnum" 1 !important;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 @keyframes pulse-ring {

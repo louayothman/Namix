@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -15,13 +14,12 @@ interface LogoProps {
 
 /**
  * @fileOverview مكون الهوية البصرية - Namix Logo
- * تم إعادة الضبط للاعتماد على الهوامش الافتراضية والتباعد القياسي (gap).
+ * تم ضبط التباعد (gap-3.5) لضمان تنفس العناصر ومنع التلاصق البصري.
  */
 export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
   const isLarge = size === 'lg';
   
-  // ضبط الأحجام بناءً على القياس المختار
   const dotSize = isSmall ? 4 : isLarge ? 10 : 7;
   const gridGap = isSmall ? 2 : isLarge ? 5 : 3;
   const textSize = isSmall ? "text-[14px]" : isLarge ? "text-[32px]" : "text-[24px]";
@@ -29,13 +27,13 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
   return (
     <div 
       className={cn(
-        "relative inline-flex items-center gap-3 group cursor-pointer leading-none", 
+        "relative inline-flex items-center gap-3.5 group cursor-pointer leading-none", 
         className
       )} 
       dir="ltr"
     >
       {/* أيقونة المصفوفة الرباعية */}
-      <div className="relative flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="relative flex items-center justify-center shrink-0">
         <motion.div 
           animate={animate ? { rotate: [0, 90, 180, 270, 360] } : {}}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -49,7 +47,7 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
         </motion.div>
       </div>
       
-      {/* اسم المنصة */}
+      {/* اسم المنصة بخط Outfit الفخم */}
       {!hideText && (
         <span className={cn(
           "font-bold tracking-[0.2em] leading-none select-none uppercase inline-block",
