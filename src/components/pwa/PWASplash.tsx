@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview شاشة الترحيب المينيماليست الفاخرة v6.0 - Luxury Identity Pulse
- * تصميم نقي يعتمد على اسم المنصة والأيقونة النابضة مع خلفية متحركة انسيابية.
+ * @fileOverview شاشة الترحيب المينيماليست الفاخرة v7.0 - Ghost Pulse Identity
+ * تصميم نقي يركز على الهوية المركزية مع نبض شفافية وتوقيع تقني سفلي.
  */
 
 const NAMIX_BLUE = "#002d4d";
@@ -56,78 +56,50 @@ export function PWASplash() {
               repeat: Infinity, 
               ease: "linear" 
             }}
-            className="absolute inset-[-10%] bg-[radial-gradient(circle_at_center,#002d4d_0%,transparent 60%)] opacity-[0.04]"
+            className="absolute inset-[-10%] bg-[radial-gradient(circle_at_center,#002d4d_0%,transparent 60%)] opacity-[0.03]"
           />
-          
+
+          {/* 2. كتلة الهوية المركزية (Identity Core) - Ghost Pulse Animation */}
           <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ 
-              scale: [1.2, 1, 1.2],
-              x: [30, -30, 30],
-              y: [30, -30, 30]
+              opacity: [0.4, 1, 0.4],
+              scale: 1
             }}
             transition={{ 
-              duration: 20, 
-              repeat: Infinity, 
-              ease: "linear" 
+              opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+              scale: { duration: 1.5, ease: luxuryEase }
             }}
-            className="absolute inset-[-10%] bg-[radial-gradient(circle_at_bottom_left,#f9a885_0%,transparent 50%)] opacity-[0.02]"
-          />
-
-          {/* 2. كتلة الهوية المركزية (Identity Core) */}
-          <div className="relative flex items-center gap-5" dir="ltr">
-            
-            {/* الأيقونة النابضة (جهة اليسار في LTR) */}
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: 1
-              }}
-              transition={{ 
-                scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-                opacity: { duration: 1, delay: 0.2 }
-              }}
-              className="relative flex items-center justify-center shrink-0"
-            >
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
-                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
-                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
-                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
+            className="relative flex items-center gap-3" 
+            dir="ltr"
+          >
+            {/* الأيقونة النانوية (جهة اليسار في LTR) */}
+            <div className="relative flex items-center justify-center shrink-0">
+              <div className="grid grid-cols-2 gap-1">
+                <div className="h-1.5 w-1.5 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
+                <div className="h-1.5 w-1.5 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
+                <div className="h-1.5 w-1.5 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
+                <div className="h-1.5 w-1.5 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
               </div>
-              
-              {/* هالة النبض الخفيفة */}
-              <motion.div 
-                animate={{ scale: [1, 1.8], opacity: [0.2, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                className="absolute inset-0 bg-blue-400 rounded-full blur-lg -z-10"
-              />
-            </motion.div>
+            </div>
 
-            {/* اسم المنصة (Typography) */}
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 1.5, ease: luxuryEase }}
-            >
-               <h2 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-[0.2em] uppercase">
-                 NAMIX
-               </h2>
-            </motion.div>
+            {/* اسم المنصة (Minimalist Typography) */}
+            <h2 className="text-xl md:text-2xl font-black text-[#002d4d] tracking-[0.15em] uppercase leading-none">
+              NAMIX
+            </h2>
+          </motion.div>
 
-          </div>
-
-          {/* 3. بصمة النقاء السفلية */}
+          {/* 3. التوقيع التقني المجهري (Nexus Signature) */}
           <motion.div 
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.15 }}
-            transition={{ delay: 2, duration: 1.5 }}
-            className="absolute bottom-16 flex flex-col items-center gap-3"
+            animate={{ opacity: 0.12 }}
+            transition={{ delay: 1, duration: 2 }}
+            className="absolute bottom-12 flex flex-col items-center gap-2"
           >
-             <div className="h-px w-8 bg-[#002d4d] rounded-full" />
              <p className="text-[7px] font-black uppercase tracking-[0.8em] text-[#002d4d] mr-[-0.8em]">
-               SECURED GATEWAY
+               NAMIX NEXUS V10.16
              </p>
+             <div className="h-[0.5px] w-4 bg-[#002d4d] rounded-full" />
           </motion.div>
 
         </motion.div>
