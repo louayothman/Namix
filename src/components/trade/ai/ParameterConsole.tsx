@@ -59,7 +59,7 @@ export function ParameterConsole({
 
   return (
     <div className="p-1 font-body" dir="rtl">
-      <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] overflow-hidden flex flex-col group transition-all duration-700 hover:shadow-2xl">
+      <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] flex flex-col group transition-all duration-700 hover:shadow-2xl">
         
         {/* Section 1: Amount Control */}
         <div className="p-8 space-y-5">
@@ -88,7 +88,7 @@ export function ParameterConsole({
                 <Minus size={20} />
              </motion.button>
 
-             <div className="flex-1 relative group/input">
+             <div className="flex-1 relative">
                 <input 
                   type="number"
                   value={amount}
@@ -131,7 +131,6 @@ export function ParameterConsole({
                       : "bg-transparent border-transparent text-gray-400 hover:text-gray-600"
                   )}
                 >
-                  {duration === d.seconds && <motion.div layoutId="active-dur-min" className="absolute inset-0 bg-[#f9a885]/5" />}
                   <span className="relative z-10">{d.label}</span>
                 </button>
               ))}
@@ -170,7 +169,7 @@ export function ParameterConsole({
                         <span>رصيد غير كافٍ للتنفيذ</span>
                       </div>
                     ) : isHold ? (
-                      <span className="opacity-60">بانتظار الإشارة الاستباقية...</span>
+                      <span className="opacity-60">بانتظار الإشارة...</span>
                     ) : (
                       <>
                         <span>تأكيد بروتوكول {isBuy ? 'الشراء' : 'البيع'}</span>
@@ -180,18 +179,10 @@ export function ParameterConsole({
                  </motion.div>
                )}
              </AnimatePresence>
-
-             {(!isHold && !isInsufficient) && (
-               <motion.div 
-                 animate={{ opacity: [0.1, 0.3, 0.1] }}
-                 transition={{ duration: 2, repeat: Infinity }}
-                 className="absolute inset-0 bg-white/10 pointer-events-none" 
-               />
-             )}
            </Button>
         </div>
 
-        <div className="py-3 bg-[#002d4d] flex items-center justify-center gap-4 opacity-90">
+        <div className="py-3 bg-[#002d4d] flex items-center justify-center gap-4 opacity-90 rounded-b-[44px]">
            <div className="flex items-center gap-1.5">
               <ShieldCheck size={10} className="text-emerald-400" />
               <p className="text-[7px] font-black text-blue-100/40 uppercase tracking-widest">Protocol Verified</p>
