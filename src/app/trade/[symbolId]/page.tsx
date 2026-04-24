@@ -124,7 +124,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
 
   if (isLoading || loadingConfig || !asset) return <TerminalLoader />;
 
-  // بروتوكول توقف الخدمة التكتيكي للمحطات
   if (globalConfig?.isTradingEnabled === false) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-white font-body" dir="rtl">
@@ -157,7 +156,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
     <Shell hideMobileNav>
       <div className="flex flex-col h-[100dvh] w-full bg-[#fcfdfe] font-body select-none overflow-hidden relative" dir="rtl">
         
-        {/* Luxury Glassmorphic Header */}
         <header className="h-[70px] bg-white/80 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 z-[120] border-b border-gray-100 shadow-sm">
            <div className="flex items-center gap-3">
               <button 
@@ -179,7 +177,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
            </div>
 
            <div className="flex items-center gap-2 md:gap-4">
-              {/* Common Action Node */}
               <div className="hidden sm:flex items-center gap-3 px-4 h-10 bg-gray-50/50 rounded-2xl border border-gray-100 shadow-inner">
                  <p className="text-[11px] font-black text-[#002d4d] tabular-nums">
                    ${dbUser?.totalBalance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -189,7 +186,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
                  </button>
               </div>
 
-              {/* Functional Controls Matrix */}
               <div className="flex items-center gap-1.5 bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
                 <button 
                   onClick={toggleFavorite}
@@ -228,10 +224,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
            </div>
         </header>
 
-        {/* Unified Terminal Chassis */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-          
-          {/* Main Visual Reactor (Chart) */}
           <section className="flex-1 relative bg-white overflow-hidden border-b lg:border-b-0">
              <Suspense fallback={<TerminalLoader />}>
                {asset.priceSource === 'internal' ? (
@@ -242,7 +235,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
              </Suspense>
           </section>
 
-          {/* Tactical Execution Sidebar (Order Panel) */}
           <aside className="lg:w-[380px] w-full bg-white z-[110] flex flex-col justify-center shrink-0 relative p-4 md:p-6 lg:border-r border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] lg:shadow-none">
              <Suspense fallback={<div className="h-[200px] w-full bg-gray-50 rounded-3xl animate-pulse" />}>
                <OrderPanel 
@@ -256,7 +248,6 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
           </aside>
         </div>
 
-        {/* Global Overlays & Drawer Components */}
         <Drawer open={aiOpen} onOpenChange={setAiOpen}>
           <DrawerPortal>
             <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]" />
@@ -278,7 +269,7 @@ export default function AssetTerminalPage({ params }: { params: Promise<{ symbol
                    <X size={20} />
                 </button>
               </DrawerHeader>
-              <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-none pb-24">
+              <div className="flex-1 overflow-y-auto p-6 md:p-10 pb-32">
                  <NamixAIContainer asset={asset} livePrice={livePrice} />
               </div>
             </DrawerContent>

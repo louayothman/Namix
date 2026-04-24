@@ -67,7 +67,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [status]);
 
-  // محرك جلب المدد الزمنية مع نظام Fallback وتصحيح وحدات القياس الكبرى (أيام/أشهر)
   const durations = useMemo(() => {
     if (globalConfig?.tradeDurations && Array.isArray(globalConfig.tradeDurations) && globalConfig.tradeDurations.length > 0) {
       return globalConfig.tradeDurations.map((d: any) => {
@@ -94,7 +93,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     }
   }, [durations, tradeDuration]);
 
-  // محرك التحليل الحساس للمدة ونبض السوق
   useEffect(() => {
     if (status !== 'results' || !asset?.id || tradeDuration === 0) return;
 
@@ -108,7 +106,6 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
         if (data.dialogue) {
           const newMessages: any[] = [];
           data.dialogue.forEach((msg: any) => {
-            // إضافة الرسالة فقط إذا كانت القراءة الفنية للوكيل قد تغيرت فعلياً
             if (lastAgentsRef.current[msg.agent] !== msg.message) {
               newMessages.push({ ...msg, id: Date.now() + Math.random() });
               lastAgentsRef.current[msg.agent] = msg.message;
@@ -125,7 +122,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
     const interval = setInterval(fetchAnalysis, 3000);
     fetchAnalysis();
     return () => clearInterval(interval);
-  }, [status, asset, tradeDuration]); // التحديث الفوري عند تغيير المدة الزمنية
+  }, [status, asset, tradeDuration]);
 
   const handleTradeExecution = async () => {
     if (!dbUser || !result || result.decision === 'HOLD' || isExecuting) return;
@@ -171,7 +168,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
   if (status === 'calibrating') return <MarketScanner />;
 
   return (
-    <div className="w-full space-y-6 font-body tracking-normal select-none" dir="rtl">
+    <div className="w-full space-y-6 font-body tracking-normal" dir="rtl">
       <AnimatePresence mode="wait">
         {status === 'results' && result && (
           <motion.div key="res" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 pb-10">
@@ -193,7 +190,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-widest tracking-normal">الأهداف الاستراتيجية</h4>
+                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">الأهداف الاستراتيجية</h4>
                      <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">PROFIT NODES</Badge>
                   </div>
                   
@@ -207,7 +204,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">{t.label}</span>
                           <div className="flex items-center gap-1">
                              <span className={cn("text-[13px] font-black tabular-nums tracking-tighter", t.color)}>
-                               ${(currentPrice * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                               ${(currentPrice * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                              </span>
                              {t.glow && <Sparkles size={8} className="text-[#f9a885] animate-pulse" />}
                           </div>

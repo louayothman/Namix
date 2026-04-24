@@ -33,10 +33,6 @@ interface ParameterConsoleProps {
   decision: 'BUY' | 'SELL' | 'HOLD';
 }
 
-/**
- * @fileOverview قُمرة التنفيذ الموحدة v11.0 - Liquidity Safety Protocol
- * تم إضافة محرك فحص الرصيد اللحظي لضمان سلامة التنفيذ ومنع الأخطاء المالية.
- */
 export function ParameterConsole({ 
   amount, 
   onAmountChange, 
@@ -62,10 +58,10 @@ export function ParameterConsole({
   const isInsufficient = balance < amount;
 
   return (
-    <div className="p-1 font-body select-none" dir="rtl">
+    <div className="p-1 font-body" dir="rtl">
       <div className="bg-white rounded-[44px] border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,45,77,0.08)] overflow-hidden flex flex-col group transition-all duration-700 hover:shadow-2xl">
         
-        {/* Section 1: Amount Control - التدقيق المالي */}
+        {/* Section 1: Amount Control */}
         <div className="p-8 space-y-5">
           <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
@@ -117,7 +113,7 @@ export function ParameterConsole({
           </div>
         </div>
 
-        {/* Section 2: Duration Selector - نافذة التنفيذ */}
+        {/* Section 2: Duration Selector */}
         <div className="px-8 pb-8 space-y-4">
            <div className="flex items-center gap-2 px-2">
               <Clock size={14} className="text-blue-500" />
@@ -142,7 +138,7 @@ export function ParameterConsole({
            </div>
         </div>
 
-        {/* Section 3: Execution Button - القاعدة الذكية */}
+        {/* Section 3: Execution Button */}
         <div className="p-4 bg-gray-50/50 border-t border-gray-50">
            <Button
              onClick={onExecute}
@@ -195,7 +191,6 @@ export function ParameterConsole({
            </Button>
         </div>
 
-        {/* Bottom Metadata - الختم الموثق */}
         <div className="py-3 bg-[#002d4d] flex items-center justify-center gap-4 opacity-90">
            <div className="flex items-center gap-1.5">
               <ShieldCheck size={10} className="text-emerald-400" />
