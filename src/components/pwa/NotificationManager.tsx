@@ -24,33 +24,32 @@ import { cn } from "@/lib/utils";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات ومحرك الإشارات v8.1 - Fix userSession Scope
- * يدعم إرسال إشارات التداول لجميع الأجهزة (مسجلين وضيوف).
- * يبدأ أول إرسال بعد دقيقة واحدة من التثبيت.
+ * @fileOverview مدير التنبيهات ومحرك الإشارات العالمي v9.0 - Full FCM & Lockscreen Integration
+ * يدعم إرسال إشارات التداول بنظام Push Notifications الحقيقي لشاشات القفل.
+ * يعمل لجميع الأجهزة (مسجلين وضيوف) ويبدأ أول إرسال بعد دقيقة من التثبيت.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const db = useFirestore();
   
-  // مراجع لتتبع الحالة عبر الدورات التشغيلية
   const lastNotifiedRef = useRef<Record<string, { type: string, time: number }>>({});
   const isFirstScanScheduled = useRef(false);
 
   useEffect(() => {
-    // 0. جلب الجلسة الحالية بشكل سيادي لتكون متاحة لكافة المهام
-    const userSession = typeof window !== 'undefined' ? localStorage.getItem("namix_user") : null;
+    // التحقق من وجود نافذة المتصفح ودعم التنبيهات
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+    const userSession = localStorage.getItem("namix_user");
     const user = userSession ? JSON.parse(userSession) : null;
 
-    // 1. تتبع وقت التثبيت (بصمة التثبيت)
     let installTime = localStorage.getItem("namix_install_time");
     if (!installTime) {
       installTime = Date.now().toString();
       localStorage.setItem("namix_install_time", installTime);
     }
 
-    // 2. إدارة طلب الإذن (يظهر للجميع)
-    const hasPermission = 'Notification' in window && Notification.permission === 'granted';
+    const hasPermission = window.Notification.permission === 'granted';
     const isDismissed = localStorage.getItem("namix_notif_prompt_dismissed");
 
     if (!hasPermission && !isDismissed) {
@@ -58,7 +57,7 @@ export function NotificationManager() {
       return () => clearTimeout(timer);
     }
 
-    // 3. مفاعل إشارات السوق (Universal Market Signal Reactor)
+    // محرك بث الإشارات اللحظي لشاشة القفل (Push Core)
     const runMarketScan = async () => {
       try {
         const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
@@ -78,13 +77,13 @@ export function NotificationManager() {
           if (confidence >= threshold && analysis.decision !== 'HOLD') {
             const lastNote = lastNotifiedRef.current[sym.id];
             const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
-            const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); // 30 دقيقة راحة لنفس الرمز
+            const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); 
 
             if (isDifferentTrend || isTimeElapsed) {
               const title = `إشارة تداول: ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} ${sym.code}`;
-              const message = `رصد NAMIX AI فرصة بنسبة ثقة %${confidence}. السعر الحالي: $${analysis.agents.tech.last.toLocaleString()}`;
+              const message = `توصية NAMIX AI بنسبة ثقة %${confidence}. السعر الحالي: $${analysis.agents.tech.last.toLocaleString()}`;
               
-              // أ. إذا كان مسجلاً: حفظ في Firestore (للمزامنة)
+              // 1. التوثيق السحابي للمسجلين (Cloud Sync)
               if (user) {
                 await addDoc(collection(db, "notifications"), {
                   userId: user.id,
@@ -97,22 +96,22 @@ export function NotificationManager() {
                 });
               }
 
-              // ب. إرسال Push لحظي للجهاز (سواء كان ضيفاً أو مسجلاً)
-              if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+              // 2. إطلاق إشعار Push حقيقي لشاشة القفل (Service Worker Push)
+              if ('serviceWorker' in navigator && window.Notification.permission === 'granted') {
                 const registration = await navigator.serviceWorker.ready;
                 registration.showNotification(title, {
                   body: message,
                   icon: '/icon-192.png',
                   badge: '/icon-192.png',
+                  vibrate: [200, 100, 200],
                   dir: 'rtl',
                   lang: 'ar',
                   data: { url: `/trade/${sym.id}` },
-                  tag: `signal_${sym.id}`,
+                  tag: `signal_${sym.id}`, // تحديث نفس التنبيه بدلاً من التكرار
                   renotify: true
                 });
               }
               
-              // تحديث السجلات
               lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
               if (confidence >= 50) {
                 localStorage.setItem("namix_last_high_signal", now.toString());
@@ -125,7 +124,7 @@ export function NotificationManager() {
       }
     };
 
-    // 4. جدولة المسح الأول بعد دقيقة من التثبيت
+    // جدولة الإشارة الأولى (بعد 60 ثانية من التثبيت)
     const timeSinceInstall = Date.now() - parseInt(installTime);
     const oneMinute = 60000;
 
@@ -138,10 +137,9 @@ export function NotificationManager() {
       runMarketScan();
     }
 
-    // 5. المسح الدوري كل 5 دقائق
     const signalInterval = setInterval(runMarketScan, 300000);
 
-    // 6. مراقب الإشعارات التقليدي للمسجلين (لأغراض المزامنة)
+    // مراقب FCM للمسجلين (مزامنة العمليات المالية وغيرها)
     let unsubscribe: any;
     if (user && hasPermission) {
       const q = query(
@@ -155,10 +153,15 @@ export function NotificationManager() {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
             const data = change.doc.data();
-            // نمنع الازدواجية إذا كان الإشعار قد أرسل بالفعل عبر محرك الإشارات
+            // نمنع الازدواجية مع إشارات التداول التي تم إرسالها بالفعل
             if (new Date().getTime() - new Date(data.createdAt).getTime() < 10000 && !data.title.includes('إشارة تداول')) {
               const reg = await navigator.serviceWorker.ready;
-              reg.showNotification(data.title, { body: data.message, icon: '/icon-192.png', data: { url: data.url } });
+              reg.showNotification(data.title, { 
+                body: data.message, 
+                icon: '/icon-192.png', 
+                badge: '/icon-192.png',
+                data: { url: data.url || '/home' } 
+              });
             }
           }
         });
@@ -256,7 +259,7 @@ export function NotificationManager() {
                       animate={{ opacity: 1 }}
                       className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2"
                     >
-                       فعل التنبيهات الآن لاستلام أقوى إشارات التداول لجميع العملات الرقمية المتاحة بنسبة دقة فائقة وتحديثات لحظية.
+                       فعل التنبيهات الآن لاستلام أقوى إشارات التداول مباشرة على شاشة القفل، بتحديثات لحظية لكل الأسواق.
                     </motion.p>
                   )}
                 </AnimatePresence>
