@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { DashboardMenu } from "@/components/admin/notifications/DashboardMenu";
 import { ChannelSelector } from "@/components/admin/notifications/ChannelSelector";
 import { AppBroadcastForm } from "@/components/admin/notifications/AppBroadcastForm";
+import { PushBroadcastForm } from "@/components/admin/notifications/PushBroadcastForm";
 import { GlobalBroadcastForm } from "@/components/admin/notifications/GlobalBroadcastForm";
 import { HistoryLedgerView } from "@/components/admin/notifications/HistoryLedgerView";
 import { Button } from "@/components/ui/button";
@@ -14,11 +15,11 @@ import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview مركز إدارة الاتصال المؤسساتي v16.0
- * تم تحديث الواجهة لتوجيه المشرف إلى صفحة مخصصة لبناء البريد الإلكتروني.
+ * @fileOverview مركز إدارة الاتصال المؤسساتي v17.0
+ * دعم القنوات الأربع: داخلي، بريد، بوش، وشامل.
  */
 
-type ViewState = 'menu' | 'channels' | 'form_app' | 'form_global' | 'history';
+type ViewState = 'menu' | 'channels' | 'form_app' | 'form_push' | 'form_global' | 'history';
 
 export default function AdminNotificationsPage() {
   const [view, setView] = useState<ViewState>('menu');
@@ -42,7 +43,6 @@ export default function AdminNotificationsPage() {
     <Shell isAdmin>
       <div className="max-w-[1600px] mx-auto space-y-10 px-6 pt-10 pb-32 font-body text-right" dir="rtl">
         
-        {/* Navigation Control Hub */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-gray-100 pb-10">
           <div className="space-y-2 text-right">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] justify-start">
@@ -53,10 +53,11 @@ export default function AdminNotificationsPage() {
               {view === 'menu' && "إدارة الاتصال المؤسساتي"}
               {view === 'channels' && "تحديد قناة البث"}
               {view === 'form_app' && "بث إشعارات التطبيق"}
+              {view === 'form_push' && "بث التنبيهات الخارجية (Push)"}
               {view === 'form_global' && "البث الموحد الشامل"}
               {view === 'history' && "أرشيف العمليات التاريخي"}
             </h1>
-            <p className="text-muted-foreground font-bold text-xs">تحكم مركزي في تدفق المعلومات والاستهداف الموجه للقاعدة.</p>
+            <p className="text-muted-foreground font-bold text-xs">تحكم مركزي في تدفق المعلومات عبر القنوات الأربع المعتمدة.</p>
           </div>
           
           {view !== 'menu' && (
@@ -87,6 +88,12 @@ export default function AdminNotificationsPage() {
             {view === 'form_app' && (
               <motion.div key="app" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
                 <AppBroadcastForm onSuccess={() => setView('history')} />
+              </motion.div>
+            )}
+
+            {view === 'form_push' && (
+              <motion.div key="push" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+                <PushBroadcastForm onSuccess={() => setView('history')} />
               </motion.div>
             )}
 

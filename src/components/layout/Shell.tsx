@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useMemo, memo } from "react";
@@ -24,6 +25,7 @@ import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { Logo } from "./Logo";
 import { Badge } from "@/components/ui/badge";
+import { checkAndSendAutomatedNotifications } from "@/app/actions/engagement-actions";
 
 const NavItem = memo(({ item, active }: { item: any, active: boolean }) => (
   <Link 
@@ -87,6 +89,12 @@ export function Shell({
     if (uid) {
       const updatePulse = () => updateDoc(doc(db, "users", uid), { lastActive: new Date().toISOString() }).catch(() => {});
       updatePulse();
+      
+      // تشغيل محرك الاستهداف الآلي فور دخول المستخدم أو نشاطه
+      if (!isAdmin) {
+        checkAndSendAutomatedNotifications(uid).catch(() => {});
+      }
+
       const interval = setInterval(updatePulse, 60000);
       return () => clearInterval(interval);
     }
