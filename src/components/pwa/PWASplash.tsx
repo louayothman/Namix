@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview شاشة الترحيب المينيماليست الفاخرة v5.0 - Luxury Identity Bloom
- * تصميم نقي يعتمد على المساحات البيضاء، التوازن البصري، وحركات الظهور الهادئة.
+ * @fileOverview شاشة الترحيب المينيماليست الفاخرة v6.0 - Luxury Identity Pulse
+ * تصميم نقي يعتمد على اسم المنصة والأيقونة النابضة مع خلفية متحركة انسيابية.
  */
 
 const NAMIX_BLUE = "#002d4d";
@@ -41,84 +41,92 @@ export function PWASplash() {
         <motion.div 
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1, ease: "easeInOut" }}
+          transition={{ duration: 1.2, ease: "easeInOut" }}
           className="fixed inset-0 z-[3000] bg-white flex flex-col items-center justify-center overflow-hidden pointer-events-none select-none"
         >
-          {/* Subtle Ambient Aura */}
+          {/* 1. المحرك الضوئي المتحرك (Ambient Moving Background) */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.03 }}
-            transition={{ duration: 2 }}
-            className="absolute inset-0 bg-[radial-gradient(circle_at_center,#002d4d_0%,transparent 70%)]"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              x: [-20, 20, -20],
+              y: [-20, 20, -20]
+            }}
+            transition={{ 
+              duration: 15, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className="absolute inset-[-10%] bg-[radial-gradient(circle_at_center,#002d4d_0%,transparent 60%)] opacity-[0.04]"
+          />
+          
+          <motion.div 
+            animate={{ 
+              scale: [1.2, 1, 1.2],
+              x: [30, -30, 30],
+              y: [30, -30, 30]
+            }}
+            transition={{ 
+              duration: 20, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className="absolute inset-[-10%] bg-[radial-gradient(circle_at_bottom_left,#f9a885_0%,transparent 50%)] opacity-[0.02]"
           />
 
-          <div className="relative flex flex-col items-center gap-12">
+          {/* 2. كتلة الهوية المركزية (Identity Core) */}
+          <div className="relative flex items-center gap-5" dir="ltr">
             
-            {/* The Logo Bloom - 2x2 Grid Formation */}
-            <div className="relative h-12 w-12 flex items-center justify-center">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { color: NAMIX_BLUE, delay: 0.1 },
-                  { color: NAMIX_ORANGE, delay: 0.2 },
-                  { color: NAMIX_ORANGE, delay: 0.3 },
-                  { color: NAMIX_BLUE, delay: 0.4 }
-                ].map((dot, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ 
-                      delay: dot.delay, 
-                      duration: 1.2, 
-                      ease: luxuryEase 
-                    }}
-                    className="h-4 w-4 rounded-full shadow-sm"
-                    style={{ backgroundColor: dot.color }}
-                  />
-                ))}
+            {/* الأيقونة النابضة (جهة اليسار في LTR) */}
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: 1
+              }}
+              transition={{ 
+                scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                opacity: { duration: 1, delay: 0.2 }
+              }}
+              className="relative flex items-center justify-center shrink-0"
+            >
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
+                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
+                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_ORANGE }} />
+                <div className="h-2 w-2 rounded-full shadow-sm" style={{ backgroundColor: NAMIX_BLUE }} />
               </div>
               
-              {/* Central Identity Pulse */}
+              {/* هالة النبض الخفيفة */}
               <motion.div 
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: [0.5, 1.5], opacity: [0, 0.1, 0] }}
-                transition={{ delay: 1, duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-blue-500 rounded-full blur-xl"
+                animate={{ scale: [1, 1.8], opacity: [0.2, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 bg-blue-400 rounded-full blur-lg -z-10"
               />
-            </div>
+            </motion.div>
 
-            {/* Typography Reveal - Wide Tracking to Tight */}
+            {/* اسم المنصة (Typography) */}
             <motion.div
-              initial={{ opacity: 0, y: 10, letterSpacing: "1em" }}
-              animate={{ opacity: 1, y: 0, letterSpacing: "0.6em" }}
-              transition={{ 
-                delay: 0.6, 
-                duration: 2, 
-                ease: luxuryEase 
-              }}
-              className="flex flex-col items-center gap-4"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 1.5, ease: luxuryEase }}
             >
-               <h2 className="text-2xl font-black text-[#002d4d] ml-[0.6em] uppercase select-none">
+               <h2 className="text-3xl md:text-4xl font-black text-[#002d4d] tracking-[0.2em] uppercase">
                  NAMIX
                </h2>
-               <motion.div 
-                 initial={{ width: 0 }}
-                 animate={{ width: "40px" }}
-                 transition={{ delay: 1.2, duration: 1.5 }}
-                 className="h-[0.5px] bg-gray-100 rounded-full" 
-               />
             </motion.div>
+
           </div>
 
-          {/* Bottom Branding Mark */}
+          {/* 3. بصمة النقاء السفلية */}
           <motion.div 
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            transition={{ delay: 1.8, duration: 1.5 }}
-            className="absolute bottom-16 flex flex-col items-center gap-2"
+            animate={{ opacity: 0.15 }}
+            transition={{ delay: 2, duration: 1.5 }}
+            className="absolute bottom-16 flex flex-col items-center gap-3"
           >
+             <div className="h-px w-8 bg-[#002d4d] rounded-full" />
              <p className="text-[7px] font-black uppercase tracking-[0.8em] text-[#002d4d] mr-[-0.8em]">
-               AUTHENTIC ACCESS
+               SECURED GATEWAY
              </p>
           </motion.div>
 
