@@ -18,7 +18,8 @@ import {
   Activity,
   Settings,
   BarChart3,
-  ShieldCheck
+  ShieldCheck,
+  Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
@@ -108,6 +109,7 @@ export function Shell({
     { name: "الدعم الفني", href: "/admin/support", icon: Headset },
     { name: "خطط الاستثمار", href: "/admin/plans", icon: TrendingUp },
     { name: "تداول ناميكس", href: "/admin/trade", icon: Activity },
+    { name: "مصفوفة تلغرام", href: "/admin/telegram", icon: Send },
     { name: "المستخدمين", href: "/admin/users", icon: Users },
     { name: "الإشعارات", href: "/admin/notifications", icon: Bell },
     { name: "إعدادات المنصة", href: "/admin/settings", icon: Settings },
