@@ -1,11 +1,12 @@
 
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview محرك الاستجابة التلقائية لبوتات ناميكس v2.0
- * يدير معالجة رسائل المستخدمين (مثل /start) وتوثيق المشتركين وإرسال الترحيب.
+ * @fileOverview محرك الاستجابة التفاعلي v3.0 - Instant Mini App & Market Buttons
+ * يدير لوحة التحكم السفلية للبوت، فتح التطبيق المصغر، والتحليل الفوري للأسواق.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -20,15 +21,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
     const chatId = message.chat.id;
     const text = message.text;
-
-    // 1. جلب بيانات البوت من القاعدة
     const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
-    if (!botSnap.exists()) return NextResponse.json({ ok: true });
     
+    if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
+    // جلب رابط الموقع الحالي لفتحه في الـ Mini App
+    const host = req.headers.get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    // 1. معالجة أمر البداية /start - بناء لوحة التحكم
     if (text === '/start') {
-      // 2. توثيق المستخدم كمشترك لاستقبال الإشارات المستقبلية
       const subRef = doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId.toString());
       await setDoc(subRef, {
         chatId: chatId,
@@ -37,23 +41,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         createdAt: new Date().toISOString()
       }, { merge: true });
 
-      // 3. الرسالة الترحيبية الأنيقة
+      // جلب الأسواق النشطة لبناء الأزرار
+      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
+      const symbols = symbolsSnap.docs.map(d => d.data().code);
+
+      // تقسيم الأزرار لصفوف (كل صف زرين)
+      const keyboard = [];
+      for (let i = 0; i < symbols.length; i += 2) {
+        keyboard.push(symbols.slice(i, i + 2).map(s => ({ text: s })));
+      }
+
       const welcomeMessage = `
 مرحباً بك في ناميكس 🟠
+
 منصتك الذكية لإدارة وتداول الأصول الرقمية.
+يمكنك الآن رصد الأسواق العالمية فوراً عبر أزرار الوصول السريع أدناه.
 
-يسرنا انضمامك إلينا، يمكنك الآن الاستفادة من المزايا التالية:
-✨ إشارات تداول ذكية مبنية على تحليل دقيق.
-📊 متابعة مباشرة لأسعار الأصول العالمية.
-🚀 تنفيذ الصفقات بلمسة واحدة عبر التطبيق المصغر.
-🔔 تنبيهات فورية لأرباحك ونشاط حسابك.
-
-اضغط على الزر أدناه لفتح المحطة وبدء رحلة النمو المالي.
+✨ اضغط على أي سوق للحصول على تحليل NAMIX AI اللحظي.
+🚀 نفذ صفقاتك بلمسة واحدة عبر التطبيق المصغر.
       `;
 
-      const tmaUrl = `https://t.me/${bot.botUsername}/app`;
-
-      // 4. إرسال الترحيب عبر بوت تلغرام
       await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,12 +69,76 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           text: welcomeMessage,
           parse_mode: 'Markdown',
           reply_markup: {
+            keyboard: keyboard,
+            resize_keyboard: true,
+            one_time_keyboard: false
+          }
+        })
+      });
+
+      // إرسال زر فتح التطبيق كـ Inline لضمان بروتوكول web_app
+      await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: "الوصول السريع للمحطة الرئيسية:",
+          reply_markup: {
             inline_keyboard: [[
-              { text: "🟠 فتح التطبيق", url: tmaUrl }
+              { text: "🟠 فتح التطبيق", web_app: { url: `${baseUrl}/home` } }
             ]]
           }
         })
       });
+    } 
+    // 2. معالجة طلبات تحليل الأسواق (عند الضغط على أزرار الكيبورد)
+    else if (text) {
+      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
+      
+      if (!symbolsSnap.empty) {
+        const symbolDoc = symbolsSnap.docs[0];
+        const symbolData = symbolDoc.data();
+        
+        // استدعاء محرك الذكاء الاصطناعي
+        const signal = await runNamix(symbolData.binanceSymbol || symbolData.code);
+        const confidence = Math.round(signal.score * 100);
+        const isBuy = signal.decision === 'BUY';
+        const colorEmoji = isBuy ? '🟢' : signal.decision === 'SELL' ? '🔴' : '⚪';
+        const actionLabel = isBuy ? 'شراء' : signal.decision === 'SELL' ? 'بيع' : 'انتظار';
+
+        const analysisMsg = `
+${colorEmoji} *تحليل NAMIX AI: ${text}*
+
+*الاتجاه المتوقع:* ${actionLabel}
+*نسبة الثقة:* %${confidence}
+*السعر الحالي:* $${signal.agents?.tech?.last?.toLocaleString()}
+
+*الأهداف الاستراتيجية:*
+🎯 هدف 1: $${(signal.agents.tech.last * (isBuy ? 1.005 : 0.995)).toFixed(2)}
+🎯 هدف 2: $${(signal.agents.tech.last * (isBuy ? 1.01 : 0.99)).toFixed(2)}
+🛑 وقف الخسارة: $${signal.invalidated_at?.toFixed(2)}
+
+_التحليل مبني على تقاطع بيانات الزخم والسيولة اللحظية._
+        `;
+
+        await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: analysisMsg,
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [[
+                { 
+                  text: `${colorEmoji} تنفيذ صفقة ${actionLabel}`, 
+                  web_app: { url: `${baseUrl}/trade/${symbolDoc.id}` } 
+                }
+              ]]
+            }
+          })
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });
