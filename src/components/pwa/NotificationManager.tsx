@@ -19,10 +19,11 @@ import {
 } from "firebase/firestore";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { runNamix } from "@/lib/namix-orchestrator";
+import { broadcastSignalToTelegram } from "@/app/actions/telegram-actions";
 
 /**
- * @fileOverview مدير التنبيهات المطور v11.0 - Professional Instant Push
- * تبسيط المنطق، بث ترحيبي فوري، ودعم إشارة الدقيقة الأولى.
+ * @fileOverview مدير التنبيهات المطور v12.0 - High Frequency Telegram & Push
+ * إرسال إشارات تلغرام كل 5 دقائق حتى لو الثقة 1%.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -53,18 +54,21 @@ export function NotificationManager() {
       return () => clearTimeout(timer);
     }
 
-    // محرك بث الإشارات اللحظي لشاشة القفل (Push Core)
+    // محرك المسح السوقي والبث الشامل (Telegram + Push)
     const runMarketScan = async () => {
       try {
         const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
         const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
         
         const now = Date.now();
-        const lastHighTime = parseInt(localStorage.getItem("namix_last_high_signal") || now.toString());
-        const minutesSinceLastHigh = (now - lastHighTime) / (1000 * 60);
+        const lastHighTime = parseInt(localStorage.getItem("namix_last_high_signal") || "0");
+        const minutesSinceLastHigh = lastHighTime === 0 ? 999 : (now - lastHighTime) / (1000 * 60);
         const isFirstSignalSent = localStorage.getItem("namix_first_signal_sent") === "true";
         
-        // تحديد عتبة الثقة (0% للإشارة الأولى، 50% كحد أدنى، 20% في حال الركود)
+        // بروتوكول الثقة: 
+        // 1. أول إشارة بعد دقيقة: أي ثقة (0%+)
+        // 2. بعد 30 دقيقة هدوء: ثقة (20%+)
+        // 3. الوضع الطبيعي: ثقة (50%+)
         let threshold = 50;
         if (!isFirstSignalSent) threshold = 0; 
         else if (minutesSinceLastHigh >= 30) threshold = 20;
@@ -73,14 +77,20 @@ export function NotificationManager() {
           const analysis = await runNamix(sym.binanceSymbol || sym.code);
           const confidence = Math.round(analysis.score * 100);
 
+          // إرسال لـ تلغرام دائماً كل 5 دقائق (حتى لو الثقة 1%) لضمان الاستمرارية
+          if (analysis.decision !== 'HOLD') {
+             broadcastSignalToTelegram(analysis, sym).catch(console.error);
+          }
+
+          // إرسال Push للمتصفح بناءً على العتبة الذكية
           if (confidence >= threshold && analysis.decision !== 'HOLD') {
             const lastNote = lastNotifiedRef.current[sym.id];
             const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
-            const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); 
+            const isTimeElapsed = !lastNote || (now - lastNote.time > 600000); // 10 mins
 
             if (isDifferentTrend || isTimeElapsed) {
-              const title = `توصية تداول: ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} ${sym.code}`;
-              const message = `نسبة الثقة %${confidence}. السعر: $${analysis.agents.tech.last.toLocaleString()}`;
+              const title = `توصية ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'}: ${sym.code}`;
+              const message = `ثقة %${confidence}. السعر: $${analysis.agents.tech.last.toLocaleString()}`;
               const targetUrl = `/trade/${sym.id}`;
               
               if (user) {
@@ -116,13 +126,15 @@ export function NotificationManager() {
     const timeSinceInstall = Date.now() - parseInt(installTime);
     const oneMinute = 60000;
 
+    // جدولة إشارة الدقيقة الأولى
     if (timeSinceInstall < oneMinute && !isFirstScanScheduled.current) {
       isFirstScanScheduled.current = true;
       setTimeout(runMarketScan, oneMinute - timeSinceInstall);
-    } else if (timeSinceInstall >= oneMinute) {
+    } else {
       runMarketScan();
     }
 
+    // مسح دوري كل 5 دقائق
     const signalInterval = setInterval(runMarketScan, 300000);
     return () => clearInterval(signalInterval);
   }, [db]);
@@ -140,11 +152,10 @@ export function NotificationManager() {
         });
       }
       
-      // إرسال إشعار ترحيبي فوري لشاشة القفل
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
         reg.showNotification('مرحباً بك في ناميكس', {
-          body: 'تم تفعيل التنبيهات بنجاح. ستصلك أحدث الفرص وتحديثات محفظتك هنا.',
+          body: 'تم تفعيل التنبيهات بنجاح. ستصلك أحدث تحديثات محفظتك والفرص هنا.',
           icon: '/icon-192.png',
           badge: '/icon-192.png',
           data: { url: '/home' }

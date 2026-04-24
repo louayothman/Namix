@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, setD
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام الموحد v2.0
- * يدير إرسال الإشارات، إضافة البوتات، وتفعيل الـ Webhook للاستجابة التلقائية.
+ * @fileOverview محرك عمليات تلغرام الموحد v4.0
+ * يدير إرسال الإشارات، إضافة البوتات مع جلب البيانات تلقائياً، وتفعيل الـ Webhook.
  */
 
 interface TelegramBot {
@@ -20,6 +20,7 @@ interface TelegramBot {
 
 /**
  * إرسال إشارة تداول لكافة البوتات النشطة في النظام
+ * يدعم إرسال الإشارات حتى بثقة منخفضة (1%) لضمان الاستمرارية
  */
 export async function broadcastSignalToTelegram(signal: any, symbol: any) {
   try {
@@ -28,34 +29,37 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any) {
     
     if (botsSnap.empty) return { success: false, error: "No active bots" };
 
+    const confidence = Math.round(signal.score * 100);
     const isBuy = signal.decision === 'BUY';
     const accentEmoji = isBuy ? '🟢' : '🔴';
     const actionLabel = isBuy ? 'شراء | BUY' : 'بيع | SELL';
     
     const message = `
-${accentEmoji} *توصية تداول ذكية: ${symbol.code}*
+${accentEmoji} *توصية تداول: ${symbol.code}*
 
 *الاتجاه:* ${actionLabel}
-*نسبة الثقة:* %${Math.round(signal.score * 100)}
-*سعر الدخول:* $${signal.entry_zone.split('-')[1].trim()}
+*نسبة الثقة:* %${confidence}
+*سعر الدخول:* $${(signal.agents?.tech?.last || symbol.currentPrice).toLocaleString()}
 
 *الأهداف الاستراتيجية:*
-🎯 الهدف 1: $${(symbol.currentPrice * signal.targets.tp1).toFixed(2)}
-🎯 الهدف 2: $${(symbol.currentPrice * signal.targets.tp2).toFixed(2)}
-🚀 الهدف الأقصى: $${(symbol.currentPrice * signal.targets.tp3).toFixed(2)}
+🎯 الهدف 1: $${(symbol.currentPrice * (isBuy ? 1.005 : 0.995)).toFixed(2)}
+🎯 الهدف 2: $${(symbol.currentPrice * (isBuy ? 1.01 : 0.99)).toFixed(2)}
+🚀 الهدف الأقصى: $${(symbol.currentPrice * (isBuy ? 1.02 : 0.98)).toFixed(2)}
 
-🛑 نقطة الخروج الآمنة: $${signal.invalidated_at.toFixed(2)}
+🛑 نقطة الخروج الآمنة: $${(symbol.currentPrice * (isBuy ? 0.99 : 1.01)).toFixed(2)}
 
-_تم التحليل بواسطة محرك NAMIX AI_
+_تم التحليل بواسطة NAMIX AI_
     `;
 
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
+      // جلب كافة المشتركين في هذا البوت
       const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
       
       const botOps = subsSnap.docs.map(subDoc => {
         const chatId = subDoc.id;
         const buttonEmoji = isBuy ? "🟢" : "🔴";
+        // الرابط يفتح التطبيق المصغر على صفحة السوق المحددة
         const tmaUrl = `https://t.me/${bot.botUsername}/app?startapp=${symbol.id}`;
 
         return fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -83,7 +87,7 @@ _تم التحليل بواسطة محرك NAMIX AI_
       symbolId: symbol.id,
       symbolCode: symbol.code,
       decision: signal.decision,
-      confidence: Math.round(signal.score * 100),
+      confidence: confidence,
       botCount: botsSnap.size,
       createdAt: new Date().toISOString()
     });
@@ -95,13 +99,13 @@ _تم التحليل بواسطة محرك NAMIX AI_
 }
 
 /**
- * إضافة بوت جديد وتفعيل الـ Webhook الخاص به
+ * إضافة بوت جديد وتفعيل الـ Webhook الخاص به آلياً
  */
 export async function addNewTelegramBot(name: string, token: string) {
   try {
     const { firestore } = initializeFirebase();
     
-    // 1. التحقق من صحة التوكن وجلب بيانات البوت
+    // 1. التحقق من صحة التوكن وجلب بيانات البوت (اليوزر نيم) تلقائياً لمنع الخطأ
     const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await res.json();
     
@@ -110,7 +114,7 @@ export async function addNewTelegramBot(name: string, token: string) {
     const botId = Math.random().toString(36).substr(2, 9);
     const botUsername = data.result.username;
 
-    // 2. ربط الـ Webhook للاستجابة لرسالة /start
+    // 2. ربط الـ Webhook للاستجابة التلقائية فوراً
     const headersList = await headers();
     const host = headersList.get('host');
     const protocol = host?.includes('localhost') ? 'http' : 'https';
@@ -121,10 +125,11 @@ export async function addNewTelegramBot(name: string, token: string) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: webhookUrl })
     });
+    
     const webhookData = await webhookRes.json();
     if (!webhookData.ok) throw new Error("فشل في ربط الـ Webhook مع تلغرام.");
 
-    // 3. حفظ البيانات في القاعدة
+    // 3. حفظ البيانات الموثقة في القاعدة السيادية
     const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
     await setDoc(botRef, {
       id: botId,
