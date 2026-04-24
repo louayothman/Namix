@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
+import { useRouter } from "next/navigation";
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
@@ -18,10 +19,11 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v36.0 - Stability & Identity Edition
- * تم إصلاح خطأ تمرير الدوال للنوافذ المنبثقة وتنسيق التباعد العمودي.
+ * @fileOverview بوابة ناميكس الاستثمارية v37.0 - App Redirect Edition
+ * تم إضافة محرك توجيه ذكي يتجاوز صفحة الهبوط عند فتح التطبيق المثبت (Standalone).
  */
 export default function LandingPage() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Dialog States
@@ -34,14 +36,31 @@ export default function LandingPage() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   
   useEffect(() => {
-    const user = localStorage.getItem("namix_user");
-    setIsLoggedIn(!!user);
-  }, []);
+    const userSession = localStorage.getItem("namix_user");
+    const hasUser = !!userSession;
+    setIsLoggedIn(hasUser);
+
+    // محرك التوجيه الذكي للتطبيق المثبت
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    
+    if (isStandalone && hasUser) {
+      try {
+        const parsed = JSON.parse(userSession);
+        if (parsed.role === 'admin') {
+          router.replace("/admin");
+        } else {
+          router.replace("/home");
+        }
+      } catch (e) {
+        console.error("Redirect Engine Error");
+      }
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-transparent" dir="rtl">
       
-      {/* 1. النواة المركزية: خلفية النيورون الدورانية الثابتة */}
+      {/* النواة المركزية: خلفية الهوية الدورانية الثابتة */}
       <MarketPulseBackground />
 
       <main className="relative z-10 flex-1 flex flex-col bg-transparent">
@@ -62,7 +81,7 @@ export default function LandingPage() {
         onSupportClick={() => setIsSupportOpen(true)}
       />
       
-      {/* Dialog Matrices - FIXED props passed to onOpenChange */}
+      {/* Dialog Matrices */}
       <AboutDialog open={isAboutOpen} onOpenChange={setIsAboutOpen} />
       <ContractLabDialog open={isContractLabOpen} onOpenChange={setIsContractLabOpen} />
       <SpotTradingDialog open={isSpotTradingOpen} onOpenChange={setIsSpotTradingOpen} />
