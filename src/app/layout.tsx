@@ -1,6 +1,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
@@ -9,6 +10,13 @@ import { PWASplash } from "@/components/pwa/PWASplash";
 import { NotificationManager } from "@/components/pwa/NotificationManager";
 import { SITE_CONFIG } from '@/lib/site-config';
 import { headers } from 'next/headers';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta-sans',
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -47,7 +55,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={plusJakartaSans.variable}>
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">
         <FirebaseClientProvider>
           <SWRegistration />
