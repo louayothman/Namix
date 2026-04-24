@@ -1,20 +1,20 @@
 
 /**
- * @fileOverview عامل الخدمة السيادي لناميكس v3.0 - Intelligent Routing Edition
- * يدير استقبال رسائل الدفع والتعامل مع نقرات المستخدم لتوجيهه للرابط المطلوب.
+ * @fileOverview عامل الخدمة (Service Worker) الخاص بنظام ناميكس
+ * يدير عرض الإشعارات والتفاعل معها وتوجيه المستخدم للروابط المطلوبة.
  */
 
-self.addEventListener('push', (event) => {
+self.addEventListener('push', function(event) {
   if (event.data) {
     const data = event.data.json();
     const options = {
       body: data.body,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
+      dir: 'rtl',
       data: {
-        url: data.data?.url || '/home'
+        url: data.data?.url || '/notifications'
       },
-      vibrate: [100, 50, 100],
       actions: data.actions || []
     };
 
@@ -24,43 +24,27 @@ self.addEventListener('push', (event) => {
   }
 });
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', function(event) {
   const notification = event.notification;
-  const urlToOpen = notification.data?.url || '/home';
+  const action = event.action;
+  const targetUrl = notification.data.url;
 
   notification.close();
 
+  if (action === 'dismiss') {
+    return;
+  }
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // البحث عن نافذة مفتوحة بالفعل للتطبيق
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url === urlToOpen && 'focus' in client) {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (const client of clientList) {
+        if (client.url.includes(targetUrl) && 'focus' in client) {
           return client.focus();
         }
       }
-      // إذا لم يكن التطبيق مفتوحاً، نفتح نافذة جديدة بالرابط المطلوب
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(targetUrl);
       }
-    })
-  );
-});
-
-// استراتيجية التخزين المؤقت لضمان العمل بدون إنترنت
-const CACHE_NAME = 'namix-cache-v3';
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(['/', '/manifest.json', '/icon-192.png']);
-    })
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
     })
   );
 });

@@ -1,84 +1,116 @@
 
 'use server';
 
-/**
- * @fileOverview محرك بث التنبيهات الشامل v5.0 - Sovereign Multi-Channel Engine
- * يدير إرسال كافة أنواع إشعارات الدفع المبرمجة للمنصة.
- */
-
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 /**
- * الوظيفة المركزية لإرسال إشعار Push (تتطلب تكوين FCM Server Key في الإنتاج)
+ * @fileOverview نظام التنبيهات المتقدم v6.0
+ * تم تحديث اللغة لتكون رسمية تماماً وخالية من الكلمات المرفوضة والرموز التعبيرية.
  */
-async function sendPush(token: string, title: string, body: string, url: string = '/home') {
-  // ملاحظة: في بيئة Firebase Studio، نقوم بمحاكاة البث اللحظي. 
-  // برمجياً، يتم استدعاء FCM v1 API باستخدام Service Account المعتمد.
-  console.log(`[Push Sent to ${token}]: ${title} - ${body} (Target: ${url})`);
+
+/**
+ * وظيفة إرسال تنبيه تغير سعري مفاجئ (أكبر من 2%)
+ */
+export async function sendPriceDeviationNotification(userId: string, coin: string, price: number, change: number) {
+  if (Math.abs(change) < 2) return { success: false, reason: "التغير أقل من العتبة المحددة" };
+
+  const { firestore } = initializeFirebase();
+  const direction = change >= 0 ? "صعود" : "هبوط";
+  
+  await addDoc(collection(firestore, "notifications"), {
+    userId,
+    title: "تنبيه حركة سعرية",
+    message: `سجلت عملة ${coin} حركة ${direction} بنسبة ${Math.abs(change).toFixed(2)} في المئة. السعر الحالي هو ${price.toLocaleString()} دولار.`,
+    type: "info",
+    url: `/trade/${coin.toUpperCase()}USDT`,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
+
   return { success: true };
 }
 
 /**
- * تنبيه نبض الأسعار الدوري
+ * وظيفة إرسال إشارة تداول (ثقة أكبر من 60%)
  */
-export async function sendPricePulseNotification(token: string, coin: string, price: number, change: number) {
-  const isUp = change >= 0;
-  const title = `نبض السعر: ${coin}`;
-  const body = `سعر ${coin} الآن هو $${price.toLocaleString()} (${isUp ? '📈 صعود' : '📉 هبوط'} %${Math.abs(change).toFixed(2)})`;
-  return await sendPush(token, title, body, `/trade/${coin.toUpperCase()}USDT`);
+export async function sendAISignalNotification(userId: string, coin: string, confidence: number, decision: string) {
+  if (confidence < 60) return { success: false, reason: "نسبة الثقة أقل من المعيار المطلوب" };
+
+  const { firestore } = initializeFirebase();
+  const typeLabel = decision === 'BUY' ? "شراء" : "بيع";
+
+  await addDoc(collection(firestore, "notifications"), {
+    userId,
+    title: "إشارة تداول فنية",
+    message: `رصد نظام التحليل فرصة ${typeLabel} لعملة ${coin} بنسبة ثقة بلغت ${confidence} في المئة.`,
+    type: "success",
+    url: `/trade/${coin.toUpperCase()}`,
+    isRead: false,
+    actions: [
+      { action: 'view_market', title: 'فتح السوق' },
+      { action: 'dismiss', title: 'تجاهل' }
+    ],
+    createdAt: new Date().toISOString()
+  });
+
+  return { success: true };
 }
 
 /**
- * تنبيه إشارات NAMIX AI فائقة الثقة
+ * وظيفة إرسال الملخص المالي اليومي
  */
-export async function sendAISignalAlert(token: string, coin: string, confidence: number, bias: string) {
-  const title = `إشارة نمو استثنائية: ${coin}`;
-  const body = `رصد NAMIX AI فرصة ${bias === 'Long' ? 'شراء' : 'بيع'} مؤكدة بنسبة ثقة %${confidence}.`;
-  return await sendPush(token, title, body, `/trade/${coin.toUpperCase()}`);
+export async function sendDailySummaryNotification(userId: string) {
+  const { firestore } = initializeFirebase();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const tradesQuery = query(
+    collection(firestore, "trades"),
+    where("userId", "==", userId),
+    where("createdAt", ">=", today.toISOString())
+  );
+  
+  const snap = await getDocs(tradesQuery);
+  const totalTrades = snap.size;
+  const wins = snap.docs.filter(d => d.data().result === 'win').length;
+  const totalProfit = snap.docs.reduce((sum, d) => sum + (d.data().profit || 0), 0);
+
+  if (totalTrades === 0) return { success: false, reason: "لا يوجد نشاط اليوم" };
+
+  await addDoc(collection(firestore, "notifications"), {
+    userId,
+    title: "تقرير الأداء اليومي",
+    message: `أتممت اليوم ${totalTrades} عمليات تداول، بنسبة نجاح بلغت ${Math.round((wins/totalTrades)*100)} في المئة. صافي الأرباح المحققة هو ${totalProfit.toFixed(2)} دولار.`,
+    type: "info",
+    url: "/profile",
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
+
+  return { success: true };
 }
 
 /**
- * تنبيهات التدفق المالي (إيداع/تحويل)
+ * تنبيهات الأمان وتحديث البيانات
  */
-export async function sendFinancialAlert(token: string, type: 'deposit' | 'transfer', amount: number) {
-  const title = type === 'deposit' ? "تأكيد إيداع الرصيد" : "استلام تحويل مالي";
-  const body = `تم إضافة مبلغ بقيمة $${amount.toLocaleString()} إلى محفظتك بنجاح.`;
-  return await sendPush(token, title, body, type === 'deposit' ? '/my-deposits' : '/home');
-}
+export async function sendSecurityNotification(userId: string, actionType: 'pin' | 'password' | 'login') {
+  const { firestore } = initializeFirebase();
+  let message = "";
+  
+  if (actionType === 'login') message = "تم تسجيل دخول جديد لحسابك من جهاز غير معروف.";
+  else if (actionType === 'pin') message = "تم تحديث رمز التعريف الشخصي الخاص بالخزنة بنجاح.";
+  else message = "تم تغيير كلمة المرور الخاصة بحسابك.";
 
-/**
- * تنبيه نضوج العقود الاستثمارية
- */
-export async function sendMaturationAlert(token: string, planTitle: string, totalReturn: number) {
-  const title = "اكتمال دورة الاستثمار 💰";
-  const body = `انتهت مدة عقد ${planTitle}. تم تحرير $${totalReturn.toLocaleString()} لمحفظتك الجارية.`;
-  return await sendPush(token, title, body, '/my-investments');
-}
+  await addDoc(collection(firestore, "notifications"), {
+    userId,
+    title: "تنبيه أمني",
+    message,
+    type: "warning",
+    url: "/settings",
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
 
-/**
- * تنبيهات بوصلة التوجيه (الأهداف المالية)
- */
-export async function sendGoalMilestoneAlert(token: string, goalName: string, progress: number) {
-  const title = "اقتربت من الهدف! 🎯";
-  const body = `حققت %${progress} من هدفك (${goalName}). أنت على بعد خطوة واحدة من النجاح.`;
-  return await sendPush(token, title, body, '/guidance');
-}
-
-/**
- * تنبيهات الأمان السيادية
- */
-export async function sendSecurityAlert(token: string, type: 'pin' | 'password' | 'login') {
-  const title = "تنبيه أمني: ناميكس";
-  const body = type === 'login' ? "تم تسجيل دخول جديد لحسابك." : `تم تحديث ${type === 'pin' ? 'رمز PIN' : 'كلمة المرور'} بنجاح.`;
-  return await sendPush(token, title, body, '/settings');
-}
-
-/**
- * تنبيهات نظام الشركاء
- */
-export async function sendAmbassadorAlert(token: string, type: 'new_referral' | 'commission', data?: any) {
-  const title = type === 'new_referral' ? "شريك جديد في شبكتك" : "استلام عمولة صدارة";
-  const body = type === 'new_referral' ? "انضم مستثمر جديد عبر رابط الإحالة الخاص بك." : `استلمت عمولة بقيمة $${data?.amount} من نشاط شبكتك.`;
-  return await sendPush(token, title, body, '/ambassador');
+  return { success: true };
 }

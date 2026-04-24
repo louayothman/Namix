@@ -1,17 +1,16 @@
 
 /**
- * @fileOverview محرك ناميكس الاستنتاجي v4.0 - AI Signal Push Integration
- * تم إضافة منطق رصد إشارات القوة (ثقة > 90%) لإرسال تنبيهات دفع للمستخدمين.
+ * @fileOverview محرك التحليل الاستنتاجي المطور v5.0
+ * ربط إشعارات الذكاء الاصطناعي بنسبة ثقة 60% وفق المعايير المطلوبة.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
 import { volumeAgent } from "./agents/volume-agent";
 import { riskEngine } from "./engines/risk-engine";
 import { memoryEngine } from "./engines/memory-engine";
-import { initializeFirebase } from "@/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { sendAISignalNotification } from "@/app/actions/notification-actions";
 
-export async function runNamix(symbol: string, duration?: number) {
+export async function runNamix(symbol: string, duration?: number, userId?: string) {
   const cleanSymbol = symbol.replace('/', '').toUpperCase();
 
   const [tech, volume] = await Promise.all([
@@ -19,8 +18,7 @@ export async function runNamix(symbol: string, duration?: number) {
     volumeAgent(cleanSymbol)
   ]);
 
-  const rangeFactor = tech.score; 
-  const decisionScore = (rangeFactor * 0.7) + (volume.score * 0.3);
+  const decisionScore = (tech.score * 0.7) + (volume.score * 0.3);
 
   let decision = "HOLD";
   if (decisionScore > 0.58) decision = "BUY";
@@ -28,10 +26,9 @@ export async function runNamix(symbol: string, duration?: number) {
 
   const confidence = Math.round(decisionScore * 100);
 
-  // بروتوكول "إشارة القوة": إذا كانت الثقة عالية جداً، نرسل تنبيهاً للمستخدمين (محاكاة)
-  if (confidence > 90 && decision !== 'HOLD') {
-    console.log(`[URGENT AI SIGNAL]: ${cleanSymbol} - Confidence: ${confidence}% - Decision: ${decision}`);
-    // في الإنتاج، يتم جلب التوكنز للمستخدمين النشطين وإرسال إشعار دفع عبر Action
+  // إطلاق تنبيه إشارة التداول إذا تجاوزت الثقة 60% وكان هناك مستخدم مستهدف
+  if (userId && confidence >= 60 && decision !== 'HOLD') {
+    sendAISignalNotification(userId, cleanSymbol, confidence, decision).catch(() => {});
   }
 
   const risk = riskEngine(decision, tech, volume);
@@ -71,12 +68,12 @@ export async function runNamix(symbol: string, duration?: number) {
 function generateVastAgentDialogue(decision: string, tech: any, volume: any, score: number, duration?: number) {
   const isBuy = decision === "BUY";
   const isSell = decision === "SELL";
-  const durLabel = duration ? (duration < 60 ? `${duration}ث` : `${Math.floor(duration/60)}د`) : "الحالية";
+  const durLabel = duration ? (duration < 60 ? `${duration}ثانية` : `${Math.floor(duration/60)}دقيقة`) : "الحالية";
 
   const alphaPool = {
-    BUY: [`النبض اللحظي يظهر انفجاراً في الطلب.`, `رصدتُ انحرافاً إيجابياً في إطار الـ ${durLabel}.`],
-    SELL: [`تراجع حاد في الزخم؛ البائعون يضغطون الآن.`, `إشارة هبوط في أفق الـ ${durLabel}.`],
-    HOLD: [`تذبذب ضيق؛ لا يوجد انحياز واضح للاتجاه.`, `النظام يراقب مناطق التوازن في الـ ${durLabel}.`]
+    BUY: [`هناك زيادة ملحوظة في مستويات الطلب.`, `تم رصد اتجاه إيجابي في إطار ${durLabel}.`],
+    SELL: [`ضغط بيع متزايد في الوقت الحالي.`, `إشارة هبوط محتملة في إطار ${durLabel}.`],
+    HOLD: [`توازن في الحركة السعرية دون اتجاه واضح.`, `النظام يراقب مناطق الاستقرار في إطار ${durLabel}.`]
   };
 
   const status = isBuy ? 'BUY' : isSell ? 'SELL' : 'HOLD';
@@ -84,13 +81,13 @@ function generateVastAgentDialogue(decision: string, tech: any, volume: any, sco
   
   return [
     { agent: "Alpha", icon: "Zap", color: "bg-orange-500", message: alphaPool[status][seed] },
-    { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق الفني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق الفني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كامل. التوصية: الترقب.` }
+    { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق الفني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق الفني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كافٍ. التوصية: الترقب.` }
   ];
 }
 
 function generateVastReasoning(decision: string, tech: any, volume: any, duration?: number): string {
-  const durLabel = duration ? (duration < 60 ? `${duration}ث` : `${Math.floor(duration/60)}د`) : "الحالية";
-  if (decision === 'BUY') return `تحليل الشموع الأخيرة يظهر اختراقاً للمقاومة في نافذة الـ ${durLabel}.`;
-  if (decision === 'SELL') return `ضغط تصريفي مكثف يظهر في الدقائق الأخيرة لدعم مستويات أدنى في الـ ${durLabel}.`;
-  return `توازن هش بين العرض والطلب؛ المحرك يفضل التريث في الـ ${durLabel}.`;
+  const durLabel = duration ? (duration < 60 ? `${duration}ثانية` : `${Math.floor(duration/60)}دقيقة`) : "الحالية";
+  if (decision === 'BUY') return `تحليل البيانات الأخيرة يظهر تحسناً في مستويات الدعم خلال إطار ${durLabel}.`;
+  if (decision === 'SELL') return `ضغط تصريفي يظهر في الدقائق الأخيرة نحو مستويات أدنى في إطار ${durLabel}.`;
+  return `حالة توازن بين العرض والطلب؛ يفضل الانتظار في إطار ${durLabel}.`;
 }

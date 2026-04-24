@@ -2,13 +2,12 @@
 'use server';
 
 /**
- * @fileOverview NAMIX TRADING ACTIONS v4.0 - Integrated Push Notification
- * تم دمج نظام التنبيهات الفورية عند إغلاق الصفقات.
+ * @fileOverview إجراءات التداول المحدثة v5.0
+ * دمج نظام التنبيهات المعتمد مع نتائج الصفقات.
  */
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
-import { sendPushNotification } from './notification-actions'; // Placeholder if we had a generic one, but let's use specialized ones
 
 export async function settleTrade(tradeId: string, finalPrice: number) {
   try {
@@ -16,61 +15,46 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
     const tradeRef = doc(firestore, "trades", tradeId);
     const tradeSnap = await getDoc(tradeRef);
     
-    if (!tradeSnap.exists()) return { success: false, error: "Trade not found" };
+    if (!tradeSnap.exists()) return { success: false, error: "الصفقة غير موجودة" };
     
     const trade = tradeSnap.data();
-    if (trade.status !== 'open') return { success: false, error: "Trade already settled" };
+    if (trade.status !== 'open') return { success: false, error: "الصفقة مغلقة مسبقاً" };
     
     let result: 'win' | 'lose' = 'lose';
-    let profit = 0;
-
     if (trade.tradeType === 'buy') {
       result = finalPrice > trade.entryPrice ? 'win' : 'lose';
     } else {
       result = finalPrice < trade.entryPrice ? 'win' : 'lose';
     }
 
+    const profit = result === 'win' ? trade.expectedProfit : -trade.amount;
+
     await updateDoc(tradeRef, {
       status: "closed",
       result: result,
       finalPrice: finalPrice,
-      profit: result === 'win' ? trade.expectedProfit : -trade.amount,
+      profit: profit,
       updatedAt: new Date().toISOString()
     });
 
     const userRef = doc(firestore, "users", trade.userId);
-    const userSnap = await getDoc(userRef);
-    const userData = userSnap.data();
-
     if (result === 'win') {
-      profit = trade.expectedProfit;
-      const totalPayout = trade.amount + profit;
-      
       await updateDoc(userRef, {
-        totalBalance: increment(totalPayout),
+        totalBalance: increment(trade.amount + profit),
         totalProfits: increment(profit)
       });
-
-      // App Notification
-      await addDoc(collection(firestore, "notifications"), {
-        userId: trade.userId,
-        title: "إتمام صفقة ناجحة",
-        message: `تم إغلاق صفقة ${trade.symbolCode} بنجاح وتحقيق ربح بقيمة $${profit.toFixed(2)}.`,
-        type: "success",
-        isRead: false,
-        createdAt: new Date().toISOString()
-      });
     }
 
-    // إرسال تنبيه Push لشاشة القفل في كافة الحالات
-    if (userData?.fcmTokens && Array.isArray(userData.fcmTokens)) {
-      const { sendPushNotification } = await import('./notification-actions'); 
-      // محاكاة إرسال الإشعار لكافة الأجهزة المسجلة للمستخدم
-      userData.fcmTokens.forEach((token: string) => {
-        // يمكننا استدعاء الوظيفة المتخصصة هنا
-        console.log(`[Push Notification Triggered for Trade ${tradeId}]`);
-      });
-    }
+    // إضافة إشعار داخلي (سيقوم NotificationManager بتحويله لـ Push)
+    await addDoc(collection(firestore, "notifications"), {
+      userId: trade.userId,
+      title: "تحديث نتيجة التداول",
+      message: `تم إغلاق عملية التداول لرمز ${trade.symbolCode} بنتيجة ${result === 'win' ? 'ربح' : 'إغلاق بدون ربح'}. القيمة النهائية: ${profit.toFixed(2)} دولار.`,
+      type: result === 'win' ? "success" : "info",
+      url: `/trade/${trade.symbolId}/history`,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    });
 
     return { success: true, result };
   } catch (e: any) {
