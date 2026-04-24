@@ -8,7 +8,6 @@ import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { MarketPulse } from "@/components/landing/MarketPulse";
 import { SupportSheet } from "@/components/support/SupportSheet";
-import { MarketPulseBackground } from "@/components/landing/MarketPulseBackground";
 
 // Dynamic Dialogs for Performance
 const AboutDialog = dynamic(() => import("@/components/landing/AboutDialog").then(m => ({ default: m.AboutDialog })), { ssr: false });
@@ -19,8 +18,8 @@ const PrivacyDialog = dynamic(() => import("@/components/landing/PrivacyDialog")
 const TermsDialog = dynamic(() => import("@/components/landing/TermsDialog").then(m => ({ default: m.TermsDialog })), { ssr: false });
 
 /**
- * @fileOverview بوابة ناميكس الاستثمارية v37.0 - App Redirect Edition
- * تم إضافة محرك توجيه ذكي يتجاوز صفحة الهبوط عند فتح التطبيق المثبت (Standalone).
+ * @fileOverview بوابة ناميكس الاستثمارية v38.0 - Pure White Edition
+ * تم إزالة الخلفية الدورانية لضمان مظهر أبيض ناصع ونقي تماماً.
  */
 export default function LandingPage() {
   const router = useRouter();
@@ -58,11 +57,8 @@ export default function LandingPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-transparent" dir="rtl">
+    <div className="min-h-screen font-body selection:bg-[#f9a885]/30 overflow-x-hidden flex flex-col bg-white" dir="rtl">
       
-      {/* النواة المركزية: خلفية الهوية الدورانية الثابتة */}
-      <MarketPulseBackground />
-
       <main className="relative z-10 flex-1 flex flex-col bg-transparent">
         <Hero />
         <div className="-mt-8 md:-mt-16 relative z-20">
