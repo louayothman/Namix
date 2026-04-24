@@ -1,7 +1,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from "@/components/pwa/PWAInstaller";
@@ -15,6 +15,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta-sans',
   weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
+
+const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  variable: '--font-ibm-plex-sans-arabic',
+  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -55,7 +62,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={plusJakartaSans.variable}>
+    <html lang="ar" dir="rtl" className={`${plusJakartaSans.variable} ${ibmPlexSansArabic.variable}`}>
       <body className="font-body antialiased selection:bg-primary/30 overflow-x-hidden">
         <FirebaseClientProvider>
           <SWRegistration />

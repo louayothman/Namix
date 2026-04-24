@@ -4,14 +4,6 @@
 @tailwind utilities;
 
 @layer base {
-  @font-face {
-    font-family: 'Tajawal';
-    src: url('/fonts/Tajawal.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
-
   :root {
     --background: 0 0% 100%;
     --foreground: 220 40% 10%;
@@ -39,9 +31,8 @@
 @layer base {
   * {
     @apply border-border;
-    /* Plus Jakarta Sans للاتيني والأرقام، Tajawal للعربي */
-    font-family: var(--font-plus-jakarta-sans), 'Tajawal', sans-serif !important;
-    font-weight: 400 !important;
+    /* الترتيب: اللاتيني والأرقام أولاً من Plus Jakarta، ثم العربي من IBM Plex */
+    font-family: var(--font-plus-jakarta-sans), var(--font-ibm-plex-sans-arabic), sans-serif !important;
     letter-spacing: 0 !important;
   }
   
@@ -58,9 +49,10 @@
   font-feature-settings: "tnum" 1, "lnum" 1 !important; /* تفعيل أرقام الجداول الثابتة */
 }
 
-/* إزالة تباعد الحروف عن النصوص العربية حصراً */
+/* استخدام IBM Plex Sans Arabic للنصوص العربية حصراً */
 [dir="rtl"] {
   letter-spacing: 0 !important;
+  font-family: var(--font-ibm-plex-sans-arabic), var(--font-plus-jakarta-sans), sans-serif !important;
 }
 
 @keyframes pulse-ring {

@@ -11,7 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-plus-jakarta-sans)', 'Tajawal', 'sans-serif'],
+        sans: ['var(--font-plus-jakarta-sans)', 'var(--font-ibm-plex-sans-arabic)', 'sans-serif'],
+        body: ['var(--font-ibm-plex-sans-arabic)', 'var(--font-plus-jakarta-sans)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

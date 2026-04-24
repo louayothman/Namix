@@ -14,8 +14,8 @@ interface LogoProps {
 }
 
 /**
- * @fileOverview مكون الهوية البصرية v5.1 - Horizontal Baseline Fix
- * تم تحديث الهيكل لضمان محاذاة هندسية مثالية بين الأيقونة والنص على خط واحد.
+ * @fileOverview مكون الهوية البصرية v6.0 - Precise Baseline Alignment
+ * تم استخدام flex items-center مع h-fit وتطهير الهوامش لضمان محاذاة النص والأيقونة هندسياً.
  */
 export function Logo({ className, size = 'md', lightText = false, hideText = false, animate = true }: LogoProps) {
   const isSmall = size === 'sm';
@@ -25,8 +25,8 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
   const textSize = isSmall ? "text-[14px]" : isLarge ? "text-[32px]" : "text-[24px]";
 
   return (
-    <div className={cn("relative inline-flex items-center group cursor-pointer leading-none", className)} dir="ltr">
-      <div className="relative flex items-center justify-center shrink-0">
+    <div className={cn("relative inline-flex items-center justify-center group cursor-pointer leading-none h-fit m-0 p-0", className)} dir="ltr">
+      <div className="relative flex items-center justify-center shrink-0 m-0 p-0">
         <motion.div 
           animate={animate ? { rotate: [0, 90, 180, 270, 360] } : {}}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -42,7 +42,7 @@ export function Logo({ className, size = 'md', lightText = false, hideText = fal
       
       {!hideText && (
         <span className={cn(
-          "font-black tracking-[0.15em] leading-none select-none ml-3 inline-block uppercase",
+          "font-black tracking-[0.15em] leading-none select-none ml-3 inline-block uppercase m-0 p-0",
           textSize,
           lightText ? "text-white" : "text-[#002d4d]"
         )}>
