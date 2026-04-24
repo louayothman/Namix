@@ -24,9 +24,8 @@ import { cn } from "@/lib/utils";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات ومحرك الإشارات العالمي v9.0 - Full FCM & Lockscreen Integration
- * يدعم إرسال إشارات التداول بنظام Push Notifications الحقيقي لشاشات القفل.
- * يعمل لجميع الأجهزة (مسجلين وضيوف) ويبدأ أول إرسال بعد دقيقة من التثبيت.
+ * @fileOverview مدير التنبيهات ومحرك الإشارات العالمي v9.1 - Unified Multi-Channel Protocol
+ * تم تحويل واجهة تفعيل التنبيهات لتشمل كافة جوانب المنصة (أمان، مالية، ذكاء اصطناعي) بأسلوب راقٍ.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -225,10 +224,10 @@ export function NotificationManager() {
                 </div>
                 <div className="text-right">
                    <h4 className="text-base font-black text-[#002d4d]">
-                     {isSuccess ? "تم تفعيل التنبيهات" : "إشارات التداول الفورية"}
+                     {isSuccess ? "تم تفعيل التنبيهات" : "مركز التنبيهات الموحد"}
                    </h4>
                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                     {isSuccess ? "Signal Stream Active" : "Operational Signal Node"}
+                     {isSuccess ? "Communication Active" : "Sovereign Communication Hub"}
                    </p>
                 </div>
                 {!isSuccess && (
@@ -249,7 +248,7 @@ export function NotificationManager() {
                     >
                        <ShieldCheck size={16} className="text-emerald-500" />
                        <p className="text-[11px] font-black text-emerald-800">
-                          نظام الإشارات مفعل. ستتلقى توصيات NAMIX AI مباشرة على شاشتك فور صدورها.
+                          نظام الاتصال الموحد نشط الآن. ستصلك كافة التحديثات المالية والأمنية وإشارات الذكاء الاصطناعي مباشرة على شاشتك.
                        </p>
                     </motion.div>
                   ) : (
@@ -259,7 +258,7 @@ export function NotificationManager() {
                       animate={{ opacity: 1 }}
                       className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2"
                     >
-                       فعل التنبيهات الآن لاستلام أقوى إشارات التداول مباشرة على شاشة القفل، بتحديثات لحظية لكل الأسواق.
+                       فعل التنبيهات الذكية لاستلام تحديثات محفظتك اللحظية، تنبيهات الأمان السيادية، وأحدث رؤى NAMIX AI مباشرة على شاشتك.
                     </motion.p>
                   )}
                 </AnimatePresence>
@@ -271,7 +270,7 @@ export function NotificationManager() {
                    onClick={handleGrantPermission}
                    className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
                  >
-                    <span>تفعيل الإشارات الذكية</span>
+                    <span>تفعيل التنبيهات الموحدة</span>
                     <Sparkles size={16} className="text-[#f9a885]" />
                  </Button>
                </div>
@@ -279,7 +278,7 @@ export function NotificationManager() {
 
              <div className="flex items-center justify-center gap-2 opacity-20">
                 <ShieldCheck size={10} className="text-emerald-500" />
-                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Global Signal Infrastructure</p>
+                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Sovereign Network Infrastructure</p>
              </div>
           </div>
         </motion.div>
