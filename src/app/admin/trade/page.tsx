@@ -11,14 +11,15 @@ import {
   ChevronLeft, 
   Sparkles, 
   Activity,
-  ArrowRight
+  ArrowRight,
+  Send
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview NAMIX TRADING COMMAND HUB v12.0
+ * @fileOverview NAMIX TRADING COMMAND HUB v13.0 - Telegram Matrix Added
  * قُمرة القيادة الرئيسية التي تفتح بوابات التحكم في المفاعلات المستقلة.
  */
 
@@ -40,6 +41,15 @@ const NAV_CARDS = [
     color: "text-[#f9a885]", 
     bg: "bg-orange-50", 
     href: "/admin/trade/markets" 
+  },
+  { 
+    id: 'telegram', 
+    title: "مصفوفة تلغرام", 
+    desc: "إدارة بوتات البث المتعددة، التوكنات، وسجل الإشارات اللحظية.", 
+    icon: Send, 
+    color: "text-blue-500", 
+    bg: "bg-blue-50", 
+    href: "/admin/telegram" 
   },
   { 
     id: 'api', 
@@ -81,13 +91,13 @@ export default function NamixTradingAdminHub() {
         </div>
 
         {/* Dynamic Navigation Grid */}
-        <div className="grid gap-6 md:grid-cols-2 animate-in fade-in zoom-in-95 duration-700">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in zoom-in-95 duration-700">
           {NAV_CARDS.map((card, i) => (
             <Link key={card.id} href={card.href} className="block group outline-none">
               <motion.div
                 whileHover={{ y: -5, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="p-8 bg-white rounded-[56px] border border-gray-50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col gap-8 relative overflow-hidden"
+                className="p-8 bg-white rounded-[56px] border border-gray-50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col gap-8 relative overflow-hidden h-full"
               >
                 {/* Background Ghost Icon */}
                 <div className={cn(
@@ -120,7 +130,7 @@ export default function NamixTradingAdminHub() {
 
         {/* Sovereign Footer */}
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Operational Infrastructure Hub v12.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Operational Infrastructure Hub v13.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
