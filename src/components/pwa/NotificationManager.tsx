@@ -14,7 +14,8 @@ import {
   onSnapshot, 
   orderBy, 
   limit, 
-  getDocs 
+  getDocs,
+  addDoc
 } from "firebase/firestore";
 import { Bell, ShieldCheck, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,33 +24,126 @@ import { cn } from "@/lib/utils";
 import { runNamix } from "@/lib/namix-orchestrator";
 
 /**
- * @fileOverview مدير التنبيهات ومحرك الإشارات v3.0 - Intelligent Signal Reactor
- * تم إضافة "مفاعل إشارات السوق" الذي يقوم بمسح الأسواق المتاحة وتوليد تنبيهات بناءً على قواعد الثقة (20/50).
+ * @fileOverview مدير التنبيهات ومحرك الإشارات v8.0 - Universal Push Engine
+ * يدعم إرسال إشارات التداول لجميع الأجهزة (مسجلين وضيوف).
+ * يبدأ أول إرسال بعد دقيقة واحدة من التثبيت.
  */
 export function NotificationManager() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [lastHighConfidenceTime, setLastHighConfidenceTime] = useState<number>(Date.now());
-  const lastNotifiedRef = useRef<Record<string, { type: string, time: number }>>({});
-  
   const db = useFirestore();
+  
+  // مراجع لتتبع الحالة عبر الدورات التشغيلية
+  const lastNotifiedRef = useRef<Record<string, { type: string, time: number }>>({});
+  const isFirstScanScheduled = useRef(false);
 
   useEffect(() => {
-    const userSession = localStorage.getItem("namix_user");
-    if (!userSession) return;
-    const user = JSON.parse(userSession);
+    // 1. تتبع وقت التثبيت (بصمة التثبيت)
+    let installTime = localStorage.getItem("namix_install_time");
+    if (!installTime) {
+      installTime = Date.now().toString();
+      localStorage.setItem("namix_install_time", installTime);
+    }
 
-    // 1. طلب الإذن وإدارة الظهور
+    // 2. إدارة طلب الإذن (يظهر للجميع)
     const hasPermission = 'Notification' in window && Notification.permission === 'granted';
     const isDismissed = localStorage.getItem("namix_notif_prompt_dismissed");
 
     if (!hasPermission && !isDismissed) {
-      const timer = setTimeout(() => setShowPrompt(true), 8000);
+      const timer = setTimeout(() => setShowPrompt(true), 5000);
       return () => clearTimeout(timer);
     }
 
-    // 2. محرك المراقبة اللحظي (Live Notification Observer)
-    if (hasPermission) {
+    // 3. مفاعل إشارات السوق (Universal Market Signal Reactor)
+    const runMarketScan = async () => {
+      try {
+        const userSession = localStorage.getItem("namix_user");
+        const user = userSession ? JSON.parse(userSession) : null;
+
+        const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
+        const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+        
+        const now = Date.now();
+        const lastHighTime = parseInt(localStorage.getItem("namix_last_high_signal") || now.toString());
+        const minutesSinceLastHigh = (now - lastHighTime) / (1000 * 60);
+        
+        // بروتوكول الثقة: 50% افتراضي، 20% بعد 30 دقيقة صمت
+        const threshold = minutesSinceLastHigh >= 30 ? 20 : 50;
+
+        for (const sym of symbols) {
+          const analysis = await runNamix(sym.binanceSymbol || sym.code);
+          const confidence = Math.round(analysis.score * 100);
+
+          if (confidence >= threshold && analysis.decision !== 'HOLD') {
+            const lastNote = lastNotifiedRef.current[sym.id];
+            const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
+            const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); // 30 دقيقة راحة لنفس الرمز
+
+            if (isDifferentTrend || isTimeElapsed) {
+              const title = `إشارة تداول: ${analysis.decision === 'BUY' ? 'شراء' : 'بيع'} ${sym.code}`;
+              const message = `رصد NAMIX AI فرصة بنسبة ثقة %${confidence}. السعر الحالي: $${analysis.agents.tech.last.toLocaleString()}`;
+              
+              // أ. إذا كان مسجلاً: حفظ في Firestore (للمزامنة)
+              if (user) {
+                await addDoc(collection(db, "notifications"), {
+                  userId: user.id,
+                  title,
+                  message,
+                  type: "success",
+                  url: `/trade/${sym.id}`,
+                  isRead: false,
+                  createdAt: new Date().toISOString()
+                });
+              }
+
+              // ب. إرسال Push لحظي للجهاز (سواء كان ضيفاً أو مسجلاً)
+              if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                const registration = await navigator.serviceWorker.ready;
+                registration.showNotification(title, {
+                  body: message,
+                  icon: '/icon-192.png',
+                  badge: '/icon-192.png',
+                  dir: 'rtl',
+                  lang: 'ar',
+                  data: { url: `/trade/${sym.id}` },
+                  tag: `signal_${sym.id}`,
+                  renotify: true
+                });
+              }
+              
+              // تحديث السجلات
+              lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
+              if (confidence >= 50) {
+                localStorage.setItem("namix_last_high_signal", now.toString());
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Signal Reactor Error:", e);
+      }
+    };
+
+    // 4. جدولة المسح الأول بعد دقيقة من التثبيت
+    const timeSinceInstall = Date.now() - parseInt(installTime);
+    const oneMinute = 60000;
+
+    if (timeSinceInstall < oneMinute && !isFirstScanScheduled.current) {
+      isFirstScanScheduled.current = true;
+      setTimeout(() => {
+        runMarketScan();
+      }, oneMinute - timeSinceInstall);
+    } else if (timeSinceInstall >= oneMinute) {
+      runMarketScan();
+    }
+
+    // 5. المسح الدوري كل 5 دقائق
+    const signalInterval = setInterval(runMarketScan, 300000);
+
+    // 6. مراقب الإشعارات التقليدي للمسجلين (لأغراض المزامنة)
+    let unsubscribe: any;
+    if (userSession && hasPermission) {
+      const user = JSON.parse(userSession);
       const q = query(
         collection(db, "notifications"),
         where("userId", "==", user.id),
@@ -57,80 +151,25 @@ export function NotificationManager() {
         orderBy("createdAt", "desc"),
         limit(1)
       );
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      unsubscribe = onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
             const data = change.doc.data();
-            const isRecent = new Date().getTime() - new Date(data.createdAt).getTime() < 30000;
-            
-            if (isRecent && 'serviceWorker' in navigator) {
-              const registration = await navigator.serviceWorker.ready;
-              registration.showNotification(data.title, {
-                body: data.message,
-                icon: '/icon-192.png',
-                badge: '/icon-192.png',
-                dir: 'rtl',
-                lang: 'ar',
-                data: { url: data.url || '/notifications' },
-                tag: change.doc.id,
-                renotify: true
-              });
+            // نمنع الازدواجية إذا كان الإشعار قد أرسل بالفعل عبر محرك الإشارات
+            if (new Date().getTime() - new Date(data.createdAt).getTime() < 10000 && !data.title.includes('إشارة تداول')) {
+              const reg = await navigator.serviceWorker.ready;
+              reg.showNotification(data.title, { body: data.message, icon: '/icon-192.png', data: { url: data.url } });
             }
           }
         });
       });
-
-      // 3. مفاعل إشارات السوق (Market Signal Reactor)
-      // يقوم بالمسح الدوري كل 5 دقائق لجميع الأسواق المفتوحة
-      const runMarketScan = async () => {
-        try {
-          const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("isActive", "==", true)));
-          const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-          
-          const now = Date.now();
-          const minutesSinceLastHigh = (now - lastHighConfidenceTime) / (1000 * 60);
-          
-          // القاعدة: إذا مضى 30 دقيقة بدون إشارة > 50%، ننزل لثقة 20%
-          const threshold = minutesSinceLastHigh >= 30 ? 20 : 50;
-
-          for (const sym of symbols) {
-            const analysis = await runNamix(sym.binanceSymbol || sym.code);
-            const confidence = Math.round(analysis.score * 100);
-
-            if (confidence >= threshold && analysis.decision !== 'HOLD') {
-              // منع تكرار الإرسال لنفس العملة في فترات متقاربة
-              const lastNote = lastNotifiedRef.current[sym.id];
-              const isDifferentTrend = !lastNote || lastNote.type !== analysis.decision;
-              const isTimeElapsed = !lastNote || (now - lastNote.time > 1800000); // 30 دقيقة راحة لنفس الرمز
-
-              if (isDifferentTrend || isTimeElapsed) {
-                // إرسال الإشعار عبر الأكشن المعتمد
-                const { sendAISignalNotification } = await import("@/app/actions/notification-actions");
-                await sendAISignalNotification(user.id, sym.code, confidence, analysis.decision);
-                
-                // تحديث السجلات المحلية
-                lastNotifiedRef.current[sym.id] = { type: analysis.decision, time: now };
-                if (confidence > 50) {
-                  setLastHighConfidenceTime(now);
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.error("Signal Reactor Fail:", e);
-        }
-      };
-
-      const signalInterval = setInterval(runMarketScan, 300000); // كل 5 دقائق
-      runMarketScan(); // إطلاق أولي
-
-      return () => {
-        unsubscribe();
-        clearInterval(signalInterval);
-      };
     }
-  }, [db, lastHighConfidenceTime]);
+
+    return () => {
+      clearInterval(signalInterval);
+      if (unsubscribe) unsubscribe();
+    };
+  }, [db]);
 
   const handleGrantPermission = async () => {
     const token = await requestNotificationPermission();
@@ -142,13 +181,12 @@ export function NotificationManager() {
           fcmTokens: arrayUnion(token),
           updatedAt: new Date().toISOString()
         });
-        
-        setIsSuccess(true);
-        setTimeout(() => setShowPrompt(false), 3000);
-        return;
       }
+      setIsSuccess(true);
+      setTimeout(() => setShowPrompt(false), 3000);
+    } else {
+      setShowPrompt(false);
     }
-    setShowPrompt(false);
   };
 
   const handleDismiss = () => {
@@ -184,10 +222,10 @@ export function NotificationManager() {
                 </div>
                 <div className="text-right">
                    <h4 className="text-base font-black text-[#002d4d]">
-                     {isSuccess ? "تم تفعيل التنبيهات" : "التنبيهات الفورية"}
+                     {isSuccess ? "تم تفعيل التنبيهات" : "إشارات التداول الفورية"}
                    </h4>
                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                     {isSuccess ? "Sync Active" : "Live Activity Monitor"}
+                     {isSuccess ? "Signal Stream Active" : "Operational Signal Node"}
                    </p>
                 </div>
                 {!isSuccess && (
@@ -208,7 +246,7 @@ export function NotificationManager() {
                     >
                        <ShieldCheck size={16} className="text-emerald-500" />
                        <p className="text-[11px] font-black text-emerald-800">
-                          نظام الإشعارات مفعل الآن. ستصلك تحديثات السوق وتطورات الحساب فوراً.
+                          نظام الإشارات مفعل. ستتلقى توصيات NAMIX AI مباشرة على شاشتك فور صدورها.
                        </p>
                     </motion.div>
                   ) : (
@@ -218,32 +256,27 @@ export function NotificationManager() {
                       animate={{ opacity: 1 }}
                       className="text-[12px] font-bold text-gray-500 leading-relaxed text-right pr-2"
                     >
-                       ابقَ على اتصال دائم مع تحركات السوق وتطورات محفظتك الاستثمارية فور حدوثها لضمان سرعة الاستجابة والنمو.
+                       فعل التنبيهات الآن لاستلام أقوى إشارات التداول لجميع العملات الرقمية المتاحة بنسبة دقة فائقة وتحديثات لحظية.
                     </motion.p>
                   )}
                 </AnimatePresence>
              </div>
 
-             <AnimatePresence>
-                {!isSuccess && (
-                  <motion.div 
-                    exit={{ opacity: 0, height: 0 }}
-                    className="pt-2"
-                  >
-                    <Button 
-                      onClick={handleGrantPermission}
-                      className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-                    >
-                       <span>تفعيل التنبيهات الذكية</span>
-                       <Sparkles size={16} className="text-[#f9a885]" />
-                    </Button>
-                  </motion.div>
-                )}
-             </AnimatePresence>
+             {!isSuccess && (
+               <div className="pt-2 relative z-10">
+                 <Button 
+                   onClick={handleGrantPermission}
+                   className="w-full h-14 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                 >
+                    <span>تفعيل الإشارات الذكية</span>
+                    <Sparkles size={16} className="text-[#f9a885]" />
+                 </Button>
+               </div>
+             )}
 
              <div className="flex items-center justify-center gap-2 opacity-20">
                 <ShieldCheck size={10} className="text-emerald-500" />
-                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Secure Messaging System</p>
+                <p className="text-[7px] font-black uppercase tracking-widest text-[#002d4d]">Global Signal Infrastructure</p>
              </div>
           </div>
         </motion.div>
