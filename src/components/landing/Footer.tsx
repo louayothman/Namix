@@ -16,9 +16,8 @@ import {
   MessageSquare,
   Globe,
   Zap,
-  LayoutDashboard,
-  Wallet,
-  UserPlus
+  UserPlus,
+  Wallet
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -52,6 +51,8 @@ export function Footer({
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const db = useFirestore();
+  
+  // مزامنة حية مع وثيقة إعدادات صفحة الهبوط السيادية
   const landingRef = useMemoFirebase(() => doc(db, "system_settings", "landing_page"), [db]);
   const { data: landingData } = useDoc(landingRef);
 
@@ -67,6 +68,8 @@ export function Footer({
       router.push("/login");
     }
   };
+
+  const socialLinks = landingData?.socialLinks || [];
 
   return (
     <footer className="bg-transparent border-t border-gray-100 pt-16 md:pt-24 pb-12 font-body relative overflow-hidden" dir="rtl">
@@ -125,14 +128,25 @@ export function Footer({
                المجتمع
             </h4>
             <div className="flex flex-wrap items-center gap-3">
-               {(landingData?.socialLinks || []).map((social: any) => {
-                 const Icon = ICON_MAP[social.icon] || Globe;
-                 return (
-                   <a key={social.id} href={social.url} target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] transition-all shadow-sm active:scale-90" title={social.label}>
-                      <Icon size={16} />
-                   </a>
-                 );
-               })}
+               {socialLinks.length > 0 ? (
+                 socialLinks.map((social: any) => {
+                   const IconComp = ICON_MAP[social.icon] || Globe;
+                   return (
+                     <a 
+                       key={social.id} 
+                       href={social.url} 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       className="h-9 w-9 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[#002d4d] hover:text-[#f9a885] transition-all shadow-sm active:scale-90" 
+                       title={social.label}
+                     >
+                        <IconComp size={16} />
+                     </a>
+                   );
+                 })
+               ) : (
+                 <p className="text-[9px] text-gray-300 font-bold italic">تابعنا عبر منصاتنا الرسمية</p>
+               )}
             </div>
           </div>
 
