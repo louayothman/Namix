@@ -24,7 +24,8 @@ import {
   TrendingUp, 
   TrendingDown, 
   Clock,
-  ArrowRightLeft
+  ArrowRightLeft,
+  MapPin
 } from "lucide-react";
 import { getHistoricalKlines } from "@/services/binance-service";
 import { generateInternalHistory } from "@/lib/internal-market";
@@ -39,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام المستقل v35.0 - Recharts Candlestick Edition
- * تم تطوير المحرك لاستخدام Recharts في رسم 7 شموع تكتيكية توضح أهداف الصفقة ومنطق الدخول.
+ * @fileOverview محرك بث تلغرام النخبوي v36.0 - High-Contrast Tactical Card
+ * تم تطوير المفاعل لعرض 14 شمعة تكتيكية بزوايا مستديرة بالكامل ومصفوفة بيانات نانوية موحدة.
  */
 
 export function TelegramBroadcastManager() {
@@ -76,16 +77,14 @@ export function TelegramBroadcastManager() {
           
           let history: any[] = [];
           if (best.sym.priceSource === 'binance') {
-            // جلب 7 شموع فقط لتوضيح إعداد الصفقة
-            history = await getHistoricalKlines(best.sym.binanceSymbol, '15m', 7);
+            // جلب 14 شمعة تكتيكية لتوضيح إعداد الصفقة
+            history = await getHistoricalKlines(best.sym.binanceSymbol, '15m', 14);
           } else {
-            history = generateInternalHistory(best.sym.id, best.sym, 7);
+            history = generateInternalHistory(best.sym.id, best.sym, 14);
           }
           
-          // تحضير البيانات لـ Recharts
           const formatted = history.map(d => ({
             ...d,
-            // تحديد الجسم والفتيل للرسم
             openClose: [d.open, d.close],
             lowHigh: [d.low, d.high]
           }));
@@ -109,7 +108,7 @@ export function TelegramBroadcastManager() {
             setActiveSignal(null);
             setChartData([]);
             isCapturing.current = false;
-          }, 2500); // زيادة بسيطة لضمان رندر Recharts
+          }, 3000); 
         }
       } catch (e) {
         console.error("Telegram Cycle Error:", e);
@@ -126,19 +125,19 @@ export function TelegramBroadcastManager() {
     };
   }, [db]);
 
-  const isUp = activeSignal?.decision === 'BUY';
+  if (!activeSignal) return null;
 
   return (
     <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none select-none overflow-hidden z-[-1]" dir="rtl">
       {activeSignal && (
         <div 
           ref={captureRef}
-          className="w-[600px] h-[950px] bg-[#0B0F1A] p-8 flex flex-col justify-between font-body text-right"
+          className="w-[600px] h-[950px] bg-[#0B0F1A] p-6 flex flex-col justify-between font-body text-right"
         >
-          <div className="w-full h-full bg-gradient-to-br from-[#121826] to-[#0B0F1A] rounded-[60px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+          <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
              
-             {/* العلامة المائية الضخمة */}
-             <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none scale-[2.8] -rotate-12">
+             {/* Sovereign Watermark */}
+             <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none scale-[3] -rotate-12">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="w-32 h-32 rounded-full bg-white" />
                   <div className="w-32 h-32 rounded-full bg-[#f9a885]" />
@@ -147,132 +146,121 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             <div className="flex items-center justify-between relative z-10">
+             {/* Header Node */}
+             <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-5">
-                   <div className="h-16 w-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
+                   <div className="h-16 w-16 rounded-[24px] bg-white/5 flex items-center justify-center shadow-xl border border-white/10">
                       <CryptoIcon name={activeSignal.pair.split('/')[0]} size={44} />
                    </div>
                    <div className="text-right">
                       <h3 className="text-2xl font-black text-white tracking-tighter">{activeSignal.pair}</h3>
-                      <p className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.3em] mt-1">Live Asset Node</p>
+                      <p className="text-[9px] font-bold text-[#f9a885] uppercase tracking-widest mt-1">Market Pulse Analysis</p>
                    </div>
                 </div>
-                <div className="flex items-center gap-3">
-                   <div className="text-left" dir="ltr">
-                      <p className="text-[7px] font-black text-blue-200/20 uppercase tracking-widest leading-none">Security Node</p>
-                      <p className="text-[10px] font-black text-white/40 mt-1">NAMIX PRO</p>
-                   </div>
-                   <div className="grid grid-cols-2 gap-1 scale-[0.8] opacity-60">
-                      <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                      <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                   </div>
+                <div className="flex flex-col items-end gap-2">
+                   <Badge className={cn(
+                     "font-black text-[10px] px-6 py-2 rounded-full border-none shadow-xl",
+                     activeSignal.decision === 'BUY' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+                   )}>
+                      {activeSignal.decision === 'BUY' ? 'LONG SIGNAL' : 'SHORT SIGNAL'}
+                   </Badge>
                 </div>
              </div>
 
-             {/* مسرح الشموع اليابانية (Recharts Engine) */}
-             <div className="relative h-64 w-full z-10 px-4 mt-6 bg-white/[0.02] rounded-[40px] border border-white/[0.03] shadow-inner overflow-hidden">
+             {/* Tactical Candlestick Theater - Increased Height */}
+             <div className="relative h-[420px] w-full z-10 mt-6 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                   <ComposedChart data={chartData} margin={{ top: 40, right: 10, left: 10, bottom: 20 }}>
+                   <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
                       <XAxis hide />
                       <YAxis hide domain={['auto', 'auto']} />
                       
-                      {/* رسم الفتائل (Wicks) */}
-                      <Bar dataKey="lowHigh" fill="#8884d8" barSize={2}>
+                      {/* Wicks */}
+                      <Bar dataKey="lowHigh" fill="#8884d8" barSize={1.5}>
                          {chartData.map((d, i) => (
-                           <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} fillOpacity={0.4} />
+                           <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} fillOpacity={0.3} />
                          ))}
                       </Bar>
 
-                      {/* رسم الأجسام (Bodies) */}
-                      <Bar dataKey="openClose" barSize={20}>
+                      {/* Perfect Rounded Bodies */}
+                      <Bar dataKey="openClose" barSize={18} radius={[10, 10, 10, 10]}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
                          ))}
                       </Bar>
 
-                      {/* خطوط إعداد الصفقة (Setup Lines) */}
-                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="3 3" label={{ position: 'left', value: `ENTRY: ${activeSignal.agents.tech.last.toFixed(2)}`, fill: '#f9a885', fontSize: 8, fontWeight: 900 }} />
-                      <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1} strokeDasharray="5 5" label={{ position: 'left', value: `TARGET: ${activeSignal.targets.tp1.toFixed(2)}`, fill: '#10b981', fontSize: 8, fontWeight: 900 }} />
-                      <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1} strokeDasharray="5 5" label={{ position: 'left', value: `SL: ${activeSignal.targets.sl.toFixed(2)}`, fill: '#ef4444', fontSize: 8, fontWeight: 900 }} />
+                      {/* Setup Annotations */}
+                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="3 3" />
+                      <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1} strokeDasharray="5 5" />
+                      <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1} strokeDasharray="5 5" />
                    </ComposedChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
 
-                {/* شرح سبب الدخول على الشارت */}
-                <div className="absolute top-4 right-6 text-right max-w-[200px] space-y-1">
-                   <div className="flex items-center justify-end gap-2 text-[#f9a885]">
-                      <Sparkles size={10} className="animate-pulse" />
-                      <span className="text-[8px] font-black uppercase tracking-widest">Logic Node</span>
-                   </div>
-                   <p className="text-[10px] font-bold text-white/60 leading-relaxed">{activeSignal.reason}</p>
-                </div>
-             </div>
+              {/* Float Analysis Node */}
+              <div className="absolute top-6 left-6 text-left" dir="ltr">
+                 <div className="flex items-center gap-2 mb-1">
+                    <div className="h-1 w-1 rounded-full bg-[#f9a885] animate-pulse" />
+                    <span className="text-[8px] font-black text-[#f9a885] uppercase tracking-widest">Logic Node</span>
+                 </div>
+                 <p className="text-[10px] font-bold text-white/40 max-w-[180px] leading-relaxed uppercase">{activeSignal.reason}</p>
+              </div>
+              
+              <div className="absolute bottom-6 right-8 text-right space-y-1">
+                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Live Execution Price</p>
+                 <p className="text-xl font-black text-white tabular-nums tracking-tighter">${activeSignal.agents.tech.last.toLocaleString()}</p>
+              </div>
+           </div>
 
-             <div className="grid grid-cols-1 gap-6 relative z-10 mt-6">
-                <div className="p-8 bg-white/[0.03] rounded-[48px] border border-white/5 space-y-6 shadow-inner">
-                   <div className="flex justify-between items-center text-gray-400 px-2">
-                      <div className="flex items-center gap-2">
-                         <Target size={14} className="text-[#f9a885]" />
-                         <span className="text-[9px] font-black uppercase">Nodes / نقاط التمركز</span>
-                      </div>
-                      <Badge className="bg-blue-500/10 text-blue-400 border-none text-[7px] font-black tracking-widest px-4 py-1.5 rounded-xl">PRO SPECTRA</Badge>
-                   </div>
-                   <div className="grid grid-cols-2 gap-12">
-                      <div className="space-y-1.5 text-right">
-                         <p className="text-[10px] font-black text-blue-400 uppercase">Entry / الدخول</p>
-                         <p className="text-2xl font-black text-white tabular-nums tracking-tighter" dir="ltr">{activeSignal.entry_range}</p>
-                      </div>
-                      <div className="space-y-1.5 text-right">
-                         <p className="text-[10px] font-black text-emerald-400 uppercase">Target / الهدف</p>
-                         <p className="text-2xl font-black text-emerald-400 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.tp1.toLocaleString()}</p>
-                      </div>
-                   </div>
-                </div>
+           {/* Compact Nodes Row - Save Space */}
+           <div className="grid grid-cols-1 gap-4 relative z-10 mt-6">
+              <div className="p-6 bg-white/[0.02] rounded-[40px] border border-white/5 flex items-center justify-between gap-10">
+                 <div className="flex items-center gap-8 flex-1">
+                    <div className="space-y-1 text-right">
+                       <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                          <MapPin size={10} /> Entry Range
+                       </p>
+                       <p className="text-xl font-black text-white tabular-nums tracking-tighter" dir="ltr">{activeSignal.entry_range}</p>
+                    </div>
+                    <div className="h-8 w-px bg-white/5" />
+                    <div className="space-y-1 text-right">
+                       <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                          <Target size={10} /> Target Node
+                       </p>
+                       <p className="text-xl font-black text-emerald-400 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.tp1.toLocaleString()}</p>
+                    </div>
+                 </div>
+                 <div className="text-center bg-white/[0.02] px-6 py-2 rounded-2xl border border-white/5">
+                    <p className="text-[7px] font-black text-gray-500 uppercase mb-1">Confidence</p>
+                    <p className="text-lg font-black text-[#f9a885] tabular-nums">%{activeSignal.confidence}</p>
+                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-5">
-                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between">
-                      <div className="space-y-1 text-right">
-                         <p className="text-[9px] font-black text-red-400 uppercase">Stop Loss / وقف الخسارة</p>
-                         <p className="text-xl font-black text-white tabular-nums" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
-                      </div>
-                      <ShieldCheck size={20} className="text-red-500 opacity-20" />
-                   </div>
-                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between">
-                      <div className="space-y-1 text-right">
-                         <p className="text-[9px] font-black text-[#f9a885] uppercase">Confidence / الثقة</p>
-                         <p className="text-xl font-black text-white tabular-nums">%{activeSignal.confidence}</p>
-                      </div>
-                      <Zap size={20} className="text-[#f9a885] opacity-20" />
-                   </div>
-                </div>
-             </div>
+              <div className="p-5 bg-red-500/5 rounded-[32px] border border-red-500/10 flex items-center justify-between px-10">
+                 <div className="flex items-center gap-3">
+                    <ShieldCheck size={16} className="text-red-500 opacity-40" />
+                    <span className="text-[9px] font-black text-red-400 uppercase tracking-widest">Security Stop Loss</span>
+                 </div>
+                 <p className="text-lg font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
+              </div>
+           </div>
 
-             <div className="relative pt-10 flex flex-col items-center gap-6">
-                <div className="w-full flex items-center gap-0">
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                   <div className="px-8 flex items-center justify-center">
-                      <div className="grid grid-cols-2 gap-1.5 scale-[0.9] opacity-40">
-                        <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                        <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                        <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                        <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                      </div>
-                   </div>
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent via-white/10 to-transparent" />
-                </div>
+           {/* Clean Minimalist Footer */}
+           <div className="relative pt-8 flex flex-col items-center gap-4">
+              <div className="w-full flex items-center gap-4 opacity-10">
+                 <div className="flex-1 h-[0.5px] bg-white" />
+                 <div className="grid grid-cols-2 gap-1 scale-[0.6]">
+                    <div className="h-2 w-2 rounded-full bg-white" />
+                    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                    <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                    <div className="h-2 w-2 rounded-full bg-white" />
+                 </div>
+                 <div className="flex-1 h-[0.5px] bg-white" />
+              </div>
 
-                <div className="text-center space-y-2">
-                   <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.6em] ml-[0.6em]">NAMIX UNIVERSAL NETWORK</p>
-                   <div className="flex items-center justify-center gap-3">
-                      <Sparkles size={10} className="text-[#f9a885]/40" />
-                      <p className="text-[11px] font-black text-[#f9a885] tracking-[0.1em] uppercase">Powered by NAMIX AI CORE</p>
-                      <Sparkles size={10} className="text-[#f9a885]/40" />
-                   </div>
-                </div>
-                
-                <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em] opacity-30">Sovereign Intelligence Node v35.0</p>
-             </div>
+              <div className="flex flex-col items-center gap-1.5 opacity-50">
+                 <p className="text-[10px] font-black text-[#f9a885] tracking-[0.2em] uppercase">Powered by NAMIX AI CORE</p>
+                 <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.4em]">Proprietary Intelligence Protocol v36.0</p>
+              </div>
+           </div>
 
           </div>
         </div>
