@@ -50,7 +50,7 @@ import {
 import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview مُفاعل طلبات التحليل المرئي v1.6 - Liquid Pulse & Grid Identity
+ * @fileOverview مُفاعل طلبات التحليل المرئي v1.8 - Compressed Identity Edition
  */
 
 export function MarketAnalysisReactor() {
@@ -175,9 +175,19 @@ export function MarketAnalysisReactor() {
   return (
     <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none select-none overflow-hidden z-[-1]" dir="rtl">
       <div ref={captureRef} className="w-[800px] h-[1200px] bg-[#0B0F1A] p-8 flex flex-col justify-between font-body text-right">
-        <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-12 flex flex-col gap-8 relative overflow-hidden shadow-2xl">
+        <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-12 flex flex-col gap-6 relative overflow-hidden shadow-2xl">
            
-           <div className="flex items-center justify-between border-b border-white/5 pb-8">
+           {/* Background Ghost Identity */}
+           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.015] z-0">
+              <div className="grid grid-cols-2 gap-20">
+                 <div className="w-64 h-64 rounded-full bg-white" />
+                 <div className="w-64 h-64 rounded-full bg-[#f9a885]" />
+                 <div className="w-64 h-64 rounded-full bg-[#f9a885]" />
+                 <div className="w-64 h-64 rounded-full bg-white" />
+              </div>
+           </div>
+
+           <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
               <div className="flex items-center gap-6">
                  <div className="h-20 w-20 flex items-center justify-center">
                     <CryptoIcon name={activeAnalysis.symbol.icon} size={72} />
@@ -198,7 +208,7 @@ export function MarketAnalysisReactor() {
            </div>
 
            {/* محرك النبض السائل لـ 24 ساعة */}
-           <div className="relative h-[280px] w-full bg-black/20 rounded-[44px] border border-white/5 shadow-inner overflow-hidden flex flex-col justify-end">
+           <div className="relative h-[280px] w-full bg-black/20 rounded-[44px] border border-white/5 shadow-inner overflow-hidden flex flex-col justify-end mt-2 relative z-10">
               <div className="absolute inset-0 z-10">
                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 60, right: 0, left: 0, bottom: 0 }}>
@@ -221,7 +231,7 @@ export function MarketAnalysisReactor() {
               </div>
            </div>
 
-           <div className="grid grid-cols-4 gap-4">
+           <div className="grid grid-cols-4 gap-4 relative z-10">
               {[
                 { label: "الزخم", val: `${Math.round(activeAnalysis.agents.tech.score * 100)}%`, icon: Zap, color: "text-orange-400" },
                 { label: "السيولة", val: activeAnalysis.volume, icon: Target, color: "text-blue-400" },
@@ -236,12 +246,12 @@ export function MarketAnalysisReactor() {
               ))}
            </div>
 
-           <div className="p-10 bg-white/[0.02] rounded-[48px] border border-white/5 space-y-6 relative overflow-hidden">
+           <div className="p-10 bg-white/[0.02] rounded-[48px] border border-white/5 space-y-6 relative overflow-hidden z-10">
               <div className="flex items-center gap-3">
                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-[#f9a885]">
                     <BarChart3 size={20} />
                  </div>
-                 <h4 className="text-lg font-black text-white">التحليل الاستراتيجي (Strategic Analysis)</h4>
+                 <h4 className="text-lg font-black text-white">التحليل الفني (Market Analysis)</h4>
               </div>
               <p className="text-[15px] font-bold text-gray-400 leading-[2.2] tracking-normal">
                 {activeAnalysis.reason === "Market Equilibrium" 
@@ -250,7 +260,7 @@ export function MarketAnalysisReactor() {
               </p>
            </div>
 
-           <div className="grid grid-cols-2 gap-6 pt-2">
+           <div className="grid grid-cols-2 gap-6 pt-2 relative z-10">
               <div className="p-8 bg-gray-50/5 rounded-[40px] border border-white/5 space-y-4">
                  <div className="flex items-center gap-3">
                     <Target size={18} className="text-emerald-500" />
@@ -282,15 +292,15 @@ export function MarketAnalysisReactor() {
               </div>
            </div>
 
-           <div className="mt-auto pt-10 flex flex-col items-center gap-6">
-              {/* شبكة نقاط ناميكس السيادية 2x2 */}
+           <div className="mt-auto pt-2 flex flex-col items-center gap-3 relative z-10">
+              {/* شبكة نقاط ناميكس السيادية 2x2 - مطهرة من التوهج */}
               <div className="grid grid-cols-2 gap-2">
-                 <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
-                 <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
-                 <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
-                 <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
+                 <div className="h-2 w-2 rounded-full bg-white opacity-40" />
+                 <div className="h-2 w-2 rounded-full bg-[#f9a885] opacity-40" />
+                 <div className="h-2 w-2 rounded-full bg-[#f9a885] opacity-40" />
+                 <div className="h-2 w-2 rounded-full bg-white opacity-40" />
               </div>
-              <p className="text-[10px] font-black text-white/30 tracking-[0.6em] uppercase">POWERED BY NAMIX AI CORE</p>
+              <p className="text-[9px] font-black text-white/20 tracking-[0.6em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>
         </div>
       </div>
