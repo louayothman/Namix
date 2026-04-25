@@ -40,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.2 - Zero-Wick Edition
- * تم حذف الفتائل نهائياً لضمان أعلى درجات النقاء البصري والاستقرار البرمجي.
+ * @fileOverview محرك بث تلغرام النخبوي v40.2 - Pure Minimalist Edition
+ * تم حذف الفتائل وتطهير التذييل وتوحيد لغة الألوان الصريحة للصفقات.
  */
 
 export function TelegramBroadcastManager() {
@@ -162,11 +162,11 @@ export function TelegramBroadcastManager() {
                    </div>
                 </div>
                 
-                {/* Protocol Badge */}
+                {/* Protocol Badge - Unified Color Language */}
                 <div className="flex flex-col items-end gap-2">
                    <Badge className={cn(
-                     "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl",
-                     activeSignal.decision === 'BUY' ? "bg-emerald-50 text-white" : "bg-red-50 text-white"
+                     "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white",
+                     activeSignal.decision === 'BUY' ? "bg-emerald-500" : "bg-red-500"
                    )}>
                       {activeSignal.decision === 'BUY' ? 'إشارة شراء / LONG' : 'إشارة بيع / SHORT'}
                    </Badge>
@@ -177,17 +177,15 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Candlestick Theater: Rebuilt without wicks */}
+             {/* Candlestick Theater: Pure Bodies Only */}
              <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                    <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
                       <XAxis hide />
                       <YAxis hide domain={['auto', 'auto']} />
                       
-                      {/* Signal Reference Lines */}
-                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1.5} strokeDasharray="4 4" />
-                      <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" />
-                      <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 4" />
+                      {/* Entry Line Only - Pure Minimalist */}
+                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={2} strokeDasharray="4 4" />
 
                       {/* Body Layer: Pure Candlestick Bodies Only */}
                       <Bar dataKey="body" barSize={18} radius={[8, 8, 8, 8]} isAnimationActive={false}>
@@ -235,22 +233,14 @@ export function TelegramBroadcastManager() {
                 <p className="text-xl font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
              </div>
 
-             {/* Professional Footer Hub: Clean & Symmetric */}
+             {/* Professional Footer Hub: Pure & Simple */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                <div className="w-full flex items-center gap-8 px-4">
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent to-white/10" />
-                   
-                   {/* Logo Core - Fixed Symmetry No Transparency */}
-                   <div className="flex items-center justify-center p-2 bg-white/5 rounded-xl border border-white/5">
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
-                        <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                        <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                        <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
-                      </div>
-                   </div>
-
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent to-white/10" />
+                {/* Logo Core - No container, No borders, No side lines */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_white]" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_white]" />
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
