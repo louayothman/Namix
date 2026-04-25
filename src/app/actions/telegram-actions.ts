@@ -2,12 +2,12 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from 'firebase/firestore';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v25.0 - Professional Branding Update
- * تم تحديث نصوص الرسائل لتصبح أكثر هيبة واختصاراً مع حذف الكلمات المرفوضة.
+ * @fileOverview محرك عمليات تلغرام المطور v26.0 - Bug Fix & Stability
+ * تم إصلاح خطأ استيراد الدالات لضمان استقرار إضافة البوتات في المصفوفة.
  */
 
 interface TelegramBot {
@@ -31,7 +31,6 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // بناء كابشن الإشارة المختصر والمحترف
     const caption = `
 📊 *إشارة تداول — ${signal.pair}*
 
@@ -58,7 +57,6 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
     const protocol = host?.includes('localhost') ? 'http' : 'https';
     const tmaUrl = `${protocol}://${host}/trade/${symbol.id}`;
 
-    // تحويل Base64 إلى Buffer إذا وجد
     let photoBlob: Blob | null = null;
     if (imageUri) {
       const base64Data = imageUri.split(',')[1];
@@ -106,7 +104,6 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
 
     await Promise.all(sendOps);
 
-    // توثيق عملية البث
     await addDoc(collection(firestore, "telegram_broadcast_logs"), {
       symbolId: symbol.id,
       symbolCode: signal.pair,
@@ -118,7 +115,6 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
 
     return { success: true };
   } catch (e: any) {
-    console.error("Telegram Broadcast Error:", e.message);
     return { success: false, error: e.message };
   }
 }
@@ -152,7 +148,7 @@ export async function addNewTelegramBot(name: string, token: string) {
     if (!webhookData.ok) throw new Error("فشل في ربط الـ Webhook مع تلغرام.");
 
     const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
-    await updateDoc(botRef, {
+    await setDoc(botRef, {
       id: botId,
       name: name,
       token: token,
