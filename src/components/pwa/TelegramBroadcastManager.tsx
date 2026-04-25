@@ -40,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v37.0 - HD Symmetric Matrix
- * تم إصلاح محاذاة الفتائل ودمج البيانات في صف واحد مع تعريب العناوين ودقة HD.
+ * @fileOverview محرك بث تلغرام النخبوي v38.0 - Ultra HD Centered Matrix
+ * تم نقل السعر للهيدر، إصلاح محاذاة الفتائل، وتطوير تذييل راقٍ يتوسطه الشعار بخطوط فاصلة.
  */
 
 export function TelegramBroadcastManager() {
@@ -84,7 +84,6 @@ export function TelegramBroadcastManager() {
           
           const formatted = history.map(d => ({
             ...d,
-            // نستخدم مصفوفة للقيم لضمان رسم الشمعة والفتيل في نفس الـ Slot
             body: [d.open, d.close],
             wick: [d.low, d.high]
           }));
@@ -92,19 +91,17 @@ export function TelegramBroadcastManager() {
           setChartData(formatted);
           setActiveSignal(best.analysis);
 
-          // انتظار رندر الشارت قبل الالتقاط
           setTimeout(async () => {
             if (captureRef.current) {
               try {
-                // رفع الـ pixelRatio لـ 3 لضمان دقة HD حادة جداً
                 const dataUrl = await toJpeg(captureRef.current, { 
                   quality: 0.98,
-                  pixelRatio: 3,
+                  pixelRatio: 4, // رفع الدقة لـ 4 لضمان Ultra HD
                   backgroundColor: '#0B0F1A'
                 });
                 await broadcastSignalToTelegram(best.analysis, best.sym, dataUrl);
               } catch (err) {
-                console.error("Capture HD Fail:", err);
+                console.error("Capture Ultra HD Fail:", err);
                 await broadcastSignalToTelegram(best.analysis, best.sym);
               }
             }
@@ -135,7 +132,7 @@ export function TelegramBroadcastManager() {
       {activeSignal && (
         <div 
           ref={captureRef}
-          className="w-[650px] h-[900px] bg-[#0B0F1A] p-6 flex flex-col justify-between font-body text-right"
+          className="w-[650px] h-[950px] bg-[#0B0F1A] p-6 flex flex-col justify-between font-body text-right"
         >
           <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
              
@@ -149,15 +146,16 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Header Node */}
+             {/* Header Node - Enhanced with Price */}
              <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-5">
                    <div className="h-16 w-16 rounded-[24px] bg-white/5 flex items-center justify-center shadow-xl border border-white/10">
                       <CryptoIcon name={activeSignal.pair.split('/')[0]} size={44} />
                    </div>
                    <div className="text-right">
-                      <h3 className="text-2xl font-black text-white tracking-tighter">{activeSignal.pair}</h3>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">تحليل نبض السوق / PULSE</p>
+                      <h3 className="text-2xl font-black text-white tracking-tighter leading-none">{activeSignal.pair}</h3>
+                      <p className="text-xl font-black text-[#f9a885] tabular-nums mt-1.5 leading-none">${activeSignal.agents.tech.last.toLocaleString()}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 leading-none">تحليل نبض السوق / PULSE</p>
                    </div>
                 </div>
                 <Badge className={cn(
@@ -168,28 +166,28 @@ export function TelegramBroadcastManager() {
                 </Badge>
              </div>
 
-             {/* Tactical Candlestick Theater - High Height */}
-             <div className="relative h-[440px] w-full z-10 mt-6 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
+             {/* Tactical Candlestick Theater */}
+             <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                   <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }} barGap={-16}>
+                   <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
                       <XAxis hide />
                       <YAxis hide domain={['auto', 'auto']} />
                       
-                      {/* Wicks - Centered behind body */}
-                      <Bar dataKey="wick" fill="#ffffff" barSize={2} opacity={0.3}>
+                      {/* Wicks - Centered */}
+                      <Bar dataKey="wick" fill="#ffffff" barSize={2} opacity={0.3} isAnimationActive={false}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
                          ))}
                       </Bar>
 
-                      {/* Perfect Rounded Bodies - Centered */}
-                      <Bar dataKey="body" barSize={16} radius={[8, 8, 8, 8]}>
+                      {/* Perfect Bodies - Layered exactly over wicks */}
+                      <Bar dataKey="body" barSize={16} radius={[8, 8, 8, 8]} isAnimationActive={false}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
                          ))}
                       </Bar>
 
-                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="3 3" />
+                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="4 4" />
                    </ComposedChart>
                 </ResponsiveContainer>
 
@@ -199,23 +197,18 @@ export function TelegramBroadcastManager() {
                       <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
                       <span className="text-[9px] font-black text-[#f9a885] uppercase tracking-widest">التحليل / LOGIC</span>
                    </div>
-                   <p className="text-[11px] font-bold text-white/50 max-w-[200px] leading-relaxed uppercase">{activeSignal.reason}</p>
-                </div>
-                
-                <div className="absolute bottom-8 right-10 text-right space-y-1">
-                   <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">سعر التنفيذ المباشر</p>
-                   <p className="text-2xl font-black text-white tabular-nums tracking-tighter">${activeSignal.agents.tech.last.toLocaleString()}</p>
+                   <p className="text-[11px] font-bold text-white/50 max-w-[220px] leading-relaxed uppercase">{activeSignal.reason}</p>
                 </div>
              </div>
 
-             {/* Unified Row Matrix - All Data in One Row */}
-             <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
+             {/* Unified Row Matrix */}
+             <div className="relative z-10 mt-4 grid grid-cols-3 gap-3">
                 <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center">
                    <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest leading-none">الثقة / CONF</p>
                    <p className="text-2xl font-black text-white tabular-nums tracking-tighter">%{activeSignal.confidence}</p>
                 </div>
 
-                <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center">
+                <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center border-x border-white/5">
                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">الهدف / TARGET</p>
                    <p className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">${activeSignal.targets.tp1.toLocaleString()}</p>
                 </div>
@@ -226,7 +219,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Protection Belt - Slim Bottom Row */}
+             {/* Protection Belt */}
              <div className="p-5 bg-red-500/[0.03] rounded-[32px] border border-red-500/10 flex items-center justify-between px-10 relative z-10 mt-2">
                 <div className="flex items-center gap-3">
                    <ShieldCheck size={18} className="text-red-500 opacity-40" />
@@ -235,22 +228,21 @@ export function TelegramBroadcastManager() {
                 <p className="text-xl font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
              </div>
 
-             {/* Minimalist Pro Footer */}
-             <div className="relative pt-8 flex flex-col items-center gap-4">
-                <div className="w-full flex items-center gap-6 opacity-[0.15]">
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent to-white" />
-                   <div className="grid grid-cols-2 gap-1 scale-[0.7]">
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
+             {/* Minimalist Pro Footer - Redesigned */}
+             <div className="relative pt-10 flex flex-col items-center gap-4">
+                <div className="w-full flex items-center gap-8">
+                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent to-white/10" />
+                   <div className="grid grid-cols-2 gap-1.5 scale-90 shrink-0">
+                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
+                      <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                      <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
+                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
                    </div>
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent to-white" />
+                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent to-white/10" />
                 </div>
 
-                <div className="flex flex-col items-center gap-1.5 opacity-40">
-                   <p className="text-[10px] font-black text-[#f9a885] tracking-[0.3em] uppercase">POWERED BY NAMIX AI CORE</p>
-                   <p className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.5em]">OPERATIONAL PROTOCOL V37.0 HD</p>
+                <div className="flex flex-col items-center gap-1">
+                   <p className="text-[10px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
                 </div>
              </div>
 
