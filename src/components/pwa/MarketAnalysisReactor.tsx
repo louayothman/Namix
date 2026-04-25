@@ -40,18 +40,17 @@ import {
 import { getHistoricalKlines } from "@/services/binance-service";
 import { generateInternalHistory } from "@/lib/internal-market";
 import { 
-  ComposedChart, 
-  Bar, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   ReferenceLine, 
-  ResponsiveContainer,
-  Cell
+  ResponsiveContainer
 } from "recharts";
 import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview مُفاعل طلبات التحليل المرئي v1.5 - High Frequency Progress (20 Steps)
+ * @fileOverview مُفاعل طلبات التحليل المرئي v1.6 - Liquid Pulse & Grid Identity
  */
 
 export function MarketAnalysisReactor() {
@@ -108,27 +107,14 @@ export function MarketAnalysisReactor() {
       const bot = botsSnap.docs[0]?.data();
       if (!bot) throw new Error("Bot not found");
 
-      // تعريف الخطوات الـ 20 التكتيكية
       const progressSteps = [
         { p: 5, t: "بدء تهيئة محرك التحليل..." },
-        { p: 10, t: "ربط القنوات السعرية اللحظية..." },
-        { p: 15, t: "استخلاص المعطيات الفنية..." },
-        { p: 20, t: "جاري تحليل الزخم اللحظي..." },
-        { p: 25, t: "فحص مستويات السيولة الحالية..." },
-        { p: 30, t: "قياس تذبذب أطر التداول..." },
-        { p: 35, t: "معايرة مؤشرات القوة النسبية..." },
-        { p: 40, t: "تحديد مناطق التمركز الاستراتيجي..." },
-        { p: 45, t: "تحليل تدفق الأوامر العالمي..." },
-        { p: 50, t: "تقييم معامل الثقة اللحظي..." },
-        { p: 55, t: "رصد فجوات العرض والطلب..." },
-        { p: 60, t: "تجهيز الرسم البياني عالي الدقة..." },
-        { p: 65, t: "بناء الخارطة السعرية المتوقعة..." },
-        { p: 70, t: "تحديد مستويات جني الأرباح..." },
-        { p: 75, t: "ضبط صمام أمان المحفظة..." },
-        { p: 80, t: "تجهيز التقرير الفني الشامل..." },
-        { p: 85, t: "مراجعة جودة البيانات النهائية..." },
-        { p: 90, t: "التحقق من سلامة البث المرئي..." },
-        { p: 95, t: "إصدار التقرير النهائي للمستثمر..." },
+        { p: 15, t: "ربط القنوات السعرية اللحظية..." },
+        { p: 25, t: "جاري تحليل الزخم اللحظي..." },
+        { p: 40, t: "فحص مستويات السيولة الحالية..." },
+        { p: 60, t: "تجهيز المنحنى السعري (24H)..." },
+        { p: 80, t: "ضبط صمام أمان المحفظة..." },
+        { p: 95, t: "إصدار التقرير النهائي..." },
         { p: 100, t: "اكتمل التحليل بنجاح." }
       ];
 
@@ -138,30 +124,26 @@ export function MarketAnalysisReactor() {
       for (const step of progressSteps) {
         await updateTelegramProgress(bot.token, request.chatId, request.messageId, step.p, step.t, request.symbolCode);
         
-        // تنفيذ العمليات الفعلية في نقاط محددة من الشريط
-        if (step.p === 20) {
+        if (step.p === 40) {
           analysis = await runNamix(symbol.binanceSymbol || symbol.code);
         }
         if (step.p === 60) {
           if (symbol.priceSource === 'binance') {
-            history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 16);
+            history = await getHistoricalKlines(symbol.binanceSymbol, '1h', 24);
           } else {
-            history = generateInternalHistory(symbol.id, symbol, 16);
+            history = generateInternalHistory(symbol.id, symbol, 24);
           }
-          setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
+          setChartData(history.map(d => ({ value: d.close || d.price })));
           setActiveAnalysis({ ...analysis, symbol });
         }
 
-        // سرعة محاكاة الخطوات لضمان الحيوية (150ms لكل خطوة)
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 200));
       }
 
-      // التقاط الصورة النهائية
       if (captureRef.current) {
         const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
         const textReport = await generateDeepMarketReport(request.symbolCode, symbol.id);
         
-        // حذف رسالة الانتظار وإرسال التقرير المصور
         await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -186,16 +168,19 @@ export function MarketAnalysisReactor() {
   if (!activeAnalysis) return null;
 
   const currentPrice = activeAnalysis.agents.tech.last;
+  const isBuy = activeAnalysis.decision === 'BUY';
+  const isSell = activeAnalysis.decision === 'SELL';
+  const pulseColor = isBuy ? "#10b981" : isSell ? "#ef4444" : "#3b82f6";
 
   return (
     <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none select-none overflow-hidden z-[-1]" dir="rtl">
       <div ref={captureRef} className="w-[800px] h-[1200px] bg-[#0B0F1A] p-8 flex flex-col justify-between font-body text-right">
-        <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-12 flex flex-col gap-10 relative overflow-hidden shadow-2xl">
+        <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-12 flex flex-col gap-8 relative overflow-hidden shadow-2xl">
            
-           <div className="flex items-center justify-between border-b border-white/5 pb-10">
+           <div className="flex items-center justify-between border-b border-white/5 pb-8">
               <div className="flex items-center gap-6">
                  <div className="h-20 w-20 flex items-center justify-center">
-                    <CryptoIcon name={activeAnalysis.symbol.icon} size={70} />
+                    <CryptoIcon name={activeAnalysis.symbol.icon} size={72} />
                  </div>
                  <div className="text-right">
                     <h3 className="text-3xl font-black text-white tracking-tight leading-none">{activeAnalysis.symbol.name}</h3>
@@ -204,31 +189,35 @@ export function MarketAnalysisReactor() {
                     </p>
                  </div>
               </div>
-              <div className="flex flex-col items-end gap-3">
-                 <Badge className={cn(
-                   "font-black text-[12px] px-8 py-3 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
-                   activeAnalysis.decision === 'BUY' ? "bg-emerald-500" : activeAnalysis.decision === 'SELL' ? "bg-red-500" : "bg-blue-600"
-                 )}>
-                   {activeAnalysis.decision === 'BUY' ? 'إشارة شراء / BUY' : activeAnalysis.decision === 'SELL' ? 'إشارة بيع / SELL' : 'تحليل السوق / NEUTRAL'}
-                 </Badge>
-              </div>
+              <Badge className={cn(
+                "font-black text-[12px] px-8 py-3 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
+                isBuy ? "bg-emerald-500" : isSell ? "bg-red-500" : "bg-blue-600"
+              )}>
+                {isBuy ? 'إشارة شراء / BUY' : isSell ? 'إشارة بيع / SELL' : 'تحليل السوق / NEUTRAL'}
+              </Badge>
            </div>
 
-           <div className="relative h-[400px] w-full bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%">
-                 <ComposedChart data={chartData} margin={{ top: 60, right: 20, left: 20, bottom: 20 }}>
-                    <XAxis hide />
-                    <YAxis hide domain={['auto', 'auto']} />
-                    <ReferenceLine y={currentPrice} stroke="#f9a885" strokeWidth={3} strokeDasharray="6 6" />
-                    <Bar dataKey="body" barSize={24} radius={[10, 10, 10, 10]} isAnimationActive={false}>
-                       {chartData.map((d, i) => (
-                         <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
-                       ))}
-                    </Bar>
-                 </ComposedChart>
-              </ResponsiveContainer>
-              <div className="absolute top-10 left-10 text-left" dir="ltr">
-                 <Badge variant="outline" className="border-white/10 text-white/40 text-[9px] font-black px-3 py-1">15M TIMELINE</Badge>
+           {/* محرك النبض السائل لـ 24 ساعة */}
+           <div className="relative h-[280px] w-full bg-black/20 rounded-[44px] border border-white/5 shadow-inner overflow-hidden flex flex-col justify-end">
+              <div className="absolute inset-0 z-10">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 60, right: 0, left: 0, bottom: 0 }}>
+                       <YAxis hide domain={['auto', 'auto']} />
+                       <ReferenceLine y={currentPrice} stroke={pulseColor} strokeWidth={2} strokeDasharray="5 5" opacity={0.3} />
+                       <Area 
+                         type="monotone" 
+                         dataKey="value" 
+                         stroke={pulseColor} 
+                         strokeWidth={5} 
+                         fillOpacity={0.15} 
+                         fill={pulseColor} 
+                         isAnimationActive={false}
+                       />
+                    </AreaChart>
+                 </ResponsiveContainer>
+              </div>
+              <div className="absolute top-8 left-8 text-left z-20" dir="ltr">
+                 <Badge variant="outline" className="border-white/10 text-white/40 text-[9px] font-black px-4 py-1.5 rounded-full backdrop-blur-md">24H PRICE PULSE</Badge>
               </div>
            </div>
 
@@ -239,7 +228,7 @@ export function MarketAnalysisReactor() {
                 { label: "الثقة", val: `${activeAnalysis.confidence}%`, icon: ShieldCheck, color: "text-emerald-400" },
                 { label: "الاتجاه", val: activeAnalysis.trend, icon: Activity, color: "text-purple-400" }
               ].map((m, i) => (
-                <div key={i} className="p-6 bg-white/[0.03] rounded-[36px] border border-white/5 text-center space-y-2">
+                <div key={i} className="p-6 bg-white/[0.03] rounded-[36px] border border-white/5 text-center space-y-2 group hover:bg-white/[0.06] transition-all">
                    <div className="flex justify-center mb-1"><m.icon size={20} className={m.color} /></div>
                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">{m.label}</p>
                    <p className="text-xl font-black text-white tabular-nums tracking-tighter">{m.val}</p>
@@ -247,21 +236,21 @@ export function MarketAnalysisReactor() {
               ))}
            </div>
 
-           <div className="p-10 bg-white/[0.02] rounded-[48px] border border-white/5 space-y-6 relative group">
-              <div className="flex items-center gap-3 relative z-10">
+           <div className="p-10 bg-white/[0.02] rounded-[48px] border border-white/5 space-y-6 relative overflow-hidden">
+              <div className="flex items-center gap-3">
                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-[#f9a885]">
                     <BarChart3 size={20} />
                  </div>
                  <h4 className="text-lg font-black text-white">التحليل الاستراتيجي (Strategic Analysis)</h4>
               </div>
-              <p className="text-[15px] font-bold text-gray-400 leading-[2.2] relative z-10">
+              <p className="text-[15px] font-bold text-gray-400 leading-[2.2] tracking-normal">
                 {activeAnalysis.reason === "Market Equilibrium" 
                   ? "السوق يمر بمرحلة توازن تقني مؤقت؛ محرك التحليل ينصح بالترقب لحين وضوح اتجاه النبض القادم لضمان استقرار التنفيذ." 
                   : `بناءً على قراءة التدفقات اللحظية، تم رصد ${activeAnalysis.trend === 'صاعد' ? 'زخم شرائي إيجابي' : 'تراكم ضغط بيعي'} مدعوم بـ ${activeAnalysis.volume === 'عالي' ? 'سيولة مرتفعة' : 'استقرار نسبي'} في مناطق التنفيذ الحالية.`}
               </p>
            </div>
 
-           <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+           <div className="grid grid-cols-2 gap-6 pt-2">
               <div className="p-8 bg-gray-50/5 rounded-[40px] border border-white/5 space-y-4">
                  <div className="flex items-center gap-3">
                     <Target size={18} className="text-emerald-500" />
@@ -283,7 +272,7 @@ export function MarketAnalysisReactor() {
                     <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Entry & Security</span>
                  </div>
                  <div className="flex justify-between items-center bg-black/20 p-4 rounded-2xl">
-                    <span className="text-[10px] font-black text-gray-400">النطاق المقترح</span>
+                    <span className="text-[10px] font-black text-gray-400">نطاق التمركز</span>
                     <span className="text-sm font-black text-white tabular-nums" dir="ltr">{activeAnalysis.entry_range}</span>
                  </div>
                  <div className="flex justify-between items-center bg-red-500/10 p-4 rounded-2xl border border-red-500/20">
@@ -293,14 +282,15 @@ export function MarketAnalysisReactor() {
               </div>
            </div>
 
-           <div className="mt-auto pt-10 flex flex-col items-center">
-              <div className="flex items-center gap-2 mb-2">
+           <div className="mt-auto pt-10 flex flex-col items-center gap-6">
+              {/* شبكة نقاط ناميكس السيادية 2x2 */}
+              <div className="grid grid-cols-2 gap-2">
                  <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
                  <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
                  <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
                  <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
               </div>
-              <p className="text-[10px] font-black text-white/30 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
+              <p className="text-[10px] font-black text-white/30 tracking-[0.6em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>
         </div>
       </div>
