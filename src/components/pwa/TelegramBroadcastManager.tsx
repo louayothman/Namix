@@ -140,7 +140,7 @@ export function TelegramBroadcastManager() {
               <div className="flex flex-col items-end">
                  <Badge className={cn(
                    "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
-                   activeSignal.decision === 'BUY' ? "bg-emerald-500" : activeSignal.decision === 'SELL' ? "bg-red-500" : "bg-blue-500"
+                   activeSignal.decision === 'BUY' ? "bg-emerald-50 text-emerald-600" : activeSignal.decision === 'SELL' ? "bg-red-50 text-red-600" : "bg-blue-500"
                  )}>
                    {activeSignal.decision === 'BUY' ? 'إشارة شراء / BUY' : activeSignal.decision === 'SELL' ? 'إشارة بيع / SELL' : 'تحليل السوق / NEUTRAL'}
                  </Badge>
@@ -186,13 +186,13 @@ export function TelegramBroadcastManager() {
            </div>
 
            <div className="relative pt-10 flex flex-col items-center">
-              <div className="flex items-center gap-2 mb-2">
-                 <div className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                 <div className="h-1.5 w-1.5 rounded-full bg-white opacity-40" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] opacity-40" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] opacity-40" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-white opacity-40" />
               </div>
-              <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
+              <p className="text-[8px] font-black text-white/10 tracking-[0.5em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>
         </div>
       </div>
