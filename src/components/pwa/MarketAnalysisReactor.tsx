@@ -51,7 +51,7 @@ import {
 import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview مُفاعل طلبات التحليل المرئي v1.1 - Vivid Progress Edition
+ * @fileOverview مُفاعل طلبات التحليل المرئي v1.5 - High Frequency Progress (20 Steps)
  */
 
 export function MarketAnalysisReactor() {
@@ -78,9 +78,12 @@ export function MarketAnalysisReactor() {
     return () => unsubscribe();
   }, [db]);
 
-  const updateTelegramProgress = async (botToken: string, chatId: string, messageId: string, progress: number, text: string) => {
-    const bars = "█".repeat(progress / 10) + "░".repeat(10 - (progress / 10));
-    const msg = `🔍 *جاري تحليل سوق ${activeAnalysis?.symbol?.code || '...'}*\n[${bars}]\n\n_${text}_`;
+  const updateTelegramProgress = async (botToken: string, chatId: string, messageId: string, progress: number, text: string, symbolCode: string) => {
+    const totalBlocks = 20;
+    const filledBlocks = Math.round((progress / 100) * totalBlocks);
+    const emptyBlocks = totalBlocks - filledBlocks;
+    const bars = "█".repeat(filledBlocks) + "░".repeat(emptyBlocks);
+    const msg = `🔍 *جاري تحليل سوق ${symbolCode}*\n[${bars}]\n\n_${text}_`;
     
     await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
       method: 'POST',
@@ -97,7 +100,6 @@ export function MarketAnalysisReactor() {
   const processRequest = async (request: any) => {
     isProcessing.current = true;
     try {
-      // 1. جلب بيانات السوق
       const symSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", request.symbolCode)));
       if (symSnap.empty) throw new Error("Symbol not found");
       const symbol = { id: symSnap.docs[0].id, ...symSnap.docs[0].data() } as any;
@@ -106,46 +108,73 @@ export function MarketAnalysisReactor() {
       const bot = botsSnap.docs[0]?.data();
       if (!bot) throw new Error("Bot not found");
 
-      // تسلسل التقدم الحي
-      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 20, "جاري استخلاص المعطيات الفنية اللحظية...");
-      
-      const analysis = await runNamix(symbol.binanceSymbol || symbol.code);
-      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 50, "تحليل الزخم وقراءات السيولة الحالية...");
+      // تعريف الخطوات الـ 20 التكتيكية
+      const progressSteps = [
+        { p: 5, t: "بدء تهيئة محرك التحليل..." },
+        { p: 10, t: "ربط القنوات السعرية اللحظية..." },
+        { p: 15, t: "استخلاص المعطيات الفنية..." },
+        { p: 20, t: "جاري تحليل الزخم اللحظي..." },
+        { p: 25, t: "فحص مستويات السيولة الحالية..." },
+        { p: 30, t: "قياس تذبذب أطر التداول..." },
+        { p: 35, t: "معايرة مؤشرات القوة النسبية..." },
+        { p: 40, t: "تحديد مناطق التمركز الاستراتيجي..." },
+        { p: 45, t: "تحليل تدفق الأوامر العالمي..." },
+        { p: 50, t: "تقييم معامل الثقة اللحظي..." },
+        { p: 55, t: "رصد فجوات العرض والطلب..." },
+        { p: 60, t: "تجهيز الرسم البياني عالي الدقة..." },
+        { p: 65, t: "بناء الخارطة السعرية المتوقعة..." },
+        { p: 70, t: "تحديد مستويات جني الأرباح..." },
+        { p: 75, t: "ضبط صمام أمان المحفظة..." },
+        { p: 80, t: "تجهيز التقرير الفني الشامل..." },
+        { p: 85, t: "مراجعة جودة البيانات النهائية..." },
+        { p: 90, t: "التحقق من سلامة البث المرئي..." },
+        { p: 95, t: "إصدار التقرير النهائي للمستثمر..." },
+        { p: 100, t: "اكتمل التحليل بنجاح." }
+      ];
 
+      let analysis: any = null;
       let history: any[] = [];
-      if (symbol.priceSource === 'binance') {
-        history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 16);
-      } else {
-        history = generateInternalHistory(symbol.id, symbol, 16);
-      }
-      
-      setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
-      setActiveAnalysis({ ...analysis, symbol });
 
-      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 80, "تجهيز التقرير الاستراتيجي الشامل...");
-
-      // 4. التقاط الصورة وإرسالها
-      setTimeout(async () => {
-        if (captureRef.current) {
-          const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
-          const textReport = await generateDeepMarketReport(request.symbolCode, symbol.id);
-          
-          await updateTelegramProgress(bot.token, request.chatId, request.messageId, 100, "اكتمل التحليل الفني بنجاح.");
-
-          // حذف رسالة الانتظار وإرسال التقرير النهائي
-          await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
-          });
-          
-          await sendImageToChat(request.botId, request.chatId, textReport, dataUrl, symbol.id);
+      for (const step of progressSteps) {
+        await updateTelegramProgress(bot.token, request.chatId, request.messageId, step.p, step.t, request.symbolCode);
+        
+        // تنفيذ العمليات الفعلية في نقاط محددة من الشريط
+        if (step.p === 20) {
+          analysis = await runNamix(symbol.binanceSymbol || symbol.code);
         }
-        await updateDoc(doc(db, "market_analysis_requests", request.id), { status: "completed" });
-        setActiveAnalysis(null);
-        setChartData([]);
-        isProcessing.current = false;
-      }, 3000);
+        if (step.p === 60) {
+          if (symbol.priceSource === 'binance') {
+            history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 16);
+          } else {
+            history = generateInternalHistory(symbol.id, symbol, 16);
+          }
+          setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
+          setActiveAnalysis({ ...analysis, symbol });
+        }
+
+        // سرعة محاكاة الخطوات لضمان الحيوية (150ms لكل خطوة)
+        await new Promise(r => setTimeout(r, 150));
+      }
+
+      // التقاط الصورة النهائية
+      if (captureRef.current) {
+        const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
+        const textReport = await generateDeepMarketReport(request.symbolCode, symbol.id);
+        
+        // حذف رسالة الانتظار وإرسال التقرير المصور
+        await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
+        });
+        
+        await sendImageToChat(request.botId, request.chatId, textReport, dataUrl, symbol.id);
+      }
+
+      await updateDoc(doc(db, "market_analysis_requests", request.id), { status: "completed" });
+      setActiveAnalysis(null);
+      setChartData([]);
+      isProcessing.current = false;
 
     } catch (e) {
       console.error("Analysis Reactor Error:", e);
