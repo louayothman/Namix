@@ -7,7 +7,7 @@ import { headers } from 'next/headers';
 
 /**
  * @fileOverview محرك عمليات تلغرام المطور v25.0 - Professional Branding Update
- * تم تحديث نصوص الرسائل لتصبح أكثر هيبة واعتماد مصفوفة البث عالية الدقة.
+ * تم تحديث نصوص الرسائل لتصبح أكثر هيبة واختصاراً مع حذف الكلمات المرفوضة.
  */
 
 interface TelegramBot {
@@ -20,7 +20,6 @@ interface TelegramBot {
 
 /**
  * إرسال إشارة تداول مصورة واحترافية (JPG) لكافة البوتات النشطة
- * تستقبل الدالة الـ ImageUri (Base64) المولد عبر html-to-image
  */
 export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string) {
   try {
@@ -32,7 +31,7 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // بناء كابشن الإشارة المحدث بأسلوب ناميكس النخبوي
+    // بناء كابشن الإشارة المختصر والمحترف
     const caption = `
 📊 *إشارة تداول — ${signal.pair}*
 
@@ -51,7 +50,7 @@ ${signal.reason}
 
 🔥 *المخاطرة:* ${signal.risk.label}  
 
-_تم استنباط هذه الإشارة عبر محركات NAMIX AI السيادية لتحليل فجوات السيولة والتدفق المالي اللحظي._
+_تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل تدفقات السوق اللحظية._
     `.trim();
 
     const headersList = await headers();
