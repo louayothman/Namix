@@ -2,13 +2,12 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { headers } from 'next/headers';
-import { generateSignalImage } from '@/lib/signal-canvas';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v21.0 - Professional JPG Signals
- * تم تحديث المحرك لإرسال الإشارات كملفات JPG عالية الدقة لضمان وضوح النصوص.
+ * @fileOverview محرك عمليات تلغرام المطور v25.0 - HTML-to-Image Integration
+ * تم تحديث المحرك لاستقبال الصور المولدة من واجهة المستخدم (Base64) وبثها فوراً.
  */
 
 interface TelegramBot {
@@ -21,21 +20,19 @@ interface TelegramBot {
 
 /**
  * إرسال إشارة تداول مصورة واحترافية (JPG) لكافة البوتات النشطة
+ * تستقبل الدالة الـ ImageUri (Base64) المولد عبر html-to-image
  */
-export async function broadcastSignalToTelegram(signal: any, symbol: any) {
+export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string) {
   try {
     const { firestore } = initializeFirebase();
     const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true)));
     
     if (botsSnap.empty) return { success: false, error: "No active bots" };
 
-    // 1. توليد بطاقة الإشارة بصيغة JPG عبر محرك Sharp المحدث
-    const imageBuffer = await generateSignalImage(signal);
-    
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // 2. بناء كابشن الإشارة المحدث بأسلوب ناميكس الفصيح
+    // بناء كابشن الإشارة المحدث بأسلوب ناميكس الفصيح
     const caption = `
 📊 *تنبيه تداول ذكي — ${signal.pair}*
 
@@ -63,31 +60,44 @@ _تم تحليل البيانات بواسطة NAMIX AI_
     const protocol = host?.includes('localhost') ? 'http' : 'https';
     const tmaUrl = `${protocol}://${host}/trade/${symbol.id}`;
 
+    // تحويل Base64 إلى Buffer إذا وجد
+    let photoBlob: Blob | null = null;
+    if (imageUri) {
+      const base64Data = imageUri.split(',')[1];
+      const binaryData = Buffer.from(base64Data, 'base64');
+      photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
+    }
+
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
       const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
       
       const botOps = subsSnap.docs.map(subDoc => {
         const chatId = subDoc.id;
-
         const formData = new FormData();
         formData.append('chat_id', chatId);
-        // إرسال كملف JPEG لضمان الوضوح التام
-        formData.append('photo', new Blob([imageBuffer], { type: 'image/jpeg' }), 'signal_card.jpg');
+        
+        if (photoBlob) {
+          formData.append('photo', photoBlob, 'signal_card.jpg');
+        }
+        
         formData.append('caption', caption);
         formData.append('parse_mode', 'Markdown');
         formData.append('reply_markup', JSON.stringify({
           inline_keyboard: [
             [
               { text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, web_app: { url: tmaUrl } }
-            ],
-            [
-              { text: `🔔 متابعة التحديثات`, callback_data: `sub_${signal.pair}` }
             ]
           ]
         }));
 
-        return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
+        const endpoint = photoBlob ? 'sendPhoto' : 'sendMessage';
+        if (!photoBlob) {
+          formData.delete('photo');
+          formData.set('text', caption);
+        }
+
+        return fetch(`https://api.telegram.org/bot${bot.token}/${endpoint}`, {
           method: 'POST',
           body: formData
         });
@@ -105,7 +115,6 @@ _تم تحليل البيانات بواسطة NAMIX AI_
       decision: signal.decision,
       confidence: signal.confidence,
       botCount: botsSnap.size,
-      messagePreview: caption.substring(0, 100),
       createdAt: new Date().toISOString()
     });
 
