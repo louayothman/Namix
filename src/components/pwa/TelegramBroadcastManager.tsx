@@ -14,10 +14,11 @@ import { broadcastSignalToTelegram } from "@/app/actions/telegram-actions";
 import { toJpeg } from "html-to-image";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Zap, Target, Coins, Activity, Sparkles, Hash, TrendingUp, TrendingDown, Cpu } from "lucide-react";
 
 /**
- * @fileOverview محرك بث تلغرام المستقل v26.0 - Luxury Debit Card Edition
+ * @fileOverview محرك بث تلغرام المستقل v26.1 - Fix: Added Missing Badge Import
  * تم تحديث التصميم ليكون رمادي مزرق مع خلفية شعار شفافة ونظام ثنائي اللغة وتذييل راقي.
  */
 
