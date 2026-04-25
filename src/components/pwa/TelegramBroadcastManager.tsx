@@ -40,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.3 - Pure Minimalist Edition
- * تم حذف "Live Node"، تطهير شعار التذييل من الظلال، وتوحيد لغة الألوان الصريحة.
+ * @fileOverview محرك بث تلغرام النخبوي v40.4 - Pure Identity Edition
+ * تم حذف "Live Node" نهائياً وإعادة بناء الشعار السفلي بنظام الإحداثيات الثابتة لضمان التناظر المطلق.
  */
 
 export function TelegramBroadcastManager() {
@@ -83,7 +83,6 @@ export function TelegramBroadcastManager() {
             history = generateInternalHistory(best.sym.id, best.sym, 14);
           }
           
-          // هيكلة البيانات للشموع: استخدام أجسام الشموع فقط (Open-Close)
           const formatted = history.map(d => ({
             ...d,
             body: [d.open, d.close]
@@ -231,12 +230,12 @@ export function TelegramBroadcastManager() {
 
              {/* Professional Footer Hub: Pure & Simple */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                {/* Logo Core - Pure raw points without shadows or containers */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                {/* Logo Core - Fixed 2x2 Identity Without Shadows */}
+                <div className="relative h-6 w-6">
+                   <div className="absolute top-0 left-0 h-2 w-2 rounded-full bg-white" />
+                   <div className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#f9a885]" />
+                   <div className="absolute bottom-0 left-0 h-2 w-2 rounded-full bg-[#f9a885]" />
+                   <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-white" />
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
