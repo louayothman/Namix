@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState } from "react";
@@ -41,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.0 - Rebuilt Candle Engine
- * تم إعادة بناء محرك الشموع لضمان التوسط المطلق للفتائل وتطبيق الهوية البصرية النهائية.
+ * @fileOverview محرك بث تلغرام النخبوي v40.2 - Zero-Wick Edition
+ * تم حذف الفتائل نهائياً لضمان أعلى درجات النقاء البصري والاستقرار البرمجي.
  */
 
 export function TelegramBroadcastManager() {
@@ -84,11 +83,10 @@ export function TelegramBroadcastManager() {
             history = generateInternalHistory(best.sym.id, best.sym, 14);
           }
           
-          // هيكلة البيانات للشموع: الربط بين الجسم والفتيل
+          // هيكلة البيانات للشموع: استخدام أجسام الشموع فقط (Open-Close)
           const formatted = history.map(d => ({
             ...d,
-            body: [d.open, d.close],
-            wick: [d.low, d.high]
+            body: [d.open, d.close]
           }));
 
           setChartData(formatted);
@@ -168,7 +166,7 @@ export function TelegramBroadcastManager() {
                 <div className="flex flex-col items-end gap-2">
                    <Badge className={cn(
                      "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl",
-                     activeSignal.decision === 'BUY' ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+                     activeSignal.decision === 'BUY' ? "bg-emerald-50 text-white" : "bg-red-50 text-white"
                    )}>
                       {activeSignal.decision === 'BUY' ? 'إشارة شراء / LONG' : 'إشارة بيع / SHORT'}
                    </Badge>
@@ -179,7 +177,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Candlestick Theater: Rebuilt with Perfect Wick Centering */}
+             {/* Candlestick Theater: Rebuilt without wicks */}
              <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                    <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
@@ -191,14 +189,7 @@ export function TelegramBroadcastManager() {
                       <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" />
                       <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 4" />
 
-                      {/* Wick Layer: Centered Thin Bar */}
-                      <Bar dataKey="wick" fill="#ffffff" barSize={2} opacity={0.3} isAnimationActive={false}>
-                         {chartData.map((d, i) => (
-                           <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
-                         ))}
-                      </Bar>
-
-                      {/* Body Layer: Centered Rounded Bar Overlap */}
+                      {/* Body Layer: Pure Candlestick Bodies Only */}
                       <Bar dataKey="body" barSize={18} radius={[8, 8, 8, 8]} isAnimationActive={false}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
