@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v27.0 - Better Error Reporting
- * تم تحسين معالجة الأخطاء عند ربط الـ Webhook لتزويد المشرف بالسبب الحقيقي للفشل.
+ * @fileOverview محرك عمليات تلغرام المطور v28.0 - Port Sanitization
+ * تم إضافة منطق لتطهير الرابط من أرقام المنافذ غير المدعومة من قبل تلغرام.
  */
 
 interface TelegramBot {
@@ -53,9 +53,11 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
     `.trim();
 
     const headersList = await headers();
-    const host = headersList.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    const tmaUrl = `${protocol}://${host}/trade/${symbol.id}`;
+    const host = headersList.get('host') || "";
+    // تطهير النطاق من رقم المنفذ لأن تلغرام يشترط منافذ محددة فقط (80, 88, 443, 8443)
+    const domain = host.split(':')[0];
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    const tmaUrl = `${protocol}://${domain}/trade/${symbol.id}`;
 
     let photoBlob: Blob | null = null;
     if (imageUri) {
@@ -134,11 +136,12 @@ export async function addNewTelegramBot(name: string, token: string) {
     const botUsername = data.result.username;
 
     const headersList = await headers();
-    const host = headersList.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const host = headersList.get('host') || "";
+    // تطهير النطاق من رقم المنفذ لضمان قبول تلغرام للرابط
+    const domain = host.split(':')[0];
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
     
-    // تصحيح الرابط لضمان أن تلغرام يراه كعنوان HTTPS صالح
-    const webhookUrl = `${protocol}://${host}/api/telegram/webhook/${botId}`;
+    const webhookUrl = `${protocol}://${domain}/api/telegram/webhook/${botId}`;
 
     const webhookRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
       method: 'POST',
