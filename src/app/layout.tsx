@@ -9,6 +9,7 @@ import { SWRegistration } from "@/components/pwa/SWRegistration";
 import { PWASplash } from "@/components/pwa/PWASplash";
 import { PushNotificationManager } from "@/components/pwa/PushNotificationManager";
 import { TelegramBroadcastManager } from "@/components/pwa/TelegramBroadcastManager";
+import { MarketAnalysisReactor } from "@/components/pwa/MarketAnalysisReactor";
 import { SITE_CONFIG } from '@/lib/site-config';
 
 // استدعاء الخطوط السيادية من محرك غوغل لضمان الاستقرار والأداء
@@ -65,6 +66,7 @@ export default function RootLayout({
           {/* محركات التنبيهات المستقلة */}
           <PushNotificationManager />
           <TelegramBroadcastManager />
+          <MarketAnalysisReactor />
           
           <PWAInstaller />
           <Toaster />

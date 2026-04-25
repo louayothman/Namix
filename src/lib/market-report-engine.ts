@@ -1,53 +1,46 @@
 
 /**
- * @fileOverview مُفاعل التقارير المتعمقة v2.0 - Deep Intelligence Matrix
- * محرك سيادي لتوليد تحليلات فنية دسمة وشاملة لأسواق تلغرام.
+ * @fileOverview مُفاعل التقارير المتعمقة v3.0 - Professional Analysis Matrix
+ * محرك مخصص لتوليد تحليلات فنية شاملة لأسواق تلغرام بلغة مالية نخبوية وهادئة.
  */
 
 import { runNamix } from "./namix-orchestrator";
 
 export async function generateDeepMarketReport(symbolCode: string, symbolId: string) {
   try {
-    // استدعاء الأوركسترا لجلب البيانات الأساسية والذكاء الاصطناعي
     const signal = await runNamix(symbolCode);
     
-    const confidence = signal.confidence;
     const isBuy = signal.decision === 'BUY';
     const isSell = signal.decision === 'SELL';
     
-    // بناء التقرير المتعمق بأسلوب نخبوي
-    const statusEmoji = isBuy ? '🟢' : isSell ? '🔴' : '⚪';
-    const trendLabel = isBuy ? 'مسار نمو (Bullish)' : isSell ? 'تصحيح سعري (Bearish)' : 'منطقة توازن (Neutral)';
-    
-    // محاكاة مؤشر القوة النسبية والزخم من بيانات الوكلاء
-    const rsiProxy = Math.round((signal.agents.tech.score * 100));
+    const statusEmoji = isBuy ? '📈' : isSell ? '📉' : '⚖️';
+    const trendLabel = isBuy ? 'مسار صعودي' : isSell ? 'مسار تصحيحي' : 'منطقة استقرار';
     
     const report = `
-${statusEmoji} *تقرير الاستخبارات المالية: ${symbolCode}*
+${statusEmoji} *تقرير التحليل الفني: ${symbolCode}*
 ــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
-🧠 *الرؤية الاستراتيجية (AI Insight):*
-${signal.reason === "Market Equilibrium" ? "السوق في حالة حياد تقني؛ محرك ناميكس يوصي بالانتظار حتى كسر مناطق التذبذب الحالية لضمان دخول آمن." : signal.reason}
+📊 *الرؤية الاستراتيجية:*
+${signal.reason === "Market Equilibrium" ? "السوق في حالة تعادل فني؛ ننصح بالانتظار حتى وضوح اتجاه النبض القادم لضمان دخول آمن ومستقر." : signal.reason}
 
-📈 *نبض المؤشرات (Market Pulse):*
+🔍 *تشخيص الحالة اللحظية:*
 • *السعر الحالي:* $${signal.agents.tech.last.toLocaleString()}
-• *درجة الثقة:* %${confidence}
-• *اتجاه النبض:* ${trendLabel}
-• *قوة الزخم (RSI):* %${rsiProxy}
+• *درجة الثقة:* %${signal.confidence}
+• *اتجاه السوق:* ${trendLabel}
 • *حجم السيولة:* ${signal.volume}
 
-🎯 *خارطة التنفيذ المقترحة:*
+🎯 *خارطة الأهداف المقترحة:*
 • *نطاق التمركز:* ${signal.entry_range}
 • *الهدف الأول:* $${signal.targets.tp1.toLocaleString()}
 • *الهدف الثاني:* $${signal.targets.tp2.toLocaleString()}
 • *الهدف الأقصى:* $${signal.targets.tp3.toLocaleString()}
 • *صمام الأمان:* $${signal.targets.sl.toLocaleString()}
 
-🛡️ *تقييم المخاطر (Risk Audit):*
+🛡️ *تقييم المخاطرة:*
 ${signal.risk.reason} (${signal.risk.label})
 
 ــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
 📡 *تم استخلاص التقرير بواسطة NAMIX AI Core*
-_بروتوكول التحليل المتعمق v4.0_
+_نظام التحليل المتطور v1.0_
     `.trim();
 
     return report;

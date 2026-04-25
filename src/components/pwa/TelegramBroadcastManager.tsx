@@ -8,31 +8,22 @@ import {
   query, 
   where, 
   getDocs,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc,
   limit,
   orderBy
 } from "firebase/firestore";
 import { runNamix } from "@/lib/namix-orchestrator";
-import { broadcastSignalToTelegram, sendImageToChat } from "@/app/actions/telegram-actions";
+import { broadcastSignalToTelegram } from "@/app/actions/telegram-actions";
 import { toJpeg } from "html-to-image";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ShieldCheck, 
   Zap, 
   Target, 
   Activity, 
-  Sparkles, 
   TrendingUp, 
-  TrendingDown, 
   Clock,
-  MapPin,
-  Cpu,
-  Radar
+  Cpu
 } from "lucide-react";
 import { getHistoricalKlines } from "@/services/binance-service";
 import { generateInternalHistory } from "@/lib/internal-market";
@@ -45,11 +36,10 @@ import {
   ResponsiveContainer,
   Cell
 } from "recharts";
-import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.10 - Interactive Progress Edition
- * تم حل مشكلة توقف التحليل وإضافة تحديثات حية لشريط التقدم في تلغرام.
+ * @fileOverview محرك البث التلقائي للإشارات v41.0 - Dedicated Pulse Hub
+ * تم تنظيف المحرك من طلبات تحليل السوق اليدوية لضمان استقرار البث الدوري.
  */
 
 export function TelegramBroadcastManager() {
@@ -88,24 +78,6 @@ export function TelegramBroadcastManager() {
     return () => clearInterval(interval);
   }, [db]);
 
-  // 2. مستمع طلبات التحليل الفوري من المستخدمين
-  useEffect(() => {
-    const q = query(
-      collection(db, "market_analysis_requests"), 
-      where("status", "==", "pending"), 
-      orderBy("createdAt", "asc"), 
-      limit(1)
-    );
-
-    const unsubscribe = onSnapshot(q, async (snap) => {
-      if (!snap.empty && !isCapturing.current) {
-        const request = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
-        await processAnalysisRequest(request);
-      }
-    });
-    return () => unsubscribe();
-  }, [db]);
-
   const processImageSignal = async (signal: any, symbol: any) => {
     isCapturing.current = true;
     let history: any[] = [];
@@ -132,69 +104,6 @@ export function TelegramBroadcastManager() {
     }, 4000);
   };
 
-  const processAnalysisRequest = async (request: any) => {
-    isCapturing.current = true;
-    try {
-      // 1. جلب بيانات الأصل والتحليل
-      const symSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", request.symbolCode)));
-      if (symSnap.empty) throw new Error("Symbol not found");
-      const symbol = { id: symSnap.docs[0].id, ...symSnap.docs[0].data() } as any;
-      const analysis = await runNamix(symbol.binanceSymbol || symbol.code);
-
-      // 2. تحديث رسالة تلغرام لـ 60%
-      const botRef = doc(db, "system_settings", "telegram", "bots", request.botId);
-      const botSnap = await getDocs(query(collection(db, "system_settings", "telegram", "bots"), where("id", "==", request.botId)));
-      const bot = botSnap.docs[0]?.data();
-      
-      if (bot) {
-        await fetch(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: request.chatId,
-            message_id: request.messageId,
-            text: `🔍 *جاري تحليل سوق ${request.symbolCode}...*\n[██████░░░░] 60%\n\n_تم جلب البيانات، جاري رندرة الرسم البياني وتوليد التقرير..._`,
-            parse_mode: 'Markdown'
-          })
-        });
-      }
-
-      let history: any[] = [];
-      if (symbol.priceSource === 'binance') {
-        history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 14);
-      } else {
-        history = generateInternalHistory(symbol.id, symbol, 14);
-      }
-      setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
-      setActiveSignal(analysis);
-
-      // 3. التقاط الصورة والإرسال
-      setTimeout(async () => {
-        if (captureRef.current) {
-          const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
-          const report = await generateDeepMarketReport(request.symbolCode, symbol.id);
-          
-          if (bot) {
-            await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
-            });
-            await sendImageToChat(request.botId, request.chatId, report, dataUrl);
-          }
-        }
-        await updateDoc(doc(db, "market_analysis_requests", request.id), { status: "completed" });
-        setActiveSignal(null);
-        setChartData([]);
-        isCapturing.current = false;
-      }, 4000);
-    } catch (e) {
-      console.error("Analysis Request Error:", e);
-      await deleteDoc(doc(db, "market_analysis_requests", request.id));
-      isCapturing.current = false;
-    }
-  };
-
   if (!activeSignal) return null;
 
   return (
@@ -219,7 +128,7 @@ export function TelegramBroadcastManager() {
                    "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
                    activeSignal.decision === 'BUY' ? "bg-emerald-500" : activeSignal.decision === 'SELL' ? "bg-red-500" : "bg-blue-500"
                  )}>
-                   {activeSignal.decision === 'BUY' ? 'إشارة شراء / LONG' : activeSignal.decision === 'SELL' ? 'إشارة بيع / SHORT' : 'تحليل السوق / NEUTRAL'}
+                   {activeSignal.decision === 'BUY' ? 'إشارة شراء / BUY' : activeSignal.decision === 'SELL' ? 'إشارة بيع / SELL' : 'قراءة السوق / NEUTRAL'}
                  </Badge>
               </div>
            </div>
@@ -254,7 +163,7 @@ export function TelegramBroadcastManager() {
               </div>
               <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center border-x border-white/5">
                  <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">الهدف / TARGET</p>
-                 <p className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">${activeSignal.targets.tp1.toLocaleString()}</p>
+                 <p className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">${activeAnalysis?.targets?.tp1?.toLocaleString() || activeSignal.targets.tp1.toLocaleString()}</p>
               </div>
               <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center">
                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">الدخول / ENTRY</p>
@@ -263,7 +172,7 @@ export function TelegramBroadcastManager() {
            </div>
 
            <div className="relative pt-10 flex flex-col items-center">
-              <div className="grid grid-cols-2 gap-1 mb-2">
+              <div className="flex items-center gap-3 mb-2">
                  <div className="h-1.5 w-1.5 rounded-full bg-white" />
                  <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
                  <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
