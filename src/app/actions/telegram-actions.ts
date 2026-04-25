@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v25.0 - HTML-to-Image Integration
- * تم تحديث المحرك لاستقبال الصور المولدة من واجهة المستخدم (Base64) وبثها فوراً.
+ * @fileOverview محرك عمليات تلغرام المطور v25.0 - Professional Branding Update
+ * تم تحديث نصوص الرسائل لتصبح أكثر هيبة واعتماد مصفوفة البث عالية الدقة.
  */
 
 interface TelegramBot {
@@ -32,9 +32,9 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // بناء كابشن الإشارة المحدث بأسلوب ناميكس الفصيح
+    // بناء كابشن الإشارة المحدث بأسلوب ناميكس النخبوي
     const caption = `
-📊 *تنبيه تداول ذكي — ${signal.pair}*
+📊 *إشارة تداول — ${signal.pair}*
 
 📍 *نوع العملية:* ${signal.type}  
 💰 *نطاق التمركز:* ${signal.entry_range}  
@@ -51,8 +51,7 @@ ${signal.reason}
 
 🔥 *المخاطرة:* ${signal.risk.label}  
 
----
-_تم تحليل البيانات بواسطة NAMIX AI_
+_تم استنباط هذه الإشارة عبر محركات NAMIX AI السيادية لتحليل فجوات السيولة والتدفق المالي اللحظي._
     `.trim();
 
     const headersList = await headers();
@@ -154,7 +153,7 @@ export async function addNewTelegramBot(name: string, token: string) {
     if (!webhookData.ok) throw new Error("فشل في ربط الـ Webhook مع تلغرام.");
 
     const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
-    await setDoc(botRef, {
+    await updateDoc(botRef, {
       id: botId,
       name: name,
       token: token,
