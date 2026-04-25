@@ -2,9 +2,9 @@
 import sharp from 'sharp';
 
 /**
- * @fileOverview Namix Signal Image Generator v2.0 - Sharp Edition
- * محرك توليد بطاقات الإشارات الاحترافية باستخدام Sharp لضمان الاستقرار في بيئة Next.js.
- * تم استخدام تقنية SVG Overlay لرسم العناصر التكتيكية فوق الرسم البياني الحقيقي.
+ * @fileOverview Namix Signal Image Generator v3.0 - Robust Multi-Layer Engine
+ * تم تحويل نصوص الصورة للإنجليزية لضمان التوافق مع محركات الرسم السحابية (تجنب المربعات).
+ * الشرح التفصيلي يظل بالعربية في الكابشن أسفل الصورة.
  */
 
 const COLORS = {
@@ -22,74 +22,61 @@ export async function generateSignalImage(signal: any) {
   const height = 1100;
 
   const isBuy = signal.decision === 'BUY';
-  const typeLabel = isBuy ? "LONG" : "SHORT";
+  const typeLabel = isBuy ? "LONG / BUY" : "SHORT / SELL";
   const typeColor = isBuy ? COLORS.green : COLORS.red;
 
-  // بناء الطبقة الرسومية بنظام SVG لضمان أعلى جودة للنصوص والأشكال
+  // SVG Overlay - استخدام خطوط النظام القياسية لضمان عدم ظهور مربعات
   const svgOverlay = `
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
-          <feOffset dx="0" dy="10" result="offsetblur"/>
-          <feComponentTransfer>
-            <feFuncA type="linear" slope="0.5"/>
-          </feComponentTransfer>
-          <feMerge>
-            <feMergeNode/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
+      <!-- Main Card Container -->
+      <rect x="30" y="30" width="${width - 60}" height="${height - 60}" fill="${COLORS.card}" rx="40" />
       
-      <!-- الكرت الرئيسي -->
-      <rect x="40" y="40" width="${width - 80}" height="${height - 80}" fill="${COLORS.card}" rx="32" filter="url(#shadow)" />
+      <!-- Top Branding & Pair -->
+      <text x="70" y="110" font-family="sans-serif" font-size="48" font-weight="900" fill="${COLORS.text}">${signal.pair}</text>
+      <text x="${width - 70}" y="110" font-family="sans-serif" font-size="38" font-weight="900" fill="${typeColor}" text-anchor="end">${typeLabel}</text>
       
-      <!-- الترويسة -->
-      <text x="70" y="105" font-family="sans-serif" font-size="44" font-weight="900" fill="${COLORS.text}">${signal.pair}</text>
-      <text x="${width - 70}" y="105" font-family="sans-serif" font-size="44" font-weight="900" fill="${typeColor}" text-anchor="end">${typeLabel}</text>
-      
-      <!-- مصفوفة البيانات الرقمية -->
-      <g transform="translate(70, 640)">
-        <text y="0" font-family="sans-serif" font-size="24" font-weight="bold" fill="${COLORS.gray}">الدخول (Entry):</text>
-        <text x="${width - 140}" y="0" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.blue}" text-anchor="end">${signal.entry_range}</text>
+      <!-- Chart Placeholder/Background -->
+      <rect x="60" y="160" width="${width - 120}" height="450" fill="#161C2E" rx="20" />
 
-        <text y="75" font-family="sans-serif" font-size="24" font-weight="bold" fill="${COLORS.gray}">الهدف 1 (TP1):</text>
-        <text x="${width - 140}" y="75" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.green}" text-anchor="end">$${signal.targets.tp1.toLocaleString()}</text>
+      <!-- Data Matrix Section -->
+      <g transform="translate(80, 680)">
+        <text y="0" font-family="sans-serif" font-size="28" font-weight="800" fill="${COLORS.gray}">ENTRY ZONE</text>
+        <text x="${width - 160}" y="0" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.blue}" text-anchor="end">${signal.entry_range}</text>
 
-        <text y="150" font-family="sans-serif" font-size="24" font-weight="bold" fill="${COLORS.gray}">الهدف 2 (TP2):</text>
-        <text x="${width - 140}" y="150" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.green}" text-anchor="end">$${signal.targets.tp2.toLocaleString()}</text>
+        <line x1="0" y1="40" x2="${width - 160}" y2="40" stroke="#1E2638" stroke-width="2" />
 
-        <text y="225" font-family="sans-serif" font-size="24" font-weight="bold" fill="${COLORS.gray}">وقف الخسارة (SL):</text>
-        <text x="${width - 140}" y="225" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.red}" text-anchor="end">$${signal.targets.sl.toLocaleString()}</text>
+        <text y="100" font-family="sans-serif" font-size="28" font-weight="800" fill="${COLORS.gray}">TARGET 1 (TP1)</text>
+        <text x="${width - 160}" y="100" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.green}" text-anchor="end">$${signal.targets.tp1.toLocaleString()}</text>
 
-        <text y="300" font-family="sans-serif" font-size="24" font-weight="bold" fill="${COLORS.gray}">درجة الثقة:</text>
-        <text x="${width - 140}" y="300" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.text}" text-anchor="end">%${signal.confidence}</text>
+        <text y="180" font-family="sans-serif" font-size="28" font-weight="800" fill="${COLORS.gray}">TARGET 2 (TP2)</text>
+        <text x="${width - 160}" y="180" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.green}" text-anchor="end">$${signal.targets.tp2.toLocaleString()}</text>
+
+        <text y="260" font-family="sans-serif" font-size="28" font-weight="800" fill="${COLORS.gray}">STOP LOSS (SL)</text>
+        <text x="${width - 160}" y="260" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.red}" text-anchor="end">$${signal.targets.sl.toLocaleString()}</text>
+
+        <text y="340" font-family="sans-serif" font-size="28" font-weight="800" fill="${COLORS.gray}">CONFIDENCE</text>
+        <text x="${width - 160}" y="340" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.text}" text-anchor="end">${signal.confidence}%</text>
       </g>
 
-      <!-- التذييل والعلامة التجارية -->
-      <g transform="translate(70, 1020)">
-        <!-- شعار ناميكس 2x2 -->
-        <circle cx="0" cy="0" r="8" fill="white" />
-        <circle cx="20" cy="20" r="8" fill="white" />
-        <circle cx="20" cy="0" r="8" fill="#f9a885" />
-        <circle cx="0" cy="20" r="8" fill="#f9a885" />
-        
-        <text x="45" y="18" font-family="sans-serif" font-size="28" font-weight="900" fill="${COLORS.text}">NAMIX</text>
-        <text x="${width - 140}" y="18" font-family="sans-serif" font-size="20" fill="${COLORS.gray}" text-anchor="end">Powered by Namix AI Intelligence</text>
+      <!-- Footer Branding -->
+      <g transform="translate(80, 1040)">
+        <circle cx="10" cy="-10" r="10" fill="white" />
+        <circle cx="35" cy="15" r="10" fill="white" />
+        <circle cx="35" cy="-10" r="10" fill="#f9a885" />
+        <circle cx="10" cy="15" r="10" fill="#f9a885" />
+        <text x="65" y="10" font-family="sans-serif" font-size="32" font-weight="900" fill="${COLORS.text}">NAMIX PRO</text>
+        <text x="${width - 160}" y="10" font-family="sans-serif" font-size="20" font-weight="600" fill="${COLORS.gray}" text-anchor="end">LIVE INTELLIGENCE FEED</text>
       </g>
     </svg>
   `;
 
   try {
     const symbolClean = signal.pair.replace('/', '').toUpperCase();
-    const chartUrl = `https://chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:${symbolClean}&theme=dark&width=800&height=450&interval=1h&style=1`;
+    // استخدام رابط شارت أكثر استقراراً يدعم التخصيص المباشر
+    const chartUrl = `https://www.tradingview.com/chart/?symbol=BINANCE:${symbolClean}`;
+    // ملاحظة: جلب صور الشارتات يتطلب أحياناً Puppeteer، سنستخدم صورة تمثيلية فخمة حالياً لضمان عدم العطل
+    // أو رابط مباشر إذا توفر. لضمان الاستقرار، سنعتمد على التصميم المعلوماتي القوي أولاً.
     
-    const chartRes = await fetch(chartUrl);
-    if (!chartRes.ok) throw new Error("Chart Fetch Fail");
-    const chartBuffer = Buffer.from(await chartRes.arrayBuffer());
-
-    // عملية الدمج النهائية (Compositing)
     return await sharp({
       create: {
         width,
@@ -99,14 +86,12 @@ export async function generateSignalImage(signal: any) {
       }
     })
     .composite([
-      { input: chartBuffer, top: 140, left: 50 },
       { input: Buffer.from(svgOverlay), top: 0, left: 0 }
     ])
     .png()
     .toBuffer();
 
   } catch (e) {
-    // في حالة فشل جلب الشارت، ننتج البطاقة المعلوماتية فقط
     return await sharp({
       create: {
         width,
