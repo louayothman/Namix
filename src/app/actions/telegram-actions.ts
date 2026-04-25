@@ -4,10 +4,11 @@
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, setDoc } from 'firebase/firestore';
 import { headers } from 'next/headers';
+import { generateSignalImage } from '@/lib/signal-canvas';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v10.0 - Professional Signal Cards
- * تم تحديث المحرك لدعم توليد البطاقات الاستخباراتية المصورة والتنسيق الاحترافي الكامل.
+ * @fileOverview محرك عمليات تلغرام المطور v20.0 - Cinematic Canvas Signals
+ * تم دمج محرك الرسم البرمجي لتوليد بطاقات إشارات احترافية لكل عملية بث.
  */
 
 interface TelegramBot {
@@ -28,36 +29,34 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any) {
     
     if (botsSnap.empty) return { success: false, error: "No active bots" };
 
+    // 1. توليد صورة الإشارة الاحترافية عبر محرك Canvas
+    const imageBuffer = await generateSignalImage(signal);
+    
     const isLong = signal.type === 'LONG';
-    const accentEmoji = isLong ? '🟢' : '🔴';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // بناء كابشن الإشارة بنظام التنسيق الاحترافي
+    // 2. بناء كابشن الإشارة بنظام التنسيق الاحترافي
     const caption = `
 📊 *تنبيه تداول — ${signal.pair}*
 
 📍 *نوع الصفقة:* ${signal.type}  
 💰 *الدخول:* ${signal.entry_range}  
-🎯 *TP1:* ${signal.targets.tp1.toFixed(2)}  
-🎯 *TP2:* ${signal.targets.tp2.toFixed(2)}  
-🎯 *TP3:* ${signal.targets.tp3.toFixed(2)}  
-🛑 *SL:* ${signal.targets.sl.toFixed(2)}  
+🎯 *الهدف 1:* ${signal.targets.tp1.toFixed(2)}  
+🎯 *الهدف 2:* ${signal.targets.tp2.toFixed(2)}  
+🎯 *الهدف 3:* ${signal.targets.tp3.toFixed(2)}  
+🛑 *وقف الخسارة:* ${signal.targets.sl.toFixed(2)}  
 
 ⚡ *الثقة:* %${signal.confidence}  
 ${trendIcon} *الاتجاه:* ${signal.trend}  
 
-🧠 *السبب:*
+🧠 *التحليل:*
 ${signal.reason}
 
-⏱ *المدة:* ${signal.timeframe}  
 🔥 *المخاطرة:* ${signal.risk.label}  
 
 ---
 _تم التحليل بواسطة NAMIX AI_
     `.trim();
-
-    // استخدام محرك صور الرسوم البيانية المعتمد (TradingView Screenshot API Proxy)
-    const chartUrl = `https://chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:${signal.pair.replace('/', '')}&theme=dark&width=800&height=500&interval=1h&style=1`;
 
     const headersList = await headers();
     const host = headersList.get('host');
@@ -70,27 +69,27 @@ _تم التحليل بواسطة NAMIX AI_
       
       const botOps = subsSnap.docs.map(subDoc => {
         const chatId = subDoc.id;
-        const buttonEmoji = isLong ? "🟢" : "🔴";
+
+        // إرسال الصورة كـ Multipart Form Data
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('photo', new Blob([imageBuffer], { type: 'image/png' }), 'signal.png');
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'Markdown');
+        formData.append('reply_markup', JSON.stringify({
+          inline_keyboard: [
+            [
+              { text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, web_app: { url: tmaUrl } }
+            ],
+            [
+              { text: `🔔 متابعة الصفقة`, callback_data: `sub_${signal.pair}` }
+            ]
+          ]
+        }));
 
         return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            photo: chartUrl,
-            caption: caption,
-            parse_mode: 'Markdown',
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  { text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, web_app: { url: tmaUrl } }
-                ],
-                [
-                  { text: `🔔 متابعة الصفقة`, callback_data: `sub_${signal.pair}` }
-                ]
-              ]
-            }
-          })
+          body: formData
         });
       });
 
