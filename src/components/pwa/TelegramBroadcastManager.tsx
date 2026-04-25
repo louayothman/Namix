@@ -41,8 +41,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.7 - Pure Identity & No Wicks
- * تم تطهير الهوية من "Live Node"، إزالة الفتائل نهائياً، وتثبيت شعار نقي في التذييل.
+ * @fileOverview محرك بث تلغرام النخبوي v40.8 - Sovereign No-Wrap Protocol
+ * تم حل مشكلة التواء النصوص في السيرفر وتطهير الهوية من أي زوائد بصرية.
  */
 
 export function TelegramBroadcastManager() {
@@ -145,7 +145,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Header Node - Pure Design */}
+             {/* Header Node - Pure Design & Correct Colors */}
              <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-5">
                    <div className="h-16 w-16 flex items-center justify-center">
@@ -161,7 +161,7 @@ export function TelegramBroadcastManager() {
                 
                 <div className="flex flex-col items-end">
                    <Badge className={cn(
-                     "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white uppercase tracking-widest",
+                     "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
                      activeSignal.decision === 'BUY' ? "bg-emerald-500" : "bg-red-500"
                    )}>
                      {activeSignal.decision === 'BUY' ? 'إشارة شراء / LONG' : 'إشارة بيع / SHORT'}
@@ -169,12 +169,13 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Chart Node - No Wicks, Clean Bodies */}
+             {/* Chart Node - No Wicks, Clean Bodies with Entry Line */}
              <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                    <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
                       <XAxis hide />
                       <YAxis hide domain={['auto', 'auto']} />
+                      {/* Entry Level Line */}
                       <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={2} strokeDasharray="4 4" />
                       <Bar dataKey="body" barSize={18} radius={[8, 8, 8, 8]} isAnimationActive={false}>
                          {chartData.map((d, i) => (
@@ -187,7 +188,7 @@ export function TelegramBroadcastManager() {
                 <div className="absolute top-8 left-8 text-left" dir="ltr">
                    <div className="flex items-center gap-2 mb-1">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
-                      <span className="text-[9px] font-black text-[#f9a885] uppercase tracking-widest">التحليل / ANALYSIS</span>
+                      <span className="text-[9px] font-black text-[#f9a885] uppercase tracking-widest whitespace-nowrap">التحليل / ANALYSIS</span>
                    </div>
                    <p className="text-[11px] font-bold text-white/50 max-w-[220px] leading-relaxed uppercase">{activeSignal.reason}</p>
                 </div>
@@ -218,15 +219,13 @@ export function TelegramBroadcastManager() {
                 <p className="text-xl font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
              </div>
 
-             {/* Footer Node - Pure Dots Identity */}
+             {/* Footer Node - Fixed Deterministic Points Identity */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                <div className="flex items-center justify-center gap-1.5">
-                   <div className="grid grid-cols-2 gap-1.5">
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                   </div>
+                <div className="relative h-6 w-6 flex items-center justify-center">
+                   <div className="absolute top-0 left-0 h-2.5 w-2.5 rounded-full bg-white" />
+                   <div className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
+                   <div className="absolute bottom-0 left-0 h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
+                   <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-white" />
                 </div>
                 <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
              </div>
