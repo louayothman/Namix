@@ -48,7 +48,8 @@ import {
 import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.9 - On-Demand Visual Analysis
+ * @fileOverview محرك بث تلغرام النخبوي v40.10 - Interactive Progress Edition
+ * تم حل مشكلة توقف التحليل وإضافة تحديثات حية لشريط التقدم في تلغرام.
  */
 
 export function TelegramBroadcastManager() {
@@ -84,13 +85,18 @@ export function TelegramBroadcastManager() {
     };
 
     const interval = setInterval(runTelegramCycle, 300000); 
-    runTelegramCycle();
     return () => clearInterval(interval);
   }, [db]);
 
   // 2. مستمع طلبات التحليل الفوري من المستخدمين
   useEffect(() => {
-    const q = query(collection(db, "market_analysis_requests"), where("status", "==", "pending"), orderBy("createdAt", "asc"), limit(1));
+    const q = query(
+      collection(db, "market_analysis_requests"), 
+      where("status", "==", "pending"), 
+      orderBy("createdAt", "asc"), 
+      limit(1)
+    );
+
     const unsubscribe = onSnapshot(q, async (snap) => {
       if (!snap.empty && !isCapturing.current) {
         const request = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
@@ -129,10 +135,29 @@ export function TelegramBroadcastManager() {
   const processAnalysisRequest = async (request: any) => {
     isCapturing.current = true;
     try {
+      // 1. جلب بيانات الأصل والتحليل
       const symSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", request.symbolCode)));
       if (symSnap.empty) throw new Error("Symbol not found");
       const symbol = { id: symSnap.docs[0].id, ...symSnap.docs[0].data() } as any;
       const analysis = await runNamix(symbol.binanceSymbol || symbol.code);
+
+      // 2. تحديث رسالة تلغرام لـ 60%
+      const botRef = doc(db, "system_settings", "telegram", "bots", request.botId);
+      const botSnap = await getDocs(query(collection(db, "system_settings", "telegram", "bots"), where("id", "==", request.botId)));
+      const bot = botSnap.docs[0]?.data();
+      
+      if (bot) {
+        await fetch(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: request.chatId,
+            message_id: request.messageId,
+            text: `🔍 *جاري تحليل سوق ${request.symbolCode}...*\n[██████░░░░] 60%\n\n_تم جلب البيانات، جاري رندرة الرسم البياني وتوليد التقرير..._`,
+            parse_mode: 'Markdown'
+          })
+        });
+      }
 
       let history: any[] = [];
       if (symbol.priceSource === 'binance') {
@@ -143,19 +168,20 @@ export function TelegramBroadcastManager() {
       setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
       setActiveSignal(analysis);
 
+      // 3. التقاط الصورة والإرسال
       setTimeout(async () => {
         if (captureRef.current) {
           const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
           const report = await generateDeepMarketReport(request.symbolCode, symbol.id);
           
-          // حذف رسالة الانتظار وإرسال الصورة
-          await fetch(`https://api.telegram.org/bot${request.botId}/deleteMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
-          });
-
-          await sendImageToChat(request.botId, request.chatId, report, dataUrl);
+          if (bot) {
+            await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
+            });
+            await sendImageToChat(request.botId, request.chatId, report, dataUrl);
+          }
         }
         await updateDoc(doc(db, "market_analysis_requests", request.id), { status: "completed" });
         setActiveSignal(null);
@@ -163,6 +189,8 @@ export function TelegramBroadcastManager() {
         isCapturing.current = false;
       }, 4000);
     } catch (e) {
+      console.error("Analysis Request Error:", e);
+      await deleteDoc(doc(db, "market_analysis_requests", request.id));
       isCapturing.current = false;
     }
   };
@@ -173,15 +201,7 @@ export function TelegramBroadcastManager() {
     <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none select-none overflow-hidden z-[-1]" dir="rtl">
       <div ref={captureRef} className="w-[650px] h-[950px] bg-[#0B0F1A] p-6 flex flex-col justify-between font-body text-right">
         <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
-           <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none scale-[3] -rotate-12">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="w-32 h-32 rounded-full bg-white" />
-                <div className="w-32 h-32 rounded-full bg-[#f9a885]" />
-                <div className="w-32 h-32 rounded-full bg-[#f9a885]" />
-                <div className="w-32 h-32 rounded-full bg-white" />
-              </div>
-           </div>
-
+           
            <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
               <div className="flex items-center gap-5">
                  <div className="h-16 w-16 flex items-center justify-center">
@@ -242,12 +262,12 @@ export function TelegramBroadcastManager() {
               </div>
            </div>
 
-           <div className="relative pt-10 flex flex-col items-center gap-4">
-              <div className="relative h-6 w-6 flex items-center justify-center">
-                 <div className="absolute top-0 left-0 h-2.5 w-2.5 rounded-full bg-white" />
-                 <div className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                 <div className="absolute bottom-0 left-0 h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                 <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-white" />
+           <div className="relative pt-10 flex flex-col items-center">
+              <div className="grid grid-cols-2 gap-1 mb-2">
+                 <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-white" />
               </div>
               <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>
