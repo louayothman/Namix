@@ -41,8 +41,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.5 - Pure Identity Rebirth
- * تم إصلاح خطأ استيراد setDoc، وحذف "Live Node"، وإعادة بناء شعار التذييل بنقاء مطلق.
+ * @fileOverview محرك بث تلغرام النخبوي v41.0 - Pure Identity Final
+ * تم حذف "الفتائل" نهائياً، إزالة شارة LiveNode، وتطهير أيقونات الهيدر والفوتر من الحاويات والظلال.
  */
 
 export function TelegramBroadcastManager() {
@@ -145,6 +145,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
+             {/* Header Node - Cleaned */}
              <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-5">
                    <div className="h-16 w-16 flex items-center justify-center">
@@ -152,7 +153,7 @@ export function TelegramBroadcastManager() {
                    </div>
                    <div className="text-right">
                       <h3 className="text-2xl font-black text-white tracking-tighter leading-none">{activeSignal.pair}</h3>
-                      <p className="text-xl font-black text-[#f9a885] tabular-nums mt-1.5 leading-none">
+                      <p className="text-xl font-black text-[#f9a885] tabular-nums mt-2 leading-none">
                         ${activeSignal.agents.tech.last.toLocaleString()}
                       </p>
                    </div>
@@ -166,6 +167,7 @@ export function TelegramBroadcastManager() {
                 </Badge>
              </div>
 
+             {/* Chart Node - No Wicks */}
              <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                    <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
@@ -214,12 +216,13 @@ export function TelegramBroadcastManager() {
                 <p className="text-xl font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
              </div>
 
+             {/* Footer Node - Pure Dots */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                <div className="relative h-6 w-6 flex items-center justify-center">
-                   <div className="absolute top-0 left-0 h-1.5 w-1.5 rounded-full bg-white" />
-                   <div className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                   <div className="absolute bottom-0 left-0 h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                   <div className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-white" />
+                <div className="flex items-center justify-center gap-1.5">
+                   <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-white" />
                 </div>
                 <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
              </div>

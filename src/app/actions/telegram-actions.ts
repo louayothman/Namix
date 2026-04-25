@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v26.0 - Bug Fix & Stability
- * تم إصلاح خطأ استيراد الدالات لضمان استقرار إضافة البوتات في المصفوفة.
+ * @fileOverview محرك عمليات تلغرام المطور v27.0 - Better Error Reporting
+ * تم تحسين معالجة الأخطاء عند ربط الـ Webhook لتزويد المشرف بالسبب الحقيقي للفشل.
  */
 
 interface TelegramBot {
@@ -136,6 +136,8 @@ export async function addNewTelegramBot(name: string, token: string) {
     const headersList = await headers();
     const host = headersList.get('host');
     const protocol = host?.includes('localhost') ? 'http' : 'https';
+    
+    // تصحيح الرابط لضمان أن تلغرام يراه كعنوان HTTPS صالح
     const webhookUrl = `${protocol}://${host}/api/telegram/webhook/${botId}`;
 
     const webhookRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
@@ -145,7 +147,9 @@ export async function addNewTelegramBot(name: string, token: string) {
     });
     
     const webhookData = await webhookRes.json();
-    if (!webhookData.ok) throw new Error("فشل في ربط الـ Webhook مع تلغرام.");
+    if (!webhookData.ok) {
+      throw new Error(`Telegram API Error: ${webhookData.description || "فشل الربط"}`);
+    }
 
     const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
     await setDoc(botRef, {
