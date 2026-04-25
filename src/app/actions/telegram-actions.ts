@@ -6,8 +6,7 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v28.0 - Port Sanitization
- * تم إضافة منطق لتطهير الرابط من أرقام المنافذ غير المدعومة من قبل تلغرام.
+ * @fileOverview محرك عمليات تلغرام المطور v29.0 - Support for Direct Chat Sending
  */
 
 interface TelegramBot {
@@ -16,6 +15,43 @@ interface TelegramBot {
   token: string;
   isActive: boolean;
   botUsername: string;
+}
+
+/**
+ * إرسال صورة تحليل أو إشارة لدردشة محددة (Chat ID)
+ */
+export async function sendImageToChat(botId: string, chatId: string, caption: string, imageUri?: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
+    if (!botSnap.exists()) return { success: false };
+    const bot = botSnap.data() as TelegramBot;
+
+    let photoBlob: Blob | null = null;
+    if (imageUri) {
+      const base64Data = imageUri.split(',')[1];
+      const binaryData = Buffer.from(base64Data, 'base64');
+      photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
+    }
+
+    const formData = new FormData();
+    formData.append('chat_id', chatId);
+    if (photoBlob) formData.append('photo', photoBlob, 'analysis_card.jpg');
+    formData.append('caption', caption);
+    formData.append('parse_mode', 'Markdown');
+
+    const endpoint = photoBlob ? 'sendPhoto' : 'sendMessage';
+    if (!photoBlob) formData.set('text', caption);
+
+    await fetch(`https://api.telegram.org/bot${bot.token}/${endpoint}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
 }
 
 /**
@@ -54,7 +90,6 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
 
     const headersList = await headers();
     const host = headersList.get('host') || "";
-    // تطهير النطاق من رقم المنفذ لأن تلغرام يشترط منافذ محددة فقط (80, 88, 443, 8443)
     const domain = host.split(':')[0];
     const protocol = domain.includes('localhost') ? 'http' : 'https';
     const tmaUrl = `${protocol}://${domain}/trade/${symbol.id}`;
@@ -74,26 +109,15 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
         const chatId = subDoc.id;
         const formData = new FormData();
         formData.append('chat_id', chatId);
-        
-        if (photoBlob) {
-          formData.append('photo', photoBlob, 'signal_card.jpg');
-        }
-        
+        if (photoBlob) formData.append('photo', photoBlob, 'signal_card.jpg');
         formData.append('caption', caption);
         formData.append('parse_mode', 'Markdown');
         formData.append('reply_markup', JSON.stringify({
-          inline_keyboard: [
-            [
-              { text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, web_app: { url: tmaUrl } }
-            ]
-          ]
+          inline_keyboard: [[{ text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, web_app: { url: tmaUrl } }]]
         }));
 
         const endpoint = photoBlob ? 'sendPhoto' : 'sendMessage';
-        if (!photoBlob) {
-          formData.delete('photo');
-          formData.set('text', caption);
-        }
+        if (!photoBlob) formData.set('text', caption);
 
         return fetch(`https://api.telegram.org/bot${bot.token}/${endpoint}`, {
           method: 'POST',
@@ -137,10 +161,8 @@ export async function addNewTelegramBot(name: string, token: string) {
 
     const headersList = await headers();
     const host = headersList.get('host') || "";
-    // تطهير النطاق من رقم المنفذ لضمان قبول تلغرام للرابط
     const domain = host.split(':')[0];
     const protocol = domain.includes('localhost') ? 'http' : 'https';
-    
     const webhookUrl = `${protocol}://${domain}/api/telegram/webhook/${botId}`;
 
     const webhookRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
