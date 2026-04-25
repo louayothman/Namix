@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { runNamix } from "@/lib/namix-orchestrator";
+import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v3.0 - Instant Mini App & Market Buttons
- * يدير لوحة التحكم السفلية للبوت، فتح التطبيق المصغر، والتحليل الفوري للأسواق.
+ * @fileOverview محرك الاستجابة التفاعلي v4.0 - Deep Intel Hub
+ * تم دمج محرك التقارير المتعمقة وتطوير لوحة الأوامر بأسلوب نخبوي.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -26,12 +26,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    // جلب رابط الموقع الحالي لفتحه في الـ Mini App
     const host = req.headers.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const domain = host?.split(':')[0] || "";
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
 
-    // 1. معالجة أمر البداية /start - بناء لوحة التحكم
+    // 1. معالجة أمر البداية /start - بناء لوحة التحكم الاحترافية
     if (text === '/start') {
       const subRef = doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId.toString());
       await setDoc(subRef, {
@@ -41,24 +41,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         createdAt: new Date().toISOString()
       }, { merge: true });
 
-      // جلب الأسواق النشطة لبناء الأزرار
       const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
       const symbols = symbolsSnap.docs.map(d => d.data().code);
 
-      // تقسيم الأزرار لصفوف (كل صف زرين)
       const keyboard = [];
       for (let i = 0; i < symbols.length; i += 2) {
         keyboard.push(symbols.slice(i, i + 2).map(s => ({ text: s })));
       }
 
       const welcomeMessage = `
-مرحباً بك في ناميكس 🟠
+📊 *رادار الأسواق الحية | NAMIX MARKET RADAR*
 
-منصتك الذكية لإدارة وتداول الأصول الرقمية.
-يمكنك الآن رصد الأسواق العالمية فوراً عبر أزرار الوصول السريع أدناه.
+مرحباً بك في وحدة الاستخبارات المالية لناميكس. 
+يمكنك الآن الحصول على تحليلات متعمقة وفورية لكافة الأصول المتاحة.
 
-✨ اضغط على أي سوق للحصول على تحليل NAMIX AI اللحظي.
-🚀 نفذ صفقاتك بلمسة واحدة عبر التطبيق المصغر.
+✨ *اضغط على أي سوق* أدناه لاستدعاء تقرير NAMIX AI المفصل.
+🚀 *تطبيق ناميكس المصغر* متاح دائماً للتنفيذ السريع.
       `;
 
       await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -76,64 +74,56 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         })
       });
 
-      // إرسال زر فتح التطبيق كـ Inline لضمان بروتوكول web_app
       await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: "الوصول السريع للمحطة الرئيسية:",
+          text: "🟠 *بوابة الوصول السريع:*",
+          parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [[
-              { text: "🟠 فتح التطبيق", web_app: { url: `${baseUrl}/home` } }
+              { text: "فتح تطبيق ناميكس", web_app: { url: `${baseUrl}/home` } }
             ]]
           }
         })
       });
     } 
-    // 2. معالجة طلبات تحليل الأسواق (عند الضغط على أزرار الكيبورد)
+    // 2. معالجة طلبات تحليل الأسواق - استدعاء المحرك المتعمق
     else if (text) {
-      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
+      const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
       
       if (!symbolsSnap.empty) {
         const symbolDoc = symbolsSnap.docs[0];
         const symbolData = symbolDoc.data();
         
-        // استدعاء محرك الذكاء الاصطناعي
-        const signal = await runNamix(symbolData.binanceSymbol || symbolData.code);
-        const confidence = Math.round(signal.score * 100);
-        const isBuy = signal.decision === 'BUY';
-        const colorEmoji = isBuy ? '🟢' : signal.decision === 'SELL' ? '🔴' : '⚪';
-        const actionLabel = isBuy ? 'شراء' : signal.decision === 'SELL' ? 'بيع' : 'انتظار';
-
-        const analysisMsg = `
-${colorEmoji} *تحليل NAMIX AI: ${text}*
-
-*الاتجاه المتوقع:* ${actionLabel}
-*نسبة الثقة:* %${confidence}
-*السعر الحالي:* $${signal.agents?.tech?.last?.toLocaleString()}
-
-*الأهداف الاستراتيجية:*
-🎯 هدف 1: $${(signal.agents.tech.last * (isBuy ? 1.005 : 0.995)).toFixed(2)}
-🎯 هدف 2: $${(signal.agents.tech.last * (isBuy ? 1.01 : 0.99)).toFixed(2)}
-🛑 وقف الخسارة: $${signal.invalidated_at?.toFixed(2)}
-
-_التحليل مبني على تقاطع بيانات الزخم والسيولة اللحظية._
-        `;
-
-        await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+        // إرسال رسالة "جاري التحليل" لإعطاء انطباع بالعمق
+        const loadingMsgRes = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: analysisMsg,
+            text: `🔍 جاري مزامنة بيانات سوق *${text}* واستخلاص الرؤية العميقة...`,
+            parse_mode: 'Markdown'
+          })
+        });
+        const loadingMsgData = await loadingMsgRes.json();
+
+        // استدعاء محرك التقارير المتعمقة الجديد
+        const deepReport = await generateDeepMarketReport(symbolData.binanceSymbol || symbolData.code, symbolDoc.id);
+
+        // تحديث الرسالة بالتقرير الكامل
+        await fetch(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            message_id: loadingMsgData.result.message_id,
+            text: deepReport,
             parse_mode: 'Markdown',
             reply_markup: {
               inline_keyboard: [[
-                { 
-                  text: `${colorEmoji} تنفيذ صفقة ${actionLabel}`, 
-                  web_app: { url: `${baseUrl}/trade/${symbolDoc.id}` } 
-                }
+                { text: `🚀 تنفيذ صفقة في تطبيق ناميكس`, web_app: { url: `${baseUrl}/trade/${symbolDoc.id}` } }
               ]]
             }
           })
