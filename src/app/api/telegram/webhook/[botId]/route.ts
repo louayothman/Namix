@@ -6,7 +6,7 @@ import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
  * @fileOverview محرك الاستجابة التفاعلي v4.0 - Deep Intel Hub
- * تم دمج محرك التقارير المتعمقة وتطوير لوحة الأوامر بأسلوب نخبوي.
+ * تم دمج محرك التقارير المتعمقة وتطوير لوحة الأوامر بأسلوب نخبوي مع رسالة انتظار تفاعلية.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -26,12 +26,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    const host = req.headers.get('host');
-    const domain = host?.split(':')[0] || "";
+    const host = req.headers.get('host') || "";
+    const domain = host.split(':')[0];
     const protocol = domain.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
 
-    // 1. معالجة أمر البداية /start - بناء لوحة التحكم الاحترافية
+    // 1. معالجة أمر البداية /start
     if (text === '/start') {
       const subRef = doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId.toString());
       await setDoc(subRef, {
@@ -73,52 +73,46 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           }
         })
       });
-
-      await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: "🟠 *بوابة الوصول السريع:*",
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [[
-              { text: "فتح تطبيق ناميكس", web_app: { url: `${baseUrl}/home` } }
-            ]]
-          }
-        })
-      });
     } 
-    // 2. معالجة طلبات تحليل الأسواق - استدعاء المحرك المتعمق
+    // 2. معالجة طلبات تحليل الأسواق
     else if (text) {
-      const symbolsSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
+      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
       
       if (!symbolsSnap.empty) {
         const symbolDoc = symbolsSnap.docs[0];
         const symbolData = symbolDoc.data();
         
-        // إرسال رسالة "جاري التحليل" لإعطاء انطباع بالعمق
-        const loadingMsgRes = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+        // إرسال رسالة "جاري التحليل" التفاعلية
+        const loadingMsg = `
+🔍 *جاري تحليل سوق ${text}...*
+[░░░░░░░░░░] 0%
+
+_يتم الآن جرد مستويات السيولة ومعايرة محرك NAMIX AI_
+        `.trim();
+
+        const loadingRes = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: `🔍 جاري مزامنة بيانات سوق *${text}* واستخلاص الرؤية العميقة...`,
+            text: loadingMsg,
             parse_mode: 'Markdown'
           })
         });
-        const loadingMsgData = await loadingMsgRes.json();
 
-        // استدعاء محرك التقارير المتعمقة الجديد
+        const loadingData = await loadingRes.json();
+        const messageId = loadingData.result.message_id;
+
+        // استدعاء محرك التقارير المتعمقة
         const deepReport = await generateDeepMarketReport(symbolData.binanceSymbol || symbolData.code, symbolDoc.id);
 
-        // تحديث الرسالة بالتقرير الكامل
+        // تحديث الرسالة بالتقرير النهائي (تأثير التلاشي والاستبدال)
         await fetch(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            message_id: loadingMsgData.result.message_id,
+            message_id: messageId,
             text: deepReport,
             parse_mode: 'Markdown',
             reply_markup: {
