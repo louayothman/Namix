@@ -28,10 +28,19 @@ import {
 } from "lucide-react";
 import { getHistoricalKlines } from "@/services/binance-service";
 import { generateInternalHistory } from "@/lib/internal-market";
+import { 
+  ComposedChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  ReferenceLine, 
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام المستقل v31.0 - Pure Candlestick Edition
- * تم استبدال الرسم الخطي بنمط الشموع اليابانية (Candlestick) حصرياً.
+ * @fileOverview محرك بث تلغرام المستقل v35.0 - Recharts Candlestick Edition
+ * تم تطوير المحرك لاستخدام Recharts في رسم 7 شموع تكتيكية توضح أهداف الصفقة ومنطق الدخول.
  */
 
 export function TelegramBroadcastManager() {
@@ -67,13 +76,21 @@ export function TelegramBroadcastManager() {
           
           let history: any[] = [];
           if (best.sym.priceSource === 'binance') {
-            history = await getHistoricalKlines(best.sym.binanceSymbol, '1h', 24);
+            // جلب 7 شموع فقط لتوضيح إعداد الصفقة
+            history = await getHistoricalKlines(best.sym.binanceSymbol, '15m', 7);
           } else {
-            history = generateInternalHistory(best.sym.id, best.sym, 24);
+            history = generateInternalHistory(best.sym.id, best.sym, 7);
           }
           
-          // حفظ بيانات الشموع الكاملة
-          setChartData(history);
+          // تحضير البيانات لـ Recharts
+          const formatted = history.map(d => ({
+            ...d,
+            // تحديد الجسم والفتيل للرسم
+            openClose: [d.open, d.close],
+            lowHigh: [d.low, d.high]
+          }));
+
+          setChartData(formatted);
           setActiveSignal(best.analysis);
 
           setTimeout(async () => {
@@ -92,7 +109,7 @@ export function TelegramBroadcastManager() {
             setActiveSignal(null);
             setChartData([]);
             isCapturing.current = false;
-          }, 2000);
+          }, 2500); // زيادة بسيطة لضمان رندر Recharts
         }
       } catch (e) {
         console.error("Telegram Cycle Error:", e);
@@ -109,15 +126,6 @@ export function TelegramBroadcastManager() {
     };
   }, [db]);
 
-  const chartMeta = useMemo(() => {
-    if (chartData.length === 0) return null;
-    const highs = chartData.map(d => d.high);
-    const lows = chartData.map(d => d.low);
-    const min = Math.min(...lows);
-    const max = Math.max(...highs);
-    return { min, max, range: max - min };
-  }, [chartData]);
-
   const isUp = activeSignal?.decision === 'BUY';
 
   return (
@@ -129,6 +137,7 @@ export function TelegramBroadcastManager() {
         >
           <div className="w-full h-full bg-gradient-to-br from-[#121826] to-[#0B0F1A] rounded-[60px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
              
+             {/* العلامة المائية الضخمة */}
              <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none scale-[2.8] -rotate-12">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="w-32 h-32 rounded-full bg-white" />
@@ -162,58 +171,45 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             <div className="relative z-10 flex flex-col items-center gap-4 py-4">
-                <div className={cn(
-                  "px-12 py-4 rounded-[32px] font-black text-lg shadow-2xl flex items-center gap-4 border border-white/5",
-                  isUp ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
-                )}>
-                   {isUp ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
-                   <span>{activeSignal.type} / {isUp ? 'شراء' : 'بيع'}</span>
-                </div>
-                <div className="text-center space-y-1">
-                   <p className="text-5xl font-black text-white tracking-tighter tabular-nums" dir="ltr">${activeSignal.agents?.tech?.last?.toLocaleString()}</p>
-                   <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.5em]">Real-time Execution Price</p>
+             {/* مسرح الشموع اليابانية (Recharts Engine) */}
+             <div className="relative h-64 w-full z-10 px-4 mt-6 bg-white/[0.02] rounded-[40px] border border-white/[0.03] shadow-inner overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                   <ComposedChart data={chartData} margin={{ top: 40, right: 10, left: 10, bottom: 20 }}>
+                      <XAxis hide />
+                      <YAxis hide domain={['auto', 'auto']} />
+                      
+                      {/* رسم الفتائل (Wicks) */}
+                      <Bar dataKey="lowHigh" fill="#8884d8" barSize={2}>
+                         {chartData.map((d, i) => (
+                           <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} fillOpacity={0.4} />
+                         ))}
+                      </Bar>
+
+                      {/* رسم الأجسام (Bodies) */}
+                      <Bar dataKey="openClose" barSize={20}>
+                         {chartData.map((d, i) => (
+                           <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
+                         ))}
+                      </Bar>
+
+                      {/* خطوط إعداد الصفقة (Setup Lines) */}
+                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="3 3" label={{ position: 'left', value: `ENTRY: ${activeSignal.agents.tech.last.toFixed(2)}`, fill: '#f9a885', fontSize: 8, fontWeight: 900 }} />
+                      <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1} strokeDasharray="5 5" label={{ position: 'left', value: `TARGET: ${activeSignal.targets.tp1.toFixed(2)}`, fill: '#10b981', fontSize: 8, fontWeight: 900 }} />
+                      <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1} strokeDasharray="5 5" label={{ position: 'left', value: `SL: ${activeSignal.targets.sl.toFixed(2)}`, fill: '#ef4444', fontSize: 8, fontWeight: 900 }} />
+                   </ComposedChart>
+                </ResponsiveContainer>
+
+                {/* شرح سبب الدخول على الشارت */}
+                <div className="absolute top-4 right-6 text-right max-w-[200px] space-y-1">
+                   <div className="flex items-center justify-end gap-2 text-[#f9a885]">
+                      <Sparkles size={10} className="animate-pulse" />
+                      <span className="text-[8px] font-black uppercase tracking-widest">Logic Node</span>
+                   </div>
+                   <p className="text-[10px] font-bold text-white/60 leading-relaxed">{activeSignal.reason}</p>
                 </div>
              </div>
 
-             {/* محرك الشموع اليابانية (Candlestick Engine) */}
-             <div className="relative h-32 w-full z-10 px-4 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.01] to-transparent rounded-3xl" />
-                <svg width="500" height="120" viewBox="0 0 500 120" className="overflow-visible" dir="ltr">
-                  {chartMeta && chartData.map((d, i) => {
-                    const x = (i * (500 / chartData.length));
-                    const candleWidth = (500 / chartData.length) * 0.7;
-                    const getY = (val: number) => 120 - (((val - chartMeta.min) / (chartMeta.range || 1)) * 120);
-                    
-                    const highY = getY(d.high);
-                    const lowY = getY(d.low);
-                    const openY = getY(d.open);
-                    const closeY = getY(d.close);
-                    const isCandleUp = d.close >= d.open;
-                    const color = isCandleUp ? "#10b981" : "#ef4444";
-                    
-                    return (
-                      <g key={i}>
-                        <line x1={x + candleWidth/2} y1={highY} x2={x + candleWidth/2} y2={lowY} stroke={color} strokeWidth={1.5} />
-                        <rect 
-                          x={x} 
-                          y={Math.min(openY, closeY)} 
-                          width={candleWidth} 
-                          height={Math.max(Math.abs(openY - closeY), 2)} 
-                          fill={color}
-                          rx={1}
-                        />
-                      </g>
-                    );
-                  })}
-                </svg>
-                <div className="absolute top-2 right-6 flex items-center gap-2">
-                   <div className={cn("h-1.5 w-1.5 rounded-full animate-pulse", isUp ? "bg-emerald-500" : "bg-red-500")} />
-                   <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">24H Candlesticks</span>
-                </div>
-             </div>
-
-             <div className="grid grid-cols-1 gap-6 relative z-10">
+             <div className="grid grid-cols-1 gap-6 relative z-10 mt-6">
                 <div className="p-8 bg-white/[0.03] rounded-[48px] border border-white/5 space-y-6 shadow-inner">
                    <div className="flex justify-between items-center text-gray-400 px-2">
                       <div className="flex items-center gap-2">
@@ -235,14 +231,14 @@ export function TelegramBroadcastManager() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
-                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between group">
+                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between">
                       <div className="space-y-1 text-right">
                          <p className="text-[9px] font-black text-red-400 uppercase">Stop Loss / وقف الخسارة</p>
                          <p className="text-xl font-black text-white tabular-nums" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
                       </div>
                       <ShieldCheck size={20} className="text-red-500 opacity-20" />
                    </div>
-                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between group">
+                   <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 flex items-center justify-between">
                       <div className="space-y-1 text-right">
                          <p className="text-[9px] font-black text-[#f9a885] uppercase">Confidence / الثقة</p>
                          <p className="text-xl font-black text-white tabular-nums">%{activeSignal.confidence}</p>
@@ -275,7 +271,7 @@ export function TelegramBroadcastManager() {
                    </div>
                 </div>
                 
-                <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em] opacity-30">Sovereign Intelligence Node v31.0</p>
+                <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em] opacity-30">Sovereign Intelligence Node v35.0</p>
              </div>
 
           </div>
