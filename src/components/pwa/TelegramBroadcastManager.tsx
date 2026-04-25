@@ -40,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v40.2 - Pure Minimalist Edition
- * تم حذف الفتائل وتطهير التذييل وتوحيد لغة الألوان الصريحة للصفقات.
+ * @fileOverview محرك بث تلغرام النخبوي v40.3 - Pure Minimalist Edition
+ * تم حذف "Live Node"، تطهير شعار التذييل من الظلال، وتوحيد لغة الألوان الصريحة.
  */
 
 export function TelegramBroadcastManager() {
@@ -170,10 +170,6 @@ export function TelegramBroadcastManager() {
                    )}>
                       {activeSignal.decision === 'BUY' ? 'إشارة شراء / LONG' : 'إشارة بيع / SHORT'}
                    </Badge>
-                   <div className="flex items-center gap-2 opacity-40">
-                      <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[7px] font-black text-white uppercase tracking-widest">Live Node</span>
-                   </div>
                 </div>
              </div>
 
@@ -235,12 +231,12 @@ export function TelegramBroadcastManager() {
 
              {/* Professional Footer Hub: Pure & Simple */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                {/* Logo Core - No container, No borders, No side lines */}
+                {/* Logo Core - Pure raw points without shadows or containers */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_white]" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
                   <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
                   <div className="h-2.5 w-2.5 rounded-full bg-[#f9a885]" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_white]" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-white" />
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
