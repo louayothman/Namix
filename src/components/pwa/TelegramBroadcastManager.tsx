@@ -38,8 +38,7 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك البث التلقائي للإشارات v41.0 - Dedicated Pulse Hub
- * تم تنظيف المحرك من طلبات تحليل السوق اليدوية لضمان استقرار البث الدوري.
+ * @fileOverview محرك البث التلقائي للإشارات v42.0 - Stable 5-Min Cycle
  */
 
 export function TelegramBroadcastManager() {
@@ -49,7 +48,6 @@ export function TelegramBroadcastManager() {
   const [chartData, setChartData] = useState<any[]>([]);
   const isCapturing = useRef(false);
 
-  // 1. محرك البث الدوري (كل 5 دقائق)
   useEffect(() => {
     const runTelegramCycle = async () => {
       if (isCapturing.current) return;
@@ -70,9 +68,13 @@ export function TelegramBroadcastManager() {
           await processImageSignal(best.analysis, best.sym);
         }
       } catch (e) {
+        console.error("Broadcast Cycle Fail:", e);
         isCapturing.current = false;
       }
     };
+
+    // تشغيل أولي
+    runTelegramCycle();
 
     const interval = setInterval(runTelegramCycle, 300000); 
     return () => clearInterval(interval);
@@ -80,28 +82,40 @@ export function TelegramBroadcastManager() {
 
   const processImageSignal = async (signal: any, symbol: any) => {
     isCapturing.current = true;
+    
+    // جلب البيانات اللازمة للشارت
     let history: any[] = [];
-    if (symbol.priceSource === 'binance') {
-      history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 14);
-    } else {
-      history = generateInternalHistory(symbol.id, symbol, 14);
-    }
-    setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
-    setActiveSignal(signal);
-
-    setTimeout(async () => {
-      if (captureRef.current) {
-        try {
-          const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
-          await broadcastSignalToTelegram(signal, symbol, dataUrl);
-        } catch (err) {
-          await broadcastSignalToTelegram(signal, symbol);
-        }
+    try {
+      if (symbol.priceSource === 'binance') {
+        history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 14);
+      } else {
+        history = generateInternalHistory(symbol.id, symbol, 14);
       }
-      setActiveSignal(null);
-      setChartData([]);
+      
+      if (!history.length) throw new Error("No chart data available");
+      
+      setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
+      setActiveSignal(signal);
+
+      // بروتوكول الانتظار: 4 ثوانٍ لضمان رندرة الشموع بدقة قبل الالتقاط
+      setTimeout(async () => {
+        if (captureRef.current) {
+          try {
+            const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
+            await broadcastSignalToTelegram(signal, symbol, dataUrl);
+          } catch (err) {
+            console.error("Capture Error:", err);
+            await broadcastSignalToTelegram(signal, symbol);
+          }
+        }
+        setActiveSignal(null);
+        setChartData([]);
+        isCapturing.current = false;
+      }, 4000);
+    } catch (err) {
+      console.error("Process Signal Error:", err);
       isCapturing.current = false;
-    }, 4000);
+    }
   };
 
   if (!activeSignal) return null;
@@ -118,7 +132,7 @@ export function TelegramBroadcastManager() {
                  </div>
                  <div className="text-right">
                     <h3 className="text-2xl font-black text-white tracking-tighter leading-none">{activeSignal.pair}</h3>
-                    <p className="text-xl font-black text-[#f9a885] tabular-nums mt-2 leading-none">
+                    <p className="text-xl font-black text-[#f9a885] tabular-nums mt-2 leading-none whitespace-nowrap">
                       ${activeSignal.agents.tech.last.toLocaleString()}
                     </p>
                  </div>
@@ -128,7 +142,7 @@ export function TelegramBroadcastManager() {
                    "font-black text-[11px] px-6 py-2.5 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
                    activeSignal.decision === 'BUY' ? "bg-emerald-500" : activeSignal.decision === 'SELL' ? "bg-red-500" : "bg-blue-500"
                  )}>
-                   {activeSignal.decision === 'BUY' ? 'إشارة شراء / BUY' : activeSignal.decision === 'SELL' ? 'إشارة بيع / SELL' : 'قراءة السوق / NEUTRAL'}
+                   {activeSignal.decision === 'BUY' ? 'إشارة شراء / BUY' : activeSignal.decision === 'SELL' ? 'إشارة بيع / SELL' : 'تحليل السوق / NEUTRAL'}
                  </Badge>
               </div>
            </div>
@@ -150,7 +164,7 @@ export function TelegramBroadcastManager() {
               <div className="absolute top-8 left-8 text-left" dir="ltr">
                  <div className="flex items-center gap-2 mb-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
-                    <span className="text-[9px] font-black text-[#f9a885] uppercase tracking-widest whitespace-nowrap">التحليل / ANALYSIS</span>
+                    <span className="text-[9px] font-black text-[#f9a885] uppercase tracking-widest whitespace-nowrap">التحليل الفني / ANALYSIS</span>
                  </div>
                  <p className="text-[11px] font-bold text-white/50 max-w-[220px] leading-relaxed uppercase">{activeSignal.reason}</p>
               </div>
@@ -163,7 +177,7 @@ export function TelegramBroadcastManager() {
               </div>
               <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center border-x border-white/5">
                  <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">الهدف / TARGET</p>
-                 <p className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">${activeAnalysis?.targets?.tp1?.toLocaleString() || activeSignal.targets.tp1.toLocaleString()}</p>
+                 <p className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">${activeSignal.targets.tp1.toLocaleString()}</p>
               </div>
               <div className="p-6 bg-white/[0.02] rounded-[36px] border border-white/5 space-y-1 text-center">
                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">الدخول / ENTRY</p>
@@ -172,11 +186,11 @@ export function TelegramBroadcastManager() {
            </div>
 
            <div className="relative pt-10 flex flex-col items-center">
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-                 <div className="h-1.5 w-1.5 rounded-full bg-white" />
+              <div className="flex items-center gap-2 mb-2">
+                 <div className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
+                 <div className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
               </div>
               <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>

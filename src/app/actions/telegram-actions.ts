@@ -6,7 +6,7 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v29.0 - Support for Direct Chat Sending
+ * @fileOverview محرك عمليات تلغرام المطور v30.0 - Support for Buttons & Progressive Updates
  */
 
 interface TelegramBot {
@@ -18,9 +18,15 @@ interface TelegramBot {
 }
 
 /**
- * إرسال صورة تحليل أو إشارة لدردشة محددة (Chat ID)
+ * إرسال صورة تحليل أو إشارة لدردشة محددة مع دعم الأزرار التفاعلية
  */
-export async function sendImageToChat(botId: string, chatId: string, caption: string, imageUri?: string) {
+export async function sendImageToChat(
+  botId: string, 
+  chatId: string, 
+  caption: string, 
+  imageUri?: string,
+  symbolId?: string
+) {
   try {
     const { firestore } = initializeFirebase();
     const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
@@ -34,11 +40,29 @@ export async function sendImageToChat(botId: string, chatId: string, caption: st
       photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
     }
 
+    const headersList = await headers();
+    const host = headersList.get('host') || "";
+    const domain = host.split(':')[0];
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    const tmaUrl = `${protocol}://${domain}/trade/${symbolId}`;
+
     const formData = new FormData();
     formData.append('chat_id', chatId);
     if (photoBlob) formData.append('photo', photoBlob, 'analysis_card.jpg');
     formData.append('caption', caption);
     formData.append('parse_mode', 'Markdown');
+    
+    // إضافة الأزرار التفاعلية للتحليل اليدوي
+    if (symbolId) {
+      formData.append('reply_markup', JSON.stringify({
+        inline_keyboard: [
+          [
+            { text: `🚀 تنفيذ الصفقة`, web_app: { url: tmaUrl } },
+            { text: `🔍 استكشاف السوق`, web_app: { url: tmaUrl } }
+          ]
+        ]
+      }));
+    }
 
     const endpoint = photoBlob ? 'sendPhoto' : 'sendMessage';
     if (!photoBlob) formData.set('text', caption);
@@ -161,9 +185,9 @@ export async function addNewTelegramBot(name: string, token: string) {
 
     const headersList = await headers();
     const host = headersList.get('host') || "";
-    const domain = host.split(':')[0];
-    const protocol = domain.includes('localhost') ? 'http' : 'https';
-    const webhookUrl = `${protocol}://${domain}/api/telegram/webhook/${botId}`;
+    const cleanHost = host.split(':')[0]; // حذف رقم المنفذ لضمان قبول تلغرام للرابط
+    const protocol = cleanHost.includes('localhost') ? 'http' : 'https';
+    const webhookUrl = `${protocol}://${cleanHost}/api/telegram/webhook/${botId}`;
 
     const webhookRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
       method: 'POST',

@@ -51,8 +51,7 @@ import {
 import { generateDeepMarketReport } from "@/lib/market-report-engine";
 
 /**
- * @fileOverview مُفاعل طلبات التحليل المرئي v1.0 - Full Report Edition
- * محرك معزول مخصص لرسم كروت التحليل العميق عند طلب المستخدمين.
+ * @fileOverview مُفاعل طلبات التحليل المرئي v1.1 - Vivid Progress Edition
  */
 
 export function MarketAnalysisReactor() {
@@ -79,33 +78,40 @@ export function MarketAnalysisReactor() {
     return () => unsubscribe();
   }, [db]);
 
+  const updateTelegramProgress = async (botToken: string, chatId: string, messageId: string, progress: number, text: string) => {
+    const bars = "█".repeat(progress / 10) + "░".repeat(10 - (progress / 10));
+    const msg = `🔍 *جاري تحليل سوق ${activeAnalysis?.symbol?.code || '...'}*\n[${bars}]\n\n_${text}_`;
+    
+    await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
+    });
+  };
+
   const processRequest = async (request: any) => {
     isProcessing.current = true;
     try {
-      // 1. جلب بيانات السوق والتحليل
+      // 1. جلب بيانات السوق
       const symSnap = await getDocs(query(collection(db, "trading_symbols"), where("code", "==", request.symbolCode)));
       if (symSnap.empty) throw new Error("Symbol not found");
       const symbol = { id: symSnap.docs[0].id, ...symSnap.docs[0].data() } as any;
-      const analysis = await runNamix(symbol.binanceSymbol || symbol.code);
-
-      // 2. تحديث تقدم العملية في تلغرام
+      
       const botsSnap = await getDocs(query(collection(db, "system_settings", "telegram", "bots"), where("id", "==", request.botId)));
       const bot = botsSnap.docs[0]?.data();
-      
-      if (bot) {
-        await fetch(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: request.chatId,
-            message_id: request.messageId,
-            text: `🔍 *جاري تحليل سوق ${request.symbolCode}...*\n[██████░░░░] 60%\n\n_تم جلب المعطيات الفنية، جاري رندرة التقرير المرئي الشامل..._`,
-            parse_mode: 'Markdown'
-          })
-        });
-      }
+      if (!bot) throw new Error("Bot not found");
 
-      // 3. توليد تاريخ الشموع
+      // تسلسل التقدم الحي
+      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 20, "جاري استخلاص المعطيات الفنية اللحظية...");
+      
+      const analysis = await runNamix(symbol.binanceSymbol || symbol.code);
+      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 50, "تحليل الزخم وقراءات السيولة الحالية...");
+
       let history: any[] = [];
       if (symbol.priceSource === 'binance') {
         history = await getHistoricalKlines(symbol.binanceSymbol, '15m', 16);
@@ -116,26 +122,30 @@ export function MarketAnalysisReactor() {
       setChartData(history.map(d => ({ ...d, body: [d.open, d.close] })));
       setActiveAnalysis({ ...analysis, symbol });
 
+      await updateTelegramProgress(bot.token, request.chatId, request.messageId, 80, "تجهيز التقرير الاستراتيجي الشامل...");
+
       // 4. التقاط الصورة وإرسالها
       setTimeout(async () => {
         if (captureRef.current) {
           const dataUrl = await toJpeg(captureRef.current, { quality: 0.98, pixelRatio: 4, backgroundColor: '#0B0F1A' });
           const textReport = await generateDeepMarketReport(request.symbolCode, symbol.id);
           
-          if (bot) {
-            await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
-            });
-            await sendImageToChat(request.botId, request.chatId, textReport, dataUrl);
-          }
+          await updateTelegramProgress(bot.token, request.chatId, request.messageId, 100, "اكتمل التحليل الفني بنجاح.");
+
+          // حذف رسالة الانتظار وإرسال التقرير النهائي
+          await fetch(`https://api.telegram.org/bot${bot.token}/deleteMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: request.chatId, message_id: request.messageId })
+          });
+          
+          await sendImageToChat(request.botId, request.chatId, textReport, dataUrl, symbol.id);
         }
         await updateDoc(doc(db, "market_analysis_requests", request.id), { status: "completed" });
         setActiveAnalysis(null);
         setChartData([]);
         isProcessing.current = false;
-      }, 4000);
+      }, 3000);
 
     } catch (e) {
       console.error("Analysis Reactor Error:", e);
@@ -153,7 +163,6 @@ export function MarketAnalysisReactor() {
       <div ref={captureRef} className="w-[800px] h-[1200px] bg-[#0B0F1A] p-8 flex flex-col justify-between font-body text-right">
         <div className="w-full h-full bg-[#121826] rounded-[64px] border border-white/5 p-12 flex flex-col gap-10 relative overflow-hidden shadow-2xl">
            
-           {/* 1. Header: Professional Identity */}
            <div className="flex items-center justify-between border-b border-white/5 pb-10">
               <div className="flex items-center gap-6">
                  <div className="h-20 w-20 flex items-center justify-center">
@@ -161,7 +170,7 @@ export function MarketAnalysisReactor() {
                  </div>
                  <div className="text-right">
                     <h3 className="text-3xl font-black text-white tracking-tight leading-none">{activeAnalysis.symbol.name}</h3>
-                    <p className="text-2xl font-black text-[#f9a885] tabular-nums mt-3 leading-none">
+                    <p className="text-2xl font-black text-[#f9a885] tabular-nums mt-3 leading-none whitespace-nowrap">
                       ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                  </div>
@@ -171,16 +180,11 @@ export function MarketAnalysisReactor() {
                    "font-black text-[12px] px-8 py-3 rounded-full border-none shadow-xl text-white uppercase tracking-widest whitespace-nowrap",
                    activeAnalysis.decision === 'BUY' ? "bg-emerald-500" : activeAnalysis.decision === 'SELL' ? "bg-red-500" : "bg-blue-600"
                  )}>
-                   {activeAnalysis.decision === 'BUY' ? 'توصية شراء / BUY' : activeAnalysis.decision === 'SELL' ? 'توصية بيع / SELL' : 'تقرير محايد / NEUTRAL'}
+                   {activeAnalysis.decision === 'BUY' ? 'إشارة شراء / BUY' : activeAnalysis.decision === 'SELL' ? 'إشارة بيع / SELL' : 'تحليل السوق / NEUTRAL'}
                  </Badge>
-                 <div className="flex items-center gap-2 text-gray-400">
-                    <Clock size={14} />
-                    <span className="text-[10px] font-black uppercase">Analysis Time: {new Date().toLocaleTimeString()}</span>
-                 </div>
               </div>
            </div>
 
-           {/* 2. Full Chart Section */}
            <div className="relative h-[400px] w-full bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
               <ResponsiveContainer width="100%" height="100%">
                  <ComposedChart data={chartData} margin={{ top: 60, right: 20, left: 20, bottom: 20 }}>
@@ -195,15 +199,10 @@ export function MarketAnalysisReactor() {
                  </ComposedChart>
               </ResponsiveContainer>
               <div className="absolute top-10 left-10 text-left" dir="ltr">
-                 <div className="flex items-center gap-2 mb-2">
-                    <div className="h-2 w-2 rounded-full bg-[#f9a885] animate-pulse" />
-                    <span className="text-[11px] font-black text-[#f9a885] uppercase tracking-[0.2em]">Technical Spectrum</span>
-                 </div>
                  <Badge variant="outline" className="border-white/10 text-white/40 text-[9px] font-black px-3 py-1">15M TIMELINE</Badge>
               </div>
            </div>
 
-           {/* 3. Indicators & Metrics Grid */}
            <div className="grid grid-cols-4 gap-4">
               {[
                 { label: "الزخم", val: `${Math.round(activeAnalysis.agents.tech.score * 100)}%`, icon: Zap, color: "text-orange-400" },
@@ -219,23 +218,20 @@ export function MarketAnalysisReactor() {
               ))}
            </div>
 
-           {/* 4. Strategic Reasoning Block */}
            <div className="p-10 bg-white/[0.02] rounded-[48px] border border-white/5 space-y-6 relative group">
-              <div className="absolute top-0 right-0 p-8 opacity-[0.02]"><Info size={120} /></div>
               <div className="flex items-center gap-3 relative z-10">
                  <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-[#f9a885]">
                     <BarChart3 size={20} />
                  </div>
-                 <h4 className="text-lg font-black text-white">التحليل الاستراتيجي (Market Reasoning)</h4>
+                 <h4 className="text-lg font-black text-white">التحليل الاستراتيجي (Strategic Analysis)</h4>
               </div>
               <p className="text-[15px] font-bold text-gray-400 leading-[2.2] relative z-10">
                 {activeAnalysis.reason === "Market Equilibrium" 
-                  ? "السوق يمر بمرحلة توازن تقني مؤقت؛ محرك التحليل يراقب مستويات التذبذب الحالية وينصح بالترقب لحين كسر مناطق العرض الموضحة لضمان دقة التنفيذ." 
+                  ? "السوق يمر بمرحلة توازن تقني مؤقت؛ محرك التحليل ينصح بالترقب لحين وضوح اتجاه النبض القادم لضمان استقرار التنفيذ." 
                   : `بناءً على قراءة التدفقات اللحظية، تم رصد ${activeAnalysis.trend === 'صاعد' ? 'زخم شرائي إيجابي' : 'تراكم ضغط بيعي'} مدعوم بـ ${activeAnalysis.volume === 'عالي' ? 'سيولة مرتفعة' : 'استقرار نسبي'} في مناطق التنفيذ الحالية.`}
               </p>
            </div>
 
-           {/* 5. Target Execution Matrix */}
            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
               <div className="p-8 bg-gray-50/5 rounded-[40px] border border-white/5 space-y-4">
                  <div className="flex items-center gap-3">
@@ -255,7 +251,7 @@ export function MarketAnalysisReactor() {
               <div className="p-8 bg-gray-50/5 rounded-[40px] border border-white/5 space-y-4">
                  <div className="flex items-center gap-3">
                     <MapPin size={18} className="text-blue-500" />
-                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Entry & Safety</span>
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Entry & Security</span>
                  </div>
                  <div className="flex justify-between items-center bg-black/20 p-4 rounded-2xl">
                     <span className="text-[10px] font-black text-gray-400">النطاق المقترح</span>
@@ -268,19 +264,14 @@ export function MarketAnalysisReactor() {
               </div>
            </div>
 
-           {/* 6. Footer Signature */}
            <div className="mt-auto pt-10 flex flex-col items-center">
-              <div className="flex items-center gap-6 mb-3">
-                 <div className="h-px w-20 bg-gradient-to-r from-transparent to-white/10" />
-                 <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
-                    <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_10px_#f9a885]" />
-                    <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_10px_#f9a885]" />
-                    <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
-                 </div>
-                 <div className="h-px w-20 bg-gradient-to-l from-transparent to-white/10" />
+              <div className="flex items-center gap-2 mb-2">
+                 <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
+                 <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
+                 <div className="h-2 w-2 rounded-full bg-[#f9a885] shadow-[0_0_8px_#f9a885]" />
+                 <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
               </div>
-              <p className="text-[10px] font-black text-white/30 tracking-[0.6em] uppercase">POWERED BY NAMIX AI CORE</p>
+              <p className="text-[10px] font-black text-white/30 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
            </div>
         </div>
       </div>
