@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from "react";
-import { useFirestore } from "@/firebase";
+import { useNames, useFirestore } from "@/firebase";
 import { 
   collection, 
   query, 
@@ -40,8 +40,8 @@ import {
 } from "recharts";
 
 /**
- * @fileOverview محرك بث تلغرام النخبوي v38.0 - Ultra HD Centered Matrix
- * تم نقل السعر للهيدر، إصلاح محاذاة الفتائل، وتطوير تذييل راقٍ يتوسطه الشعار بخطوط فاصلة.
+ * @fileOverview محرك بث تلغرام النخبوي v39.0 - Smart Visual Pulse
+ * تم نقل السعر للهيدر، إضافة خطوط الدخول والأهداف على الشارت، وإصلاح تناظر شعار التذييل.
  */
 
 export function TelegramBroadcastManager() {
@@ -96,12 +96,12 @@ export function TelegramBroadcastManager() {
               try {
                 const dataUrl = await toJpeg(captureRef.current, { 
                   quality: 0.98,
-                  pixelRatio: 4, // رفع الدقة لـ 4 لضمان Ultra HD
+                  pixelRatio: 4, 
                   backgroundColor: '#0B0F1A'
                 });
                 await broadcastSignalToTelegram(best.analysis, best.sym, dataUrl);
               } catch (err) {
-                console.error("Capture Ultra HD Fail:", err);
+                console.error("Capture HD Fail:", err);
                 await broadcastSignalToTelegram(best.analysis, best.sym);
               }
             }
@@ -146,7 +146,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* Header Node - Enhanced with Price */}
+             {/* Header Node - Pure Price Identity */}
              <div className="flex items-center justify-between relative z-10 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-5">
                    <div className="h-16 w-16 rounded-[24px] bg-white/5 flex items-center justify-center shadow-xl border border-white/10">
@@ -155,7 +155,6 @@ export function TelegramBroadcastManager() {
                    <div className="text-right">
                       <h3 className="text-2xl font-black text-white tracking-tighter leading-none">{activeSignal.pair}</h3>
                       <p className="text-xl font-black text-[#f9a885] tabular-nums mt-1.5 leading-none">${activeSignal.agents.tech.last.toLocaleString()}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 leading-none">تحليل نبض السوق / PULSE</p>
                    </div>
                 </div>
                 <Badge className={cn(
@@ -166,28 +165,33 @@ export function TelegramBroadcastManager() {
                 </Badge>
              </div>
 
-             {/* Tactical Candlestick Theater */}
+             {/* Tactical Candlestick Theater - With Reference Lines */}
              <div className="relative h-[480px] w-full z-10 mt-4 bg-black/20 rounded-[48px] border border-white/5 shadow-inner overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                    <ComposedChart data={chartData} margin={{ top: 50, right: 10, left: 10, bottom: 20 }}>
                       <XAxis hide />
                       <YAxis hide domain={['auto', 'auto']} />
                       
-                      {/* Wicks - Centered */}
+                      {/* Entry Line */}
+                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="3 3" />
+                      {/* Target Line */}
+                      <ReferenceLine y={activeSignal.targets.tp1} stroke="#10b981" strokeWidth={1} strokeDasharray="3 3" />
+                      {/* Stop Loss Line */}
+                      <ReferenceLine y={activeSignal.targets.sl} stroke="#ef4444" strokeWidth={1} strokeDasharray="3 3" />
+
+                      {/* Wicks */}
                       <Bar dataKey="wick" fill="#ffffff" barSize={2} opacity={0.3} isAnimationActive={false}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
                          ))}
                       </Bar>
 
-                      {/* Perfect Bodies - Layered exactly over wicks */}
+                      {/* Perfect Bodies */}
                       <Bar dataKey="body" barSize={16} radius={[8, 8, 8, 8]} isAnimationActive={false}>
                          {chartData.map((d, i) => (
                            <Cell key={i} fill={d.close >= d.open ? "#10b981" : "#ef4444"} />
                          ))}
                       </Bar>
-
-                      <ReferenceLine y={activeSignal.agents.tech.last} stroke="#f9a885" strokeWidth={1} strokeDasharray="4 4" />
                    </ComposedChart>
                 </ResponsiveContainer>
 
@@ -228,21 +232,22 @@ export function TelegramBroadcastManager() {
                 <p className="text-xl font-black text-red-500 tabular-nums tracking-tighter" dir="ltr">${activeSignal.targets.sl.toLocaleString()}</p>
              </div>
 
-             {/* Minimalist Pro Footer - Redesigned */}
+             {/* Minimalist Pro Footer - Redesigned & Centered Logo */}
              <div className="relative pt-10 flex flex-col items-center gap-4">
-                <div className="w-full flex items-center gap-8">
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent to-white/10" />
-                   <div className="grid grid-cols-2 gap-1.5 scale-90 shrink-0">
-                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
+                <div className="w-full flex items-center gap-8 px-4">
+                   <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent to-white/15" />
+                   {/* Optimized Namix Dot Grid - No Transparency */}
+                   <div className="grid grid-cols-2 gap-1.5 shrink-0">
+                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
                       <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
                       <div className="h-2 w-2 rounded-full bg-[#f9a885]" />
-                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_10px_white]" />
+                      <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
                    </div>
-                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent to-white/10" />
+                   <div className="flex-1 h-[0.5px] bg-gradient-to-l from-transparent to-white/15" />
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
-                   <p className="text-[10px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
+                   <p className="text-[9px] font-black text-white/40 tracking-[0.4em] uppercase">POWERED BY NAMIX AI CORE</p>
                 </div>
              </div>
 
@@ -252,3 +257,4 @@ export function TelegramBroadcastManager() {
     </div>
   );
 }
+
