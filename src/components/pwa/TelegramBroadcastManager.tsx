@@ -26,13 +26,12 @@ import {
   Clock,
   ArrowRightLeft
 } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import { getHistoricalKlines } from "@/services/binance-service";
 import { generateInternalHistory } from "@/lib/internal-market";
 
 /**
- * @fileOverview محرك بث تلغرام المستقل v30.0 - Real Chart & Bilingual Edition
- * يولد بطاقة مصرفية استخباراتية تحتوي على رسم بياني حقيقي وبيانات ثنائية اللغة.
+ * @fileOverview محرك بث تلغرام المستقل v31.0 - Pure Candlestick Edition
+ * تم استبدال الرسم الخطي بنمط الشموع اليابانية (Candlestick) حصرياً.
  */
 
 export function TelegramBroadcastManager() {
@@ -61,13 +60,11 @@ export function TelegramBroadcastManager() {
           analyses.push({ sym, analysis, strength });
         }
 
-        // اختيار أفضل فرصة (أعلى نسبة ثقة)
         const best = analyses.sort((a, b) => b.strength - a.strength)[0];
 
         if (best && best.analysis.decision !== 'HOLD') {
           isCapturing.current = true;
           
-          // جلب بيانات الشارت للبطاقة
           let history: any[] = [];
           if (best.sym.priceSource === 'binance') {
             history = await getHistoricalKlines(best.sym.binanceSymbol, '1h', 24);
@@ -75,10 +72,10 @@ export function TelegramBroadcastManager() {
             history = generateInternalHistory(best.sym.id, best.sym, 24);
           }
           
-          setChartData(history.map(d => ({ value: d.close || d.value })));
+          // حفظ بيانات الشموع الكاملة
+          setChartData(history);
           setActiveSignal(best.analysis);
 
-          // انتظار رندر الشارت ثم الالتقاط
           setTimeout(async () => {
             if (captureRef.current) {
               try {
@@ -103,7 +100,7 @@ export function TelegramBroadcastManager() {
       }
     };
 
-    const interval = setInterval(runTelegramCycle, 300000); // 5 دقائق
+    const interval = setInterval(runTelegramCycle, 300000); 
     runTelegramCycle();
 
     return () => {
@@ -111,6 +108,15 @@ export function TelegramBroadcastManager() {
       clearInterval(interval);
     };
   }, [db]);
+
+  const chartMeta = useMemo(() => {
+    if (chartData.length === 0) return null;
+    const highs = chartData.map(d => d.high);
+    const lows = chartData.map(d => d.low);
+    const min = Math.min(...lows);
+    const max = Math.max(...highs);
+    return { min, max, range: max - min };
+  }, [chartData]);
 
   const isUp = activeSignal?.decision === 'BUY';
 
@@ -121,10 +127,8 @@ export function TelegramBroadcastManager() {
           ref={captureRef}
           className="w-[600px] h-[950px] bg-[#0B0F1A] p-8 flex flex-col justify-between font-body text-right"
         >
-          {/* Main Card Frame - Grey Blue Gradient */}
           <div className="w-full h-full bg-gradient-to-br from-[#121826] to-[#0B0F1A] rounded-[60px] border border-white/5 p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
              
-             {/* 1. Giant Transparent Watermark Logo */}
              <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none scale-[2.8] -rotate-12">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="w-32 h-32 rounded-full bg-white" />
@@ -134,7 +138,6 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* 2. Header: Asset (Right) & Platform Identity (Left) */}
              <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-5">
                    <div className="h-16 w-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
@@ -159,7 +162,6 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* 3. Decision Highlight */}
              <div className="relative z-10 flex flex-col items-center gap-4 py-4">
                 <div className={cn(
                   "px-12 py-4 rounded-[32px] font-black text-lg shadow-2xl flex items-center gap-4 border border-white/5",
@@ -174,29 +176,43 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* 4. Real-time Chart Section */}
-             <div className="relative h-32 w-full z-10 px-4">
+             {/* محرك الشموع اليابانية (Candlestick Engine) */}
+             <div className="relative h-32 w-full z-10 px-4 flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.01] to-transparent rounded-3xl" />
-                <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={chartData}>
-                      <YAxis hide domain={['auto', 'auto']} />
-                      <Area 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke={isUp ? "#10b981" : "#ef4444"} 
-                        strokeWidth={3} 
-                        fillOpacity={0.15} 
-                        fill={isUp ? "#10b981" : "#ef4444"} 
-                      />
-                   </AreaChart>
-                </ResponsiveContainer>
+                <svg width="500" height="120" viewBox="0 0 500 120" className="overflow-visible" dir="ltr">
+                  {chartMeta && chartData.map((d, i) => {
+                    const x = (i * (500 / chartData.length));
+                    const candleWidth = (500 / chartData.length) * 0.7;
+                    const getY = (val: number) => 120 - (((val - chartMeta.min) / (chartMeta.range || 1)) * 120);
+                    
+                    const highY = getY(d.high);
+                    const lowY = getY(d.low);
+                    const openY = getY(d.open);
+                    const closeY = getY(d.close);
+                    const isCandleUp = d.close >= d.open;
+                    const color = isCandleUp ? "#10b981" : "#ef4444";
+                    
+                    return (
+                      <g key={i}>
+                        <line x1={x + candleWidth/2} y1={highY} x2={x + candleWidth/2} y2={lowY} stroke={color} strokeWidth={1.5} />
+                        <rect 
+                          x={x} 
+                          y={Math.min(openY, closeY)} 
+                          width={candleWidth} 
+                          height={Math.max(Math.abs(openY - closeY), 2)} 
+                          fill={color}
+                          rx={1}
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
                 <div className="absolute top-2 right-6 flex items-center gap-2">
                    <div className={cn("h-1.5 w-1.5 rounded-full animate-pulse", isUp ? "bg-emerald-500" : "bg-red-500")} />
-                   <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">24H Momentum</span>
+                   <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">24H Candlesticks</span>
                 </div>
              </div>
 
-             {/* 5. Bilingual Data Matrix */}
              <div className="grid grid-cols-1 gap-6 relative z-10">
                 <div className="p-8 bg-white/[0.03] rounded-[48px] border border-white/5 space-y-6 shadow-inner">
                    <div className="flex justify-between items-center text-gray-400 px-2">
@@ -204,7 +220,7 @@ export function TelegramBroadcastManager() {
                          <Target size={14} className="text-[#f9a885]" />
                          <span className="text-[9px] font-black uppercase">Nodes / نقاط التمركز</span>
                       </div>
-                      <Badge className="bg-blue-500/10 text-blue-400 border-none text-[8px] font-black tracking-widest px-4 py-1.5 rounded-xl">PRO SPECTRA</Badge>
+                      <Badge className="bg-blue-500/10 text-blue-400 border-none text-[7px] font-black tracking-widest px-4 py-1.5 rounded-xl">PRO SPECTRA</Badge>
                    </div>
                    <div className="grid grid-cols-2 gap-12">
                       <div className="space-y-1.5 text-right">
@@ -236,9 +252,7 @@ export function TelegramBroadcastManager() {
                 </div>
              </div>
 
-             {/* 6. Luxury Footer Branding */}
              <div className="relative pt-10 flex flex-col items-center gap-6">
-                {/* Custom Styled Divider */}
                 <div className="w-full flex items-center gap-0">
                    <div className="flex-1 h-[0.5px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                    <div className="px-8 flex items-center justify-center">
@@ -261,7 +275,7 @@ export function TelegramBroadcastManager() {
                    </div>
                 </div>
                 
-                <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em] opacity-30">Sovereign Intelligence Node v30.0</p>
+                <p className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em] opacity-30">Sovereign Intelligence Node v31.0</p>
              </div>
 
           </div>
