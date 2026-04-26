@@ -3,16 +3,15 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
+import { sendFinancialNotification } from './notification-actions';
 
 /**
  * تنفيذ عملية التحويل الداخلي بين الحسابات مع نظام إشعارات وتوثيق رقمي
- * تم تطهير الإشعارات من الرموز التعبيرية.
  */
 export async function executeInternalTransfer(fromId: string, toId: string, amount: number, pin: string) {
   try {
     const { firestore } = initializeFirebase();
     
-    // 1. جلب بيانات المرسل والمستقبل
     const senderRef = doc(firestore, "users", fromId);
     const senderSnap = await getDoc(senderRef);
     if (!senderSnap.exists()) throw new Error("فشل في تحديد هوية المرسل.");
@@ -23,79 +22,38 @@ export async function executeInternalTransfer(fromId: string, toId: string, amou
     if (!recipientSnap.exists()) throw new Error("فشل في تحديد هوية المستقبل.");
     const recipientData = recipientSnap.data();
 
-    // 2. التحقق من رمز PIN
     if (senderData.securityPin !== pin) {
       return { success: false, error: "رمز PIN غير صحيح." };
     }
 
-    // 3. التحقق من الرصيد الفعلي (استبعاد الهدية الترحيبية)
     const bonus = senderData.welcomeBonus || 0;
-    const available = senderData.totalBalance - bonus;
+    const available = (senderData.totalBalance || 0) - bonus;
     if (available < amount) {
       return { success: false, error: "عجز في الرصيد المتاح للتحويل (المبالغ الممنوحة كهدية مخصصة للاستثمار فقط)." };
     }
 
-    // 4. توليد رقم هاش فريد (أرقام فقط)
     const transactionHash = Date.now().toString() + Math.floor(1000 + Math.random() * 9000).toString();
 
-    // 5. تنفيذ العمليات المالية
     await updateDoc(senderRef, { totalBalance: increment(-amount) });
     await updateDoc(recipientRef, { totalBalance: increment(amount) });
 
-    // 6. حفظ العملية في مجموعة التحويلات الداخلية
     await addDoc(collection(firestore, "internal_transfers"), {
-      hash: transactionHash,
-      fromUserId: fromId,
-      fromUserName: senderData.displayName,
-      toUserId: toId,
-      toUserName: recipientData.displayName,
-      amount: amount,
+      hash: transactionHash, fromUserId: fromId, fromUserName: senderData.displayName,
+      toUserId: toId, toUserName: recipientData.displayName, amount: amount,
       createdAt: new Date().toISOString()
     });
 
-    // 7. تسجيل العملية في سجل السحوبات للمرسل
+    // تسجيل العمليات في السجلات المالية
     await addDoc(collection(firestore, "withdraw_requests"), {
-      userId: fromId,
-      userName: senderData.displayName,
-      amount: amount,
-      methodName: "تحويل داخلي (Namix)",
-      status: "approved",
-      targetUserId: toId,
-      transactionId: transactionHash,
-      createdAt: new Date().toISOString()
+      userId: fromId, userName: senderData.displayName, amount: amount, methodName: "تحويل داخلي", status: "approved", transactionId: transactionHash, createdAt: new Date().toISOString()
     });
-
-    // 8. تسجيل العملية في سجل الإيداعات للمستقبل
     await addDoc(collection(firestore, "deposit_requests"), {
-      userId: toId,
-      userName: recipientData.displayName,
-      amount: amount,
-      methodName: "استلام داخلي (Namix)",
-      status: "approved",
-      senderUserId: fromId,
-      transactionId: transactionHash,
-      createdAt: new Date().toISOString()
+      userId: toId, userName: recipientData.displayName, amount: amount, methodName: "استلام داخلي", status: "approved", transactionId: transactionHash, createdAt: new Date().toISOString()
     });
 
-    // 9. إرسال الإشعار للمرسل
-    await addDoc(collection(firestore, "notifications"), {
-      userId: fromId,
-      title: "تأكيد تحويل صادر",
-      message: `تم تحويل مبلغ بقيمة $${amount.toLocaleString()} إلى المستخدم ${recipientData.displayName} بنجاح. المرجع: ${transactionHash}`,
-      type: "info",
-      isRead: false,
-      createdAt: new Date().toISOString()
-    });
-
-    // 10. إرسال الإشعار للمستقبل
-    await addDoc(collection(firestore, "notifications"), {
-      userId: toId,
-      title: "استلام تحويل مالي",
-      message: `تم استلام مبلغ بقيمة $${amount.toLocaleString()} من المستخدم ${senderData.displayName} في حسابك. المرجع: ${transactionHash}`,
-      type: "success",
-      isRead: false,
-      createdAt: new Date().toISOString()
-    });
+    // إطلاق الإشعارات عبر المحرك المركزي (ستظهر كـ Push في شاشة القفل)
+    await sendFinancialNotification(fromId, 'send', amount, `إلى: ${recipientData.displayName}`);
+    await sendFinancialNotification(toId, 'receive', amount);
 
     return { success: true, hash: transactionHash };
   } catch (e: any) {
