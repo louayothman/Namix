@@ -103,6 +103,16 @@ function LoginContent() {
     } catch (e) { setError("فشل التحقق."); } finally { setLoading(false); }
   };
 
+  /**
+   * توليد رمز دعوة فريد بطول 8 محارف
+   */
+  const generateReferralCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let res = "";
+    for(let i=0; i<8; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+    return res;
+  };
+
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -115,16 +125,33 @@ function LoginContent() {
       
       const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
       const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+      const referralCode = generateReferralCode();
+
+      // التحقق من كود الدعوة للمُحيل (إذا وجد)
+      let referredBy = "";
+      if (formData.invitationCode) {
+        const refQuery = query(collection(db, "users"), where("referralCode", "==", formData.invitationCode.trim().toUpperCase()));
+        const refSnap = await getDocs(refQuery);
+        if (!refSnap.empty) {
+          referredBy = refSnap.docs[0].id;
+        }
+      }
 
       const newUser = { 
         id: userId, 
         namixId: namixId,
+        referralCode: referralCode,
+        referredBy: referredBy,
+        referralEarnings: 0,
         email: formData.email, 
         displayName: formData.fullName, 
         role: "user", 
         password: formData.password, 
         totalBalance: trialAmount, 
-        welcomeBonus: trialAmount, // بصمة المكافأة الترحيبية للقفل البرمجي
+        welcomeBonus: trialAmount, 
+        activeInvestmentsTotal: 0,
+        totalProfits: 0,
+        isVerified: false,
         createdAt: new Date().toISOString() 
       };
       
