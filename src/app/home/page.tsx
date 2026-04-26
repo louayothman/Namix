@@ -365,7 +365,7 @@ export default function HomePage() {
         </div>
 
         <DepositSheet open={depositOpen} onOpenChange={setDepositOpen} />
-        <WithdrawSheet open={withdrawOpen} onOpenChange={setWithdrawOpen} />
+        <WithdrawSheet open={withdrawOpen} onOpenChange={setWithdrawOpen} onOpenDeposit={() => setDepositOpen(true)} />
         <ActivationDialog plan={selectedPlan} onClose={() => setSelectedPlan(null)} dbUser={dbUser} onOpenDeposit={() => { setSelectedPlan(null); setDepositOpen(true); }} />
       </div>
     </Shell>

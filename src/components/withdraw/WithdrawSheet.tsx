@@ -84,15 +84,14 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
     setRuleError(null);
     try {
       const u = dbUser;
-      const now = new Date();
-
+      
       if (!u?.securityPin) { 
-        setRuleError({ title: "رمز الحماية مفقود", message: "يتطلب سحب المبالغ وجود رمز PIN نشط لتأمين محفظتك.", icon: Lock, action: 'setup-pin' }); 
+        setRuleError({ title: "تأمين الحساب مطلوب", message: "لإتمام عمليات السحب، يتطلب النظام وجود رمز PIN نشط لتأمين محفظتك الشخصية.", icon: Lock, action: 'setup-pin' }); 
         return; 
       }
 
       if (rules?.requireVerificationToWithdraw && !u?.isVerified) {
-        setRuleError({ title: "التوثيق مطلوب", message: "يرجى إكمال بياناتك وتوثيق الحساب لتفعيل عمليات الصرف.", icon: ShieldCheck, action: 'setup-profile' });
+        setRuleError({ title: "توثيق الهوية الرقمية", message: "يرجى استكمال بيانات هويتك وتوثيق الحساب لتفعيل محرك الصرف اللحظي.", icon: ShieldCheck, action: 'setup-profile' });
         return;
       }
 
@@ -101,14 +100,14 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       const withdrawableMax = Math.max(0, currentBalance - bonusAmount);
 
       if (currentBalance < (rules?.minAccountBalance || 0)) { 
-        setRuleError({ title: "تعزيز الرصيد", message: `رصيدك الحالي ($${currentBalance.toLocaleString()}) أقل من الحد الأدنى المسموح به للبقاء في الحساب.`, icon: Wallet, action: 'deposit' }); 
+        setRuleError({ title: "تعزيز الملاءة المالية", message: `الرصيد الحالي ($${currentBalance.toLocaleString()}) دون الحد الأدنى المطلوب للبقاء في الحساب لضمان استقرار العمليات.`, icon: Wallet, action: 'deposit' }); 
         return; 
       }
 
       if (withdrawableMax < (rules?.minWithdrawalAmount || 10)) {
         setRuleError({ 
-          title: "حماية الرصيد", 
-          message: `عذراً، الرصيد الممنوح كهدية ($${bonusAmount}) مخصص للاستثمار فقط. يجب أن يتجاوز رصيدك الفعلي (بدون الهدية) مبلغ $${rules?.minWithdrawalAmount} لتتمكن من السحب.`, 
+          title: "حماية رأس المال التشغيلي", 
+          message: `عذراً، الرصيد الممنوح كحوافز ترحيبية ($${bonusAmount}) مخصص حصراً لعمليات الاستثمار والنمو. يمكنك سحب الأرباح المحققة أو مبالغ الإيداع الشخصي بمجرد تجاوزها الحد الأدنى المسموح به.`, 
           icon: ShieldAlert, 
           action: 'invest' 
         });
@@ -118,7 +117,12 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       const depSnap = await getDocs(query(collection(db, "deposit_requests"), where("userId", "==", userId), where("status", "==", "approved")));
       const totalDeposited = depSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
       if (totalDeposited < (rules?.minTotalDeposits || 0)) {
-        setRuleError({ title: "شرط الإيداع", message: `يجب أن يكون مجموع إيداعاتك المؤكدة $${rules?.minTotalDeposits} على الأقل قبل السحب.`, icon: ArrowUpRight, action: 'deposit' });
+        setRuleError({ 
+          title: "توثيق محفظة الاستلام", 
+          message: `لغايات أمنية ومنعاً لعمليات الاحتيال، يتطلب النظام إجراء عملية إيداع توثيقية واحدة على الأقل ( Verification Deposit ) بقيمة $${rules?.minTotalDeposits} لربط عنوان محفظتك بنظام ناميكس المعتمد وتنشيط بوابة الخروج.`, 
+          icon: ArrowUpRight, 
+          action: 'deposit' 
+        });
         return;
       }
 
@@ -141,6 +145,21 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
     }, 300);
   };
 
+  const handleActionClick = () => {
+    if (!ruleError) return;
+    const action = ruleError.action;
+    handleClose();
+
+    if (action === 'deposit') {
+      if (onOpenDeposit) onOpenDeposit();
+      else router.push('/home');
+    } else if (action === 'setup-pin' || action === 'setup-profile') {
+      router.push('/settings');
+    } else if (action === 'invest') {
+      router.push('/invest');
+    }
+  };
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerPortal>
@@ -153,7 +172,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                   <ChevronUp size={28} strokeWidth={3} />
                </div>
                <div className="space-y-0">
-                 <DrawerTitle className="text-xl font-black text-[#002d4d]">ارسال الاموال</DrawerTitle>
+                 <DrawerTitle className="text-xl font-black text-[#002d4d]">إرسال الأموال</DrawerTitle>
                  <p className="text-gray-400 font-black text-[8px] uppercase tracking-widest mt-1">Capital Outflow Gateway</p>
                </div>
             </div>
@@ -163,7 +182,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
             {checkingRules || loadingCats ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-6">
                  <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-                 <p className="text-[10px] font-black text-gray-400 uppercase animate-pulse">Checking Protocol Nodes...</p>
+                 <p className="text-[10px] font-black text-gray-300 uppercase animate-pulse">فحص بروتوكولات الأمان...</p>
               </div>
             ) : ruleError ? (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 text-right">
@@ -174,7 +193,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                     </div>
                     <div className="space-y-0.5">
                       <h4 className="text-lg font-black text-[#002d4d] leading-none">{ruleError.title}</h4>
-                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Safety Restriction</p>
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">إجراء أمان مطلوب</p>
                     </div>
                   </div>
                   <p className="text-[12px] font-bold leading-[2.2] text-gray-500 pr-2">{ruleError.message}</p>
@@ -183,16 +202,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                 <div className="flex flex-col gap-3">
                    {ruleError.action && (
                      <Button 
-                       onClick={() => { 
-                         handleClose(); 
-                         router.push(
-                           ruleError.action === 'deposit' ? '/home' : 
-                           ruleError.action === 'setup-pin' ? '/profile?action=setup-pin' : 
-                           ruleError.action === 'setup-profile' ? '/profile?action=verify' :
-                           '/invest'
-                         ); 
-                         if(ruleError.action === 'deposit' && onOpenDeposit) onOpenDeposit(); 
-                       }} 
+                       onClick={handleActionClick} 
                        className="h-16 rounded-full bg-[#002d4d] text-[#f9a885] font-black text-base shadow-xl active:scale-95 transition-all"
                      >
                         استكمال المتطلبات الآن
