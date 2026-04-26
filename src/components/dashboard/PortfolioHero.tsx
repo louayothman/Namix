@@ -1,9 +1,8 @@
-
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, UserCircle, ChevronDown, Eye, EyeOff, ChevronUp } from "lucide-react";
+import { Bell, UserCircle, ChevronDown, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -14,6 +13,22 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+/**
+ * BalanceNode - مكوّن نانوي لعزل تحديثات الرصيد
+ */
+const BalanceNode = memo(({ balance, show }: { balance: number, show: boolean }) => {
+  return (
+    <h2 className="text-5xl md:text-7xl font-black leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2 gpu-accelerated">
+      <span className="text-white/20 text-2xl md:text-3xl font-bold">$</span>
+      {show 
+        ? balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : "••••••"
+      }
+    </h2>
+  );
+});
+BalanceNode.displayName = "BalanceNode";
 
 interface PortfolioHeroProps {
   user: any;
@@ -75,18 +90,14 @@ export function PortfolioHero({
       <Card className="border-none shadow-none rounded-t-none rounded-b-[64px] bg-[#8899AA] text-white overflow-hidden relative group">
         
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-           <motion.div 
-             animate={{ rotate: [0, 360] }}
-             transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-             className="absolute -bottom-24 -left-24 opacity-[0.04] flex items-center justify-center"
-           >
+           <div className="absolute -bottom-24 -left-24 opacity-[0.04] flex items-center justify-center animate-spin-slow">
               <div className="grid grid-cols-2 gap-8 md:gap-12">
                  <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-white shadow-2xl" />
                  <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-[#f9a885] shadow-2xl" />
                  <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-[#f9a885] shadow-2xl" />
                  <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-white shadow-2xl" />
               </div>
-           </motion.div>
+           </div>
         </div>
 
         <CardContent className="p-8 md:p-12 pt-10 md:pt-12 space-y-10 relative z-10">
@@ -140,13 +151,7 @@ export function PortfolioHero({
               </div>
               
               <div className="flex items-center gap-4">
-                <h2 className="text-5xl md:text-7xl font-black leading-none tabular-nums tracking-tighter text-white flex items-baseline gap-2">
-                  <span className="text-white/20 text-2xl md:text-3xl font-bold">$</span>
-                  {showBalance 
-                    ? (user?.totalBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : "••••••"
-                  }
-                </h2>
+                <BalanceNode balance={user?.totalBalance || 0} show={showBalance} />
               </div>
               
               <div className="flex items-center gap-1.5 px-1">
@@ -186,7 +191,7 @@ export function PortfolioHero({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="text-right flex items-center justify-end gap-2 w-full"
+                      className="text-right flex items-center justify-end gap-2 w-full gpu-accelerated"
                     >
                        <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
                          ${totalLiveProfits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -200,7 +205,7 @@ export function PortfolioHero({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -15 }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="text-right flex items-center justify-end gap-2 w-full"
+                      className="text-right flex items-center justify-end gap-2 w-full gpu-accelerated"
                     >
                        <p className="text-[11px] font-black text-white/80 tabular-nums tracking-tighter leading-none">
                          ${(user?.activeInvestmentsTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -217,32 +222,47 @@ export function PortfolioHero({
               onClick={onDeposit}
               className="h-11 rounded-[20px] bg-[#f9a885] hover:bg-white text-[#002d4d] font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg border-none relative overflow-hidden group/btn"
             >
-              <motion.div 
-                animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute right-2 opacity-10 pointer-events-none"
-              >
+              <div className="absolute right-2 opacity-10 pointer-events-none animate-bounce-slow">
                 <ChevronDown size={44} strokeWidth={3} />
-              </motion.div>
+              </div>
               <span className="relative z-10">استلام <span className="opacity-30">Receive</span></span>
             </button>
             <button 
               onClick={onWithdraw}
               className="h-11 rounded-[20px] bg-white/10 hover:bg-white/20 text-white backdrop-blur-3xl border border-white/20 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl relative overflow-hidden group/btn"
             >
-              <motion.div 
-                animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-2 opacity-10 pointer-events-none"
-              >
+              <div className="absolute left-2 opacity-10 pointer-events-none animate-bounce-slow-reverse">
                 <ChevronUp size={44} strokeWidth={3} />
-              </motion.div>
+              </div>
               <span className="relative z-10">إرسال <span className="opacity-30">Send</span></span>
             </button>
           </div>
 
         </CardContent>
       </Card>
+      
+      <style jsx global>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 40s linear infinite;
+          will-change: transform;
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(4px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3.5s ease-in-out infinite;
+          will-change: transform;
+        }
+        .animate-bounce-slow-reverse {
+          animation: bounce-slow 3.5s ease-in-out infinite reverse;
+          will-change: transform;
+        }
+      `}</style>
     </div>
   );
 }
