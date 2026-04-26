@@ -1,7 +1,8 @@
 
 /**
- * @fileOverview محرك التحليل الاستنتاجي المطور v6.0 - Professional Signal Engine
+ * @fileOverview محرك التحليل الاستنتاجي المطور v7.0 - Professional Signal Engine
  * يقوم بتوليد بيانات إشارة متكاملة تشمل الأهداف، وقف الخسارة، وتحليل المخاطر.
+ * تم تطهير اللغة من المصطلحات المرفوضة وضمان توافق المفاتيح مع واجهة العرض.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -49,7 +50,7 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
 
   const dialogue = generateVastAgentDialogue(decision, tech, volume, decisionScore, duration);
-  const reason = isLong ? "Breakout + Strong Volume Support" : decision === 'SELL' ? "Resistance Rejection + Distribution" : "Market Equilibrium";
+  const reasoning = isLong ? "رصد اختراق إيجابي مدعوم بحجم تداول مرتفع عند مستويات الدعم اللحظية." : decision === 'SELL' ? "رفض سعري عند مستويات المقاومة مع زيادة في ضغط التصريف." : "توازن فني في حركة السعر الحالية؛ النظام ينصح بالترقب.";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -63,7 +64,8 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
       ...risk,
       label: risk.level === 'LOW' ? 'منخفضة' : risk.level === 'HIGH' ? 'متوسطة' : 'عالية'
     },
-    reason,
+    reasoning,
+    dialogue,
     trend: isLong ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي",
     volume: volume.score > 0.7 ? "عالي" : volume.score > 0.4 ? "متوسط" : "منخفض",
     targets,
@@ -91,6 +93,6 @@ function generateVastAgentDialogue(decision: string, tech: any, volume: any, sco
   
   return [
     { agent: "Alpha", icon: "Zap", color: "bg-orange-500", message: alphaPool[status][seed] },
-    { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق الفني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق الفني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كافٍ. التوصية: الترقب.` }
+    { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق التقني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق التقني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كافٍ في المعطيات حالياً.` }
   ];
 }

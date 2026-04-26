@@ -154,7 +154,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       });
       await updateDoc(doc(db, "users", dbUser.id), { totalBalance: increment(-amt) });
       hapticFeedback.success();
-      setFeedback({ type: 'success', message: 'تم تنفيذ البروتوكول بنجاح.' });
+      setFeedback({ type: 'success', message: 'تم تنفيذ العملية بنجاح.' });
     } catch (e) {
       hapticFeedback.error();
     } finally {
@@ -190,7 +190,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
 
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">الأهداف الاستراتيجية</h4>
+                     <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">الأهداف المقترحة</h4>
                      <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">PROFIT NODES</Badge>
                   </div>
                   
@@ -204,7 +204,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                           <span className="text-[8px] font-black text-gray-400 uppercase tracking-normal">{t.label}</span>
                           <div className="flex items-center gap-1">
                              <span className={cn("text-[13px] font-black tabular-nums tracking-tighter", t.color)}>
-                               ${(currentPrice * (t.val || 1)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                               ${(t.val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                              </span>
                              {t.glow && <Sparkles size={8} className="text-[#f9a885] animate-pulse" />}
                           </div>
@@ -218,14 +218,14 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                            <MapPin className="h-3 w-3 text-blue-500" />
                            <span className="text-[8px] font-black text-gray-400 uppercase block tracking-normal">نطاق التمركز</span>
                         </div>
-                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">{result.entry_zone}</p>
+                        <p className="text-[11px] font-black text-[#002d4d] tabular-nums tracking-normal" dir="ltr">{result.entry_range}</p>
                      </div>
                      <div className="p-4 bg-red-50/50 rounded-[24px] border border-red-100 shadow-inner text-center space-y-1">
                         <div className="flex items-center justify-center gap-2 mb-1">
                            <ShieldCheck className="h-3 w-3 text-red-500" />
                            <span className="text-[8px] font-black text-red-400 uppercase block tracking-normal">صمام الأمان</span>
                         </div>
-                        <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">${result.invalidated_at?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="text-[11px] font-black text-red-600 tabular-nums tracking-normal">${(result.targets?.sl || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                      </div>
                   </div>
                </div>
@@ -241,7 +241,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
               confidenceScore={confidenceScore} 
             />
 
-            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر البروتوكول المعتمد.`} />
+            <IntelligenceBriefing reasoning={result.reasoning} summary={`تم تحليل الرمز بنتيجة ثقة %${confidenceScore} عبر المعايير التقنية المعتمدة.`} />
 
             <ParameterConsole 
               amount={tradeAmount}
