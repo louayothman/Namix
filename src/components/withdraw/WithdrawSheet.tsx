@@ -12,7 +12,7 @@ import {
   DrawerOverlay
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { useFirestore, useMemoFirebase, useCollection, useDoc } from "@/firebase";
+import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc, collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
 import { 
   ChevronUp, 
@@ -32,7 +32,6 @@ import {
   Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { differenceInMinutes, differenceInHours, differenceInDays, differenceInMonths, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 
 interface WithdrawSheetProps {
@@ -55,7 +54,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
   const db = useFirestore();
   const [dbUser, setDbUser] = useState<any>(null);
   const [checkingRules, setCheckingRules] = useState(true);
-  const [ruleError, setRuleError] = useState<{ message: string, title: string, icon: any, action?: 'setup-pin' | 'setup-profile' | 'deposit' | 'invest' } | null>(null);
+  const [ruleError, setRuleError] = useState<{ message: string, title: string, icon: any, action?: 'setup-pin' | 'setup-profile' | 'deposit' } | null>(null);
 
   const categoriesQuery = useMemoFirebase(() => query(collection(db, "withdraw_methods"), where("isActive", "==", true)), [db]);
   const { data: categories, isLoading: loadingCats } = useCollection(categoriesQuery);
@@ -109,7 +108,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
           title: "حماية رأس المال التشغيلي", 
           message: `عذراً، الرصيد الممنوح كحوافز ترحيبية ($${bonusAmount}) مخصص حصراً لعمليات الاستثمار والنمو. يمكنك سحب الأرباح المحققة أو مبالغ الإيداع الشخصي بمجرد تجاوزها الحد الأدنى المسموح به.`, 
           icon: ShieldAlert, 
-          action: 'invest' 
+          action: 'deposit' 
         });
         return;
       }
@@ -155,8 +154,6 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       else router.push('/home');
     } else if (action === 'setup-pin' || action === 'setup-profile') {
       router.push('/settings');
-    } else if (action === 'invest') {
-      router.push('/invest');
     }
   };
 
@@ -208,7 +205,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
                         استكمال المتطلبات الآن
                      </Button>
                    )}
-                   <button onClick={handleClose} className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] hover:text-[#002d4d] transition-colors py-4">إغلاق النافذة</button>
+                   <button onClick={handleClose} className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] hover:text-[#002d4d] transition-colors py-4">إغلاق النافذة</button>
                 </div>
               </div>
             ) : (
