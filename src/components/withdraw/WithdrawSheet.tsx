@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import {
   DrawerOverlay
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
+import { useFirestore, useMemoFirebase, useCollection, useDoc } from "@/firebase";
 import { doc, collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
 import { 
   ChevronUp, 
@@ -147,12 +146,13 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
   const handleActionClick = () => {
     if (!ruleError) return;
     const action = ruleError.action;
-    handleClose();
-
+    
     if (action === 'deposit') {
+      onOpenChange(false);
       if (onOpenDeposit) onOpenDeposit();
       else router.push('/home');
     } else if (action === 'setup-pin' || action === 'setup-profile') {
+      onOpenChange(false);
       router.push('/settings');
     }
   };
