@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as htmlToImage from 'html-to-image';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { IdentityCardPreview } from "./IdentityCardPreview";
+import { Logo } from "@/components/layout/Logo";
 
 interface IdentityCardDrawerProps {
   open: boolean;
@@ -37,31 +38,30 @@ export function IdentityCardDrawer({
   calculatedTier
 }: IdentityCardDrawerProps) {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [isAssetsLoaded, setIsAssetsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const hasCaptured = useRef(false);
 
   const invitationLink = typeof window !== "undefined" ? `${window.location.origin}/login?ref=${user?.referralCode}` : "";
 
-  // محرك التوليد الذكي: يعمل مرة واحدة فقط عند فتح النافذة
+  // محرك التوليد الذكي: يعمل فقط عندما تكون الأصول جاهزة والنافذة مفتوحة
   useEffect(() => {
-    if (open && !hasCaptured.current) {
-      setImgUrl(null);
+    if (open && isAssetsLoaded && !hasCaptured.current) {
       setLoading(true);
-      
-      // انتظار بسيط لضمان رندر العناصر قبل الالتقاط
+      // انتظار بسيط جداً لضمان رندر النصوص فوق الخلفية
       const timer = setTimeout(() => {
         captureCard();
-      }, 1200);
-
+      }, 800);
       return () => clearTimeout(timer);
     }
     
     if (!open) {
       hasCaptured.current = false;
       setImgUrl(null);
+      setIsAssetsLoaded(false);
     }
-  }, [open]);
+  }, [open, isAssetsLoaded]);
 
   const captureCard = async () => {
     if (!captureRef.current) return;
@@ -109,13 +109,14 @@ export function IdentityCardDrawer({
 
   return (
     <>
-      {/* منطقة الالتقاط المخفية */}
+      {/* منطقة الالتقاط المخفية - تنتظر تحميل الخلفية */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div ref={captureRef}>
            <IdentityCardPreview 
              user={user} 
              calculatedTier={calculatedTier} 
              invitationLink={invitationLink} 
+             onAssetsLoad={() => setIsAssetsLoaded(true)}
            />
         </div>
       </div>
@@ -143,13 +144,50 @@ export function IdentityCardDrawer({
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-12 scrollbar-none">
                <AnimatePresence mode="wait">
-                 {loading ? (
-                   <div className="flex flex-col items-center gap-4">
-                      <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري معالجة الهوية...</p>
-                   </div>
+                 {(!isAssetsLoaded || loading) ? (
+                   <motion.div 
+                     key="custom-loader"
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="flex flex-col items-center gap-6"
+                   >
+                      <div className="flex items-center gap-4">
+                         {/* النبض اللوني للأيقونة والنص */}
+                         <motion.div
+                           animate={{ 
+                             opacity: [0.4, 1, 0.4],
+                             scale: [0.95, 1.05, 0.95]
+                           }}
+                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                         >
+                            <Logo size="sm" hideText={true} animate={false} />
+                         </motion.div>
+                         <motion.h4 
+                           animate={{ 
+                             color: ["#002d4d", "#f9a885", "#002d4d"],
+                             opacity: [0.5, 1, 0.5]
+                           }}
+                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                           className="text-2xl font-black italic tracking-tighter"
+                         >
+                           Namix Card
+                         </motion.h4>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                         <div className="h-1 w-12 bg-gray-100 rounded-full overflow-hidden">
+                            <motion.div 
+                              animate={{ x: [-50, 50] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                              className="h-full w-6 bg-[#f9a885]"
+                            />
+                         </div>
+                         <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Preparing Assets</p>
+                      </div>
+                   </motion.div>
                  ) : imgUrl ? (
                    <motion.div 
+                     key="preview" 
                      initial={{ opacity: 0, scale: 0.9, y: 20 }} 
                      animate={{ opacity: 1, scale: 1, y: 0 }} 
                      className="relative w-full max-w-[450px]"

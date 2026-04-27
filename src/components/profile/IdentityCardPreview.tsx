@@ -9,16 +9,17 @@ interface IdentityCardPreviewProps {
   user: any;
   calculatedTier: any;
   invitationLink: string;
+  onAssetsLoad?: () => void;
 }
 
 /**
- * @fileOverview IdentityCardPreview - Static Asset Edition v8.0
- * يعتمد هذا المكون الآن على خلفية خارجية (card-bg.png) لضمان المطابقة البصرية التامة.
- * تم تنسيق Namix ID ليشغل المساحة السفلية بجانب الـ QR بوضوح نخبوي.
+ * @fileOverview IdentityCardPreview - Static Asset Edition v8.1
+ * تم إضافة مستمع لحدث اكتمال تحميل الصورة الخلفية لضمان دقة التوليد.
  */
 export function IdentityCardPreview({
   user,
-  invitationLink
+  invitationLink,
+  onAssetsLoad
 }: IdentityCardPreviewProps) {
   
   const formatId = (id: string) => {
@@ -34,15 +35,17 @@ export function IdentityCardPreview({
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-white flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* 1. Background Image Layer - يتم جلبها من public/card-bg.png */}
+      {/* 1. Background Image Layer */}
       <div className="absolute inset-0 z-0">
         <img 
           src="/card-bg.png" 
           alt="Card Background" 
           className="w-full h-full object-cover"
+          onLoad={() => onAssetsLoad?.()}
           // Fallback simple color in case file is missing
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+            onAssetsLoad?.(); // Notify load even on error to prevent infinite loading
           }}
         />
       </div>
