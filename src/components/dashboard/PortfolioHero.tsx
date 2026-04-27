@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, UserCircle, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { Bell, UserCircle, ChevronDown, ChevronUp, Eye, EyeOff, Share2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { IdentityCardDrawer } from "@/components/profile/IdentityCardDrawer";
 
 /**
  * BalanceNode - مكوّن نانوي لعزل تحديثات الرصيد
@@ -36,6 +37,7 @@ interface PortfolioHeroProps {
   unreadCount: number;
   onDeposit: () => void;
   onWithdraw: () => void;
+  calculatedTier?: any;
 }
 
 export function PortfolioHero({ 
@@ -43,12 +45,15 @@ export function PortfolioHero({
   totalLiveProfits, 
   unreadCount, 
   onDeposit, 
-  onWithdraw 
+  onWithdraw,
+  calculatedTier
 }: PortfolioHeroProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<'BTC' | 'USDT' | 'ETH'>('BTC');
   const [greeting, setGreeting] = useState("");
   const [showBalance, setShowBalance] = useState(true);
   const [activeMetric, setActiveMetric] = useState<'yield' | 'invest'>( 'yield');
+  const [isCardOpen, setIsCardOpen] = useState(false);
+  
   const prices = useMarketStore(state => state.prices);
 
   const timeGreeting = useMemo(() => {
@@ -120,6 +125,15 @@ export function PortfolioHero({
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
+                {/* Sovereign ID Card Trigger */}
+                <button 
+                  onClick={() => setIsCardOpen(true)}
+                  className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+                  title="مشاركة هويتك السيادية"
+                >
+                  <Share2 className="h-4 w-4 text-white" />
+                </button>
+
                 <Link href="/notifications" className="relative h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all">
                   <Bell className="h-4 w-4 text-[#f9a885]" />
                   {unreadCount > 0 && (
@@ -241,6 +255,13 @@ export function PortfolioHero({
         </CardContent>
       </Card>
       
+      <IdentityCardDrawer 
+        open={isCardOpen} 
+        onOpenChange={setIsCardOpen} 
+        user={user} 
+        calculatedTier={calculatedTier} 
+      />
+
       <style jsx global>{`
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
