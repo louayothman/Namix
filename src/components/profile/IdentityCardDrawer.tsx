@@ -52,7 +52,7 @@ export function IdentityCardDrawer({
       setLoading(true);
       setIsAssetsLoaded(false);
 
-      // تأمين الإظهار اللحظي في حال عدم وجود صور خارجية
+      // تأمين الإظهار التلقائي في حال تأخرت الإشارة
       const safetyTimer = setTimeout(() => {
         setIsAssetsLoaded(true);
       }, 1000);
@@ -91,7 +91,7 @@ export function IdentityCardDrawer({
   const handleDownload = () => {
     if (!imgUrl) return;
     const link = document.createElement('a');
-    link.download = `namix-identity-${user?.displayName?.replace(/\s/g, '-')}.png`;
+    link.download = `namix-card-${user?.namixId}.png`;
     link.href = imgUrl;
     link.click();
   };
@@ -101,7 +101,7 @@ export function IdentityCardDrawer({
     try {
       const response = await fetch(imgUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'namix_identity.png', { type: 'image/png' });
+      const file = new File([blob], 'namix_card.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -152,13 +152,12 @@ export function IdentityCardDrawer({
                <AnimatePresence mode="wait">
                  {(!imgUrl || loading) ? (
                    <motion.div 
-                     key="custom-loader"
-                     initial={{ opacity: 0.3 }}
-                     animate={{ opacity: [0.3, 0.8, 0.3] }}
-                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                     className="flex items-center gap-4 text-[#002d4d]"
+                     key="ghost-loader"
+                     animate={{ opacity: [0.3, 0.7, 0.3], color: ["#002d4d", "rgba(0,45,77,0.3)", "#002d4d"] }}
+                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                     className="flex items-center gap-4"
                    >
-                      <Logo size="sm" hideText={true} animate={false} className="scale-110" />
+                      <Logo size="sm" hideText={true} animate={false} className="scale-110 opacity-60" />
                       <h4 className="text-2xl font-black tracking-tighter uppercase">
                         Namix Card
                       </h4>
