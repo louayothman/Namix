@@ -52,7 +52,7 @@ export function IdentityCardDrawer({
       setLoading(true);
       setIsAssetsLoaded(false);
 
-      // تأمين الإظهار التلقائي في حال تأخرت الإشارة
+      // تأمين الإظهار التلقائي في حال تأخرت الإشارة بعد ثانية واحدة
       const safetyTimer = setTimeout(() => {
         setIsAssetsLoaded(true);
       }, 1000);
@@ -143,9 +143,7 @@ export function IdentityCardDrawer({
                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Identity Display Node</p>
                   </div>
                </div>
-               <button onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all">
-                  <X size={20} />
-               </button>
+               {/* تم حذف زر الإغلاق X للاعتماد على المقبض */}
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-12 scrollbar-none">
@@ -160,13 +158,15 @@ export function IdentityCardDrawer({
                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                      className="flex items-center gap-5"
                    >
+                      {/* الأيقونة على اليسار كما هو مطلوب */}
                       <div className="grid grid-cols-2 gap-1.5 scale-110">
                         <div className="h-1.5 w-1.5 rounded-full bg-current" />
                         <div className="h-1.5 w-1.5 rounded-full bg-current opacity-40" />
                         <div className="h-1.5 w-1.5 rounded-full bg-current opacity-40" />
                         <div className="h-1.5 w-1.5 rounded-full bg-current" />
                       </div>
-                      <h4 className="text-3xl font-black tracking-tighter uppercase leading-none">
+                      {/* النص مستقيم وبخط عريض */}
+                      <h4 className="text-3xl font-black tracking-tighter uppercase leading-none italic-none">
                         Namix Card
                       </h4>
                    </motion.div>

@@ -56,6 +56,12 @@ export default function HomePage() {
   const router = useRouter();
   const db = useFirestore();
 
+  // بروتوكول التحميل المسبق لخلفية البطاقة لضمان السرعة
+  useEffect(() => {
+    const preloadImg = new Image();
+    preloadImg.src = "/card-bg.png";
+  }, []);
+
   const marketingDocRef = useMemoFirebase(() => doc(db, "system_settings", "marketing"), [db]);
   const { data: marketingConfig } = useDoc(marketingDocRef);
 

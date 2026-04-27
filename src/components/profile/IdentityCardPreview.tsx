@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
@@ -13,8 +13,8 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * @fileOverview SilkWaveEngine v6.0 - High Contrast Edition
- * محرك رسم التموجات الحريرية المطور لزيادة التباين والوضوح ومطابقة الصورة المرفقة بدقة 100%.
+ * @fileOverview SilkWaveEngine v7.0 - Intelligent Convergence Fallback
+ * محرك رسم التموجات الحريرية المطور ليكون الخيار الاحتياطي في حال عدم تحميل الصورة.
  */
 const SilkWaves = () => {
   return (
@@ -27,47 +27,35 @@ const SilkWaves = () => {
       <defs>
         <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#6E6A63" stopOpacity="0" />
-          <stop offset="30%" stopColor="#6E6A63" stopOpacity="0.6" />
-          <stop offset="60%" stopColor="#6E6A63" stopOpacity="0.8" />
+          <stop offset="30%" stopColor="#6E6A63" stopOpacity="0.4" />
+          <stop offset="60%" stopColor="#6E6A63" stopOpacity="0.6" />
           <stop offset="100%" stopColor="#6E6A63" stopOpacity="0" />
         </linearGradient>
       </defs>
       
       <g transform="translate(0, 30)">
-        {/* الحزمة الرئيسية الكثيفة - Deep Ribbon Flow */}
+        {/* الحزمة الرئيسية: تتقارب في الزوايا وتتباعد في المركز */}
         {[...Array(35)].map((_, i) => (
           <path
             key={`main-${i}`}
-            d={`M -100 ${460 + i * 1.5} C 100 ${480 + i * 1.5}, 500 ${-20 + i * 2}, 950 ${400 + i * 1.5}`}
+            d={`M -50 ${480 - i * 0.5} C 150 ${490 - i * 3}, 650 ${-100 + i * 8}, 850 ${420 - i * 0.5}`}
             stroke="url(#waveGradient)"
-            strokeWidth="1.2"
+            strokeWidth="0.8"
             fill="none"
-            opacity={0.3 + (i * 0.01)}
+            opacity={0.2 + (i * 0.01)}
           />
         ))}
 
-        {/* الحزمة الثانوية العلوية - Ambient Top Wave */}
+        {/* الحزمة العلوية اليمنى: متوازية وتختفي خلف الحواف */}
         {[...Array(15)].map((_, i) => (
           <path
             key={`top-${i}`}
-            d={`M 400 -50 C 550 50, 750 -100, 900 150`}
+            d={`M 500 -100 C 600 -50, 750 -150, 950 250`}
             stroke="#6E6A63"
-            strokeWidth="0.8"
+            strokeWidth="0.6"
             fill="none"
-            opacity={0.08 + (i * 0.005)}
-            transform={`translate(0, ${i * 4})`}
-          />
-        ))}
-
-        {/* طبقة التداخل العميقة - Shadow Waves */}
-        {[...Array(10)].map((_, i) => (
-          <path
-            key={`shadow-${i}`}
-            d={`M -50 480 C 200 520, 600 50, 1000 420`}
-            stroke="#6E6A63"
-            strokeWidth="2"
-            fill="none"
-            opacity={0.03}
+            opacity={0.05 + (i * 0.005)}
+            transform={`translate(${i * 2}, ${i * 4})`}
           />
         ))}
       </g>
@@ -80,14 +68,17 @@ export function IdentityCardPreview({
   invitationLink,
   onAssetsLoad
 }: IdentityCardPreviewProps) {
+  const [bgLoaded, setBgLoaded] = useState(false);
   
   useEffect(() => {
-    // إرسال إشارة الجاهزية فور رندر المكون البرمجي لضمان التقاط الصورة
+    // إرسال إشارة الجاهزية فور رندر المكون البرمجي لضمان التقاط الصورة في حال عدم وجود صورة ثابتة
     const timer = setTimeout(() => {
-      onAssetsLoad?.();
-    }, 500);
+      if (!bgLoaded) {
+        onAssetsLoad?.();
+      }
+    }, 1200);
     return () => clearTimeout(timer);
-  }, [onAssetsLoad]);
+  }, [onAssetsLoad, bgLoaded]);
 
   const formatId = (id: string) => {
     if (!id) return "00 00 00 00 00";
@@ -102,10 +93,31 @@ export function IdentityCardPreview({
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f5f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* Background Logic: Ivory Silk Gradient with High-Contrast Generated Waves */}
+      {/* Background Logic: Static Image with SVG Fallback */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_25%,_#ffffff_0%,_#f5f1ea_65%,_#e9e3db_100%)]" />
-        <SilkWaves />
+        
+        {/* المحاولة الأولى: الصورة الثابتة من ملفات المشروع */}
+        <img 
+          src="/card-bg.png" 
+          alt="Card Background"
+          className={cn(
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000",
+            bgLoaded ? "opacity-100" : "opacity-0"
+          )}
+          onLoad={() => {
+            setBgLoaded(true);
+            onAssetsLoad?.();
+          }}
+          onError={() => {
+            setBgLoaded(false);
+            // في حال فشل الصورة، نرسل إشارة الجاهزية لاستخدام الـ SVG
+            onAssetsLoad?.();
+          }}
+        />
+
+        {/* الخيار الاحتياطي: التموجات البرمجية */}
+        {!bgLoaded && <SilkWaves />}
       </div>
 
       {/* Header: NAMIX.pro - Solid Bold Identity */}
