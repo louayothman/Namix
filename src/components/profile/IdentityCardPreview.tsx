@@ -4,7 +4,6 @@
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
-import { ShieldCheck } from "lucide-react";
 
 interface IdentityCardPreviewProps {
   user: any;
@@ -13,117 +12,96 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * @fileOverview IdentityCardPreview - Luxury Gold & Gray Fluid Design v5.0
- * تصميم بطاقة عرضية ذهبية مع تموجات رمادية وانسيابية في توزيع المعرّف الرقمي.
+ * @fileOverview IdentityCardPreview - Perfect Replica v6.0
+ * تصميم مطابق تماماً للصورة المرفقة: خلفية عاجية، خطوط انسيابية، وتوزيع عناصر دقيق.
  */
 export function IdentityCardPreview({
   user,
   invitationLink
 }: IdentityCardPreviewProps) {
   
-  // دالة تنسيق الـ ID بمسافات تباعد احترافية
+  // تنسيق المعرف الرقمي: كل رقمين بينهما مسافة (مطابق للصورة)
   const formatId = (id: string) => {
-    if (!id) return "0000    0000    00";
+    if (!id) return "00 00 00 00 00";
     const cleanId = id.replace(/\s/g, '');
-    const parts = [
-      cleanId.slice(0, 4),
-      cleanId.slice(4, 8),
-      cleanId.slice(8, 10)
-    ];
-    return parts.filter(p => p).join('    ');
+    const parts = [];
+    for (let i = 0; i < cleanId.length; i += 2) {
+      parts.push(cleanId.slice(i, i + 2));
+    }
+    return parts.join(' ');
   };
 
   return (
-    <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#D4AF37] flex flex-col justify-between shadow-2xl p-0 font-sans" dir="ltr">
+    <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f4f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none" dir="ltr">
       
-      {/* 1. Background Layers - Gold Base with Gray Fluid Waves */}
+      {/* 1. Background Layers - Precise Replica of the Image Waves */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <svg viewBox="0 0 600 378" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-           {/* التدرج الذهبي الأساسي */}
-           <rect width="600" height="378" fill="url(#goldBase)" />
+           {/* القاعدة العاجية مع تدرج ناعم */}
+           <rect width="600" height="378" fill="url(#creamGradient)" />
            
-           {/* التموجات الرمادية الانسيابية */}
-           <path d="M0 378C150 340 200 120 400 150C500 165 600 100 600 20V378H0Z" fill="url(#grayWave1)" opacity="0.4" />
-           <path d="M0 378C80 320 180 280 350 300C450 320 600 250 600 180V378H0Z" fill="url(#grayWave2)" opacity="0.3" />
-           
-           {/* خطوط انسيابية رفيعة للتأثير البصري */}
-           <path d="M0 320C120 300 250 330 400 280C500 250 600 280 600 200" stroke="#ffffff" strokeWidth="0.5" opacity="0.1" fill="none" />
-           <path d="M0 340C150 320 300 350 450 300C550 270 600 300 600 220" stroke="#4B5563" strokeWidth="0.5" opacity="0.1" fill="none" />
+           {/* الخطوط المنحنية الانسيابية (Contour Lines) */}
+           <g opacity="0.15">
+              <path d="M-50 300C100 280 250 400 450 250C550 180 650 220 700 150" stroke="#555" strokeWidth="1" fill="none" />
+              <path d="M-50 320C120 300 280 420 480 270C580 200 680 240 730 170" stroke="#555" strokeWidth="1" fill="none" />
+              <path d="M-50 340C140 320 310 440 510 290C610 220 710 260 760 190" stroke="#555" strokeWidth="1" fill="none" />
+              <path d="M-50 360C160 340 340 460 540 310C640 240 740 280 790 210" stroke="#555" strokeWidth="1" fill="none" />
+              <path d="M-50 380C180 360 370 480 570 330C670 260 770 300 820 230" stroke="#555" strokeWidth="1" fill="none" />
+              <path d="M-50 400C200 380 400 500 600 350C700 280 800 320 850 250" stroke="#555" strokeWidth="1" fill="none" />
+           </g>
+
+           {/* الحاوية البيضاء المنحنية للـ QR في الركن السفلي الأيمن */}
+           <path d="M450 378C450 320 500 250 600 250V378H450Z" fill="white" />
 
            <defs>
-              <linearGradient id="goldBase" x1="0" y1="0" x2="600" y2="378" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#D4AF37" />
-                <stop offset="1" stopColor="#AA8A2E" />
-              </linearGradient>
-              <linearGradient id="grayWave1" x1="0" y1="378" x2="600" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#4B5563" />
-                <stop offset="1" stopColor="#1F2937" />
-              </linearGradient>
-              <linearGradient id="grayWave2" x1="0" y1="378" x2="600" y2="180" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#9CA3AF" />
-                <stop offset="1" stopColor="#4B5563" />
+              <linearGradient id="creamGradient" x1="0" y1="0" x2="600" y2="378" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#f4f1ea" />
+                <stop offset="1" stopColor="#e8e2d5" />
               </linearGradient>
            </defs>
         </svg>
       </div>
 
-      {/* 2. Card Header - Logo & Contactless */}
+      {/* 2. Top Section - Logo & Dots */}
       <div className="p-10 flex items-start justify-between relative z-10">
-        <div className="flex flex-col items-start gap-1">
-          <h1 className="text-[48px] font-black text-white tracking-tight leading-none italic drop-shadow-lg">NAMIX</h1>
-          <div className="h-1 w-16 bg-white/20 rounded-full mt-2" />
-        </div>
+        <h1 className="text-[54px] font-black text-[#4a4a4a] tracking-tighter leading-none">NAMIX</h1>
         
-        {/* Contactless Icon */}
-        <div className="text-white/30 pt-6">
-           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-             <path d="M7 16C7 16 9 12 7 8" />
-             <path d="M10 18C10 18 13 12 10 6" />
-             <path d="M13 20C13 20 17 12 13 4" />
-           </svg>
+        {/* النقاط الأربعة (2x2 Grid) */}
+        <div className="grid grid-cols-2 gap-2 pt-4 pr-2">
+           {[...Array(4)].map((_, i) => (
+             <div key={i} className="w-5 h-5 rounded-full bg-[#cccbbd] shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]" />
+           ))}
         </div>
       </div>
 
-      {/* 3. Card Body - Strategic Placement */}
-      <div className="px-10 relative z-10 flex-1 flex flex-col justify-end pb-12">
+      {/* 3. Bottom Section - Name, ID & QR */}
+      <div className="px-10 pb-10 relative z-10 flex items-end justify-between">
         
-        <div className="flex flex-col gap-8">
-           {/* User Name - Upper Layer */}
-           <div className="text-left">
-              <p className="text-[18px] font-bold text-white/60 uppercase tracking-[0.25em] drop-shadow-sm">
-                {user?.displayName || "INVESTOR NAME"}
-              </p>
-           </div>
+        {/* الهوية النصية (يسار) */}
+        <div className="space-y-1">
+           <p className="text-[20px] font-bold text-[#a5a496] uppercase tracking-wide">
+              {user?.displayName || "INVESTOR NAME"}
+           </p>
+           <p className="text-[44px] font-black text-[#4a4a4a] tabular-nums tracking-normal leading-none">
+              {formatId(user?.namixId)}
+           </p>
+        </div>
 
-           {/* Core Identity Row - ID occupying space between QR and edge */}
-           <div className="flex items-center justify-between gap-6">
-              {/* Namix ID - Occupies the left and middle space */}
-              <div className="flex-1">
-                 <p className="text-[34px] font-black text-white tabular-nums tracking-[0.1em] drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]">
-                    {formatId(user?.namixId)}
-                 </p>
-              </div>
-
-              {/* QR Code Anchor - On the right side */}
-              <div className="bg-white/10 backdrop-blur-xl p-2 rounded-2xl border border-white/20 relative group shrink-0 shadow-2xl">
-                 <QRCodeSVG 
-                   value={invitationLink} 
-                   size={80} 
-                   bgColor={"transparent"} 
-                   fgColor={"#ffffff"} 
-                   level={"H"} 
-                   includeMargin={false} 
-                 />
-                 <div className="absolute -bottom-2 -left-2 bg-white rounded-full p-1.5 shadow-xl border border-gray-100">
-                    <ShieldCheck size={14} className="text-[#D4AF37]" />
-                 </div>
-              </div>
-           </div>
+        {/* رمز الـ QR (داخل المساحة البيضاء) */}
+        <div className="mb-[-10px] mr-[-10px] pr-8 pb-8">
+           <QRCodeSVG 
+             value={invitationLink} 
+             size={100} 
+             bgColor={"transparent"} 
+             fgColor={"#000000"} 
+             level={"M"} 
+             includeMargin={false} 
+           />
         </div>
       </div>
 
-      {/* Light Sweep Effect */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+      {/* لمسة ضوئية نهائية لتعزيز الواقعية */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
     </div>
   );
 }
