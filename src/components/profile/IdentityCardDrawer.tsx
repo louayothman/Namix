@@ -65,7 +65,7 @@ export function IdentityCardDrawer({
     if (open && isAssetsLoaded && !hasCaptured.current) {
       const timer = setTimeout(() => {
         captureCard();
-      }, 500);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [open, isAssetsLoaded]);
@@ -153,12 +153,17 @@ export function IdentityCardDrawer({
                  {(!imgUrl || loading) ? (
                    <motion.div 
                      key="ghost-loader"
-                     animate={{ opacity: [0.3, 0.7, 0.3], color: ["#002d4d", "rgba(0,45,77,0.3)", "#002d4d"] }}
+                     animate={{ opacity: [0.4, 0.7, 0.4] }}
                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                      className="flex items-center gap-4"
                    >
-                      <Logo size="sm" hideText={true} animate={false} className="scale-110 opacity-60" />
-                      <h4 className="text-2xl font-black tracking-tighter uppercase">
+                      <div className="grid grid-cols-2 gap-1 scale-110">
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#002d4d]" />
+                      </div>
+                      <h4 className="text-2xl font-black text-[#002d4d] tracking-tighter uppercase">
                         Namix Card
                       </h4>
                    </motion.div>
