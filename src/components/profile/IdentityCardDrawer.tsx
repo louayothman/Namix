@@ -14,7 +14,6 @@ import {
   Download, 
   Share2, 
   ShieldCheck, 
-  Sparkles,
   Check,
   X,
   Loader2
@@ -40,18 +39,29 @@ export function IdentityCardDrawer({
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
+  const hasCaptured = useRef(false);
 
   const invitationLink = typeof window !== "undefined" ? `${window.location.origin}/login?ref=${user?.referralCode}` : "";
 
+  // محرك التوليد الذكي: يعمل مرة واحدة فقط عند فتح النافذة
   useEffect(() => {
-    if (open) {
+    if (open && !hasCaptured.current) {
       setImgUrl(null);
       setLoading(true);
-      setTimeout(() => {
+      
+      // انتظار بسيط لضمان رندر العناصر قبل الالتقاط
+      const timer = setTimeout(() => {
         captureCard();
-      }, 1000); 
+      }, 1200);
+
+      return () => clearTimeout(timer);
     }
-  }, [open, user, calculatedTier]);
+    
+    if (!open) {
+      hasCaptured.current = false;
+      setImgUrl(null);
+    }
+  }, [open]);
 
   const captureCard = async () => {
     if (!captureRef.current) return;
@@ -63,6 +73,7 @@ export function IdentityCardDrawer({
         pixelRatio: 4, 
       });
       setImgUrl(dataUrl);
+      hasCaptured.current = true;
     } catch (err) {
       console.error("Card Capture Failure:", err);
     } finally {
@@ -73,7 +84,7 @@ export function IdentityCardDrawer({
   const handleDownload = () => {
     if (!imgUrl) return;
     const link = document.createElement('a');
-    link.download = `namix-card-${user?.displayName?.replace(/\s/g, '-')}.png`;
+    link.download = `namix-identity-${user?.displayName?.replace(/\s/g, '-')}.png`;
     link.href = imgUrl;
     link.click();
   };
@@ -83,7 +94,7 @@ export function IdentityCardDrawer({
     try {
       const response = await fetch(imgUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'namix_identity_card.png', { type: 'image/png' });
+      const file = new File([blob], 'namix_identity.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -98,7 +109,7 @@ export function IdentityCardDrawer({
 
   return (
     <>
-      {/* Hidden Capture Node */}
+      {/* منطقة الالتقاط المخفية */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div ref={captureRef}>
            <IdentityCardPreview 
@@ -112,17 +123,17 @@ export function IdentityCardDrawer({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerPortal>
           <DrawerOverlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1100]" />
-          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[70vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
-            <VisuallyHidden.Root><DrawerTitle>ركن الهوية الشخصية</DrawerTitle></VisuallyHidden.Root>
+          <DrawerContent className="fixed bottom-0 left-0 right-0 h-[75vh] bg-white rounded-t-[48px] border-none shadow-2xl z-[1101] flex flex-col outline-none overflow-hidden font-body" dir="rtl">
+            <VisuallyHidden.Root><DrawerTitle>بطاقة الهوية الشخصية</DrawerTitle></VisuallyHidden.Root>
 
             <div className="px-8 pt-8 shrink-0 flex items-center justify-between">
                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner">
-                     <ShieldCheck size={20} />
+                  <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center shadow-inner">
+                     <ShieldCheck size={20} className="text-[#002d4d]" />
                   </div>
                   <div className="text-right">
                      <h3 className="text-lg font-black text-[#002d4d] leading-none">بطاقة الهوية</h3>
-                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Identity Details</p>
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Personal Identity Card</p>
                   </div>
                </div>
                <button onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all">
@@ -135,15 +146,15 @@ export function IdentityCardDrawer({
                  {loading ? (
                    <div className="flex flex-col items-center gap-4">
                       <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري إعداد البطاقة...</p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">جاري معالجة الهوية...</p>
                    </div>
                  ) : imgUrl ? (
                    <motion.div 
                      initial={{ opacity: 0, scale: 0.9, y: 20 }} 
                      animate={{ opacity: 1, scale: 1, y: 0 }} 
-                     className="relative w-full max-w-[400px]"
+                     className="relative w-full max-w-[450px]"
                    >
-                      <div className="p-2 bg-white rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,45,77,0.2)] border border-gray-100 overflow-hidden">
+                      <div className="p-2 bg-white rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,45,77,0.15)] border border-gray-100 overflow-hidden">
                          <img src={imgUrl} className="w-full rounded-[24px]" alt="Identity Card" />
                       </div>
                       <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black shadow-xl flex items-center gap-2 whitespace-nowrap">
@@ -157,7 +168,7 @@ export function IdentityCardDrawer({
                   <Button 
                     onClick={handleDownload} 
                     disabled={!imgUrl} 
-                    className="h-16 rounded-full bg-gray-50 text-[#002d4d] border border-gray-100 font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3"
+                    className="h-16 rounded-full bg-gray-50 text-[#002d4d] border border-gray-100 font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
                   >
                      <Download size={18} /> حفظ
                   </Button>
@@ -172,11 +183,7 @@ export function IdentityCardDrawer({
             </div>
 
             <div className="p-6 bg-gray-50 border-t border-gray-100 flex flex-col items-center gap-3 opacity-20 shrink-0">
-               <div className="flex items-center gap-4">
-                  <div className="h-px w-8 bg-[#002d4d]" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#002d4d]">Namix System</p>
-                  <div className="h-px w-8 bg-[#002d4d]" />
-               </div>
+               <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#002d4d]">NAMIX SYSTEM</p>
             </div>
           </DrawerContent>
         </DrawerPortal>
