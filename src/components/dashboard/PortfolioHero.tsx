@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, UserCircle, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Bell, UserCircle, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
