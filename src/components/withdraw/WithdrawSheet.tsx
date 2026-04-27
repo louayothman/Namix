@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
@@ -153,6 +154,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
       else router.push('/home');
     } else if (action === 'setup-pin' || action === 'setup-profile') {
       onOpenChange(false);
+      // التوجيه لصفحة الإعدادات، والمكونات ستكون متاحة هناك للمستخدم
       router.push('/settings');
     }
   };
@@ -179,7 +181,7 @@ export function WithdrawSheet({ open, onOpenChange, onOpenDeposit }: WithdrawShe
             {checkingRules || loadingCats ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-6">
                  <Loader2 className="h-10 w-10 animate-spin text-[#002d4d] opacity-20" />
-                 <p className="text-[10px] font-black text-gray-300 uppercase animate-pulse">فحص بروتوكولات الأمان...</p>
+                 <p className="text-[10px] font-black text-gray-400 uppercase animate-pulse">فحص إجراءات الأمان...</p>
               </div>
             ) : ruleError ? (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 text-right">

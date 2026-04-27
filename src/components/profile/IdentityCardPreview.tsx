@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Logo } from "@/components/layout/Logo";
 import { cn } from "@/lib/utils";
 import { ShieldCheck, Sparkles, Hash, Award } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface IdentityCardPreviewProps {
   user: any;
