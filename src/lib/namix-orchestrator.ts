@@ -1,8 +1,7 @@
 
 /**
- * @fileOverview محرك التحليل الاستنتاجي المطور v7.0 - Professional Signal Engine
- * يقوم بتوليد بيانات إشارة متكاملة تشمل الأهداف، وقف الخسارة، وتحليل المخاطر.
- * تم تطهير اللغة من المصطلحات المرفوضة وضمان توافق المفاتيح مع واجهة العرض.
+ * @fileOverview محرك التحليل الاستنتاجي المطور v8.0 - Professional Signal Engine
+ * تم تحديث المحرك لدعم نظام "مناظرة الوكلاء" (Bull vs Bear) لتعزيز دقة القرار.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -27,7 +26,6 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
 
   const confidence = Math.round(decisionScore * 100);
 
-  // إطلاق تنبيه إشارة التداول إذا تجاوزت الثقة 60%
   if (userId && confidence >= 60 && decision !== 'HOLD') {
     sendAISignalNotification(userId, cleanSymbol, confidence, decision).catch(() => {});
   }
@@ -37,7 +35,6 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const volatility = tech.high - tech.low;
   const atrProxy = volatility * 0.25;
 
-  // هندسة الأهداف الاستراتيجية (Targets Architecture)
   const isLong = decision === 'BUY';
   const targets = {
     tp1: isLong ? currentPrice + (atrProxy * 1.5) : currentPrice - (atrProxy * 1.5),
@@ -49,8 +46,14 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const entryMin = currentPrice * (isLong ? 0.999 : 1.001);
   const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
 
-  const dialogue = generateVastAgentDialogue(decision, tech, volume, decisionScore, duration);
-  const reasoning = isLong ? "رصد اختراق إيجابي مدعوم بحجم تداول مرتفع عند مستويات الدعم اللحظية." : decision === 'SELL' ? "رفض سعري عند مستويات المقاومة مع زيادة في ضغط التصريف." : "توازن فني في حركة السعر الحالية؛ النظام ينصح بالترقب.";
+  // توليد مناظرة الوكلاء (Oracle Debate)
+  const dialogue = generateOracleDebate(decision, tech, volume, duration);
+  
+  const reasoning = isLong 
+    ? "تم رصد زخم شرائي متصاعد مدعوم بتدفقات سيولة إيجابية عند مستويات الدعم الحالية." 
+    : decision === 'SELL' 
+    ? "رفض سعري واضح عند مناطق المقاومة مع مؤشرات على بدء تصحيح فني." 
+    : "السوق في حالة تعادل فني؛ محرك التحليل ينصح بانتظار إشارة تأكيد واضحة.";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -71,28 +74,37 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
     targets,
     entry_range: `${entryMin.toLocaleString(undefined, {minimumFractionDigits: 2})} – ${entryMax.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
     invalidated_at: targets.sl,
-    timeframe: duration ? (duration < 3600 ? "سكالبينج" : "إنتراداي") : "تداول يومي",
+    timeframe: duration ? (duration < 3600 ? "قصير" : "متوسط") : "يومي",
     agents: { tech, volume },
     timestamp: new Date().toISOString()
   };
 }
 
-function generateVastAgentDialogue(decision: string, tech: any, volume: any, score: number, duration?: number) {
+/**
+ * محرك مناظرة الوكلاء (Bull vs Bear Debate)
+ */
+function generateOracleDebate(decision: string, tech: any, volume: any, duration?: number) {
   const isBuy = decision === "BUY";
   const isSell = decision === "SELL";
-  const durLabel = duration ? (duration < 60 ? `${duration}ثانية` : `${Math.floor(duration/60)}دقيقة`) : "الحالية";
+  const durLabel = duration ? (duration < 60 ? `${duration} ثانية` : `${Math.floor(duration/60)} دقيقة`) : "الحالية";
 
-  const alphaPool = {
-    BUY: [`هناك زيادة ملحوظة في مستويات الطلب.`, `تم رصد اتجاه إيجابي في إطار ${durLabel}.`],
-    SELL: [`ضغط بيع متزايد في الوقت الحالي.`, `إشارة هبوط محتملة في إطار ${durLabel}.`],
-    HOLD: [`توازن في الحركة السعرية دون اتجاه واضح.`, `النظام يراقب مناطق الاستقرار في إطار ${durLabel}.`]
+  const bullMessages = {
+    BUY: "أرى اختراقاً إيجابياً قوياً؛ ضغط الشراء يتزايد والمنحنى يستهدف قمة جديدة.",
+    SELL: "رغم الضغط الحالي، إلا أن مستويات الدعم قوية وقد نرى ارتداداً وشيكاً.",
+    HOLD: "السعر يبني قاعدة متينة هنا، التجميع الهادئ قد يسبق انطلاقة قوية."
+  };
+
+  const bearMessages = {
+    BUY: "احذر من فخ شرائي؛ السيولة متذبذبة وقد نرى تصحيحاً خاطفاً قبل الصعود.",
+    SELL: "المؤشرات الفنية سلبية تماماً؛ كسر مستويات الدعم يفتح الباب لمزيد من التراجع.",
+    HOLD: "الزخم ضعيف جداً؛ لا أنصح بالدخول الآن لتجنب تقلبات المسار العرضي."
   };
 
   const status = isBuy ? 'BUY' : isSell ? 'SELL' : 'HOLD';
-  const seed = Math.floor(Date.now() / 3000) % 2;
-  
+
   return [
-    { agent: "Alpha", icon: "Zap", color: "bg-orange-500", message: alphaPool[status][seed] },
-    { agent: "Core", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تحقق التوافق التقني. التوصية: تنفيذ شراء ${durLabel}.` : isSell ? `تحقق التوافق التقني. التوصية: تنفيذ بيع ${durLabel}.` : `لا يوجد توافق كافٍ في المعطيات حالياً.` }
+    { agent: "Bull_Agent", icon: "Zap", color: "bg-emerald-500", message: bullMessages[status] },
+    { agent: "Bear_Agent", icon: "Target", color: "bg-red-500", message: bearMessages[status] },
+    { agent: "Core_Engine", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تم التوافق على مسار صعودي لـ ${durLabel}. التنفيذ: شراء.` : isSell ? `تم التوافق على مسار تصحيحي لـ ${durLabel}. التنفيذ: بيع.` : "لا يوجد إجماع كافٍ؛ البقاء في وضع الترقب هو القرار الأكثر أماناً." }
   ];
 }

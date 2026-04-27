@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, UserCircle, ChevronDown, ChevronUp, Eye, EyeOff, Share2 } from "lucide-react";
+import { Bell, UserCircle, ChevronDown, ChevronUp, Eye, EyeOff, Share2, Zap } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMarketStore } from "@/store/use-market-store";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { IdentityCardDrawer } from "@/components/profile/IdentityCardDrawer";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 /**
  * BalanceNode - مكوّن نانوي لعزل تحديثات الرصيد
@@ -55,7 +57,13 @@ export function PortfolioHero({
   const [activeMetric, setActiveMetric] = useState<'yield' | 'invest'>( 'yield');
   const [isCardOpen, setIsCardOpen] = useState(false);
   
+  const db = useFirestore();
   const prices = useMarketStore(state => state.prices);
+
+  // مراقبة ساعات تعزيز العائد (Yield Boost)
+  const globalTradeRef = useMemoFirebase(() => doc(db, "system_settings", "trading_global"), [db]);
+  const { data: globalConfig } = useDoc(globalTradeRef);
+  const isBoostActive = !!globalConfig?.isBoostActive;
 
   const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -125,8 +133,21 @@ export function PortfolioHero({
             </div>
 
             <div className="flex items-center gap-3">
+              <AnimatePresence>
+                {isBoostActive && (
+                  <motion.div 
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="h-9 px-4 rounded-xl bg-[#f9a885] text-[#002d4d] flex items-center gap-2 shadow-lg animate-pulse"
+                  >
+                     <Zap size={14} className="fill-current" />
+                     <span className="text-[9px] font-black uppercase tracking-widest">Growth Boost Active</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
-                {/* Identity Card Trigger */}
                 <button 
                   onClick={() => setIsCardOpen(true)}
                   className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all active:scale-90"
