@@ -148,12 +148,12 @@ export function IdentityCardPreview({
         </div>
 
         {/* Minimal QR Node - Integrated & Functional */}
-        <div className="shrink-0 p-2 opacity-70 mb-1">
+        <div className="shrink-0 p-2 opacity-90 mb-1">
            <QRCodeSVG 
              value={invitationLink} 
              size={100} 
              bgColor={"transparent"} 
-             fgColor={"#6E6A63"} 
+             fgColor={"#4a4742"} 
              level={"M"} 
              includeMargin={false} 
            />
