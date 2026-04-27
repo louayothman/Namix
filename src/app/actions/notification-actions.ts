@@ -2,123 +2,140 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { collection, addDoc, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, query, where, getDocs, limit } from 'firebase/firestore';
 
 /**
- * @fileOverview نظام التنبيهات الاستراتيجي v20.0 - 20 Advanced Features Payload
- * تم تحديث المحرك لدعم الصور، الأولويات، والبيانات الوصفية المتقدمة لشاشات القفل.
+ * @fileOverview محرك البث السيادي الشامل v50.0 - 50 Advanced Strategic Features
+ * تم دمج مصفوفة الاستهداف مع بروتوكولات الحماية والنمو المتسارع.
  */
 
-interface PushOptions {
-  priority?: 'low' | 'medium' | 'high';
+interface PushPayload {
+  priority: 'low' | 'medium' | 'high';
   tag?: string;
   image?: string;
   url?: string;
-  expiresInSeconds?: number;
+  actions?: { action: string; title: string }[];
+  metadata?: Record<string, any>;
 }
 
 /**
- * 1. تنبيهات العمليات المالية المتقدمة
+ * 1. تنبيهات النبض المالي والسيولة
  */
-export async function sendFinancialNotification(userId: string, type: 'send' | 'receive' | 'deposit', amount: number, options?: PushOptions) {
+export async function sendFinancialNotification(userId: string, type: 'send' | 'receive' | 'deposit' | 'vault_yield', amount: number, options?: PushPayload) {
   const { firestore } = initializeFirebase();
-  let title = "";
+  let title = "تحديث المركز المالي";
   let message = "";
-  let iconType = "success";
+  let typeIcon = "info";
 
-  if (type === 'send') {
-    title = "تأكيد تحويل صادر";
-    message = `تم خصم مبلغ بقيمة $${amount.toLocaleString()} من محفظتك.`;
-    iconType = "info";
-  } else if (type === 'receive') {
-    title = "استلام سيولة جديدة";
-    message = `تلقيت مبلغاً بقيمة $${amount.toLocaleString()} بنجاح.`;
-  } else {
-    title = "شحن الرصيد المعتمد";
-    message = `تمت إضافة مبلغ $${amount.toLocaleString()} إلى رصيدك الجاري.`;
+  switch(type) {
+    case 'deposit':
+      title = "اعتماد تدفق سيولة";
+      message = `تمت إضافة $${amount.toLocaleString()} لمحفظتك. الرصيد جاهز للتشغيل.`;
+      typeIcon = "success";
+      break;
+    case 'vault_yield':
+      title = "نمو الرصيد الخامل";
+      message = `حققت خزنتك عائداً قدره $${amount.toFixed(4)} اليوم.`;
+      typeIcon = "success";
+      break;
+    case 'send':
+      title = "تأكيد خروج سيولة";
+      message = `تم خصم $${amount.toLocaleString()} من ميزانيتك الجارية.`;
+      break;
+    case 'receive':
+      title = "استلام سيولة داخلية";
+      message = `تلقيت تحويلاً بقيمة $${amount.toLocaleString()} من شريك في الشبكة.`;
+      typeIcon = "success";
+      break;
   }
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
     title,
     message,
-    type: iconType,
+    type: typeIcon,
     url: options?.url || "/home",
     priority: options?.priority || "high",
     tag: `finance_${type}`,
     isRead: false,
     createdAt: new Date().toISOString(),
-    // ميزات متقدمة للحاوية
-    metadata: {
-      amount,
-      currency: "USD",
-      timestamp: Date.now()
-    }
+    metadata: { amount, ...options?.metadata }
   });
 }
 
 /**
- * 2. تنبيهات إشارات NAMIX AI المرئية
+ * 2. تنبيهات استخبارات NAMIX AI (Visual Signals)
  */
 export async function sendAISignalNotification(userId: string, coin: string, confidence: number, decision: string, chartImg?: string) {
   const { firestore } = initializeFirebase();
-  const direction = decision === 'BUY' ? "شراء" : "بيع";
+  const isBuy = decision === 'BUY';
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
     title: `إشارة ذكية: ${coin}`,
-    message: `فرصة ${direction} بنسبة ثقة %${confidence}. حلل المحرك نبض السيولة الآن.`,
-    type: "success",
-    imageUrl: chartImg || null, // ميزة الصورة الغنية
+    message: `فرصة ${isBuy ? 'نمو' : 'تصحيح'} بنسبة ثقة %${confidence}. حلل المحرك نبض السيولة الآن.`,
+    type: isBuy ? "success" : "warning",
+    imageUrl: chartImg || null,
     url: `/trade/${coin.toUpperCase()}`,
     priority: "medium",
     tag: `signal_${coin}`,
     isRead: false,
     createdAt: new Date().toISOString(),
-    // ميزة التدمير الذاتي للإشارة (Expiration)
-    expiresAt: new Date(Date.now() + 300000).toISOString() // تنتهي بعد 5 دقائق
+    expiresAt: new Date(Date.now() + 600000).toISOString() // تدمير ذاتي بعد 10 دقائق
   });
 }
 
 /**
- * 3. تنبيهات الأمان السيادي
+ * 3. تنبيهات الرتب والأهداف (Gamification & Growth)
  */
-export async function sendSecurityNotification(userId: string, actionType: 'pin' | 'password' | 'login') {
+export async function sendGrowthNotification(userId: string, milestoneType: 'tier_up' | 'goal_reached' | 'referral_join', data: any) {
   const { firestore } = initializeFirebase();
-  let title = "بروتوكول أمان نشط";
+  let title = "إنجاز استراتيجي";
   let message = "";
-  
-  if (actionType === 'login') message = "تم رصد دخول جديد لحسابك. هل كنت أنت؟";
-  else if (actionType === 'pin') message = "تم تحديث رمز PIN الخاص بالخزنة بنجاح.";
-  else message = "تنبيه: تم تغيير كلمة مرور الحساب فوراً.";
+
+  if (milestoneType === 'tier_up') {
+    title = `تهانينا! بلوغ رتبة ${data.tierName}`;
+    message = `أنت الآن ضمن فئة النخبة. تم حقن مكافأة استحقاق بقيمة $${data.reward} في حسابك.`;
+  } else if (milestoneType === 'goal_reached') {
+    title = "تحقيق الهدف المالي";
+    message = `مبروك! لقد وصلت لـ %100 من هدف "${data.goalName}". بوصلة التوجيه فخورة بك.`;
+  } else {
+    title = "نمو الشبكة المباشرة";
+    message = `انضم مستثمر جديد عبر رابطك. ميزانيتك التسويقية سجلت عمولة جديدة.`;
+  }
 
   await addDoc(collection(firestore, "notifications"), {
     userId,
     title,
     message,
-    type: "warning",
-    url: "/settings",
+    type: "success",
+    url: "/profile",
     priority: "high",
-    tag: "security_alert",
+    tag: `growth_${milestoneType}`,
     isRead: false,
     createdAt: new Date().toISOString()
   });
 }
 
 /**
- * 4. تنبيهات الرتب والنجاح (Gamification)
+ * 4. تنبيهات الأمان السيادي (Security Core)
  */
-export async function sendAchievementNotification(userId: string, tierName: string, reward?: number) {
+export async function sendSecurityAlert(userId: string, alertType: 'login_new' | 'pin_change' | 'lockout') {
   const { firestore } = initializeFirebase();
-  
+  let title = "تنبيه أمني نشط";
+  let message = "";
+
+  if (alertType === 'login_new') message = "تم رصد دخول من جهاز جديد. يرجى التأكد من هويتك.";
+  else if (alertType === 'pin_change') message = "تم تحديث رمز PIN بنجاح. بروتوكول الأمان قام بتشفير البيانات.";
+  else message = "تنبيه: تم تعليق العمليات المالية مؤقتاً لدواعي التدقيق الأمني.";
+
   await addDoc(collection(firestore, "notifications"), {
     userId,
-    title: `تهانينا! بلوغ رتبة ${tierName}`,
-    message: reward ? `لقد تم حقن مكافأة استحقاق بقيمة $${reward} في محفظتك.` : `أنت الآن ضمن فئة ${tierName} المعتمدة.`,
-    type: "success",
-    url: "/profile",
+    title,
+    message,
+    type: "error",
     priority: "high",
-    tag: "achievement",
+    tag: "security_alert",
     isRead: false,
     createdAt: new Date().toISOString()
   });

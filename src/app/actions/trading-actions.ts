@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview إجراءات التداول المحدثة v5.0
- * دمج نظام التنبيهات المعتمد مع نتائج الصفقات.
+ * @fileOverview إجراءات التداول v50.0 - Intelligence Trigger Integration
+ * تم دمج المحرك السلوكي ليعمل فور تسوية أي صفقة لإخطار المستخدم بالنتيجة.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -45,13 +45,14 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       });
     }
 
-    // إضافة إشعار داخلي (سيقوم NotificationManager بتحويله لـ Push)
+    // إطلاق إشعار تسوية الصفقة (سيظهر كـ Push في شاشة القفل)
     await addDoc(collection(firestore, "notifications"), {
       userId: trade.userId,
-      title: "تحديث نتيجة التداول",
-      message: `تم إغلاق عملية التداول لرمز ${trade.symbolCode} بنتيجة ${result === 'win' ? 'ربح' : 'إغلاق بدون ربح'}. القيمة النهائية: ${profit.toFixed(2)} دولار.`,
+      title: result === 'win' ? "اكتمال صفقة ناجحة 💰" : "تسوية عملية تداول",
+      message: `تم إغلاق رمز ${trade.symbolCode} بنتيجة ${result === 'win' ? 'ربح محقق' : 'إغلاق مركز'}. القيمة الصافية: $${profit.toFixed(2)}.`,
       type: result === 'win' ? "success" : "info",
       url: `/trade/${trade.symbolId}/history`,
+      priority: result === 'win' ? "high" : "medium",
       isRead: false,
       createdAt: new Date().toISOString()
     });
