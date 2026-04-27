@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -13,8 +14,8 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * @fileOverview IdentityCardPreview - The visual soul of the Sovereign ID Card
- * تم تصميمها بكرت رأسي فخم (450x750) مع طبقات لونية تعتمد على الرتبة.
+ * @fileOverview IdentityCardPreview - Debit Card Aspect Ratio v2.0
+ * تم تعديل التصميم ليصبح عرضياً (Landscape) بأسلوب البطاقات البنكية الفخمة.
  */
 export function IdentityCardPreview({
   user,
@@ -23,7 +24,7 @@ export function IdentityCardPreview({
 }: IdentityCardPreviewProps) {
   const tierColor = calculatedTier?.color || "blue";
   
-  // خوارزمية الألوان السيادية بناءً على الرتبة
+  // توزيع الألوان بناءً على فئة الحساب
   const theme = {
     blue: { bg: "bg-[#002d4d]", accent: "text-blue-400", glow: "from-blue-500/20" },
     yellow: { bg: "bg-[#f59e0b]", accent: "text-yellow-100", glow: "from-yellow-200/40" },
@@ -34,81 +35,74 @@ export function IdentityCardPreview({
 
   return (
     <div className={cn(
-      "w-[450px] min-h-[750px] p-0 relative overflow-hidden flex flex-col items-center",
+      "w-[600px] h-[378px] p-0 relative overflow-hidden flex flex-col justify-between shadow-2xl",
       theme.bg
     )} style={{ fontFamily: "'Cairo', 'Tajawal', sans-serif" }}>
       
-      {/* 1. Background Atmosphere Layers */}
+      {/* Background Atmosphere Layers */}
       <div className="absolute inset-0 z-0">
-         <div className={cn("absolute top-[-10%] right-[-10%] w-[80%] h-[50%] rounded-full blur-[100px] opacity-30 bg-gradient-to-br", theme.glow)} />
-         <div className="absolute bottom-[-10%] left-[-10%] w-[80%] h-[50%] rounded-full blur-[100px] opacity-10 bg-white/5" />
+         <div className={cn("absolute top-[-20%] right-[-10%] w-[100%] h-[100%] rounded-full blur-[120px] opacity-40 bg-gradient-to-br", theme.glow)} />
          
-         {/* Sovereign iX Ghost Watermark */}
-         <div className="absolute left-[-15%] top-1/2 -translate-y-1/2 text-[500px] font-black text-white/[0.03] leading-none select-none tracking-tighter italic">
+         {/* Subtle iX Branding */}
+         <div className="absolute right-[-5%] bottom-[-10%] text-[280px] font-black text-white/[0.03] leading-none select-none tracking-tighter italic">
             iX
          </div>
       </div>
 
-      {/* 2. Header Strip */}
-      <div className="w-full p-12 flex items-center justify-between relative z-10">
-         <Logo size="md" lightText hideText={false} animate={false} className="scale-110" />
-         <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-inner">
-               <ShieldCheck className="h-5 w-5 text-white" />
-            </div>
+      {/* Card Header */}
+      <div className="w-full p-10 flex items-start justify-between relative z-10">
+         <Logo size="sm" lightText hideText={false} animate={false} className="scale-125" />
+         <div className="flex flex-col items-end gap-1">
+            <Badge className={cn("text-[9px] font-black border-none px-4 py-1 rounded-full shadow-lg", `bg-white/10 text-white backdrop-blur-md`)}>
+               {calculatedTier?.name || "حساب أساسي"}
+            </Badge>
          </div>
       </div>
 
-      {/* 3. Central Identity Core */}
-      <div className="flex-1 w-full px-12 flex flex-col items-center justify-center gap-12 relative z-10 text-center">
-         
-         <div className="space-y-4">
-            <h1 className="text-4xl font-black text-white tracking-tight leading-tight px-4">{user?.displayName}</h1>
-            <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
-               <Award size={14} className="text-[#f9a885]" />
-               <span className="text-[12px] font-black text-white uppercase tracking-[0.2em]">{calculatedTier?.name || "Starter Protocol"}</span>
+      {/* Card Body - Dual Wing Layout */}
+      <div className="flex-1 flex items-center justify-between px-10 relative z-10">
+         <div className="space-y-6 text-right">
+            <div className="space-y-1">
+               <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Investor Name</p>
+               <h1 className="text-3xl font-black text-white tracking-tight leading-tight">{user?.displayName}</h1>
             </div>
-         </div>
 
-         {/* The Sovereign QR */}
-         <div className="p-4 bg-white rounded-[56px] shadow-2xl relative group">
-            <div className="p-3 bg-gray-50 rounded-[44px] border border-gray-100">
-               <QRCodeSVG 
-                 value={invitationLink} 
-                 size={240} 
-                 bgColor={"transparent"} 
-                 fgColor={"#002d4d"} 
-                 level={"H"} 
-                 includeMargin={false} 
-               />
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-               <div className="bg-white p-2.5 rounded-2xl shadow-lg border border-gray-50">
-                  <Logo size="sm" hideText animate={false} />
+            <div className="space-y-1">
+               <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Namix ID</p>
+               <div className="flex items-center gap-3">
+                  <p className="text-xl font-black text-white tabular-nums tracking-[0.15em]">{user?.namixId}</p>
                </div>
             </div>
          </div>
 
-         <div className="space-y-3">
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em]">Namix Sovereign ID</p>
-            <div className="flex items-center justify-center gap-3">
-               <Hash size={16} className="text-[#f9a885]" />
-               <p className="text-2xl font-black text-white tabular-nums tracking-[0.2em]">{user?.namixId}</p>
+         {/* QR Code Anchor */}
+         <div className="bg-white p-2 rounded-[24px] shadow-2xl relative">
+            <QRCodeSVG 
+              value={invitationLink} 
+              size={120} 
+              bgColor={"transparent"} 
+              fgColor={"#002d4d"} 
+              level={"H"} 
+              includeMargin={false} 
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+               <div className="bg-white p-1 rounded-lg shadow-sm border border-gray-50 scale-[0.6]">
+                  <Logo size="sm" hideText animate={false} />
+               </div>
             </div>
          </div>
       </div>
 
-      {/* 4. Footer Compliance Node */}
-      <div className="w-full p-12 mt-auto relative z-10 flex flex-col items-center gap-6">
-         <div className="w-full h-px bg-white/10" />
-         <div className="flex items-center gap-8 opacity-40">
-            <div className="grid grid-cols-2 gap-1 scale-90">
-               <div className="h-1.5 w-1.5 rounded-full bg-white" />
-               <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-               <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885]" />
-               <div className="h-1.5 w-1.5 rounded-full bg-white" />
-            </div>
-            <span className="text-[9px] font-black text-white uppercase tracking-[0.8em] mr-[-0.8em]">AUTHORIZED ACCESS</span>
+      {/* Footer Compliance */}
+      <div className="w-full p-8 relative z-10 flex items-center justify-between">
+         <div className="flex items-center gap-4 opacity-40">
+            <ShieldCheck size={14} className="text-[#f9a885]" />
+            <span className="text-[8px] font-black text-white uppercase tracking-[0.5em]">Verified Member</span>
+         </div>
+         <div className="flex items-center gap-1.5 opacity-20">
+            <div className="h-1 w-1 rounded-full bg-white" />
+            <div className="h-1 w-1 rounded-full bg-white" />
+            <div className="h-1 w-1 rounded-full bg-white" />
          </div>
       </div>
     </div>

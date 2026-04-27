@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect, memo } from "react";
@@ -125,11 +126,11 @@ export function PortfolioHero({
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 p-1.5 bg-white/5 rounded-2xl backdrop-blur-3xl border border-white/10">
-                {/* Sovereign ID Card Trigger */}
+                {/* Identity Card Trigger */}
                 <button 
                   onClick={() => setIsCardOpen(true)}
                   className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all active:scale-90"
-                  title="مشاركة هويتك السيادية"
+                  title="مشاركة الهوية"
                 >
                   <Share2 className="h-4 w-4 text-white" />
                 </button>
