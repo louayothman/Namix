@@ -12,8 +12,9 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * @fileOverview IdentityCardPreview - Luxury Ripple Edition v7.0
- * تصميم متطور يعتمد على التموجات العضوية الشاملة مع دمج كامل للعناصر دون انقطاع لوني.
+ * @fileOverview IdentityCardPreview - Static Asset Edition v8.0
+ * يعتمد هذا المكون الآن على خلفية خارجية (card-bg.png) لضمان المطابقة البصرية التامة.
+ * تم تنسيق Namix ID ليشغل المساحة السفلية بجانب الـ QR بوضوح نخبوي.
  */
 export function IdentityCardPreview({
   user,
@@ -31,81 +32,57 @@ export function IdentityCardPreview({
   };
 
   return (
-    <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f4f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none" dir="ltr">
+    <div className="w-[600px] h-[378px] relative overflow-hidden bg-white flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* 1. Integrated Organic Waves - تغطي كامل المساحة */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <svg viewBox="0 0 600 378" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-           <rect width="600" height="378" fill="url(#mainCreamGradient)" />
-           
-           {/* طبقة التموجات الرمادية والذهبية المتداخلة */}
-           <g opacity="0.4">
-              <path d="M-100 200C50 150 250 350 450 180C550 120 700 200 800 100" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 220C60 170 280 370 480 200C580 140 730 220 830 120" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 240C70 190 310 390 510 220C610 160 760 240 860 140" stroke="url(#waveGray)" strokeWidth="1" fill="none" />
-              <path d="M-100 260C80 210 340 410 540 240C640 180 790 260 890 160" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 280C90 230 370 430 570 260C670 200 820 280 920 180" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 300C100 250 400 450 600 280C700 220 850 300 950 200" stroke="url(#waveGold)" strokeWidth="1" fill="none" />
-              <path d="M-100 320C110 270 430 470 630 300C730 240 880 320 980 220" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 340C120 290 460 490 660 320C760 260 910 340 1010 240" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
-              <path d="M-100 360C130 310 490 510 690 340C790 280 940 360 1040 260" stroke="url(#waveGray)" strokeWidth="1" fill="none" />
-           </g>
-
-           <defs>
-              <linearGradient id="mainCreamGradient" x1="0" y1="0" x2="600" y2="378" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#f4f1ea" />
-                <stop offset="1" stopColor="#e2ded3" />
-              </linearGradient>
-              <linearGradient id="waveGray" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
-                <stop stopColor="transparent" />
-                <stop offset="0.5" stopColor="#b0af9e" />
-                <stop offset="1" stopColor="transparent" />
-              </linearGradient>
-              <linearGradient id="waveGold" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
-                <stop stopColor="transparent" />
-                <stop offset="0.5" stopColor="#d4af37" opacity="0.3" />
-                <stop offset="1" stopColor="transparent" />
-              </linearGradient>
-           </defs>
-        </svg>
+      {/* 1. Background Image Layer - يتم جلبها من public/card-bg.png */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="/card-bg.png" 
+          alt="Card Background" 
+          className="w-full h-full object-cover"
+          // Fallback simple color in case file is missing
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+          }}
+        />
       </div>
 
-      {/* 2. Header Section - Brand & Identity Mark */}
+      {/* 2. Brand Identity Header */}
       <div className="p-12 flex items-start justify-between relative z-10">
-        <h1 className="text-[58px] font-black text-[#3d3d3d] tracking-tighter leading-none italic">NAMIX</h1>
+        <h1 className="text-[58px] font-black text-[#1a1a1a] tracking-tighter leading-none italic">NAMIX</h1>
         
-        <div className="grid grid-cols-2 gap-2.5 pt-4 pr-2 opacity-60">
+        {/* Subtle Embossed Dots Pattern */}
+        <div className="grid grid-cols-2 gap-2.5 pt-4 pr-2 opacity-20">
            {[...Array(4)].map((_, i) => (
-             <div key={i} className="w-5 h-5 rounded-full bg-[#3d3d3d]/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]" />
+             <div key={i} className="w-5 h-5 rounded-full bg-[#1a1a1a]" />
            ))}
         </div>
       </div>
 
-      {/* 3. Footer Section - Unified Flow */}
+      {/* 3. Personalized Identity Footer */}
       <div className="px-12 pb-12 relative z-10 flex items-end justify-between w-full">
         
-        <div className="space-y-2 flex-1">
-           <p className="text-[20px] font-bold text-[#3d3d3d]/40 uppercase tracking-widest">
+        <div className="space-y-2 flex-1 pr-6">
+           <p className="text-[18px] font-bold text-[#1a1a1a]/40 uppercase tracking-[0.2em] leading-none mb-1">
               {user?.displayName || "INVESTOR NAME"}
            </p>
-           <p className="text-[46px] font-black text-[#3d3d3d] tabular-nums tracking-normal leading-none">
+           <p className="text-[44px] font-black text-[#1a1a1a] tabular-nums tracking-normal leading-none whitespace-nowrap">
               {formatId(user?.namixId)}
            </p>
         </div>
 
-        <div className="shrink-0 ml-10 p-2 bg-white/20 backdrop-blur-md rounded-2xl border border-white/10">
+        {/* Floating QR without background or shadows */}
+        <div className="shrink-0 p-1 bg-white/5 backdrop-blur-md rounded-2xl">
            <QRCodeSVG 
              value={invitationLink} 
-             size={90} 
+             size={85} 
              bgColor={"transparent"} 
-             fgColor={"#3d3d3d"} 
+             fgColor={"#1a1a1a"} 
              level={"M"} 
              includeMargin={false} 
            />
         </div>
       </div>
-
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
     </div>
   );
 }
