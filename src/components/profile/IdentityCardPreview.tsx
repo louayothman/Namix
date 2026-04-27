@@ -13,18 +13,18 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * WaveLines - محرك التموجات السيادي المستخلص من كود Adobe Illustrator
- * يقوم برسم المسارات المنحنية بدقة متناهية لمحاكاة الانسيابية الفاخرة المطلوبة.
+ * WaveLines - محرك التموجات السيادي المستخلص من كود Adobe Illustrator الأصلي
+ * تم حقن كافة المسارات لضمان ظهور الحزمة الكاملة وتمركزها في البطاقة.
  */
 const WaveLines = () => {
   return (
     <svg
       viewBox="0 0 800 800"
-      className="absolute inset-0 w-full h-full opacity-[0.15] pointer-events-none"
+      className="absolute inset-0 w-full h-full opacity-[0.25] pointer-events-none"
       preserveAspectRatio="xMidYMid slice"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g style={{ opacity: 0.6 }}>
+      <g transform="translate(100, 0) scale(1.2)">
         <path 
           d="M-108.296,546.441c23.067-2.259,46.15-4.448,69.106-7.651c22.959-3.124,45.789-7.379,68.149-13.454c5.545-1.671,11.152-3.141,16.617-5.064l4.121-1.37c1.373-0.46,2.755-0.893,4.101-1.429l8.125-3.069l2.031-0.767l1.996-0.856l3.991-1.711c2.654-1.156,5.348-2.223,7.926-3.545l7.811-3.797c2.586-1.301,5.143-2.665,7.703-4.021c10.236-5.43,20.383-11.052,30.843-16.075c10.453-5.01,21.219-9.499,32.462-12.464c5.628-1.422,11.316-2.651,17.081-3.367c2.871-0.447,5.767-0.663,8.657-0.941c1.444-0.148,2.897-0.174,4.345-0.267c1.45-0.065,2.898-0.186,4.349-0.184c11.609-0.287,23.225,0.481,34.723,2.023c11.509,1.491,22.907,3.71,34.227,6.218c11.317,2.528,22.571,5.323,33.788,8.25c22.436,5.848,44.725,12.225,67.183,17.933c22.453,5.697,45.099,10.758,68.046,13.898c22.922,3.18,46.175,4.43,69.258,2.638c23.055-1.771,45.951-6.719,67.305-15.698c21.387-8.861,41.528-20.634,63.41-28.529c21.886-7.827,45.405-10.752,68.556-9.206c11.583,0.682,23.11,2.202,34.498,4.407c11.382,2.242,22.642,5.057,33.792,8.237c22.311,6.364,44.084,14.391,66,21.917c10.959,3.768,21.958,7.418,33.054,10.758c11.104,3.308,22.321,6.245,33.661,8.615l4.259,0.861c1.419,0.289,2.837,0.586,4.269,0.801l8.573,1.417l8.623,1.075c1.435,0.204,2.879,0.313,4.323,0.423l4.331,0.345c11.555,0.812,23.178,0.728,34.713-0.441" 
           stroke="#6E6A63" strokeWidth="0.8" fill="none" 
@@ -69,7 +69,6 @@ export function IdentityCardPreview({
 }: IdentityCardPreviewProps) {
   
   useEffect(() => {
-    // إشارة الجاهزية فور رندر المكون نظراً لأنه يعتمد على محرك رسومي داخلي
     const timer = setTimeout(() => {
       onAssetsLoad?.();
     }, 800);
@@ -89,7 +88,7 @@ export function IdentityCardPreview({
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f5f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* Background Logic: Ivory Silk Gradient with Illustrator Waves */}
+      {/* Background Logic: Ivory Silk Gradient with Fixed Center Waves */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_#ffffff_0%,_#f5f1ea_60%,_#e9e3db_100%)]" />
         <WaveLines />
