@@ -82,16 +82,17 @@ export function IdentityCardPreview({
         <div className="absolute inset-0 backdrop-blur-[0.5px] opacity-10" />
       </div>
 
-      {/* 2. Brand Identity Header - Ultra Bold & Static Color */}
+      {/* 2. Brand Identity Header - NAMIX.pro Elite Edition */}
       <div className="p-12 flex items-start justify-between relative z-10">
-        <h1 className="text-[64px] font-black tracking-tighter leading-none uppercase" style={{ fontWeight: 950, color: '#6E6A63' }}>
-          NAMIX
+        <h1 className="flex items-baseline tracking-tighter leading-none uppercase" style={{ color: '#6E6A63' }}>
+          <span className="text-[64px] font-black" style={{ fontWeight: 950 }}>NAMIX</span>
+          <span className="text-[32px] font-bold opacity-40 ml-1">.pro</span>
         </h1>
         
-        {/* Decorative Grid Dots */}
-        <div className="grid grid-cols-2 gap-3 pt-6 pr-4 opacity-[0.08]">
+        {/* Nano Decorative Grid Dots - Smaller & Refined */}
+        <div className="grid grid-cols-2 gap-1.5 pt-6 pr-4 opacity-[0.08]">
            {[...Array(4)].map((_, i) => (
-             <div key={i} className="w-6 h-6 rounded-full bg-[#6E6A63]" />
+             <div key={i} className="w-3.5 h-3.5 rounded-full bg-[#6E6A63]" />
            ))}
         </div>
       </div>
