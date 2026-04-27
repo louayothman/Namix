@@ -12,15 +12,14 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * @fileOverview IdentityCardPreview - Perfect Replica v6.0
- * تصميم مطابق تماماً للصورة المرفقة: خلفية عاجية، خطوط انسيابية، وتوزيع عناصر دقيق.
+ * @fileOverview IdentityCardPreview - Luxury Ripple Edition v7.0
+ * تصميم متطور يعتمد على التموجات العضوية الشاملة مع دمج كامل للعناصر دون انقطاع لوني.
  */
 export function IdentityCardPreview({
   user,
   invitationLink
 }: IdentityCardPreviewProps) {
   
-  // تنسيق المعرف الرقمي: كل رقمين بينهما مسافة (مطابق للصورة)
   const formatId = (id: string) => {
     if (!id) return "00 00 00 00 00";
     const cleanId = id.replace(/\s/g, '');
@@ -34,73 +33,78 @@ export function IdentityCardPreview({
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f4f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none" dir="ltr">
       
-      {/* 1. Background Layers - Precise Replica of the Image Waves */}
+      {/* 1. Integrated Organic Waves - تغطي كامل المساحة */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <svg viewBox="0 0 600 378" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-           {/* القاعدة العاجية مع تدرج ناعم */}
-           <rect width="600" height="378" fill="url(#creamGradient)" />
+           <rect width="600" height="378" fill="url(#mainCreamGradient)" />
            
-           {/* الخطوط المنحنية الانسيابية (Contour Lines) */}
-           <g opacity="0.15">
-              <path d="M-50 300C100 280 250 400 450 250C550 180 650 220 700 150" stroke="#555" strokeWidth="1" fill="none" />
-              <path d="M-50 320C120 300 280 420 480 270C580 200 680 240 730 170" stroke="#555" strokeWidth="1" fill="none" />
-              <path d="M-50 340C140 320 310 440 510 290C610 220 710 260 760 190" stroke="#555" strokeWidth="1" fill="none" />
-              <path d="M-50 360C160 340 340 460 540 310C640 240 740 280 790 210" stroke="#555" strokeWidth="1" fill="none" />
-              <path d="M-50 380C180 360 370 480 570 330C670 260 770 300 820 230" stroke="#555" strokeWidth="1" fill="none" />
-              <path d="M-50 400C200 380 400 500 600 350C700 280 800 320 850 250" stroke="#555" strokeWidth="1" fill="none" />
+           {/* طبقة التموجات الرمادية والذهبية المتداخلة */}
+           <g opacity="0.4">
+              <path d="M-100 200C50 150 250 350 450 180C550 120 700 200 800 100" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 220C60 170 280 370 480 200C580 140 730 220 830 120" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 240C70 190 310 390 510 220C610 160 760 240 860 140" stroke="url(#waveGray)" strokeWidth="1" fill="none" />
+              <path d="M-100 260C80 210 340 410 540 240C640 180 790 260 890 160" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 280C90 230 370 430 570 260C670 200 820 280 920 180" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 300C100 250 400 450 600 280C700 220 850 300 950 200" stroke="url(#waveGold)" strokeWidth="1" fill="none" />
+              <path d="M-100 320C110 270 430 470 630 300C730 240 880 320 980 220" stroke="url(#waveGray)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 340C120 290 460 490 660 320C760 260 910 340 1010 240" stroke="url(#waveGold)" strokeWidth="0.5" fill="none" />
+              <path d="M-100 360C130 310 490 510 690 340C790 280 940 360 1040 260" stroke="url(#waveGray)" strokeWidth="1" fill="none" />
            </g>
 
-           {/* الحاوية البيضاء المنحنية للـ QR في الركن السفلي الأيمن */}
-           <path d="M450 378C450 320 500 250 600 250V378H450Z" fill="white" />
-
            <defs>
-              <linearGradient id="creamGradient" x1="0" y1="0" x2="600" y2="378" gradientUnits="userSpaceOnUse">
+              <linearGradient id="mainCreamGradient" x1="0" y1="0" x2="600" y2="378" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#f4f1ea" />
-                <stop offset="1" stopColor="#e8e2d5" />
+                <stop offset="1" stopColor="#e2ded3" />
+              </linearGradient>
+              <linearGradient id="waveGray" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
+                <stop stopColor="transparent" />
+                <stop offset="0.5" stopColor="#b0af9e" />
+                <stop offset="1" stopColor="transparent" />
+              </linearGradient>
+              <linearGradient id="waveGold" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
+                <stop stopColor="transparent" />
+                <stop offset="0.5" stopColor="#d4af37" opacity="0.3" />
+                <stop offset="1" stopColor="transparent" />
               </linearGradient>
            </defs>
         </svg>
       </div>
 
-      {/* 2. Top Section - Logo & Dots */}
-      <div className="p-10 flex items-start justify-between relative z-10">
-        <h1 className="text-[54px] font-black text-[#4a4a4a] tracking-tighter leading-none">NAMIX</h1>
+      {/* 2. Header Section - Brand & Identity Mark */}
+      <div className="p-12 flex items-start justify-between relative z-10">
+        <h1 className="text-[58px] font-black text-[#3d3d3d] tracking-tighter leading-none italic">NAMIX</h1>
         
-        {/* النقاط الأربعة (2x2 Grid) */}
-        <div className="grid grid-cols-2 gap-2 pt-4 pr-2">
+        <div className="grid grid-cols-2 gap-2.5 pt-4 pr-2 opacity-60">
            {[...Array(4)].map((_, i) => (
-             <div key={i} className="w-5 h-5 rounded-full bg-[#cccbbd] shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]" />
+             <div key={i} className="w-5 h-5 rounded-full bg-[#3d3d3d]/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]" />
            ))}
         </div>
       </div>
 
-      {/* 3. Bottom Section - Name, ID & QR */}
-      <div className="px-10 pb-10 relative z-10 flex items-end justify-between">
+      {/* 3. Footer Section - Unified Flow */}
+      <div className="px-12 pb-12 relative z-10 flex items-end justify-between w-full">
         
-        {/* الهوية النصية (يسار) */}
-        <div className="space-y-1">
-           <p className="text-[20px] font-bold text-[#a5a496] uppercase tracking-wide">
+        <div className="space-y-2 flex-1">
+           <p className="text-[20px] font-bold text-[#3d3d3d]/40 uppercase tracking-widest">
               {user?.displayName || "INVESTOR NAME"}
            </p>
-           <p className="text-[44px] font-black text-[#4a4a4a] tabular-nums tracking-normal leading-none">
+           <p className="text-[46px] font-black text-[#3d3d3d] tabular-nums tracking-normal leading-none">
               {formatId(user?.namixId)}
            </p>
         </div>
 
-        {/* رمز الـ QR (داخل المساحة البيضاء) */}
-        <div className="mb-[-10px] mr-[-10px] pr-8 pb-8">
+        <div className="shrink-0 ml-10 p-2 bg-white/20 backdrop-blur-md rounded-2xl border border-white/10">
            <QRCodeSVG 
              value={invitationLink} 
-             size={100} 
+             size={90} 
              bgColor={"transparent"} 
-             fgColor={"#000000"} 
+             fgColor={"#3d3d3d"} 
              level={"M"} 
              includeMargin={false} 
            />
         </div>
       </div>
 
-      {/* لمسة ضوئية نهائية لتعزيز الواقعية */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
     </div>
   );
