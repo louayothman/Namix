@@ -50,11 +50,12 @@ export function IdentityCardDrawer({
       setImgUrl(null);
       hasCaptured.current = false;
       setLoading(true);
+      setIsAssetsLoaded(false);
 
-      // بروتوكول الجاهزية التلقائية: إذا لم تطلق الصورة إشارة التحميل خلال ثانية، نفترض الجاهزية لتجنب التعليق
+      // تأمين الإظهار حتى لو لم تُطلق الإشارة
       const safetyTimer = setTimeout(() => {
-        if (!isAssetsLoaded) setIsAssetsLoaded(true);
-      }, 1200);
+        setIsAssetsLoaded(true);
+      }, 1500);
 
       return () => clearTimeout(safetyTimer);
     }
@@ -62,10 +63,9 @@ export function IdentityCardDrawer({
 
   useEffect(() => {
     if (open && isAssetsLoaded && !hasCaptured.current) {
-      // منح المتصفح وقتاً لترجمة العناصر المرئية
       const timer = setTimeout(() => {
         captureCard();
-      }, 500);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [open, isAssetsLoaded]);
@@ -73,7 +73,6 @@ export function IdentityCardDrawer({
   const captureCard = async () => {
     if (!captureRef.current) return;
     try {
-      // التأكد من تحميل الخطوط
       await document.fonts.ready;
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
@@ -117,7 +116,6 @@ export function IdentityCardDrawer({
 
   return (
     <>
-      {/* منطقة الالتقاط المخفية */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div ref={captureRef}>
            <IdentityCardPreview 
@@ -155,23 +153,15 @@ export function IdentityCardDrawer({
                  {(!imgUrl || loading) ? (
                    <motion.div 
                      key="custom-loader"
-                     initial={{ opacity: 0 }}
-                     animate={{ 
-                       opacity: [0.3, 1, 0.3],
-                       color: ['#002d4d', '#8899AA', '#002d4d']
-                     }}
-                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                     className="flex flex-col items-center gap-6"
+                     initial={{ opacity: 0.3 }}
+                     animate={{ opacity: [0.3, 0.8, 0.3] }}
+                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                     className="flex items-center gap-4 text-[#002d4d]"
                    >
-                      <div className="flex items-center gap-4">
-                         <Logo size="sm" hideText={true} animate={false} className="scale-110" />
-                         <h4 className="text-2xl font-black tracking-tighter">
-                           Namix Card
-                         </h4>
-                      </div>
-                      <div className="flex flex-col items-center gap-1 opacity-20">
-                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.4em]">Processing Node</p>
-                      </div>
+                      <Logo size="sm" hideText={true} animate={false} className="scale-110" />
+                      <h4 className="text-2xl font-black tracking-tighter uppercase">
+                        Namix Card
+                      </h4>
                    </motion.div>
                  ) : (
                    <motion.div 
