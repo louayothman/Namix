@@ -46,26 +46,34 @@ export function IdentityCardDrawer({
   const invitationLink = typeof window !== "undefined" ? `${window.location.origin}/login?ref=${user?.referralCode}` : "";
 
   useEffect(() => {
-    if (open && isAssetsLoaded && !hasCaptured.current) {
+    if (open) {
+      setImgUrl(null);
+      hasCaptured.current = false;
       setLoading(true);
-      // منح المتصفح وقتاً إضافياً لترجمة الخطوط والعناصر
+
+      // بروتوكول الجاهزية التلقائية: إذا لم تطلق الصورة إشارة التحميل خلال ثانية، نفترض الجاهزية لتجنب التعليق
+      const safetyTimer = setTimeout(() => {
+        if (!isAssetsLoaded) setIsAssetsLoaded(true);
+      }, 1200);
+
+      return () => clearTimeout(safetyTimer);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open && isAssetsLoaded && !hasCaptured.current) {
+      // منح المتصفح وقتاً لترجمة العناصر المرئية
       const timer = setTimeout(() => {
         captureCard();
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
-    }
-    
-    if (!open) {
-      hasCaptured.current = false;
-      setImgUrl(null);
-      setIsAssetsLoaded(false);
-      setLoading(false);
     }
   }, [open, isAssetsLoaded]);
 
   const captureCard = async () => {
     if (!captureRef.current) return;
     try {
+      // التأكد من تحميل الخطوط
       await document.fonts.ready;
       const dataUrl = await htmlToImage.toPng(captureRef.current, {
         cacheBust: true,
@@ -109,6 +117,7 @@ export function IdentityCardDrawer({
 
   return (
     <>
+      {/* منطقة الالتقاط المخفية */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div ref={captureRef}>
            <IdentityCardPreview 
@@ -147,22 +156,19 @@ export function IdentityCardDrawer({
                    <motion.div 
                      key="custom-loader"
                      initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
+                     animate={{ 
+                       opacity: [0.3, 1, 0.3],
+                       color: ['#002d4d', '#8899AA', '#002d4d']
+                     }}
+                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                      className="flex flex-col items-center gap-6"
                    >
-                      <motion.div 
-                        className="flex items-center gap-4"
-                        animate={{ 
-                          opacity: [0.3, 1, 0.3],
-                        }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      >
-                         <Logo size="sm" hideText={true} animate={false} />
-                         <h4 className="text-2xl font-black tracking-tighter text-[#002d4d]">
+                      <div className="flex items-center gap-4">
+                         <Logo size="sm" hideText={true} animate={false} className="scale-110" />
+                         <h4 className="text-2xl font-black tracking-tighter">
                            Namix Card
                          </h4>
-                      </motion.div>
+                      </div>
                       <div className="flex flex-col items-center gap-1 opacity-20">
                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.4em]">Processing Node</p>
                       </div>
