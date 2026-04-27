@@ -52,10 +52,10 @@ export function IdentityCardDrawer({
       setLoading(true);
       setIsAssetsLoaded(false);
 
-      // تأمين الإظهار حتى لو لم تُطلق الإشارة
+      // تأمين الإظهار اللحظي في حال عدم وجود صور خارجية
       const safetyTimer = setTimeout(() => {
         setIsAssetsLoaded(true);
-      }, 1500);
+      }, 1000);
 
       return () => clearTimeout(safetyTimer);
     }
@@ -65,7 +65,7 @@ export function IdentityCardDrawer({
     if (open && isAssetsLoaded && !hasCaptured.current) {
       const timer = setTimeout(() => {
         captureCard();
-      }, 800);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [open, isAssetsLoaded]);
@@ -134,13 +134,13 @@ export function IdentityCardDrawer({
             <VisuallyHidden.Root><DrawerTitle>بطاقة الهوية الشخصية</DrawerTitle></VisuallyHidden.Root>
 
             <div className="px-8 pt-8 shrink-0 flex items-center justify-between">
-               <div className="flex items-center gap-4">
+               <div className="flex items-center gap-4 text-right">
                   <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center shadow-inner">
                      <ShieldCheck size={20} className="text-[#002d4d]" />
                   </div>
                   <div className="text-right">
                      <h3 className="text-lg font-black text-[#002d4d] leading-none">بطاقة الهوية</h3>
-                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Personal Identity Card</p>
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Identity Display Node</p>
                   </div>
                </div>
                <button onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all">

@@ -13,40 +13,44 @@ interface IdentityCardPreviewProps {
   onAssetsLoad?: () => void;
 }
 
+/**
+ * WaveLines - محرك الرسوم المتموجة المطور
+ * تم مضاعفة عدد الخطوط وتوزيعها لتعطي عمقاً بصرياً فائقاً.
+ */
 const WaveLines = () => {
   return (
     <svg
       viewBox="0 0 600 378"
-      className="absolute inset-0 w-full h-full opacity-70 pointer-events-none"
+      className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
       preserveAspectRatio="none"
     >
-      {[...Array(15)].map((_, i) => (
+      {[...Array(30)].map((_, i) => (
         <motion.path
           key={i}
-          d={`M -50 ${250 + i * 6} Q 300 ${50 + i * 4}, 650 ${200 + i * 6}`}
-          stroke={`rgba(120,110,100,${0.05 + i * 0.015})`}
-          strokeWidth="0.8"
+          d={`M -50 ${200 + i * 4} Q 300 ${20 + i * 3}, 650 ${150 + i * 4}`}
+          stroke={`rgba(120,110,100,${0.03 + i * 0.01})`}
+          strokeWidth="0.6"
           fill="none"
           animate={{
             d: [
-              `M -50 ${250 + i * 6} Q 300 ${50 + i * 4}, 650 ${200 + i * 6}`,
-              `M -50 ${260 + i * 6} Q 300 ${40 + i * 4}, 650 ${210 + i * 6}`,
-              `M -50 ${250 + i * 6} Q 300 ${50 + i * 4}, 650 ${200 + i * 6}`
+              `M -50 ${200 + i * 4} Q 300 ${20 + i * 3}, 650 ${150 + i * 4}`,
+              `M -50 ${210 + i * 4} Q 300 ${10 + i * 3}, 650 ${160 + i * 4}`,
+              `M -50 ${200 + i * 4} Q 300 ${20 + i * 3}, 650 ${150 + i * 4}`
             ]
           }}
           transition={{
-            duration: 6 + i,
+            duration: 8 + i * 0.2,
             repeat: Infinity,
             ease: "easeInOut"
           }}
         />
       ))}
-      {[...Array(8)].map((_, i) => (
+      {[...Array(12)].map((_, i) => (
         <path
           key={`cross-${i}`}
-          d={`M -50 ${100 + i * 15} C 150 ${300 + i * 10}, 450 ${50 + i * 5}, 650 ${250 + i * 15}`}
-          stroke={`rgba(120,110,100,0.03)`}
-          strokeWidth="0.5"
+          d={`M -50 ${50 + i * 20} C 150 ${250 + i * 15}, 450 ${20 + i * 10}, 650 ${200 + i * 20}`}
+          stroke={`rgba(120,110,100,0.02)`}
+          strokeWidth="0.4"
           fill="none"
         />
       ))}
@@ -60,11 +64,10 @@ export function IdentityCardPreview({
   onAssetsLoad
 }: IdentityCardPreviewProps) {
   
-  // إطلاق إشارة الجاهزية فور التحميل لأن الخلفية أصبحت داخلية
   useEffect(() => {
     const timer = setTimeout(() => {
       onAssetsLoad?.();
-    }, 500);
+    }, 600);
     return () => clearTimeout(timer);
   }, [onAssetsLoad]);
 
@@ -75,48 +78,50 @@ export function IdentityCardPreview({
     for (let i = 0; i < cleanId.length; i += 2) {
       parts.push(cleanId.slice(i, i + 2));
     }
-    return parts.join(' ');
+    return parts.join('   '); // مسافات تباعد أكبر كما طلب المستخدم
   };
 
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f5f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* 1. Programmatic Abstract Background */}
+      {/* 1. Background Gradient & Wave Layers */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_#ffffff_0%,_#f5f1ea_50%,_#e9e3db_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_35%,_#ffffff_0%,_#f5f1ea_55%,_#e9e3db_100%)]" />
         <WaveLines />
-        <div className="absolute inset-0 backdrop-blur-[0.5px] opacity-20" />
+        <div className="absolute inset-0 backdrop-blur-[0.5px] opacity-10" />
       </div>
 
-      {/* 2. Brand Identity Header */}
+      {/* 2. Brand Identity Header - Non-italic, extra bold */}
       <div className="p-12 flex items-start justify-between relative z-10">
-        <h1 className="text-[58px] font-black text-[#4a4a4a] tracking-tighter leading-none italic uppercase">NAMIX</h1>
+        <h1 className="text-[64px] font-black text-[#424242] tracking-tighter leading-none uppercase" style={{ fontWeight: 950 }}>
+          NAMIX
+        </h1>
         
-        {/* Top Right Dots - Glass Style */}
-        <div className="grid grid-cols-2 gap-2.5 pt-4 pr-2 opacity-10">
+        {/* Decorative Grid Dots */}
+        <div className="grid grid-cols-2 gap-3 pt-6 pr-4 opacity-[0.08]">
            {[...Array(4)].map((_, i) => (
-             <div key={i} className="w-5 h-5 rounded-full bg-[#1a1a1a]" />
+             <div key={i} className="w-6 h-6 rounded-full bg-[#1a1a1a]" />
            ))}
         </div>
       </div>
 
-      {/* 3. Personalized Identity Footer */}
+      {/* 3. Identity Information Footer */}
       <div className="px-12 pb-12 relative z-10 flex items-end justify-between w-full">
         
-        <div className="space-y-2 flex-1 pr-6">
-           <p className="text-[18px] font-bold text-[#1a1a1a]/30 uppercase tracking-[0.2em] leading-none mb-1">
+        <div className="space-y-3 flex-1 pr-10">
+           <p className="text-[16px] font-black text-[#1a1a1a]/40 uppercase tracking-[0.3em] leading-none">
               {user?.displayName || "INVESTOR NAME"}
            </p>
-           <p className="text-[44px] font-black text-[#1a1a1a] tabular-nums tracking-normal leading-none whitespace-nowrap">
+           <p className="text-[48px] font-black text-[#1a1a1a] tabular-nums tracking-normal leading-none whitespace-nowrap">
               {formatId(user?.namixId)}
            </p>
         </div>
 
-        {/* Integrated QR Node */}
-        <div className="shrink-0 p-1.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+        {/* Dynamic QR Node - Pure Background */}
+        <div className="shrink-0 p-2 bg-white/5 backdrop-blur-md rounded-[20px] border border-white/10">
            <QRCodeSVG 
              value={invitationLink} 
-             size={85} 
+             size={90} 
              bgColor={"transparent"} 
              fgColor={"#1a1a1a"} 
              level={"M"} 
