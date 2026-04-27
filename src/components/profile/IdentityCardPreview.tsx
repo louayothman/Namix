@@ -12,10 +12,6 @@ interface IdentityCardPreviewProps {
   onAssetsLoad?: () => void;
 }
 
-/**
- * @fileOverview IdentityCardPreview - Static Asset Edition v8.1
- * تم إضافة مستمع لحدث اكتمال تحميل الصورة الخلفية لضمان دقة التوليد.
- */
 export function IdentityCardPreview({
   user,
   invitationLink,
@@ -42,19 +38,18 @@ export function IdentityCardPreview({
           alt="Card Background" 
           className="w-full h-full object-cover"
           onLoad={() => onAssetsLoad?.()}
-          // Fallback simple color in case file is missing
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
-            onAssetsLoad?.(); // Notify load even on error to prevent infinite loading
+            onAssetsLoad?.();
           }}
         />
       </div>
 
       {/* 2. Brand Identity Header */}
       <div className="p-12 flex items-start justify-between relative z-10">
-        <h1 className="text-[58px] font-black text-[#1a1a1a] tracking-tighter leading-none italic">NAMIX</h1>
+        <h1 className="text-[58px] font-black text-[#4a4a4a] tracking-tighter leading-none italic uppercase">NAMIX</h1>
         
-        {/* Subtle Embossed Dots Pattern */}
+        {/* Top Right Dots - Translucent Embossed Style */}
         <div className="grid grid-cols-2 gap-2.5 pt-4 pr-2 opacity-20">
            {[...Array(4)].map((_, i) => (
              <div key={i} className="w-5 h-5 rounded-full bg-[#1a1a1a]" />
@@ -74,7 +69,7 @@ export function IdentityCardPreview({
            </p>
         </div>
 
-        {/* Floating QR without background or shadows */}
+        {/* Floating QR - Integrated with background */}
         <div className="shrink-0 p-1 bg-white/5 backdrop-blur-md rounded-2xl">
            <QRCodeSVG 
              value={invitationLink} 

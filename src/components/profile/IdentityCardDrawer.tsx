@@ -45,14 +45,12 @@ export function IdentityCardDrawer({
 
   const invitationLink = typeof window !== "undefined" ? `${window.location.origin}/login?ref=${user?.referralCode}` : "";
 
-  // محرك التوليد الذكي: يعمل فقط عندما تكون الأصول جاهزة والنافذة مفتوحة
   useEffect(() => {
     if (open && isAssetsLoaded && !hasCaptured.current) {
       setLoading(true);
-      // انتظار بسيط جداً لضمان رندر النصوص فوق الخلفية
       const timer = setTimeout(() => {
         captureCard();
-      }, 800);
+      }, 1000);
       return () => clearTimeout(timer);
     }
     
@@ -60,6 +58,7 @@ export function IdentityCardDrawer({
       hasCaptured.current = false;
       setImgUrl(null);
       setIsAssetsLoaded(false);
+      setLoading(false);
     }
   }, [open, isAssetsLoaded]);
 
@@ -109,7 +108,6 @@ export function IdentityCardDrawer({
 
   return (
     <>
-      {/* منطقة الالتقاط المخفية - تنتظر تحميل الخلفية */}
       <div className="fixed left-[-9999px] top-[-9999px] pointer-events-none overflow-hidden">
         <div ref={captureRef}>
            <IdentityCardPreview 
@@ -144,7 +142,7 @@ export function IdentityCardDrawer({
 
             <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center gap-12 scrollbar-none">
                <AnimatePresence mode="wait">
-                 {(!isAssetsLoaded || loading) ? (
+                 {(!imgUrl || loading) ? (
                    <motion.div 
                      key="custom-loader"
                      initial={{ opacity: 0 }}
@@ -152,40 +150,23 @@ export function IdentityCardDrawer({
                      exit={{ opacity: 0 }}
                      className="flex flex-col items-center gap-6"
                    >
-                      <div className="flex items-center gap-4">
-                         {/* النبض اللوني للأيقونة والنص */}
-                         <motion.div
-                           animate={{ 
-                             opacity: [0.4, 1, 0.4],
-                             scale: [0.95, 1.05, 0.95]
-                           }}
-                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                         >
-                            <Logo size="sm" hideText={true} animate={false} />
-                         </motion.div>
-                         <motion.h4 
-                           animate={{ 
-                             color: ["#002d4d", "#f9a885", "#002d4d"],
-                             opacity: [0.5, 1, 0.5]
-                           }}
-                           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                           className="text-2xl font-black italic tracking-tighter"
-                         >
+                      <motion.div 
+                        className="flex items-center gap-4"
+                        animate={{ 
+                          opacity: [0.3, 1, 0.3],
+                        }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                         <Logo size="sm" hideText={true} animate={false} />
+                         <h4 className="text-2xl font-black tracking-tighter text-[#002d4d]">
                            Namix Card
-                         </motion.h4>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                         <div className="h-1 w-12 bg-gray-100 rounded-full overflow-hidden">
-                            <motion.div 
-                              animate={{ x: [-50, 50] }}
-                              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                              className="h-full w-6 bg-[#f9a885]"
-                            />
-                         </div>
-                         <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Preparing Assets</p>
+                         </h4>
+                      </motion.div>
+                      <div className="flex flex-col items-center gap-1 opacity-20">
+                         <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.4em]">Processing Node</p>
                       </div>
                    </motion.div>
-                 ) : imgUrl ? (
+                 ) : (
                    <motion.div 
                      key="preview" 
                      initial={{ opacity: 0, scale: 0.9, y: 20 }} 
@@ -199,21 +180,21 @@ export function IdentityCardDrawer({
                          <Check size={14} strokeWidth={3} /> جاهزة للمشاركة
                       </div>
                    </motion.div>
-                 ) : null}
+                 )}
                </AnimatePresence>
 
                <div className="w-full max-w-sm grid grid-cols-2 gap-4 pb-10">
                   <Button 
                     onClick={handleDownload} 
-                    disabled={!imgUrl} 
-                    className="h-16 rounded-full bg-gray-50 text-[#002d4d] border border-gray-100 font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm"
+                    disabled={!imgUrl || loading} 
+                    className="h-16 rounded-full bg-gray-50 text-[#002d4d] border border-gray-100 font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-3 shadow-sm disabled:opacity-20"
                   >
                      <Download size={18} /> حفظ
                   </Button>
                   <Button 
                     onClick={handleShare} 
-                    disabled={!imgUrl} 
-                    className="h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    disabled={!imgUrl || loading} 
+                    className="h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-20"
                   >
                      <Share2 size={18} className="text-[#f9a885]" /> مشاركة
                   </Button>
