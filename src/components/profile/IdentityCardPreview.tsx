@@ -14,8 +14,8 @@ interface IdentityCardPreviewProps {
 }
 
 /**
- * WaveLines - محرك الرسوم المتموجة المطور v5.0
- * تم تحويل الخطوط لمنحنيات Cubic Bezier لزيادة التموج وحقن مصفوفة إضافية في الزاوية اليمنى.
+ * WaveLines - محرك الرسوم المتموجة المطور v6.0 - Perfect Mirror Edition
+ * تم ضبط المسارات المنحنية لتطابق الصورة المرفقة تماماً من حيث التموج والكثافة والتموضع.
  */
 const WaveLines = () => {
   return (
@@ -24,51 +24,38 @@ const WaveLines = () => {
       className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
       preserveAspectRatio="none"
     >
-      {/* مصفوفة التدفق الرئيسية من الأسفل واليسار - 30 خطاً أكثر تموجاً */}
-      {[...Array(30)].map((_, i) => (
-        <motion.path
-          key={`main-${i}`}
-          d={`M -50 ${250 + i * 4} C 150 ${50 + i * 2}, 350 ${400 + i * 5}, 650 ${100 + i * 3}`}
-          stroke={`rgba(110, 106, 99, ${0.02 + i * 0.006})`}
-          strokeWidth="0.5"
-          fill="none"
-          animate={{
-            d: [
-              `M -50 ${250 + i * 4} C 150 ${50 + i * 2}, 350 ${400 + i * 5}, 650 ${100 + i * 3}`,
-              `M -50 ${265 + i * 4} C 180 ${30 + i * 2}, 320 ${420 + i * 5}, 650 ${115 + i * 3}`,
-              `M -50 ${250 + i * 4} C 150 ${50 + i * 2}, 350 ${400 + i * 5}, 650 ${100 + i * 3}`
-            ]
-          }}
-          transition={{
-            duration: 9 + i * 0.2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
+      {/* 1. الحزمة الرئيسية: تموج انسيابي يرتفع نحو اليمين ثم ينحدر (30 خطاً متوازياً) */}
+      {[...Array(30)].map((_, i) => {
+        const offset = i * 4.5; // مسافة ثابتة لضمان التوازي التام
+        return (
+          <path
+            key={`main-wave-${i}`}
+            d={`M -50 ${320 + offset} C 120 ${350 + offset}, 400 ${-120 + offset}, 650 ${280 + offset}`}
+            stroke="#6E6A63"
+            strokeWidth="0.4"
+            fill="none"
+            style={{ opacity: 0.03 + (i * 0.004) }}
+          />
+        );
+      })}
 
-      {/* مصفوفة التدفق الثانوية في الزاوية العلوية اليمنى - 15 خطاً */}
-      {[...Array(15)].map((_, i) => (
-        <motion.path
-          key={`corner-${i}`}
-          d={`M 400 ${-20 + i * 3} C 500 ${80 + i * 5}, 550 ${-10 + i * 2}, 650 ${120 + i * 4}`}
-          stroke={`rgba(110, 106, 99, ${0.01 + i * 0.004})`}
-          strokeWidth="0.4"
-          fill="none"
-          animate={{
-            d: [
-              `M 400 ${-20 + i * 3} C 500 ${80 + i * 5}, 550 ${-10 + i * 2}, 650 ${120 + i * 4}`,
-              `M 410 ${-10 + i * 3} C 480 ${100 + i * 5}, 570 ${-30 + i * 2}, 640 ${130 + i * 4}`,
-              `M 400 ${-20 + i * 3} C 500 ${80 + i * 5}, 550 ${-10 + i * 2}, 650 ${120 + i * 4}`
-            ]
-          }}
-          transition={{
-            duration: 11 + i * 0.3,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
+      {/* 2. الحزمة العلوية: تموجات ناعمة في الزاوية اليمنى (15 خطاً) */}
+      {[...Array(15)].map((_, i) => {
+        const offset = i * 3.5;
+        return (
+          <path
+            key={`corner-wave-${i}`}
+            d={`M 350 ${-60 + offset} C 450 ${120 + offset}, 550 ${-40 + offset}, 680 ${180 + offset}`}
+            stroke="#6E6A63"
+            strokeWidth="0.3"
+            fill="none"
+            style={{ opacity: 0.02 + (i * 0.003) }}
+          />
+        );
+      })}
+
+      {/* 3. طبقة الضبابية الفنية لزيادة النعومة */}
+      <rect width="100%" height="100%" fill="none" style={{ backdropFilter: 'blur(0.5px)', opacity: 0.1 }} />
     </svg>
   );
 };
@@ -80,9 +67,10 @@ export function IdentityCardPreview({
 }: IdentityCardPreviewProps) {
   
   useEffect(() => {
+    // إرسال إشارة الجاهزية فور رندر المكون نظراً لأنه يعتمد على كود داخلي الآن
     const timer = setTimeout(() => {
       onAssetsLoad?.();
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer);
   }, [onAssetsLoad]);
 
@@ -99,45 +87,44 @@ export function IdentityCardPreview({
   return (
     <div className="w-[600px] h-[378px] relative overflow-hidden bg-[#f5f1ea] flex flex-col justify-between shadow-2xl p-0 font-sans select-none rounded-[24px]" dir="ltr">
       
-      {/* 1. Background Logic */}
+      {/* Background Logic: Cream Silk Gradient */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_35%,_#ffffff_0%,_#f5f1ea_55%,_#e9e3db_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_#ffffff_0%,_#f5f1ea_60%,_#e9e3db_100%)]" />
         <WaveLines />
-        <div className="absolute inset-0 backdrop-blur-[0.5px] opacity-10" />
       </div>
 
-      {/* 2. Brand Identity Header - NAMIX.pro Elite Edition */}
+      {/* Header: NAMIX.pro Straight Bold Edition */}
       <div className="p-12 flex items-start justify-between relative z-10">
-        <h1 className="flex items-baseline tracking-tighter leading-none uppercase" style={{ color: '#6E6A63' }}>
-          <span className="text-[64px] font-black" style={{ fontWeight: 950 }}>NAMIX</span>
-          <span className="text-[32px] font-bold opacity-40 ml-1">.pro</span>
-        </h1>
+        <div className="flex items-baseline leading-none">
+          <span className="text-[64px] font-black tracking-tighter" style={{ color: '#6E6A63', fontWeight: 950 }}>NAMIX</span>
+          <span className="text-[32px] font-bold opacity-40 ml-1" style={{ color: '#6E6A63' }}>.pro</span>
+        </div>
         
-        {/* Nano Decorative Grid Dots */}
-        <div className="grid grid-cols-2 gap-1.5 pt-6 pr-4 opacity-[0.08]">
+        {/* Nano Grid Dots: Top Right */}
+        <div className="grid grid-cols-2 gap-1.5 pt-6 pr-4 opacity-[0.1]">
            {[...Array(4)].map((_, i) => (
              <div key={i} className="w-3.5 h-3.5 rounded-full bg-[#6E6A63]" />
            ))}
         </div>
       </div>
 
-      {/* 3. Identity Information Footer */}
+      {/* Footer Identity: Name & Spaced ID */}
       <div className="px-12 pb-12 relative z-10 flex items-end justify-between w-full">
         
-        <div className="space-y-3 flex-1 pr-10">
-           <p className="text-[16px] font-black uppercase tracking-[0.3em] leading-none" style={{ color: 'rgba(110, 106, 99, 0.4)' }}>
+        <div className="space-y-4 flex-1 pr-10">
+           <p className="text-[14px] font-black uppercase tracking-[0.4em] leading-none" style={{ color: 'rgba(110, 106, 99, 0.4)' }}>
               {user?.displayName || "INVESTOR NAME"}
            </p>
-           <p className="text-[48px] font-black tabular-nums tracking-normal leading-none whitespace-nowrap" style={{ color: '#6E6A63' }}>
+           <p className="text-[46px] font-black tabular-nums tracking-normal leading-none whitespace-nowrap" style={{ color: '#6E6A63' }}>
               {formatId(user?.namixId)}
            </p>
         </div>
 
-        {/* Dynamic QR Node */}
-        <div className="shrink-0 p-2 bg-white/5 backdrop-blur-md rounded-[20px] border border-white/10">
+        {/* Minimal QR Node: No Shadow */}
+        <div className="shrink-0 p-2 opacity-80">
            <QRCodeSVG 
              value={invitationLink} 
-             size={90} 
+             size={85} 
              bgColor={"transparent"} 
              fgColor={"#6E6A63"} 
              level={"M"} 
