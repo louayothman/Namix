@@ -48,6 +48,7 @@ export function IdentityCardDrawer({
   useEffect(() => {
     if (open && isAssetsLoaded && !hasCaptured.current) {
       setLoading(true);
+      // منح المتصفح وقتاً إضافياً لترجمة الخطوط والعناصر
       const timer = setTimeout(() => {
         captureCard();
       }, 1000);
