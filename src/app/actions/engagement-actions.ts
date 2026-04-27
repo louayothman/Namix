@@ -5,141 +5,135 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 /**
- * @fileOverview محرك الاستهداف السلوكي المطور v3.0 - 20 Behavioral Categories
- * يقوم بتحليل دقيق لحالة المستثمر وتوليد تنبيهات موجهة لتعزيز التفاعل.
- * تم تطهير اللغة تماماً من المصطلحات العسكرية.
+ * @fileOverview محرك الاستهداف السلوكي المطور v5.0 - Institutional Segmentation Matrix
+ * نظام متطور يصنف المستخدمين لـ 24 فئة استراتيجية ويبث تنبيهات مخصصة لزيادة التفاعل.
+ * يلتزم بقواعد التوقيت (Max 3/Day) والساعات الصامتة (12AM - 8AM).
  */
 
 export async function checkAndSendAutomatedNotifications(userId: string) {
   try {
     const { firestore } = initializeFirebase();
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // 1. بروتوكول الساعات الصامتة (Silent Hours: 12 AM - 8 AM)
+    if (currentHour >= 0 && currentHour < 8) return;
+
     const userRef = doc(firestore, "users", userId);
     const userSnap = await getDoc(userRef);
-    
     if (!userSnap.exists()) return;
     const user = userSnap.data();
-    const now = new Date();
-    const createdAt = new Date(user.createdAt);
-    const lastActive = user.lastActive ? new Date(user.lastActive) : createdAt;
-    
-    const daysSinceSignup = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
-    const daysSinceActive = (now.getTime() - lastActive.getTime()) / (1000 * 3600 * 24);
-    
-    // منع تكرار الإرسال الآلي (تنبيه واحد كل 12 ساعة كحد أقصى لضمان عدم الإزعاج)
-    const lastNotifQuery = query(
+
+    // 2. التحقق من سقف الإشعارات اليومي (Max 3/Day)
+    const todayStart = new Date(now.setHours(0,0,0,0)).toISOString();
+    const dailyCountQuery = query(
       collection(firestore, "notifications"),
       where("userId", "==", userId),
       where("isAutomated", "==", true),
-      orderBy("createdAt", "desc"),
-      limit(1)
+      where("createdAt", ">=", todayStart)
     );
-    const lastNotifSnap = await getDocs(lastNotifQuery);
-    if (!lastNotifSnap.empty) {
-      const lastSent = new Date(lastNotifSnap.docs[0].data().createdAt);
-      if ((now.getTime() - lastSent.getTime()) < (1000 * 3600 * 12)) return;
-    }
+    const dailyCountSnap = await getDocs(dailyCountQuery);
+    if (dailyCountSnap.size >= 3) return;
+
+    // 3. جمع البيانات العميقة للتحليل السلوكي
+    const [tradesSnap, transfersSnap] = await Promise.all([
+      getDocs(query(collection(firestore, "trades"), where("userId", "==", userId), orderBy("createdAt", "desc"), limit(10))),
+      getDocs(query(collection(firestore, "internal_transfers"), where("fromUserId", "==", userId), limit(1)))
+    ]);
+
+    const trades = tradesSnap.docs.map(d => d.data());
+    const hasTrades = trades.length > 0;
+    const hasTransfers = !transfersSnap.empty;
+    const createdAt = new Date(user.createdAt);
+    const lastActive = user.lastActive ? new Date(user.lastActive) : createdAt;
+    const daysSinceSignup = (Date.now() - createdAt.getTime()) / (1000 * 3600 * 24);
+    const daysSinceActive = (Date.now() - lastActive.getTime()) / (1000 * 3600 * 24);
+    const totalBalance = user.totalBalance || 0;
 
     let title = "";
     let message = "";
-    let type = "info";
     let url = "/home";
+    let priority = "medium";
 
-    // --- مصفوفة الاستهداف الذكي (20 فئة استراتيجية) ---
-    
-    // 1. ترحيب المستثمر الجديد
-    if (daysSinceSignup < 1) {
-      title = "مرحباً بك في ناميكس";
-      message = "اكتشف كيف يولد نظامنا أرباحاً استثنائية عبر مختبر العقود الذكي.";
-      url = "/academy";
-    } 
-    // 2. مسجل ولم يقم بالإيداع بعد (بعد 48 ساعة)
-    else if (daysSinceSignup >= 2 && (user.totalBalance || 0) <= 0) {
+    // 4. مصفوفة التصنيف السلوكي (Dynamic Segmentation Matrix)
+
+    // Segment 1: Inactive User
+    if (daysSinceActive > 3) {
+      title = "السوق يتحرك";
+      message = "نشاط ملحوظ في تدفقات السيولة اليوم... هل ستترك الفرص تفوتك؟";
+      url = "/trade";
+    }
+    // Segment 2: New User (First 48h)
+    else if (daysSinceSignup < 2 && !hasTrades) {
       title = "ابدأ رحلتك المالية";
-      message = "محفظتك جاهزة حالياً. قم بشحن رصيدك لتفعيل أول عقد استثماري لك.";
+      message = "حسابك جاهز تماماً الآن — تنفيذ أول صفقة أبسط مما تتخيل.";
+      url = "/academy";
+    }
+    // Segment 3: Drop-off (Registered, No Deposit)
+    else if (totalBalance <= 0 && daysSinceSignup >= 2) {
+      title = "محفظتك تنتظر التشغيل";
+      message = "خطوة واحدة فقط تفصلك عن تفعيل محرك النمو الخاص بك.";
       url = "/home";
     }
-    // 3. رصيد متوفر بدون استثمار نشط
-    else if ((user.totalBalance || 0) > 10 && (user.activeInvestmentsTotal || 0) === 0) {
-      title = "فرصة نمو معطلة";
-      message = "يتوفر رصيد في حسابك غير مستغل. تفعيل العقود يضمن لك عوائد دورية منتظمة.";
-      url = "/invest";
-    }
-    // 4. مستخدم خامل لمدة أسبوع
-    else if (daysSinceActive >= 7 && daysSinceActive < 30) {
-      title = "تحديثات السوق بانتظارك";
-      message = "تتوفر فرص تداول جديدة اليوم. عاين التحليلات الفنية المحدثة في غرفة التداول.";
+    // Segment 4: Funded No Trade
+    else if (totalBalance > 0 && !hasTrades) {
+      title = "رصيدك جاهز للنمو";
+      message = "يتوفر سيولة في حسابك غير مستغلة... أول صفقة هي الخطوة الأهم.";
       url = "/trade";
     }
-    // 5. غياب طويل (30 يوم) - تذكير أمني
-    else if (daysSinceActive >= 30) {
-      title = "اشتقنا لتواجدك معنا";
-      message = "نحيطك علماً بوجود تحديثات أمنية هامة تتطلب تسجيل دخولك لتأمين الحساب.";
-      url = "/login";
+    // Segment 5: Active Trader
+    else if (hasTrades && trades.filter(t => (Date.now() - new Date(t.createdAt).getTime()) < 86400000).length > 5) {
+      title = "ذروة التقلب السعري";
+      message = "السوق الآن في حالة حركة نشطة — فرصك اليوم أكبر من المعتاد.";
+      url = "/trade";
     }
-    // 6. رصيد مرتفع بدون حماية (لا يوجد PIN)
-    else if ((user.totalBalance || 0) > 100 && !user.securityPin) {
-      title = "تأمين المحفظة الجارية";
-      message = "لحماية أصولك، يرجى تعيين رمز PIN الخاص بالخزنة في أقرب وقت.";
-      url = "/settings";
+    // Segment 12: Whale
+    else if (totalBalance > 5000) {
+      title = "امتيازات كبار المستثمرين";
+      message = "بصفتك شريكاً استراتيجياً، نوفر لك تحليلات NAMIX AI المتقدمة مجاناً.";
+      url = "/trade";
     }
-    // 7. هوية غير موثقة (KYC)
-    else if (!user.isVerified) {
-      title = "توثيق الهوية الرقمية";
-      message = "توثيق هويتك يمنحك صلاحيات كاملة وسحوبات أسرع للأرباح المحققة.";
-      url = "/settings";
+    // Segment 16: Investment User
+    else if ((user.activeInvestmentsTotal || 0) > 0) {
+      const profit = (user.totalProfits || 0).toFixed(2);
+      title = "تحديث أداء العقود";
+      message = `عقودك النشطة تسجل نمواً مستمراً. تم تحقيق $${profit} حتى الآن.`;
+      url = "/my-investments";
     }
-    // 8. أرباح شركاء معلقة
-    else if (user.referralEarnings > 0 && daysSinceActive > 3) {
-      title = "نشاط في شبكة شركائك";
-      message = "تتوفر أرباح ناتجة عن نشاط شبكتك. راجع سجل العمولات الآن.";
+    // Segment 24: Referral User
+    else if (user.referralEarnings > 0) {
+      title = "نمو في شبكة الشركاء";
+      message = "تم رصد نشاط جديد في شبكتك... مكافآت الصدارة بانتظار استلامك.";
       url = "/ambassador";
     }
-    // 9. كبار المستثمرين (Whales) - أدوات حصرية
-    else if ((user.totalBalance || 0) > 5000) {
-      title = "مزايا كبار المستثمرين";
-      message = "بصفتك مستثمراً متميزاً، نوفر لك أدوات تحليلية متقدمة في واجهة التداول.";
+    // Hybrid: New + Funded
+    else if (daysSinceSignup < 5 && totalBalance > 50) {
+      title = "بداية استراتيجية قوية";
+      message = "تمتلك سيولة ممتازة للبدء... لا تترك فرص التداول اليوم تمر دون تجربة.";
       url = "/trade";
     }
-    // 10. تحفيز تنوع المحفظة
-    else if ((user.activeInvestmentsTotal || 0) > 0 && (user.activeInvestmentsTotal || 0) < 500) {
-      title = "عزز نمو أصولك";
-      message = "توزيع استثماراتك على أكثر من عقد يقلل المخاطر ويزيد استقرار العائد الإجمالي.";
-      url = "/invest";
-    }
     else {
-      // فئات إضافية (11-20) تعتمد على التنوع المعرفي والأمني
-      const extraCategories = [
-        { t: "دروس تعليمية جديدة", m: "أضفنا محتوى جديداً حول فهم اتجاهات السوق في الأكاديمية.", u: "/academy" },
-        { t: "تذكير بسلامة الحساب", m: "ننصح بتغيير كلمة المرور بشكل دوري لضمان أقصى درجات الحماية.", u: "/settings" },
-        { t: "تحسينات في الأداء", m: "تم رفع سرعة معالجة الأوامر في المنصة لتجربة تداول أسرع.", u: "/trade" },
-        { t: "بوصلة التوجيه", m: "استخدم بوصلة التوجيه لتحديد أهدافك المالية ورسم مسار نموك.", u: "/guidance" },
-        { t: "فريق الدعم متاح", m: "فريقنا متواجد دائماً للإجابة على أي استفسار يخص محفظتك.", u: "/faq" },
-        { t: "سوق العملات المشفرة", m: "عملة البيتكوين تشهد تحركات مثيرة؛ عاين التحليل الفني الآن.", u: "/trade" },
-        { t: "إدارة السيولة السريعة", m: "نظام التحويل الداخلي يتيح لك إرسال المبالغ لأصدقائك فوراً.", u: "/withdraw" },
-        { t: "إنجازات الرتب", m: "أنت قريب من بلوغ الرتبة التالية؛ حقق الشروط واحصل على جائزتك.", u: "/home" },
-        { t: "تنوع قنوات الاستثمار", m: "تفعيل عقود بمدد زمنية مختلفة يضمن لك تدفقاً نقدياً مستمراً.", u: "/invest" },
-        { t: "إشعارات النظام", m: "تأكد من بقاء التنبيهات مفعلة لاستلام إشارات التداول اللحظية.", u: "/settings" }
-      ];
-      const randomExtra = extraCategories[Math.floor(Math.random() * extraCategories.length)];
-      title = randomExtra.t;
-      message = randomExtra.m;
-      url = randomExtra.u;
+      // General Professional Tip
+      title = "نصيحة ناميكس اليوم";
+      message = "تنويع العقود بين قصيرة وطويلة الأمد يضمن لك استقراراً مالياً نخبويًا.";
+      url = "/guidance";
     }
 
+    // 5. تنفيذ عملية البث المسجل (سيقوم محرك الـ Push بالتقاطه)
     if (title && message) {
       await addDoc(collection(firestore, "notifications"), {
         userId,
         title,
         message,
-        type,
+        type: priority === 'high' ? 'warning' : 'info',
         url,
         isRead: false,
         isAutomated: true,
-        createdAt: now.toISOString()
+        createdAt: new Date().toISOString()
       });
     }
 
   } catch (e) {
-    console.error("Engagement Scan Error:", e);
+    console.error("Behavioral Scan Error:", e);
   }
 }
