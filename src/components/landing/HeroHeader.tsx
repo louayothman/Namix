@@ -30,7 +30,7 @@ export function HeroHeader() {
           <button className="relative flex items-center gap-2 group outline-none bg-transparent border-none">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-[#002d4d] transition-colors">
-              التحليل الذكي
+              تحليل الأسواق
             </span>
             <Activity size={14} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
