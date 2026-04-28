@@ -22,7 +22,8 @@ import { ManagedInvestmentList } from "@/components/admin/users/ManagedInvestmen
 import { UserFinancialLedger } from "@/components/admin/users/UserFinancialLedger";
 
 /**
- * @fileOverview صفحة إدارة المستثمر للمشرف v2.3 - Sovereign Ledger Sync Support
+ * @fileOverview صفحة إدارة المستثمر للمشرف v3.0 - Sovereign Ledger Sync Support
+ * تم تصحيح المعادلة المحاسبية لمنع تكرار رأس المال المبدئي.
  */
 export default function ManagedDashboardPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
@@ -77,7 +78,10 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
   }, [db, userId]);
   const { data: allTrades } = useCollection(tradesQuery);
 
-  // --- محرك الاحتساب المحاسبي السيادي للمشرف v4.0 (Ledger Sync Edition) ---
+  /**
+   * محرك الاحتساب المحاسبي السيادي المطور v5.0 - Cumulative Stream Engine
+   * يطبق "المعادلة الذهبية" لمنع تكرار احتساب رأس المال وضمان استقرار الميزانية.
+   */
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !allInvestments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0, totalDeposited: 0, totalWithdrawn: 0 };
@@ -87,7 +91,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
-    // العقود المنتهية والموثقة فقط isProcessed: true
+    // 1. حساب التدفقات المنتهية والموثقة
     const maturedInvs = allInvestments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -96,22 +100,24 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    // 2. حساب إجمالي التدفق الخارج (التاريخي والمؤقت)
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    
+    // سحب رأس المال "تاريخياً" بمجرد بدء العملية (أياً كانت حالتها)
+    const totalInvestedCapitalEver = allInvestments.reduce((sum, i) => sum + (i.amount || 0), 0);
+    const totalTradedCapitalEver = allTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const activeInvs = allInvestments.filter(i => i.status === 'active');
-    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
-
-    const openTrades = allTrades.filter(t => t.status === 'open');
-    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-
-    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
-    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-
-    // المعادلة الذهبية المعتمدة
+    // 3. تطبيق المعادلة الذهبية (Inflow - Outflow)
     const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
-    const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
+    const totalOutflow = totalWithdrawals + totalInvestedCapitalEver + totalTradedCapitalEver;
     
     const calculatedBalance = Math.max(0, totalInflow - totalOutflow);
+
+    // حساب المعايير للعرض فقط
+    const activeInvs = allInvestments.filter(i => i.status === 'active');
+    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+    const openTrades = allTrades.filter(t => t.status === 'open');
+    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
     return {
       balance: calculatedBalance,
@@ -254,7 +260,7 @@ export default function ManagedDashboardPage({ params }: { params: Promise<{ use
           });
         } else {
           await updateDoc(doc(db, "investments", inv.id), { status: "completed", isProcessed: true, completedAt: new Date().toISOString() });
-          await addDoc(collection(db, "notifications"), { userId: userId, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle}. تم تحرير رأس المال والارباح لمحفظة المستثمر بنجاح.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
+          await addDoc(collection(db, "notifications"), { userId: userId, title: "اكتمل الاستثمار! 💰", message: `اكتمل استثمار ${inv.planTitle}. تم تحرير رأس المال والارباح لمحفظتك بنجاح.`, type: "success", isRead: false, createdAt: new Date().toISOString() });
         }
       }
     } finally {

@@ -56,7 +56,6 @@ export default function HomePage() {
   const router = useRouter();
   const db = useFirestore();
 
-  // بروتوكول التحميل المسبق لخلفية البطاقة لضمان السرعة
   useEffect(() => {
     const preloadImg = new Image();
     preloadImg.src = "/card-bg.png";
@@ -110,6 +109,10 @@ export default function HomePage() {
   }, [db, localUser?.id]);
   const { data: allTrades } = useCollection(tradesQuery);
 
+  /**
+   * محرك الاحتساب المحاسبي السيادي المطور v5.0 - Cumulative Stream Engine
+   * يطبق "المعادلة الذهبية" لمنع تكرار احتساب رأس المال وضمان استقرار الميزانية.
+   */
   const dynamicFinancials = useMemo(() => {
     if (!dbUser || !allDeposits || !allWithdrawals || !investments || !allTrades) {
       return { balance: 0, profits: 0, activeInvestments: 0 };
@@ -119,6 +122,7 @@ export default function HomePage() {
     const totalDeposits = allDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
     const totalDepositBonuses = allDeposits.reduce((sum, d) => sum + (d.bonusApplied || 0), 0);
 
+    // 1. حساب التدفقات المنتهية والموثقة
     const maturedInvs = investments.filter(i => i.status === 'completed' && i.isProcessed === true);
     const maturedProfits = maturedInvs.reduce((sum, i) => sum + (i.expectedProfit || 0), 0);
     const maturedCapitals = maturedInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -127,21 +131,24 @@ export default function HomePage() {
     const tradeWinProfits = winTrades.reduce((sum, t) => sum + (t.expectedProfit || 0), 0);
     const tradeWinCapitals = winTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
+    // 2. حساب إجمالي التدفق الخارج (التاريخي والمؤقت)
     const totalWithdrawals = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    
+    // سحب رأس المال "تاريخياً" بمجرد بدء العملية
+    const totalInvestedCapitalEver = investments.reduce((sum, i) => sum + (i.amount || 0), 0);
+    const totalTradedCapitalEver = allTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const activeInvs = investments.filter(i => i.status === 'active');
-    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
-
-    const openTrades = allTrades.filter(t => t.status === 'open');
-    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-
-    const loseTrades = allTrades.filter(t => t.status === 'closed' && t.result === 'lose');
-    const tradeLossCapitals = loseTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
-
+    // 3. تطبيق المعادلة الذهبية (Inflow - Outflow)
     const totalInflow = initialBonus + totalDeposits + totalDepositBonuses + maturedProfits + maturedCapitals + tradeWinProfits + tradeWinCapitals;
-    const totalOutflow = totalWithdrawals + activeInvestmentsTotal + openTradesAmount + tradeLossCapitals;
+    const totalOutflow = totalWithdrawals + totalInvestedCapitalEver + totalTradedCapitalEver;
     
     const calculatedBalance = Math.max(0, totalInflow - totalOutflow);
+
+    // حساب المعايير للعرض فقط
+    const activeInvs = investments.filter(i => i.status === 'active');
+    const activeInvestmentsTotal = activeInvs.reduce((sum, i) => sum + (i.amount || 0), 0);
+    const openTrades = allTrades.filter(t => t.status === 'open');
+    const openTradesAmount = openTrades.reduce((sum, t) => sum + (t.amount || 0), 0);
 
     return {
       balance: calculatedBalance,
