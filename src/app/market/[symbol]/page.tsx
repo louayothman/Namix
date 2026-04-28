@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { use, useEffect, useState, useMemo } from "react";
@@ -7,6 +6,7 @@ import { runNamix } from "@/lib/namix-orchestrator";
 import { CryptoIcon } from "@/lib/crypto-icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   TrendingUp, 
   TrendingDown, 
