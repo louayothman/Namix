@@ -1,8 +1,6 @@
-
 /**
- * @fileOverview محرك التحليل والقرار المطور v9.0 - Engine Dialogue Edition
- * تم تحديث المحرك ليدعم توليد حوار منطقي بين الوكلاء بلغة مالية احترافية.
- * تم تطهير المصطلحات تماماً من الكلمات غير المرغوبة.
+ * @fileOverview محرك التحليل والقرار المطور v10.0 - Generative & Hybrid Logic
+ * يدمج بين التحليل التوليدي (Gemini) ومصفوفة القوالب البديلة لضمان الاستمرارية.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -10,6 +8,8 @@ import { volumeAgent } from "./agents/volume-agent";
 import { riskEngine } from "./engines/risk-engine";
 import { memoryEngine } from "./engines/memory-engine";
 import { sendAISignalNotification } from "@/app/actions/notification-actions";
+import { generateFallbackAnalysis } from "./analysis-templates";
+import { generateAILogic } from "@/ai/flows/market-analysis-flow";
 
 export async function runNamix(symbol: string, duration?: number, userId?: string) {
   const cleanSymbol = symbol.replace('/', '').toUpperCase();
@@ -26,6 +26,7 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   else if (decisionScore < 0.495) decision = "SELL";
 
   const confidence = Math.round(decisionScore * 100);
+  const trend = decision === 'BUY' ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي";
 
   if (userId && confidence >= 60 && decision !== 'HOLD') {
     sendAISignalNotification(userId, cleanSymbol, confidence, decision).catch(() => {});
@@ -47,14 +48,24 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const entryMin = currentPrice * (isLong ? 0.999 : 1.001);
   const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
 
-  // توليد حوار المحركات (Oracle Debate) بلغة مطهرة
+  // --- محرك الوعي التوليدي المزدوج ---
+  let finalReason = "";
+  try {
+    // محاولة التوليد عبر Gemini (المقترح الأول)
+    finalReason = await generateAILogic({
+      symbol: cleanSymbol,
+      price: currentPrice,
+      rsi: Math.round(tech.score * 100), // استخدام السكور كدلالة للـ RSI
+      confidence,
+      decision,
+      trend
+    });
+  } catch (e) {
+    // في حال الفشل، نستخدم مصفوفة القوالب (المقترح الثاني)
+    finalReason = generateFallbackAnalysis(decision);
+  }
+
   const dialogue = generateEngineDialogue(decision, tech, volume, duration);
-  
-  const reason = isLong 
-    ? "تم رصد زخم شرائي متصاعد مدعوم بتدفقات سيولة إيجابية عند مستويات الدعم الحالية." 
-    : decision === 'SELL' 
-    ? "رفض سعري واضح عند مناطق المقاومة مع مؤشرات على بدء تصحيح فني." 
-    : "حالة تعادل فني في السوق تمنع اتخاذ قرار حاسم حالياً.";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -68,10 +79,10 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
       ...risk,
       label: risk.level === 'LOW' ? 'منخفضة' : risk.level === 'HIGH' ? 'متوسطة' : 'عالية'
     },
-    reason,
-    reasoning: reason,
+    reason: finalReason,      // للتوافق مع كود تلغرام
+    reasoning: finalReason,   // للتوافق مع كود التطبيق
     dialogue,
-    trend: isLong ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي",
+    trend,
     volume: volume.score > 0.7 ? "عالي" : volume.score > 0.4 ? "متوسط" : "منخفض",
     targets,
     entry_range: `${entryMin.toLocaleString(undefined, {minimumFractionDigits: 2})} – ${entryMax.toLocaleString(undefined, {minimumFractionDigits: 2})}`,
@@ -82,9 +93,6 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   };
 }
 
-/**
- * محرك توليد الحوار بين الوكلاء (النمو vs التصحيح) بلغة مالية احترافية
- */
 function generateEngineDialogue(decision: string, tech: any, volume: any, duration?: number) {
   const isBuy = decision === "BUY";
   const isSell = decision === "SELL";
