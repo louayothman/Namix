@@ -1,4 +1,3 @@
-
 'use server';
 
 import { initializeFirebase } from '@/firebase';
@@ -6,7 +5,7 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v32.0 - Dialogue Integration
+ * @fileOverview محرك عمليات تلغرام المطور v33.0 - NAMIX Discussion Update
  */
 
 interface TelegramBot {
@@ -84,10 +83,10 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
-    // بناء حوار المحركات للرسالة
+    // بناء مناقشة محركات NAMIX للرسالة
     let dialogueText = "";
     if (signal.dialogue && Array.isArray(signal.dialogue)) {
-      dialogueText = "\n\n🗳️ *حوار المحركات:* \n" + signal.dialogue.map((d: any) => `• _${d.agent}:_ ${d.message}`).join('\n');
+      dialogueText = "\n\n🗳️ *مناقشة محركات NAMIX:* \n" + signal.dialogue.map((d: any) => `• _${d.agent}:_ ${d.message}`).join('\n');
     }
 
     const caption = `
@@ -108,7 +107,7 @@ ${signal.reason}
 
 🔥 *المخاطرة:* ${signal.risk.label}  
 
-_تم جلب هذه البيانات عبر نظام NAMIX للتحليل اللحظي._
+_تم استخلاص البيانات عبر محركات NAMIX للتحليل اللحظي._
     `.trim();
 
     const headersList = await headers();

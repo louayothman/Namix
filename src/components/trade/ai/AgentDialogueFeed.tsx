@@ -15,14 +15,12 @@ interface Message {
 }
 
 /**
- * @fileOverview Neural Dialogue Feed v3.0 - WhatsApp Style Integration
- * نظام محادثة انسيابي يعتمد على التمرير الآلي والدفع للأعلى (Slide-up physics).
+ * @fileOverview NAMIX Dialogue Feed v4.0 - Generative Discussion Update
  */
 export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
   const iconMap: Record<string, any> = { Zap, Target, ShieldCheck, Cpu };
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // محرك التمرير الآلي للأسفل (WhatsApp Logic)
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -36,10 +34,10 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
     <div className="space-y-5 font-body tracking-normal" dir="rtl">
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">Neural Consensus Feed</span>
+          <div className="h-1.5 w-1.5 rounded-full bg-[#f9a885] animate-pulse" />
+          <span className="text-[9px] font-black text-[#002d4d] uppercase tracking-[0.2em]">مناقشة محركات NAMIX</span>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md uppercase">Live Stream</Badge>
+        <Badge variant="outline" className="bg-[#002d4d]/5 text-[#002d4d] border-none font-black text-[7px] px-2 py-0.5 rounded-md uppercase">Generative Core</Badge>
       </div>
       
       <div 
@@ -70,8 +68,8 @@ export function AgentDialogueFeed({ messages }: { messages: Message[] }) {
                 </div>
                 <div className="flex-1 pt-0.5">
                   <div className="flex items-center gap-2 mb-1 pr-1">
-                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent} Intelligence</p>
-                     <div className="h-1 w-1 rounded-full bg-blue-500/20" />
+                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{msg.agent}</p>
+                     <div className="h-1 w-1 rounded-full bg-blue-500/10" />
                   </div>
                   <div className="p-4 bg-gray-50 rounded-[24px] rounded-tr-sm border border-gray-100/50 shadow-sm relative group-hover/msg:bg-white group-hover/msg:shadow-md transition-all duration-500">
                     <p className="text-[11px] font-bold text-[#002d4d] leading-relaxed">

@@ -1,6 +1,6 @@
 /**
- * @fileOverview محرك التحليل والقرار المطور v10.0 - Generative & Hybrid Logic
- * يدمج بين التحليل التوليدي (Gemini) ومصفوفة القوالب البديلة لضمان الاستمرارية.
+ * @fileOverview محرك التحليل والقرار المطور v11.0 - Full Generative Dialogue
+ * يدمج بين التحليل التوليدي وإدارة مناقشة محركات NAMIX بشكل مبتكر.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -8,7 +8,7 @@ import { volumeAgent } from "./agents/volume-agent";
 import { riskEngine } from "./engines/risk-engine";
 import { memoryEngine } from "./engines/memory-engine";
 import { sendAISignalNotification } from "@/app/actions/notification-actions";
-import { generateFallbackAnalysis } from "./analysis-templates";
+import { generateFallbackAnalysis, generateFallbackDialogue } from "./analysis-templates";
 import { generateAILogic } from "@/ai/flows/market-analysis-flow";
 
 export async function runNamix(symbol: string, duration?: number, userId?: string) {
@@ -27,13 +27,14 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
 
   const confidence = Math.round(decisionScore * 100);
   const trend = decision === 'BUY' ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي";
+  const currentPrice = tech.last;
+  const durLabel = duration ? (duration < 60 ? `${duration} ثانية` : `${Math.floor(duration/60)} دقيقة`) : "اللحظية";
 
   if (userId && confidence >= 60 && decision !== 'HOLD') {
     sendAISignalNotification(userId, cleanSymbol, confidence, decision).catch(() => {});
   }
 
   const risk = riskEngine(decision, tech, volume);
-  const currentPrice = tech.last;
   const volatility = tech.high - tech.low;
   const atrProxy = volatility * 0.25;
 
@@ -48,24 +49,29 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const entryMin = currentPrice * (isLong ? 0.999 : 1.001);
   const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
 
-  // --- محرك الوعي التوليدي المزدوج ---
+  // --- محرك التوليد الشامل لناميكس ---
   let finalReason = "";
+  let finalDialogue: any[] = [];
+
   try {
-    // محاولة التوليد عبر Gemini (المقترح الأول)
-    finalReason = await generateAILogic({
+    // محاولة التوليد عبر Gemini لصياغة التحليل والحوار معاً
+    const aiResponse = await generateAILogic({
       symbol: cleanSymbol,
       price: currentPrice,
-      rsi: Math.round(tech.score * 100), // استخدام السكور كدلالة للـ RSI
+      rsi: Math.round(tech.score * 100),
       confidence,
       decision,
-      trend
+      trend,
+      duration: durLabel
     });
+    
+    finalReason = aiResponse.reasoning;
+    finalDialogue = aiResponse.dialogue;
   } catch (e) {
-    // في حال الفشل، نستخدم مصفوفة القوالب (المقترح الثاني)
-    finalReason = generateFallbackAnalysis(decision);
+    // محرك الاحتياط في حال فشل Gemini
+    finalReason = generateFallbackAnalysis(decision, currentPrice, confidence);
+    finalDialogue = generateFallbackDialogue(decision, durLabel);
   }
-
-  const dialogue = generateEngineDialogue(decision, tech, volume, duration);
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -79,9 +85,9 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
       ...risk,
       label: risk.level === 'LOW' ? 'منخفضة' : risk.level === 'HIGH' ? 'متوسطة' : 'عالية'
     },
-    reason: finalReason,      // للتوافق مع كود تلغرام
-    reasoning: finalReason,   // للتوافق مع كود التطبيق
-    dialogue,
+    reason: finalReason,
+    reasoning: finalReason,
+    dialogue: finalDialogue,
     trend,
     volume: volume.score > 0.7 ? "عالي" : volume.score > 0.4 ? "متوسط" : "منخفض",
     targets,
@@ -91,30 +97,4 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
     agents: { tech, volume },
     timestamp: new Date().toISOString()
   };
-}
-
-function generateEngineDialogue(decision: string, tech: any, volume: any, duration?: number) {
-  const isBuy = decision === "BUY";
-  const isSell = decision === "SELL";
-  const durLabel = duration ? (duration < 60 ? `${duration} ثانية` : `${Math.floor(duration/60)} دقيقة`) : "اللحظية";
-
-  const bullMessages = {
-    BUY: "أرى اختراقاً إيجابياً قوياً؛ الزخم الشرائي يتزايد والمنحنى يستهدف قمة جديدة.",
-    SELL: "رغم الضغط الحالي، إلا أن مستويات القاع متينة وقد نرى ارتداداً فنياً قريباً.",
-    HOLD: "السعر يبني قاعدة تجميع هادئة، التمركز الحالي قد يسبق انطلاقة قوية."
-  };
-
-  const bearMessages = {
-    BUY: "احذر من فخ سعري؛ السيولة غير مستقرة وقد نرى تصحيحاً خاطفاً قبل الصعود.",
-    SELL: "المؤشرات الفنية سلبية؛ كسر مستويات الدعم يفتح الباب لمزيد من التراجع.",
-    HOLD: "الزخم ضعيف جداً؛ البقاء خارج السوق يجنبنا تقلبات المسار العرضي."
-  };
-
-  const status = isBuy ? 'BUY' : isSell ? 'SELL' : 'HOLD';
-
-  return [
-    { agent: "وكيل النمو", icon: "Zap", color: "bg-emerald-500", message: bullMessages[status] },
-    { agent: "وكيل المخاطر", icon: "Target", color: "bg-red-500", message: bearMessages[status] },
-    { agent: "محرك القرار", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تم التوافق على مسار صعودي للنافذة ${durLabel}. التنفيذ المقترح: شراء.` : isSell ? `تم التوافق على مسار تصحيحي للنافذة ${durLabel}. التنفيذ المقترح: بيع.` : "لا يوجد إجماع كافٍ حالياً؛ نظامنا يفضل التريث لضمان سلامة المحفظة." }
-  ];
 }

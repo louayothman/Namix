@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview محرك التوليد الاستنتاجي v1.0
- * يستخدم Gemini 2.5 Flash لصياغة تحليلات فنية مبتكرة بناءً على البيانات الرقمية.
+ * @fileOverview محرك التوليد الاستنتاجي الموحد v2.0
+ * يقوم بصياغة التحليل الفني وإدارة مناقشة محركات NAMIX بناءً على البيانات اللحظية.
  */
 
 import { ai } from '@/ai/genkit';
@@ -14,35 +14,57 @@ const MarketAnalysisInputSchema = z.object({
   confidence: z.number().describe('نسبة الثقة %'),
   decision: z.enum(['BUY', 'SELL', 'HOLD']).describe('القرار الفني'),
   trend: z.string().describe('الاتجاه العام'),
+  duration: z.string().optional().describe('المدة الزمنية المقترحة'),
+});
+
+const MarketAnalysisOutputSchema = z.object({
+  reasoning: z.string().describe('التحليل الفني المختصر شامل السعر والثقة'),
+  dialogue: z.array(z.object({
+    agent: z.string(),
+    icon: z.string(),
+    color: z.string(),
+    message: z.string()
+  })).describe('مناقشة محركات NAMIX بين وكلاء النمو والمخاطر والقرار'),
 });
 
 export type MarketAnalysisInput = z.infer<typeof MarketAnalysisInputSchema>;
+export type MarketAnalysisOutput = z.infer<typeof MarketAnalysisOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'marketAnalysisPrompt',
   input: { schema: MarketAnalysisInputSchema },
-  output: { schema: z.string() },
-  prompt: `أنت محلل تقني محترف في منصة ناميكس.
-قم بصياغة رؤية فنية مبتكرة وذكية في سطر واحد فقط (لا يتجاوز 15 كلمة).
-يجب أن يكون النص مبنياً على البيانات التالية:
+  output: { schema: MarketAnalysisOutputSchema },
+  prompt: `أنت محلل تقني ومسؤول أتمتة في منظومة NAMIX.
+بناءً على البيانات التالية:
 العملة: {{symbol}}
-السعر: {{price}}
+السعر الحالي: {{price}}$
 RSI: {{rsi}}
-الثقة: %{{confidence}}
+نسبة الثقة: {{confidence}}%
 القرار: {{decision}}
-الاتجاه: {{trend}}
+الاتجاه اللحظي: {{trend}}
 
-قواعد هامة:
-1. استخدم لغة هادئة واحترافية (مثل ChatGPT).
-2. اجعل النص يبدو وكأنه تحليل بشري عميق وليس قالباً.
-3. تجنب الكلمات التالية تماماً: سيادة، بروتوكول، ميثاق، استخبارات، مفاعل.
-4. ادمج السعر أو الثقة داخل الجملة بأسلوب طبيعي.`,
+المطلوب منك توليد رد احترافي يتكون من جزئين:
+
+1. الـ reasoning: صغ رؤية فنية مبتكرة في سطر واحد فقط. 
+   - يجب إدراج السعر {{price}}$ ونسبة الثقة {{confidence}}% بشكل طبيعي داخل النص.
+   - مثال: "نلاحظ تماسك السعر عند {{price}}$ مع زخم إيجابي قوي يرفع نسبة الثقة لـ {{confidence}}%."
+
+2. الـ dialogue: قم بتوليد 3 رسائل تمثل "مناقشة محركات NAMIX" بين:
+   - وكيل النمو (icon: Zap, color: bg-emerald-500): يركز على فرص الربح والزخم.
+   - وكيل المخاطر (icon: Target, color: bg-red-500): يركز على مستويات الحماية والسيولة.
+   - محرك القرار (icon: Cpu, color: bg-[#002d4d]): يعطي الخلاصة النهائية بناءً على التوافق التقني.
+
+قواعد هامة جداً:
+- لا تستخدم أبداً الكلمات التالية: سيادة، بروتوكول، ميثاق، استخبارات، مفاعل.
+- استخدم لغة هادئة واحترافية وبشرية.
+- اجعل الحوار يبدو كنقاش تقني حقيقي بين أنظمة ذكية وليس نصوصاً مكررة.`,
 });
 
-export async function generateAILogic(input: MarketAnalysisInput): Promise<string> {
+export async function generateAILogic(input: MarketAnalysisInput): Promise<MarketAnalysisOutput> {
   try {
     const { output } = await prompt(input);
-    return output || "";
+    if (!output) throw new Error("AI failed to generate content");
+    return output;
   } catch (e) {
     console.error("Genkit Flow Error:", e);
     throw e;
