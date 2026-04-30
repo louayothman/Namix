@@ -119,7 +119,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
       } catch (e) {}
     };
 
-    const interval = setInterval(fetchAnalysis, 3000);
+    const interval = setInterval(fetchAnalysis, 5000);
     fetchAnalysis();
     return () => clearInterval(interval);
   }, [status, asset, tradeDuration]);
@@ -191,7 +191,7 @@ export function NamixAIContainer({ asset, livePrice }: { asset: any, livePrice: 
                <div className="space-y-6 relative z-10 text-right">
                   <div className="flex items-center justify-between px-2">
                      <h4 className="text-[10px] font-black text-[#002d4d] uppercase tracking-normal">الأهداف المقترحة</h4>
-                     <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">PROFIT NODES</Badge>
+                     <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[7px] px-2 py-0.5 rounded-md">YIELD NODES</Badge>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">

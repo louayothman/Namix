@@ -1,7 +1,8 @@
 
 /**
- * @fileOverview محرك التحليل الاستنتاجي المطور v8.1 - Property Alignment Fix
- * تم تحديث المحرك ليعيد كلاً من reason و reasoning لضمان التوافق مع كافة المكونات.
+ * @fileOverview محرك التحليل والقرار المطور v9.0 - Engine Dialogue Edition
+ * تم تحديث المحرك ليدعم توليد حوار منطقي بين الوكلاء بلغة مالية احترافية.
+ * تم تطهير المصطلحات تماماً من الكلمات غير المرغوبة.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -46,14 +47,14 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   const entryMin = currentPrice * (isLong ? 0.999 : 1.001);
   const entryMax = currentPrice * (isLong ? 1.001 : 0.999);
 
-  // توليد مناظرة الوكلاء (Oracle Debate)
-  const dialogue = generateOracleDebate(decision, tech, volume, duration);
+  // توليد حوار المحركات (Oracle Debate) بلغة مطهرة
+  const dialogue = generateEngineDialogue(decision, tech, volume, duration);
   
   const reason = isLong 
     ? "تم رصد زخم شرائي متصاعد مدعوم بتدفقات سيولة إيجابية عند مستويات الدعم الحالية." 
     : decision === 'SELL' 
     ? "رفض سعري واضح عند مناطق المقاومة مع مؤشرات على بدء تصحيح فني." 
-    : "Market Equilibrium";
+    : "حالة تعادل فني في السوق تمنع اتخاذ قرار حاسم حالياً.";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -82,30 +83,30 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
 }
 
 /**
- * محرك مناظرة الوكلاء (Bull vs Bear Debate)
+ * محرك توليد الحوار بين الوكلاء (النمو vs التصحيح) بلغة مالية احترافية
  */
-function generateOracleDebate(decision: string, tech: any, volume: any, duration?: number) {
+function generateEngineDialogue(decision: string, tech: any, volume: any, duration?: number) {
   const isBuy = decision === "BUY";
   const isSell = decision === "SELL";
-  const durLabel = duration ? (duration < 60 ? `${duration} ثانية` : `${Math.floor(duration/60)} دقيقة`) : "الحالية";
+  const durLabel = duration ? (duration < 60 ? `${duration} ثانية` : `${Math.floor(duration/60)} دقيقة`) : "اللحظية";
 
   const bullMessages = {
-    BUY: "أرى اختراقاً إيجابياً قوياً؛ ضغط الشراء يتزايد والمنحنى يستهدف قمة جديدة.",
-    SELL: "رغم الضغط الحالي، إلا أن مستويات الدعم قوية وقد نرى ارتداداً وشيكاً.",
-    HOLD: "السعر يبني قاعدة متينة هنا، التجميع الهادئ قد يسبق انطلاقة قوية."
+    BUY: "أرى اختراقاً إيجابياً قوياً؛ الزخم الشرائي يتزايد والمنحنى يستهدف قمة جديدة.",
+    SELL: "رغم الضغط الحالي، إلا أن مستويات القاع متينة وقد نرى ارتداداً فنياً قريباً.",
+    HOLD: "السعر يبني قاعدة تجميع هادئة، التمركز الحالي قد يسبق انطلاقة قوية."
   };
 
   const bearMessages = {
-    BUY: "احذر من فخ شرائي؛ السيولة متذبذبة وقد نرى تصحيحاً خاطفاً قبل الصعود.",
-    SELL: "المؤشرات الفنية سلبية تماماً؛ كسر مستويات الدعم يفتح الباب لمزيد من التراجع.",
-    HOLD: "الزخم ضعيف جداً؛ لا أنصح بالدخول الآن لتجنب تقلبات المسار العرضي."
+    BUY: "احذر من فخ سعري؛ السيولة غير مستقرة وقد نرى تصحيحاً خاطفاً قبل الصعود.",
+    SELL: "المؤشرات الفنية سلبية؛ كسر مستويات الدعم يفتح الباب لمزيد من التراجع.",
+    HOLD: "الزخم ضعيف جداً؛ البقاء خارج السوق يجنبنا تقلبات المسار العرضي."
   };
 
   const status = isBuy ? 'BUY' : isSell ? 'SELL' : 'HOLD';
 
   return [
-    { agent: "Bull_Agent", icon: "Zap", color: "bg-emerald-500", message: bullMessages[status] },
-    { agent: "Bear_Agent", icon: "Target", color: "bg-red-500", message: bearMessages[status] },
-    { agent: "Core_Engine", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تم التوافق على مسار صعودي لـ ${durLabel}. التنفيذ: شراء.` : isSell ? `تم التوافق على مسار تصحيحي لـ ${durLabel}. التنفيذ: بيع.` : "لا يوجد إجماع كافٍ؛ البقاء في وضع الترقب هو القرار الأكثر أماناً." }
+    { agent: "وكيل النمو", icon: "Zap", color: "bg-emerald-500", message: bullMessages[status] },
+    { agent: "وكيل المخاطر", icon: "Target", color: "bg-red-500", message: bearMessages[status] },
+    { agent: "محرك القرار", icon: "Cpu", color: "bg-[#002d4d]", message: isBuy ? `تم التوافق على مسار صعودي للنافذة ${durLabel}. التنفيذ المقترح: شراء.` : isSell ? `تم التوافق على مسار تصحيحي للنافذة ${durLabel}. التنفيذ المقترح: بيع.` : "لا يوجد إجماع كافٍ حالياً؛ نظامنا يفضل التريث لضمان سلامة المحفظة." }
   ];
 }

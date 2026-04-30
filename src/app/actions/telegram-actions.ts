@@ -6,7 +6,7 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v30.0 - Support for Buttons & Progressive Updates
+ * @fileOverview محرك عمليات تلغرام المطور v32.0 - Dialogue Integration
  */
 
 interface TelegramBot {
@@ -17,9 +17,6 @@ interface TelegramBot {
   botUsername: string;
 }
 
-/**
- * إرسال صورة تحليل أو إشارة لدردشة محددة مع دعم الأزرار التفاعلية
- */
 export async function sendImageToChat(
   botId: string, 
   chatId: string, 
@@ -52,7 +49,6 @@ export async function sendImageToChat(
     formData.append('caption', caption);
     formData.append('parse_mode', 'Markdown');
     
-    // إضافة الأزرار التفاعلية للتحليل اليدوي
     if (symbolId) {
       formData.append('reply_markup', JSON.stringify({
         inline_keyboard: [
@@ -78,9 +74,6 @@ export async function sendImageToChat(
   }
 }
 
-/**
- * إرسال إشارة تداول مصورة واحترافية (JPG) لكافة البوتات النشطة
- */
 export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string) {
   try {
     const { firestore } = initializeFirebase();
@@ -91,6 +84,12 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
     
+    // بناء حوار المحركات للرسالة
+    let dialogueText = "";
+    if (signal.dialogue && Array.isArray(signal.dialogue)) {
+      dialogueText = "\n\n🗳️ *حوار المحركات:* \n" + signal.dialogue.map((d: any) => `• _${d.agent}:_ ${d.message}`).join('\n');
+    }
+
     const caption = `
 📊 *إشارة تداول — ${signal.pair}*
 
@@ -99,17 +98,17 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
 🎯 *الهدف 1:* ${signal.targets.tp1.toFixed(2)}  
 🎯 *الهدف 2:* ${signal.targets.tp2.toFixed(2)}  
 🎯 *الهدف 3:* ${signal.targets.tp3.toFixed(2)}  
-🛑 *وقف الخسارة:* ${signal.targets.sl.toFixed(2)}  
+🛑 *صمام الأمان:* ${signal.targets.sl.toFixed(2)}  
 
 ⚡ *نسبة الثقة:* %${signal.confidence}  
-${trendIcon} *اتجاه النبض:* ${signal.trend}  
+${trendIcon} *اتجاه النبض:* ${signal.trend}${dialogueText}
 
-🧠 *التحليل الاستراتيجي:*
+📝 *التحليل الفني:*
 ${signal.reason}
 
 🔥 *المخاطرة:* ${signal.risk.label}  
 
-_تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل تدفقات السوق اللحظية._
+_تم جلب هذه البيانات عبر نظام NAMIX للتحليل اللحظي._
     `.trim();
 
     const headersList = await headers();
@@ -169,23 +168,20 @@ _تم استنباط هذه الإشارة عبر محرك NAMIX AI لتحليل
   }
 }
 
-/**
- * إضافة بوت جديد وتفعيل الـ Webhook الخاص به آلياً
- */
 export async function addNewTelegramBot(name: string, token: string) {
   try {
     const { firestore } = initializeFirebase();
     const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await res.json();
     
-    if (!data.ok) throw new Error("توكن البوت غير صحيح أو غير صالح.");
+    if (!data.ok) throw new Error("توكن البوت غير صحيح.");
 
     const botId = Math.random().toString(36).substr(2, 9);
     const botUsername = data.result.username;
 
     const headersList = await headers();
     const host = headersList.get('host') || "";
-    const cleanHost = host.split(':')[0]; // حذف رقم المنفذ لضمان قبول تلغرام للرابط
+    const cleanHost = host.split(':')[0];
     const protocol = cleanHost.includes('localhost') ? 'http' : 'https';
     const webhookUrl = `${protocol}://${cleanHost}/api/telegram/webhook/${botId}`;
 
