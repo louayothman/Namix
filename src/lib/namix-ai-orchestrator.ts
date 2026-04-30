@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview NamixAIOrchestrator v6.0 - Sovereign Intelligence Nexus
- * محرك الذكاء الاصطناعي السيادي المطور لدعم التحليل متعدد الأطر وذكاء تدفق الأوامر.
+ * @fileOverview NamixAIOrchestrator v6.1 - Property Alignment Fix
+ * تم تحديث واجهة التخاطب لإعادة الخصائص بالأسماء المتوقعة من واجهة المستخدم.
  */
 
 export interface OHLCV {
@@ -28,7 +28,6 @@ export interface MarketData {
     bids: { price: number; amount: number }[];
     asks: { price: number; amount: number }[];
   };
-  // ميزات مضافة حديثاً
   timeframes: {
     m1: 'Long' | 'Short' | 'Neutral';
     m15: 'Long' | 'Short' | 'Neutral';
@@ -55,6 +54,7 @@ export interface TradeSignal {
   confidence: number;
   turbulence: number;
   scorecard: RiskScorecard;
+  reasoning: string; // Added for UI compatibility
   reasoning_summary: string;
   market_summary: string;
   timestamp: string;
@@ -75,8 +75,6 @@ export class NamixAIOrchestrator {
     const imbalance = this.calculateOrderFlowImbalance(data.liquidity);
     const tf = data.timeframes;
     
-    // بروتوكول مزامنة الأطر (Nexus-Timeline Sync)
-    // لا يتم اعتماد اتجاه صريح إلا إذا توافق إطاران على الأقل
     let finalBias: 'Long' | 'Short' | 'Neutral' = 'Neutral';
     const longSignals = [tf.m1, tf.m15, tf.h1].filter(s => s === 'Long').length;
     const shortSignals = [tf.m1, tf.m15, tf.h1].filter(s => s === 'Short').length;
@@ -87,7 +85,6 @@ export class NamixAIOrchestrator {
     const currentPrice = data.currentPrice || 0;
     const atr = data.indicators.atr || currentPrice * 0.005;
     
-    // بناء بطاقة أداء المخاطر (Risk Scorecard)
     const scorecard: RiskScorecard = {
       momentum: Math.min(Math.max(Math.abs(data.indicators.rsi - 50) * 2, 30), 98),
       liquidity: Math.round(imbalance.strength),
@@ -102,6 +99,10 @@ export class NamixAIOrchestrator {
 
     const baseConfidence = (scorecard.momentum + scorecard.liquidity + scorecard.volatility) / 3;
 
+    const reasoning = finalBias === 'Neutral' 
+        ? "تشتت الإشارات بين الأطر الزمنية يمنع التنفيذ الآمن؛ محرك السيولة يظهر توازناً هشاً بين العرض والطلب." 
+        : `تم رصد توافق استراتيجي بين الأطر الزمنية مع ${finalBias === 'Long' ? 'تراكم سيولة شرائية' : 'ضغط تصريفي مكثف'} عند مستويات الطلب الحالية.`;
+
     return {
       pair,
       bias: finalBias,
@@ -111,9 +112,8 @@ export class NamixAIOrchestrator {
       confidence: Math.min(Math.max(baseConfidence, 30), 98),
       turbulence: Math.round(100 - scorecard.volatility),
       scorecard,
-      reasoning_summary: finalBias === 'Neutral' 
-        ? "تشتت الإشارات بين الأطر الزمنية يمنع التنفيذ الآمن؛ محرك السيولة يظهر توازناً هشاً بين العرض والطلب." 
-        : `تم رصد توافق استراتيجي بين الأطر الزمنية مع ${finalBias === 'Long' ? 'تراكم سيولة شرائية' : 'ضغط تصريفي مكثف'} عند مستويات الطلب الحالية.`,
+      reasoning: reasoning, // Mapping for UI compatibility
+      reasoning_summary: reasoning,
       market_summary: scorecard.liquidity > 70 ? "ثبات عالي في جدران السيولة يدعم المسار المقترح." : "سيولة متذبذبة؛ يرجى توخي الحذر من الانزلاقات السعرية الخاطفة.",
       timestamp: new Date().toISOString()
     };

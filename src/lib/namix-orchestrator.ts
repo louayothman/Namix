@@ -1,7 +1,7 @@
 
 /**
- * @fileOverview محرك التحليل الاستنتاجي المطور v8.0 - Professional Signal Engine
- * تم تحديث المحرك لدعم نظام "مناظرة الوكلاء" (Bull vs Bear) لتعزيز دقة القرار.
+ * @fileOverview محرك التحليل الاستنتاجي المطور v8.1 - Property Alignment Fix
+ * تم تحديث المحرك ليعيد كلاً من reason و reasoning لضمان التوافق مع كافة المكونات.
  */
 
 import { technicalAgent } from "./agents/technical-agent";
@@ -49,11 +49,11 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
   // توليد مناظرة الوكلاء (Oracle Debate)
   const dialogue = generateOracleDebate(decision, tech, volume, duration);
   
-  const reasoning = isLong 
+  const reason = isLong 
     ? "تم رصد زخم شرائي متصاعد مدعوم بتدفقات سيولة إيجابية عند مستويات الدعم الحالية." 
     : decision === 'SELL' 
     ? "رفض سعري واضح عند مناطق المقاومة مع مؤشرات على بدء تصحيح فني." 
-    : "السوق في حالة تعادل فني؛ محرك التحليل ينصح بانتظار إشارة تأكيد واضحة.";
+    : "Market Equilibrium";
 
   memoryEngine({ symbol: cleanSymbol, decision, score: decisionScore });
 
@@ -67,7 +67,8 @@ export async function runNamix(symbol: string, duration?: number, userId?: strin
       ...risk,
       label: risk.level === 'LOW' ? 'منخفضة' : risk.level === 'HIGH' ? 'متوسطة' : 'عالية'
     },
-    reasoning,
+    reason,
+    reasoning: reason,
     dialogue,
     trend: isLong ? "صاعد" : decision === 'SELL' ? "هابط" : "جانبي",
     volume: volume.score > 0.7 ? "عالي" : volume.score > 0.4 ? "متوسط" : "منخفض",
