@@ -1,0 +1,17 @@
+name: Namix Operational Pulse
+
+on:
+  schedule:
+    # يتم التنفيذ كل 5 دقائق (أو حسب رغبتك)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # يسمح بتشغيل النبضة يدوياً من GitHub
+
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Namix Broadcast Engine
+        run: |
+          curl -X GET "https://${{ secrets.APP_DOMAIN }}/api/cron/broadcast" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+          -H "Content-Type: application/json"
