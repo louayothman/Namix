@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,19 +18,75 @@ import {
   KeyRound, 
   Settings2,
   X,
-  Cpu
+  Cpu,
+  Users,
+  Activity,
+  Send
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, deleteDoc, updateDoc, getDocs, query, where } from "firebase/firestore";
 import { addNewTelegramBot } from "@/app/actions/telegram-actions";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview جرد مصفوفة البوتات v3.0 - Individual Settings Trigger
- * تم إضافة زر الإعدادات لكل بوت لتمكين الخصخصة الفردية.
+ * @fileOverview جرد مصفوفة البوتات v4.0 - Active Statistics Hub
+ * تم إضافة محرك عرض الإحصائيات الحية (المشتركين، الإشارات، الحالة) لكل بوت.
  */
+
+interface BotStats {
+  subscribers: number;
+  signalsSent: number;
+}
+
+function BotStatsDisplay({ botId }: { botId: string }) {
+  const db = useFirestore();
+  const [stats, setStats] = useState<BotStats>({ subscribers: 0, signalsSent: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // 1. جرد المشتركين في هذا البوت تحديداً
+        const subsSnap = await getDocs(collection(db, "system_settings", "telegram", "bots", botId, "subscribers"));
+        
+        // 2. جرد الإشارات التي بثها هذا البوت (من سجلات البث)
+        const signalsSnap = await getDocs(query(
+          collection(db, "telegram_broadcast_logs"),
+          where("botId", "==", botId)
+        ));
+
+        setStats({
+          subscribers: subsSnap.size,
+          signalsSent: signalsSnap.size
+        });
+      } catch (e) {
+        console.error("Stats Fetch Error:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, [botId, db]);
+
+  if (loading) return <div className="h-4 w-20 bg-gray-50 animate-pulse rounded-lg" />;
+
+  return (
+    <div className="grid grid-cols-2 gap-2 w-full">
+       <div className="p-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-1">
+          <Users size={12} className="text-blue-500" />
+          <p className="text-[10px] font-black text-[#002d4d] tabular-nums">{stats.subscribers}</p>
+          <span className="text-[6px] font-bold text-gray-400 uppercase tracking-widest">Users</span>
+       </div>
+       <div className="p-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-1">
+          <Send size={12} className="text-[#f9a885]" />
+          <p className="text-[10px] font-black text-[#002d4d] tabular-nums">{stats.signalsSent}</p>
+          <span className="text-[6px] font-bold text-gray-400 uppercase tracking-widest">Signals</span>
+       </div>
+    </div>
+  );
+}
 
 interface BotsInventoryProps {
   onOpenSettings: (botId: string) => void;
@@ -73,7 +129,6 @@ export function BotsInventory({ onOpenSettings }: BotsInventoryProps) {
   return (
     <div className="space-y-12 font-body text-right" dir="rtl">
       
-      {/* 1. The Inline Bot Forge */}
       <AnimatePresence>
         {isAddOpen && (
           <motion.div
@@ -164,7 +219,7 @@ export function BotsInventory({ onOpenSettings }: BotsInventoryProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={() => setIsAddOpen(true)}
-            className="p-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[56px] flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-blue-500 hover:shadow-2xl transition-all group active:scale-95 h-full min-h-[300px]"
+            className="p-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[56px] flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-blue-500 hover:shadow-2xl transition-all group active:scale-95 h-full min-h-[350px]"
           >
             <div className="h-20 w-20 rounded-[28px] bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-blue-500 transition-colors">
               <Plus size={32} />
@@ -182,7 +237,7 @@ export function BotsInventory({ onOpenSettings }: BotsInventoryProps) {
           </div>
         ) : bots?.map((bot) => (
           <Card key={bot.id} className={cn("rounded-[56px] border-none shadow-sm overflow-hidden bg-white transition-all duration-500 hover:shadow-2xl relative", !bot.isActive && "opacity-60 saturate-0")}>
-             <CardContent className="p-10 space-y-8">
+             <CardContent className="p-8 md:p-10 space-y-8">
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-5">
                       <div className="h-16 w-16 rounded-[24px] bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner group-hover:rotate-12 transition-transform">
@@ -196,12 +251,16 @@ export function BotsInventory({ onOpenSettings }: BotsInventoryProps) {
                    <Switch checked={!!bot.isActive} onCheckedChange={() => toggleBot(bot.id, bot.isActive)} className="data-[state=checked]:bg-emerald-500 scale-110" />
                 </div>
 
-                <div className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner space-y-3">
-                   <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">API Endpoint Token</span>
-                      <KeyRound size={12} className="text-gray-200" />
+                {/* Live Stats Node */}
+                <div className="p-5 bg-gray-50 rounded-[32px] border border-gray-100 shadow-inner space-y-4">
+                   <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center gap-2">
+                         <Activity size={10} className="text-emerald-500 animate-pulse" />
+                         <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Node Statistics</span>
+                      </div>
+                      <Badge className="bg-white text-[7px] font-black border-gray-100 px-2 py-0.5">REAL-TIME</Badge>
                    </div>
-                   <p className="text-[10px] font-mono text-[#002d4d] truncate max-w-full opacity-60" dir="ltr">{bot.token}</p>
+                   <BotStatsDisplay botId={bot.id} />
                 </div>
 
                 <div className="pt-4 border-t border-gray-50 flex items-center justify-between">

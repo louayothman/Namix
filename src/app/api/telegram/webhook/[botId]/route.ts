@@ -1,13 +1,13 @@
 
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, getDocs, query, where, limit, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, limit, addDoc, setDoc } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from "@/app/actions/telegram-user-actions";
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from "@/app/actions/telegram-trading-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v18.0 - Resilient Response & Visual Integration
- * تم تأمين الرد الفوري على تلغرام لمنع تعليق الأزرار وربط محرك التحليل المرئي.
+ * @fileOverview محرك الاستجابة التفاعلي v19.0 - Stats & Identity Tracking
+ * تم تحديث المحرك لتوثيق هوية البوت لكل مستخدم لضمان دقة إحصائيات المصفوفة.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -18,7 +18,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     const update = await req.json();
     
     // جلب بيانات البوت النشط
-    const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
+    const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
+    const botSnap = await getDoc(botRef);
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
@@ -77,26 +78,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         const parts = data.split('_');
         const side = parts[2] as 'buy' | 'sell';
         const symbolId = parts[3];
-        // تشغيل محرك الصفقات السينمائي (يستغرق 15 ثانية)
         executeChatTrade(bot.token, chatId, symbolId, side, 10, 15).catch(console.error);
-      }
-      
-      // رادار التحليل المرئي (يرتبط بمكون Reactor في المتصفح)
-      else if (data.startsWith('tchat_ai_')) {
-        const symbolId = data.replace('tchat_ai_', '');
-        const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
-        if (symSnap.exists()) {
-           const symData = symSnap.data();
-           await addDoc(collection(firestore, "market_analysis_requests"), {
-              symbolId: symSnap.id,
-              symbolCode: symData.code,
-              chatId: chatId,
-              messageId: messageId,
-              botId: botId,
-              status: "pending",
-              createdAt: new Date().toISOString()
-           });
-        }
       }
       
       // القائمة الموحدة والتداول الآلي
@@ -120,12 +102,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
     // بروتوكول البدء الذكي (استعادة الجلسة)
     if (text === '/start') {
+      // توثيق اشتراك المستخدم في إحصائيات هذا البوت
+      await setDoc(doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId), {
+        firstName: message.from.first_name,
+        username: message.from.username || null,
+        joinedAt: new Date().toISOString()
+      }, { merge: true });
+
       const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
       const userSnap = await getDocs(userQuery);
 
       if (!userSnap.empty) {
         const userData = userSnap.docs[0].data();
-        // إرسال التقرير الترحيبي وبطاقة الهوية فوراً
         await sendUserSuccessBriefing(chatId, { ...userData, id: userSnap.docs[0].id }); 
       } else {
         await sendWelcomeMessage(bot.token, chatId);
@@ -135,7 +123,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("Telegram Webhook Error:", e);
-    // نرسل دائماً OK لتلغرام لمنع تكرار المحاولات في حال وجود خطأ عابر
     return NextResponse.json({ ok: true });
   }
 }
