@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, setDoc, collection, getDocs, query, where, addDoc, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from "@/app/actions/telegram-user-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v11.0 - Robust Callback & Session Recovery
- * تم إصلاح تعطل الأزرار وضمان معالجة دقيقة لطلبات الـ Callback.
+ * @fileOverview محرك الاستجابة التفاعلي v12.0 - Optimized Identity & Deposit Flow
+ * تم إصلاح استعادة الجلسة وتحديث مسار الإيداع ليفتح التطبيق المصغر مباشرة.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -26,15 +26,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
-      // إرسال استجابة فورية لتلغرام لإيقاف التحميل في الزر
       await fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ callback_query_id: cb.id })
       });
 
+      const host = req.headers.get('host');
+
       if (data === 'user_signup') {
-        const url = `https://${req.headers.get('host')}/auth/telegram-signup?chatId=${chatId}&firstName=${encodeURIComponent(cb.from.first_name)}`;
+        const url = `https://${host}/auth/telegram-signup?chatId=${chatId}&firstName=${encodeURIComponent(cb.from.first_name)}`;
         await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -46,26 +47,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           })
         });
       } else if (data === 'user_login') {
-        const url = `https://${req.headers.get('host')}/auth/telegram-login?chatId=${chatId}`;
+        const url = `https://${host}/auth/telegram-login?chatId=${chatId}`;
         await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: "🔑 *بوابة الدخول المؤمن*\n\nيرجى فتح النافذة أدناه لربط حسابك الحالي بـ تلغرام بشكل سيادي ومؤمن.",
+            text: "🔑 *بوابة الدخول المؤمن*\n\nيرجى فتح النافذة أدناه لربط حسابك الحالي بـ تلغرام بشكل مؤمن.",
             parse_mode: 'Markdown',
             reply_markup: { inline_keyboard: [[{ text: "🔒 دخول مؤمن", web_app: { url } }]] }
           })
         });
       } 
       else if (data.startsWith('user_')) {
-        await handleTelegramMenuAction(bot.token, chatId, messageId, data);
+        // تمرير الـ host لإنشاء روابط التطبيق المصغر للإيداع
+        await handleTelegramMenuAction(bot.token, chatId, messageId, data, host || "");
       }
 
       return NextResponse.json({ ok: true });
     }
 
-    // 2. معالجة الرسائل النصية
+    // 2. معالجة الرسائل النصية والأوامر
     const message = update.message;
     if (!message || !message.chat) return NextResponse.json({ ok: true });
 
@@ -77,9 +79,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       const userSnap = await getDocs(userQuery);
 
       if (!userSnap.empty) {
+        // مستخدم مسجل مسبقاً -> جلب بياناته وتثبيت الرسالة
         const userData = userSnap.docs[0].data();
-        await sendUserSuccessBriefing(chatId, userData); 
+        await sendUserSuccessBriefing(chatId, { ...userData, id: userSnap.docs[0].id }); 
       } else {
+        // مستخدم جديد -> إرسال الترحيب الأساسي
         await sendWelcomeMessage(bot.token, chatId);
       }
     }
