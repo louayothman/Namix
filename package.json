@@ -9,6 +9,7 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "NODE_ENV=production next build",
     "start": "next start",
+    "bot": "node src/server/bot-server.js",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "crash-server": "node src/server/crash-server.js"
