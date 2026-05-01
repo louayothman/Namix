@@ -1,13 +1,14 @@
+
 'use server';
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit, deleteDoc } from 'firebase/firestore';
 import { sendOTPEmail } from './auth-actions';
 import { SITE_CONFIG } from '@/lib/site-config';
+import { showChatMarkets } from './telegram-trading-actions';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v18.0 - Visual Identity Hub
- * تم تحديث الترحيب ليستخدم الصورة المخصصة telegram_bot.png وتثبيت بروتوكولات الربط الوميضي.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v19.0 - Auto Trade Addition
  */
 
 async function getActiveBotToken() {
@@ -17,9 +18,6 @@ async function getActiveBotToken() {
   return botsSnap.docs[0].data().token;
 }
 
-/**
- * وظيفة مركزية لإرسال إشعارات تلغرام من أجزاء النظام المختلفة
- */
 export async function notifyTelegramUser(userId: string, message: string) {
   try {
     const { firestore } = initializeFirebase();
@@ -89,7 +87,6 @@ export async function sendWelcomeMessage(botToken: string, chatId: string) {
     ]
   };
 
-  // استخدام صورة الترحيب المخصصة من ملفات النظام (Public Folder)
   const photoUrl = `${SITE_CONFIG.url}/telegram_bot.png`;
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
@@ -123,7 +120,8 @@ export async function registerTelegramUser(data: any) {
       id: userId, namixId, email: data.email.toLowerCase(), displayName: data.fullName,
       password: data.password, telegramChatId: data.chatId.toString(),
       totalBalance: trialAmount, welcomeBonus: trialAmount, referralCode,
-      activeInvestmentsTotal: 0, totalProfits: 0, role: "user", createdAt: new Date().toISOString()
+      activeInvestmentsTotal: 0, totalProfits: 0, role: "user", createdAt: new Date().toISOString(),
+      isChatAutoTradeEnabled: false
     };
 
     await setDoc(doc(firestore, "users", userId), newUser);
@@ -231,7 +229,12 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   } 
   
   else if (action === 'user_account') {
+    const isAuto = !!user.isChatAutoTradeEnabled;
     text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الحالي: *$${user.totalBalance?.toLocaleString()}*\n📈 إجمالي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر محركات ناميكس._`;
+    keyboard.inline_keyboard = [
+      [{ text: isAuto ? "⚪ إيقاف التداول الآلي" : "🤖 تفعيل التداول الآلي (Chat)", callback_data: `user_autotrade_${isAuto}` }],
+      [{ text: "🔙 رجوع", callback_data: "user_home" }]
+    ];
   }
 
   else if (action === 'user_partners') {
@@ -276,14 +279,8 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   }
 
   else if (action === 'user_trade') {
-    const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
-    text = `📊 *محطة التداول الفوري*\n\nحدد السوق المالي المطلوب لبدء مراقبة النبض والتنفيذ:`;
-    keyboard.inline_keyboard = symbols.docs.map(d => {
-      const s = d.data();
-      const url = `https://${host}/trade/${d.id}`;
-      return [{ text: `📈 ${s.name}`, web_app: { url } }];
-    });
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+    await showChatMarkets(botToken, chatId, messageId);
+    return;
   }
 
   else if (action === 'user_logout') {

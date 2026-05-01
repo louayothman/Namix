@@ -1,10 +1,12 @@
+
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from "@/app/actions/telegram-user-actions";
+import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade } from "@/app/actions/telegram-trading-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v12.0 - Optimized Identity & Deposit Flow
+ * @fileOverview محرك الاستجابة التفاعلي v13.0 - Integrated Chat Trading & AI Support
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -15,7 +17,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     const update = await req.json();
     
     const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
-    if (!botSnap.exists()) return NextResponse.json({ ok: true });
+    if (!snap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
     if (update.callback_query) {
@@ -32,6 +34,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
       const host = req.headers.get('host');
 
+      // 1. منطق الهوية (Signup / Login)
       if (data === 'user_signup') {
         const url = `https://${host}/auth/telegram-signup?chatId=${chatId}&firstName=${encodeURIComponent(cb.from.first_name)}`;
         await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -57,6 +60,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           })
         });
       } 
+      
+      // 2. منطق التداول في الدردشة (Chat Trading)
+      else if (data.startsWith('tchat_sym_')) {
+        const symbolId = data.replace('tchat_sym_', '');
+        await showChatAssetOptions(bot.token, chatId, messageId, symbolId);
+      }
+      else if (data.startsWith('tchat_side_')) {
+        const parts = data.split('_');
+        const side = parts[2] as 'buy' | 'sell';
+        const symbolId = parts[3];
+        // فتح واجهة اختيار المبلغ (محاكاة لاختيار 10$ افتراضياً في البداية)
+        await executeChatTrade(bot.token, chatId, symbolId, side, 10, 60);
+      }
+      else if (data.startsWith('user_autotrade_')) {
+        const current = data.split('_')[2] === 'true';
+        await toggleChatAutoTrade(bot.token, chatId, messageId, current);
+      }
+      
+      // 3. منطق القائمة الرئيسية (Menu Actions)
       else if (data.startsWith('user_')) {
         await handleTelegramMenuAction(bot.token, chatId, messageId, data, host || "");
       }
