@@ -6,8 +6,8 @@ import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage }
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
 
 /**
- * @fileOverview NAMIX STANDALONE BOT SERVER v2.0 - TypeScript ESM Edition
- * خادم مخصص للتشغيل المستمر على Render لضمان استقرار البوت 24/7.
+ * @fileOverview NAMIX STANDALONE BOT SERVER v2.1 - Production Ready
+ * خادم مخصص للتشغيل المستمر على Render مع دعم فحص الحالة (Health Check).
  */
 
 const app = express();
@@ -15,6 +15,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
+
+// مسار فحص الحالة (ضروري لـ Render ليعرف أن البوت يعمل)
+app.get('/', (req, res) => {
+  res.status(200).send('Namix Bot Hub is Operational.');
+});
 
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
@@ -77,7 +82,8 @@ app.post('/webhook/:botId', async (req, res) => {
       const userSnap = await getDocs(userQuery);
 
       if (!userSnap.empty) {
-        await sendUserSuccessBriefing(chatId, { ...userSnap.docs[0].data(), id: userSnap.docs[0].id });
+        const userData = userSnap.docs[0].data();
+        await sendUserSuccessBriefing(chatId, { ...userData, id: userSnap.docs[0].id });
       } else {
         await sendWelcomeMessage(bot.token, chatId);
       }
@@ -85,10 +91,6 @@ app.post('/webhook/:botId', async (req, res) => {
   } catch (error) {
     console.error("Bot Server Error:", error);
   }
-});
-
-app.get('/', (req, res) => {
-  res.send('Namix Bot Hub is Operational.');
 });
 
 app.listen(PORT, () => {
