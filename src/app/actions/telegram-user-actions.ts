@@ -8,7 +8,7 @@ import { SITE_CONFIG } from '@/lib/site-config';
 import { showChatMarkets } from './telegram-trading-actions';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v19.0 - Auto Trade Addition
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v21.0 - Identity Sync Update
  */
 
 async function getActiveBotToken() {
@@ -121,7 +121,7 @@ export async function registerTelegramUser(data: any) {
       password: data.password, telegramChatId: data.chatId.toString(),
       totalBalance: trialAmount, welcomeBonus: trialAmount, referralCode,
       activeInvestmentsTotal: 0, totalProfits: 0, role: "user", createdAt: new Date().toISOString(),
-      isChatAutoTradeEnabled: false
+      isChatAutoTradeEnabled: false, favoriteSymbols: []
     };
 
     await setDoc(doc(firestore, "users", userId), newUser);
