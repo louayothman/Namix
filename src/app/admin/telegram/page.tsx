@@ -7,6 +7,7 @@ import { BotsInventory } from "@/components/admin/telegram/BotsInventory";
 import { SignalHistory } from "@/components/admin/telegram/SignalHistory";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ChevronRight, History, Sparkles, Zap, Bot, 
   Settings2, MessageSquare, ShieldCheck, Timer, Bell, 
@@ -21,8 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مركز إدارة أوركسترا تلغرام v2.0 - 10 New Control Features
- * تم إضافة 10 ميزات تخصيص استراتيجية للمشرف للتحكم في سلوك وهوية البوت.
+ * @fileOverview مركز إدارة أوركسترا تلغرام v3.0 - Fixed & Enhanced
  */
 
 type ViewState = 'inventory' | 'history' | 'customization';
@@ -60,7 +60,7 @@ export default function AdminTelegramHub() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] justify-end">
               <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              Telegram Matrix Command v2.0
+              Telegram Matrix Command v3.0
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">
               {view === 'inventory' ? "مصفوفة البوتات" : view === 'history' ? "سجل البث" : "تخصيص الهوية والنبض"}
@@ -69,21 +69,19 @@ export default function AdminTelegramHub() {
           </div>
           
           <div className="flex items-center gap-3">
-             <Button 
-               variant="ghost" 
+             <button 
                onClick={() => setView('customization')}
-               className={cn("rounded-full h-14 px-8 border shadow-sm font-black text-[11px] gap-3", view === 'customization' ? "bg-[#002d4d] text-[#f9a885] border-[#002d4d]" : "bg-white text-[#002d4d] border-gray-100")}
+               className={cn("rounded-full h-14 px-8 border shadow-sm font-black text-[11px] gap-3 transition-all flex items-center", view === 'customization' ? "bg-[#002d4d] text-[#f9a885] border-[#002d4d]" : "bg-white text-[#002d4d] border-gray-100")}
              >
                 <Settings2 className="h-5 w-5" /> تخصيص البوت
-             </Button>
-             <Button 
-               variant="ghost" 
+             </button>
+             <button 
                onClick={() => setView(view === 'inventory' ? 'history' : 'inventory')}
-               className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3"
+               className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 flex items-center"
              >
                 {view === 'inventory' ? <History className="h-5 w-5 text-orange-500" /> : <Bot className="h-5 w-5 text-blue-500" />}
                 {view === 'inventory' ? "سجل البث" : "المصفوفة"}
-             </Button>
+             </button>
           </div>
         </div>
 
@@ -104,7 +102,6 @@ export default function AdminTelegramHub() {
             {view === 'customization' && (
               <motion.div key="cust" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="max-w-5xl mx-auto space-y-12">
                  <div className="grid gap-8 md:grid-cols-2">
-                    {/* 1. Bot Greeting Customization */}
                     <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
                        <div className="flex items-center gap-3">
                           <MessageSquare className="h-5 w-5 text-blue-500" />
@@ -117,7 +114,6 @@ export default function AdminTelegramHub() {
                        />
                     </Card>
 
-                    {/* 2. Signal Footer Signature */}
                     <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
                        <div className="flex items-center gap-3">
                           <Zap className="h-5 w-5 text-orange-500" />
@@ -126,7 +122,6 @@ export default function AdminTelegramHub() {
                        <Input value={config.signalSignature || ""} onChange={e => setConfig({...config, signalSignature: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-6" />
                     </Card>
 
-                    {/* 3. Automatic Pulse Intensity */}
                     <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
                        <div className="flex items-center gap-3">
                           <Timer className="h-5 w-5 text-emerald-500" />
@@ -135,7 +130,6 @@ export default function AdminTelegramHub() {
                        <Input type="number" value={config.broadcastFreq || 5} onChange={e => setConfig({...config, broadcastFreq: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl" />
                     </Card>
 
-                    {/* 4. Global Confidence Filter */}
                     <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
                        <div className="flex items-center gap-3">
                           <ShieldCheck className="h-5 w-5 text-purple-500" />
@@ -145,7 +139,6 @@ export default function AdminTelegramHub() {
                     </Card>
                  </div>
 
-                 {/* Advanced Toggle Matrix (6 More Features) */}
                  <Card className="rounded-[56px] border-none shadow-xl bg-[#002d4d] text-white p-12 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-10 opacity-5"><Cpu size={200} /></div>
                     <div className="relative z-10 grid gap-10 md:grid-cols-2">
@@ -169,7 +162,7 @@ export default function AdminTelegramHub() {
                     
                     <div className="pt-12 flex justify-center relative z-10">
                        <Button onClick={handleSaveConfig} disabled={saving} className="h-20 px-20 rounded-full bg-[#f9a885] text-[#002d4d] font-black text-xl shadow-2xl active:scale-95 transition-all">
-                          {saving ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>حفظ الميثاق المحدث</span> <Save size={24}/></div>}
+                          {saving ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>حفظ التعديلات المعتمدة</span> <Save size={24}/></div>}
                        </Button>
                     </div>
                  </Card>
@@ -179,7 +172,7 @@ export default function AdminTelegramHub() {
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v2.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v3.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
