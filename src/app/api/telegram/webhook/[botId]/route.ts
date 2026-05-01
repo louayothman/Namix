@@ -5,7 +5,6 @@ import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage }
 
 /**
  * @fileOverview محرك الاستجابة التفاعلي v12.0 - Optimized Identity & Deposit Flow
- * تم إصلاح استعادة الجلسة وتحديث مسار الإيداع ليفتح التطبيق المصغر مباشرة.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -19,7 +18,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    // 1. معالجة نقرات الأزرار (Callback Queries)
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id.toString();
@@ -60,14 +58,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         });
       } 
       else if (data.startsWith('user_')) {
-        // تمرير الـ host لإنشاء روابط التطبيق المصغر للإيداع
         await handleTelegramMenuAction(bot.token, chatId, messageId, data, host || "");
       }
 
       return NextResponse.json({ ok: true });
     }
 
-    // 2. معالجة الرسائل النصية والأوامر
     const message = update.message;
     if (!message || !message.chat) return NextResponse.json({ ok: true });
 
@@ -79,11 +75,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       const userSnap = await getDocs(userQuery);
 
       if (!userSnap.empty) {
-        // مستخدم مسجل مسبقاً -> جلب بياناته وتثبيت الرسالة
         const userData = userSnap.docs[0].data();
         await sendUserSuccessBriefing(chatId, { ...userData, id: userSnap.docs[0].id }); 
       } else {
-        // مستخدم جديد -> إرسال الترحيب الأساسي
         await sendWelcomeMessage(bot.token, chatId);
       }
     }

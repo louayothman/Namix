@@ -1,9 +1,7 @@
-
 'use server';
 
 /**
- * @fileOverview آلية التحقق من إيداعات بينانس v11.1 - Professional Strings
- * تم تطهير الإشعارات من الرموز التعبيرية والمصطلحات غير الرسمية.
+ * @fileOverview آلية التحقق من إيداعات بينانس v11.2 - Bot Notification Update
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -43,9 +41,6 @@ async function binanceSignedRequest(endpoint: string, params: Record<string, str
   }
 }
 
-/**
- * جلب السعر اللحظي للعملة مقابل USDT
- */
 async function getLivePriceInUSDT(coin: string) {
   if (coin.toUpperCase() === 'USDT') return 1;
   try {
@@ -75,20 +70,38 @@ async function getActiveBinanceNodes() {
   return [];
 }
 
-/**
- * التحقق من العملية وحساب قيمتها بالدولار اللحظي ثم اعتماد الرصيد
- */
+async function notifyTelegramUser(userId: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    const user = userSnap.data();
+    if (!user?.telegramChatId) return;
+
+    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
+    if (botsSnap.empty) return;
+    const botToken = botsSnap.docs[0].data().token;
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: user.telegramChatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (e) {}
+}
+
 export async function verifyAndProcessBinanceDeposit(userId: string, txid: string, asset: string = "USDT") {
   try {
     const { firestore } = initializeFirebase();
-    
-    // 1. منع تكرار الاستخدام
     const dupQuery = query(collection(firestore, "deposit_requests"), where("transactionId", "==", txid.trim()));
     const dupSnap = await getDocs(dupQuery);
-    if (!dupSnap.empty) return { success: false, error: "تم استخدام معرف العملية هذا مسبقاً في النظام." };
+    if (!dupSnap.empty) return { success: false, error: "تم استخدام معرف العملية هذا مسبقاً." };
 
     const nodes = await getActiveBinanceNodes();
-    if (nodes.length === 0) return { success: false, error: "آلية التحقق غير مفعلة حالياً." };
+    if (nodes.length === 0) return { success: false, error: "آلية التحقق غير مفعلة." };
 
     let match = null;
     for (const node of nodes) {
@@ -104,17 +117,13 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
       }
     }
 
-    if (!match) return { success: false, error: "لم يتم العثور على عملية إرسال مطابقة في السجلات العالمية." };
+    if (!match) return { success: false, error: "لم يتم العثور على عملية إرسال مطابقة." };
 
     const coinAmount = Number(match.amount);
-    
-    // 2. محرك التقييم اللحظي: حساب القيمة بالدولار (USDT)
     const livePrice = await getLivePriceInUSDT(asset);
-    if (livePrice === 0) return { success: false, error: "تعذر جلب سعر العملة اللحظي، يرجى المحاولة لاحقاً." };
+    if (livePrice === 0) return { success: false, error: "تعذر جلب سعر العملة اللحظي." };
     
     const amountInUSD = coinAmount * livePrice;
-    
-    // 3. جلب إعدادات المكافآت من الخزنة بناءً على القيمة الدولارية
     const vaultSnap = await getDoc(doc(firestore, "system_settings", "vault_bonus"));
     let bonus = 0;
     let bonusPercent = 0;
@@ -128,8 +137,6 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
     }
 
     const totalToCredit = amountInUSD + bonus;
-
-    // 4. تحديث الرصيد وتسجيل العملية
     await updateDoc(doc(firestore, "users", userId), {
       totalBalance: increment(totalToCredit)
     });
@@ -138,40 +145,23 @@ export async function verifyAndProcessBinanceDeposit(userId: string, txid: strin
     const userName = userSnap.data()?.displayName || "مستثمر";
 
     await addDoc(collection(firestore, "deposit_requests"), {
-      userId,
-      userName,
-      coinAmount,
-      coinAsset: asset.toUpperCase(),
-      livePriceAtDeposit: livePrice,
-      amount: amountInUSD, // القيمة بالدولار التي اعتمدت
-      approvedAmount: amountInUSD,
-      bonusApplied: bonus,
-      bonusPercent,
-      transactionId: txid.trim(),
-      methodName: `Binance Sync (${asset.toUpperCase()})`,
-      status: "approved",
-      isAutoAudited: true,
-      createdAt: new Date().toISOString()
+      userId, userName, coinAmount, coinAsset: asset.toUpperCase(), livePriceAtDeposit: livePrice,
+      amount: amountInUSD, approvedAmount: amountInUSD, bonusApplied: bonus, bonusPercent,
+      transactionId: txid.trim(), methodName: `Binance Sync (${asset.toUpperCase()})`,
+      status: "approved", isAutoAudited: true, createdAt: new Date().toISOString()
     });
 
-    // 5. إرسال تنبيه مفصل
     await addDoc(collection(firestore, "notifications"), {
-      userId,
-      title: "تأكيد إيداع الرصيد",
-      message: `تم رصد إيداع بقيمة ${coinAmount} ${asset}. القيمة المعتمدة في حسابك هي $${amountInUSD.toFixed(2)} ${bonus > 0 ? `بالإضافة إلى مكافأة بقيمة $${bonus.toFixed(2)}` : ''}.`,
-      type: "success",
-      isRead: false,
-      createdAt: new Date().toISOString()
+      userId, title: "تأكيد إيداع الرصيد",
+      message: `تم رصد إيداع بقيمة ${coinAmount} ${asset}. القيمة المعتمدة: $${amountInUSD.toFixed(2)}.`,
+      type: "success", isRead: false, createdAt: new Date().toISOString()
     });
 
-    return { 
-      success: true, 
-      data: {
-        amount: amountInUSD,
-        bonus,
-        totalAdded: totalToCredit
-      } 
-    };
+    const userRefreshed = await getDoc(doc(firestore, "users", userId));
+    const newBalance = userRefreshed.data()?.totalBalance || 0;
+    await notifyTelegramUser(userId, `✅ *تم اعتماد الإيداع بنجاح!*\n\n💰 المبلغ المضاف: $${amountInUSD.toFixed(2)}\n🎁 مكافأة: $${bonus.toFixed(2)}\n💳 الرصيد الحالي: *$${newBalance.toLocaleString()}*`);
+
+    return { success: true, data: { amount: amountInUSD, bonus, totalAdded: totalToCredit } };
   } catch (e: any) {
     return { success: false, error: e.message };
   }

@@ -1,13 +1,34 @@
-
 'use server';
 
 /**
- * @fileOverview إجراءات التداول v50.0 - Intelligence Trigger Integration
- * تم دمج المحرك السلوكي ليعمل فور تسوية أي صفقة لإخطار المستخدم بالنتيجة.
+ * @fileOverview إجراءات التداول v51.0 - Bot Settlement Notifications
  */
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, addDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
+
+async function notifyTelegramUser(userId: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    const user = userSnap.data();
+    if (!user?.telegramChatId) return;
+
+    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
+    if (botsSnap.empty) return;
+    const botToken = botsSnap.docs[0].data().token;
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: user.telegramChatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (e) {}
+}
 
 export async function settleTrade(tradeId: string, finalPrice: number) {
   try {
@@ -45,7 +66,6 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       });
     }
 
-    // إطلاق إشعار تسوية الصفقة (سيظهر كـ Push في شاشة القفل)
     await addDoc(collection(firestore, "notifications"), {
       userId: trade.userId,
       title: result === 'win' ? "اكتمال صفقة ناجحة 💰" : "تسوية عملية تداول",
@@ -56,6 +76,14 @@ export async function settleTrade(tradeId: string, finalPrice: number) {
       isRead: false,
       createdAt: new Date().toISOString()
     });
+
+    const outcomeLabel = result === 'win' ? '✅ ربح محقق' : '❌ إغلاق مركز';
+    const profitLabel = result === 'win' ? `+$${profit.toFixed(2)}` : `-$${trade.amount.toFixed(2)}`;
+    
+    const userRefreshed = await getDoc(userRef);
+    const newBalance = userRefreshed.data()?.totalBalance || 0;
+
+    await notifyTelegramUser(trade.userId, `📊 *تسوية صفقة: ${trade.symbolCode}*\n\nالنتيجة: ${outcomeLabel}\nالعائد: *${profitLabel}*\n💳 الرصيد الحالي: *$${newBalance.toLocaleString()}*`);
 
     return { success: true, result };
   } catch (e: any) {

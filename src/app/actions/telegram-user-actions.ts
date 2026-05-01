@@ -5,8 +5,8 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, incr
 import { sendOTPEmail } from './auth-actions';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v15.0 - Integrated TMA Deposit
- * تم تحديث الإيداع ليفتح التطبيق المصغر مباشرة وإصلاح استعادة الجلسات.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v16.0 - Integrated TMA Flow
+ * تم تحديث الترحيب ليستخدم الصور الرسمية وربط كافة الخدمات بالتطبيق المصغر.
  */
 
 async function getActiveBotToken() {
@@ -63,6 +63,7 @@ export async function sendWelcomeMessage(botToken: string, chatId: string) {
     ]
   };
 
+  // استخدام صورة الهوية العامة (OG Image)
   const photoUrl = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
@@ -204,7 +205,7 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   } 
   
   else if (action === 'user_account') {
-    text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الحالي: *$${user.totalBalance?.toLocaleString()}*\n📈 إجمالي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر نظام ناميكس._`;
+    text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الحالي: *$${user.totalBalance?.toLocaleString()}*\n📈 إجمالي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر محركات ناميكس._`;
   }
 
   else if (action === 'user_partners') {
@@ -218,10 +219,43 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
 
   else if (action === 'user_deposit') {
     const depCats = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
-    text = `📥 *بوابات الإيداع الوميضي*\n\nاختر وسيلة الشحن المناسبة لفتح بوابة الدفع الموثقة في التطبيق المصغر:`;
+    text = `📥 *بوابات الإيداع المباشر*\n\nاختر وسيلة الشحن المناسبة لفتح بوابة الدفع الموثقة في التطبيق المصغر:`;
     keyboard.inline_keyboard = depCats.docs.map(d => {
       const url = `https://${host}/deposit/${d.id}`;
       return [{ text: `💳 ${d.data().name}`, web_app: { url } }];
+    });
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action === 'user_withdraw') {
+    const withCats = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
+    text = `📤 *بوابات السحب المعتمدة*\n\nحدد وجهة تحويل الأرباح لفتح نافذة الصرف الموثقة:`;
+    keyboard.inline_keyboard = withCats.docs.map(d => {
+      const url = `https://${host}/withdraw/${d.id}`;
+      return [{ text: `🏧 ${d.data().name}`, web_app: { url } }];
+    });
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action === 'user_invest') {
+    const plans = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
+    text = `🔬 *مختبر العقود الاستراتيجية*\n\nاختر خطة النمو المناسبة لتفعيلها في محفظتك:`;
+    keyboard.inline_keyboard = plans.docs.map(d => {
+      const p = d.data();
+      const label = p.isPopular ? `💎 ${p.title} (%${p.profitPercent})` : `${p.title} (%${p.profitPercent})`;
+      const url = `https://${host}/invest?planId=${d.id}`;
+      return [{ text: label, web_app: { url } }];
+    });
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action === 'user_trade') {
+    const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
+    text = `📊 *محطة التداول الفوري*\n\nحدد السوق المالي المطلوب لبدء مراقبة النبض والتنفيذ:`;
+    keyboard.inline_keyboard = symbols.docs.map(d => {
+      const s = d.data();
+      const url = `https://${host}/trade/${d.id}`;
+      return [{ text: `📈 ${s.name}`, web_app: { url } }];
     });
     keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
   }
