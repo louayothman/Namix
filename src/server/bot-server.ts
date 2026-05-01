@@ -1,13 +1,15 @@
 
 import express from 'express';
 import { initializeFirebase } from '../firebase';
-import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, limit, addDoc, updateDoc } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from '../app/actions/telegram-user-actions';
-import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
+import { showChatAssetOptions, executeChatTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
+import { runNamix } from '../lib/namix-orchestrator';
+import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
 
 /**
- * @fileOverview NAMIX STANDALONE BOT SERVER v2.2 - Resilient Runtime
- * خادم مخصص للتشغيل المستمر مع معالجة ذكية للأخطاء وضمان الاستجابة الفورية.
+ * @fileOverview NAMIX SOVEREIGN BOT ENGINE v3.0 - Full Autonomous Operation
+ * خادم البوت المستقل المطور ليعمل كقمرة قيادة 24/7 على Render.
  */
 
 const app = express();
@@ -16,9 +18,9 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
-// 1. مسار فحص الحالة (Health Check) لـ Render
+// 1. مسار فحص الحالة (Health Check) لضمان بقاء الخدمة نشطة
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Sovereign Bot Engine is Operational.');
+  res.status(200).send('Namix Sovereign Bot Engine is Operational and Synced.');
 });
 
 // 2. معالجة طلبات تيلجرام (Webhooks)
@@ -26,7 +28,7 @@ app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
   const update = req.body;
 
-  // أهم خطوة: الرد الفوري على تيلجرام لإغلاق الاتصال ومنع تعليق الأزرار
+  // الخطوة الذهبية: الرد الفوري لإغلاق الاتصال ومنع تعليق الأزرار
   res.status(200).send({ ok: true });
 
   try {
@@ -41,7 +43,7 @@ app.post('/webhook/:botId', async (req, res) => {
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
-      // إخبار تيلجرام أننا استلمنا النقرة فوراً
+      // إخطار تيلجرام باستلام النقرة فوراً
       fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,7 +52,9 @@ app.post('/webhook/:botId', async (req, res) => {
 
       const host = process.env.APP_URL || "namix.pro";
 
-      // توجيه الطلب حسب الأكشن
+      // --- مصفوفة توجيه العمليات ---
+      
+      // الدخول والتسجيل (TMA)
       if (data === 'user_signup' || data === 'user_login') {
         const route = data === 'user_signup' ? 'telegram-signup' : 'telegram-login';
         const url = `https://${host}/auth/${route}?chatId=${chatId}`;
@@ -64,19 +68,48 @@ app.post('/webhook/:botId', async (req, res) => {
             reply_markup: { inline_keyboard: [[{ text: "⚡ فتح البوابة", web_app: { url } }]] }
           })
         });
-      } else if (data === 'user_trade') {
+      } 
+      
+      // التداول والأسواق
+      else if (data === 'user_trade') {
         await showChatMarkets(bot.token, chatId, messageId);
-      } else if (data.startsWith('tchat_sym_')) {
+      } 
+      else if (data.startsWith('tchat_sym_')) {
         await showChatAssetOptions(bot.token, chatId, messageId, data.replace('tchat_sym_', ''));
-      } else if (data.startsWith('tchat_side_')) {
+      } 
+      else if (data.startsWith('tchat_side_')) {
         const parts = data.split('_');
-        executeChatTrade(bot.token, chatId, parts[3], parts[2] as any, 10, 15).catch(() => {});
-      } else if (data.startsWith('user_')) {
+        const side = parts[2];
+        const symbolId = parts[3];
+        // تشغيل محرك الصفقات السينمائي
+        executeChatTrade(bot.token, chatId, symbolId, side as any, 10, 15).catch(console.error);
+      }
+      
+      // رادار التحليل المرئي
+      else if (data.startsWith('tchat_ai_')) {
+        const symbolId = data.replace('tchat_ai_', '');
+        const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
+        if (symSnap.exists()) {
+           const symData = symSnap.data();
+           await addDoc(collection(firestore, "market_analysis_requests"), {
+              symbolId: symSnap.id,
+              symbolCode: symData.code,
+              chatId: chatId,
+              messageId: messageId,
+              botId: botId,
+              status: "pending",
+              createdAt: new Date().toISOString()
+           });
+        }
+      }
+
+      // القوائم والعمليات العامة
+      else if (data.startsWith('user_')) {
         await handleTelegramMenuAction(bot.token, chatId, messageId, data, host);
       }
     }
 
-    // معالجة رسائل البداية /start
+    // معالجة رسائل البداية والتعرف على الجلسة
     if (update.message && update.message.text === '/start') {
       const chatId = update.message.chat.id.toString();
       const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
@@ -90,15 +123,45 @@ app.post('/webhook/:botId', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Critical Execution Error:", error);
+    console.error("Critical Bot Server Execution Error:", error);
   }
 });
 
-// معالجة أخطاء النظام غير المتوقعة لمنع توقف الخادم
-process.on('uncaughtException', (err) => {
-  console.error('There was an uncaught error', err);
-});
+/**
+ * 🛰️ محرك البث الاستخباراتي التلقائي (Autonomous Signals)
+ * يقوم بفحص الأسواق وبث الإشارات كل 5 دقائق بشكل مستقل تماماً.
+ */
+async function runAutonomousBroadcast() {
+  try {
+    const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
+    if (symbolsSnap.empty) return;
+    
+    const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+    const analyses = [];
+
+    for (const sym of symbols) {
+      try {
+        const analysis = await runNamix(sym.binanceSymbol || sym.code);
+        const strength = Math.abs(analysis.score - 0.5);
+        analyses.push({ sym, analysis, strength });
+      } catch (e) {}
+    }
+
+    const best = analyses.sort((a, b) => b.strength - a.strength)[0];
+    if (best && best.analysis.decision !== 'HOLD') {
+      // إرسال الإشارة نصياً فوراً؛ الصورة سيولدها "المفاعل" في المتصفح لاحقاً إذا كان الموقع مفتوحاً
+      await broadcastSignalToTelegram(best.analysis, best.sym);
+    }
+  } catch (e) {
+    console.error("Autonomous Broadcast Error:", e);
+  }
+}
+
+// تشغيل محرك الإشارات كل 5 دقائق
+setInterval(runAutonomousBroadcast, 300000);
+// تشغيل أولي عند بدء الخادم
+setTimeout(runAutonomousBroadcast, 10000);
 
 app.listen(PORT, () => {
-  console.log(`Namix Bot Core running on port ${PORT}`);
+  console.log(`Namix Autonomous Engine is now Active on port ${PORT}`);
 });
