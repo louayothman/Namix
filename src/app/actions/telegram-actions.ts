@@ -3,10 +3,11 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from 'firebase/firestore';
+import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v42.0 - Whale Alert Integration
- * تم إضافة دعم إرسال تنبيهات السيولة الضخمة بأسلوب مالي نخبوية.
+ * @fileOverview محرك عمليات تلغرام المطور v43.0 - Visual Whale Alert Update
+ * تم تحديث رادار الحيتان ليقوم بحقن صورة shark.png مع التقرير الاستراتيجي.
  */
 
 interface TelegramBot {
@@ -109,7 +110,7 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
 }
 
 /**
- * بث تنبيهات تحركات الحيتان الكبرى (Whale Alerts)
+ * بث تنبيهات تحركات الحيتان الكبرى (Whale Alerts) مع صورة القرش
  */
 export async function sendWhaleAlertToTelegram(data: { symbol: string, side: 'BUY' | 'SELL', amount: number, price: number, comment: string }) {
   try {
@@ -135,18 +136,21 @@ _${data.comment}_
 _تم رصد هذا التحرك عبر محرك السيولة اللحظي التابع للمنظومة._
     `.trim();
 
+    const imageUrl = `${SITE_CONFIG.url}/shark.png`;
+
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
       if (!bot.config?.whaleAlerts) return; // تجاهل البوتات التي عطل المشرف فيها الرادار
 
       const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
       const botOps = subsSnap.docs.map(subDoc => {
-        return fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+        return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: subDoc.id,
-            text: message,
+            photo: imageUrl,
+            caption: message,
             parse_mode: 'Markdown'
           })
         });
