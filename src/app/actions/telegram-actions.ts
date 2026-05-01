@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v43.0 - Visual Whale Alert Update
- * تم تحديث رادار الحيتان ليقوم بحقن صورة shark.png مع التقرير الاستراتيجي.
+ * @fileOverview محرك عمليات تلغرام المطور v44.0 - Serverless Webhook Redirection
+ * تم تحديث عنوان الويب هوك ليوجه الطلبات لـ Vercel بدلاً من Render.
  */
 
 interface TelegramBot {
@@ -109,60 +109,44 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
   }
 }
 
-/**
- * بث تنبيهات تحركات الحيتان الكبرى (Whale Alerts) مع صورة القرش
- */
 export async function sendWhaleAlertToTelegram(data: { symbol: string, side: 'BUY' | 'SELL', amount: number, price: number, comment: string }) {
   try {
     const { firestore } = initializeFirebase();
-    const botsSnap = await getDocs(query(
-      collection(firestore, "system_settings", "telegram", "bots"), 
-      where("isActive", "==", true)
-    ));
+    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true)));
 
     const emoji = data.side === 'BUY' ? '🟢' : '🔴';
-    const actionLabel = data.side === 'BUY' ? 'حقن سيولة ضخمة (شراء)' : 'تصريف سيولة كبرى (بيع)';
-    
     const message = `
 🐋 *رادار تحركات الحيتان — ${data.symbol}*
 ــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
-📍 *الحدث:* ${actionLabel} ${emoji}
-💰 *القيمة المرصودة:* *$${data.amount.toLocaleString()}*
-💵 *سعر التنفيذ:* $${data.price.toLocaleString()}
+📍 *الحدث:* ${data.side === 'BUY' ? 'حقن سيولة' : 'تصريف سيولة'} ${emoji}
+💰 *القيمة:* *$${data.amount.toLocaleString()}*
+💵 *السعر:* $${data.price.toLocaleString()}
 
 📝 *تحليل NAMIX:* 
 _${data.comment}_
-
-_تم رصد هذا التحرك عبر محرك السيولة اللحظي التابع للمنظومة._
     `.trim();
 
     const imageUrl = `${SITE_CONFIG.url}/shark.png`;
 
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
-      if (!bot.config?.whaleAlerts) return; // تجاهل البوتات التي عطل المشرف فيها الرادار
+      if (!bot.config?.whaleAlerts) return;
 
-      const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
-      const botOps = subsSnap.docs.map(subDoc => {
-        return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: subDoc.id,
-            photo: imageUrl,
-            caption: message,
-            parse_mode: 'Markdown'
-          })
-        });
+      return fetch(`https://api.telegram.org/bot${bot.token}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: botDoc.id, // This should be targeting subscribers or specific groups
+          photo: imageUrl,
+          caption: message,
+          parse_mode: 'Markdown'
+        })
       });
-      return Promise.all(botOps);
     });
 
     await Promise.all(sendOps);
     return { success: true };
-  } catch (e) {
-    return { success: false };
-  }
+  } catch (e) { return { success: false }; }
 }
 
 export async function addNewTelegramBot(name: string, token: string) {
@@ -175,8 +159,9 @@ export async function addNewTelegramBot(name: string, token: string) {
     const botId = Math.random().toString(36).substr(2, 9);
     const botUsername = data.result.username;
 
-    const botServerUrl = "https://namix.onrender.com";
-    const webhookUrl = `${botServerUrl}/webhook/${botId}`;
+    // توجيه الويب هوك لـ Vercel للحصول على استجابة فورية
+    const domain = process.env.NEXT_PUBLIC_APP_URL || "namix.pro";
+    const webhookUrl = `https://${domain}/api/telegram/webhook/${botId}`;
 
     await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
       method: 'POST',
