@@ -1,24 +1,13 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit } from 'firebase/firestore';
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات المستخدمين عبر تلغرام v5.0 - Integrated Command Hub
- * يدير الهوية، الترحيب، ونظام القوائم الديناميكية الموحدة بداخل تلغرام.
+ * @fileOverview محرك عمليات المستخدمين عبر تلغرام v6.0 - Integrated Trading Engine
+ * يدير الهوية، الترحيب، ونظام التداول اللحظي الموحد بداخل تلغرام.
  */
-
-const FORBIDDEN_WORDS = [/سيادة/g, /بروتوكول/g, /ميثاق/g, /استخبارات/g, /مفاعل/g];
-const cleanText = (text: string) => {
-  let cleaned = text;
-  cleaned = cleaned.replace(/سيادة/g, "احترافية");
-  cleaned = cleaned.replace(/بروتوكول/g, "نظام");
-  cleaned = cleaned.replace(/ميثاق/g, "دليل");
-  cleaned = cleaned.replace(/استخبارات/g, "تحليلات");
-  cleaned = cleaned.replace(/مفاعل/g, "محرك");
-  return cleaned;
-};
 
 export async function sendWelcomeMessage(botToken: string, chatId: string) {
   const ogImageUrl = "https://namix.pro/og-image.png";
@@ -182,9 +171,6 @@ export async function loginTelegramUser(formData: {
   }
 }
 
-/**
- * إرسال التقرير الترحيبي وتثبيته مع القائمة الرئيسية
- */
 export async function sendUserSuccessBriefing(botToken: string, chatId: string, user: any, imageUri: string) {
   try {
     const base64Data = imageUri.split(',')[1];
@@ -235,83 +221,157 @@ export async function sendUserSuccessBriefing(botToken: string, chatId: string, 
 }
 
 /**
- * محرك إدارة القوائم الديناميكية (Dynamic Command Hub)
+ * محرك إدارة القوائم الديناميكية والتداول اللحظي (Dynamic Command Engine)
  */
 export async function handleTelegramMenuAction(botToken: string, chatId: string, messageId: string, action: string) {
   const { firestore } = initializeFirebase();
   const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId.toString()), limit(1));
   const userSnap = await getDocs(userQuery);
   if (userSnap.empty && action !== 'user_logout') return;
-  const user = userSnap.docs[0]?.data();
+  
+  const userDoc = userSnap.docs[0];
+  const user = userDoc?.data();
 
   let text = "";
-  let keyboard: any = { inline_keyboard: [[{ text: "🔙 رجوع", callback_data: "user_home" }]] };
+  let keyboard: any = { inline_keyboard: [[{ text: "🔙 رجوع للقائمة الرئيسية", callback_data: "user_home" }]] };
 
-  switch(action) {
-    case 'user_home':
-      text = `👋 *مرحباً ${user.displayName} !!*\nتم تسجيل دخولك بنجاح إلى NAMIX ::\n\n📌 *بيانات حسابك:*\n• 👤 الاسم: ${user.displayName}\n• 📧 البريد الالكتروني: ${user.email}\n• 🆔 المعرف الرقمي: \`${user.namixId}\`\n\n🚀 *يمكنك الآن إدارة أصولك مباشرة من هنا:*`;
-      keyboard.inline_keyboard = [
-        [{ text: "👤 حسابي", callback_data: "user_account" }, { text: "👥 الشركاء", callback_data: "user_partners" }],
-        [{ text: "📥 إيداع", callback_data: "user_deposit" }, { text: "📤 سحب", callback_data: "user_withdraw" }],
-        [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول", callback_data: "user_trade" }],
-        [{ text: "🚪 خروج", callback_data: "user_logout" }]
-      ];
-      break;
-
-    case 'user_account':
-      text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الحالي: *$${user.totalBalance?.toLocaleString()}*\n📈 إجمالي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر نظام ناميكس المتطور._`;
-      break;
-
-    case 'user_partners':
-      const refLink = `https://namix.pro/login?ref=${user.referralCode}`;
-      text = `👥 *مركز الشركاء والقادة*\n\n🔗 رابط الدعوة الخاص بك:\n\`${refLink}\`\n\n🎁 اكسب عمولات فورية عند انضمام مستثمرين جدد عبر رابطك المخصص. شارك النجاح وقم بتنمية شبكتك الآن!`;
-      keyboard.inline_keyboard.unshift([{ text: "🔗 نسخ الرابط المخصص", callback_data: "user_partners" }]);
-      break;
-
-    case 'user_deposit':
-      const depCats = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
-      text = `📥 *بوابات استلام الأموال*\n\nاختر وسيلة الشحن المناسبة لتعزيز رصيدك الاستثماري:`;
-      keyboard.inline_keyboard = depCats.docs.map(d => [{ text: `💳 ${d.data().name}`, callback_data: `user_home` }]);
-      keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-      break;
-
-    case 'user_withdraw':
-      text = `📤 *بوابات سحب الأرباح*\n\nحدد وجهة تحويل الأموال المتاحة لك حالياً:`;
-      const withCats = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
-      keyboard.inline_keyboard = withCats.docs.map(d => [{ text: `🏧 ${d.data().name}`, callback_data: `user_home` }]);
-      keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-      break;
-
-    case 'user_invest':
-      text = `🔬 *مختبر العقود الاستثمارية*\n\nاكتشف فرص النمو المتاحة بضمانات ناميكس المعتمدة:`;
-      const plans = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
-      keyboard.inline_keyboard = plans.docs.map(p => [{ text: `💎 ${p.data().title} (%${p.data().profitPercent})`, callback_data: `user_home` }]);
-      keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-      break;
-
-    case 'user_trade':
-      text = `📊 *محطة التداول الفوري*\n\nاختر السوق المناسب لبدء اقتناص الفرص اللحظية:`;
-      const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(5)));
-      keyboard.inline_keyboard = symbols.docs.map(s => [{ text: `🚀 تداول ${s.data().code}`, callback_data: `user_home` }]);
-      keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-      break;
-
-    case 'user_logout':
-      await updateDoc(userSnap.docs[0].ref, { telegramChatId: "" });
-      await fetch(`https://api.telegram.org/bot${botToken}/unpinChatMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId }) });
-      await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          message_id: messageId,
-          caption: "🔐 تم تسجيل الخروج بنجاح. نأمل رؤيتك قريباً في NAMIX.",
-          reply_markup: { inline_keyboard: [[{ text: "🔑 دخول مؤمن", callback_data: "user_login" }, { text: "💎 فتح حساب", callback_data: "user_signup" }]] }
-        })
-      });
-      return;
+  // --- معالجة القائمة الرئيسية ---
+  if (action === 'user_home') {
+    text = `👋 *مرحباً ${user.displayName} !!*\nتم تسجيل دخولك بنجاح إلى NAMIX ::\n\n📌 *بيانات حسابك:*\n• 👤 الاسم: ${user.displayName}\n• 📧 البريد الالكتروني: ${user.email}\n• 🆔 المعرف الرقمي: \`${user.namixId}\`\n\n🚀 *يمكنك الآن إدارة أصولك مباشرة من هنا:*`;
+    keyboard.inline_keyboard = [
+      [{ text: "👤 حسابي", callback_data: "user_account" }, { text: "👥 الشركاء", callback_data: "user_partners" }],
+      [{ text: "📥 إيداع", callback_data: "user_deposit" }, { text: "📤 سحب", callback_data: "user_withdraw" }],
+      [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول", callback_data: "user_trade" }],
+      [{ text: "🚪 خروج", callback_data: "user_logout" }]
+    ];
+  } 
+  
+  else if (action === 'user_account') {
+    text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الحالي: *$${user.totalBalance?.toLocaleString()}*\n📈 إجمالي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر نظام ناميكس المتطور._`;
   }
 
+  else if (action === 'user_partners') {
+    const refLink = `https://namix.pro/login?ref=${user.referralCode}`;
+    text = `👥 *مركز الشركاء والقادة*\n\n🔗 رابط الدعوة الخاص بك:\n\`${refLink}\`\n\n🎁 اكسب عمولات فورية عند انضمام مستثمرين جدد عبر رابطك المخصص. شارك النجاح وقم بتنمية شبكتك الآن!`;
+    keyboard.inline_keyboard.unshift([{ text: "🔗 نسخ الرابط المخصص", callback_data: "user_partners" }]);
+  }
+
+  else if (action === 'user_deposit') {
+    const depCats = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
+    text = `📥 *بوابات استلام الأموال*\n\nاختر وسيلة الشحن المناسبة لتعزيز رصيدك الاستثماري:`;
+    keyboard.inline_keyboard = depCats.docs.map(d => [{ text: `💳 ${d.data().name}`, callback_data: `user_home` }]);
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action === 'user_withdraw') {
+    text = `📤 *بوابات سحب الأرباح*\n\nحدد وجهة تحويل الأموال المتاحة لك حالياً:`;
+    const withCats = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
+    keyboard.inline_keyboard = withCats.docs.map(d => [{ text: `🏧 ${d.data().name}`, callback_data: `user_home` }]);
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action === 'user_invest') {
+    text = `🔬 *مختبر العقود الاستثمارية*\n\nاكتشف فرص النمو المتاحة بضمانات ناميكس المعتمدة:`;
+    const plans = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
+    keyboard.inline_keyboard = plans.docs.map(p => [{ text: `💎 ${p.data().title} (%${p.data().profitPercent})`, callback_data: `user_home` }]);
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  // --- محرك التداول اللحظي بداخل البوت ---
+  else if (action === 'user_trade') {
+    text = `📊 *محطة التداول الفوري*\n\nاختر السوق المناسب لبدء رصد حركة السعر وتنفيذ الصفقات:`;
+    const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(8)));
+    keyboard.inline_keyboard = symbols.docs.map(s => [{ text: `🚀 تداول ${s.data().code}`, callback_data: `user_t_select_${s.id}` }]);
+    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
+  }
+
+  else if (action.startsWith('user_t_select_')) {
+    const symbolId = action.replace('user_t_select_', '');
+    const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
+    const sym = symSnap.data();
+    text = `📍 *السوق المختار: ${sym.code}*\n\nاختر نوع العملية التي ترغب في تنفيذها الآن بناءً على تحليل النبض:`;
+    keyboard.inline_keyboard = [
+      [{ text: "🟢 شراء (LONG)", callback_data: `user_t_side_${symbolId}_buy` }, { text: "🔴 بيع (SHORT)", callback_data: `user_t_side_${symbolId}_sell` }],
+      [{ text: "🔍 طلب تحليل AI", callback_data: `user_t_ai_${symbolId}` }],
+      [{ text: "🔙 تغيير السوق", callback_data: "user_trade" }]
+    ];
+  }
+
+  else if (action.startsWith('user_t_side_')) {
+    const [, , , symbolId, side] = action.split('_');
+    text = `💰 *تحديد سيولة العملية (${side === 'buy' ? 'شراء' : 'بيع'})*\n\nحدد المبلغ المراد استخدامه في هذه الصفقة من رصيدك المتاح ($${user.totalBalance}):`;
+    keyboard.inline_keyboard = [
+      [{ text: "$10", callback_data: `user_t_amt_${symbolId}_${side}_10` }, { text: "$50", callback_data: `user_t_amt_${symbolId}_${side}_50` }],
+      [{ text: "$100", callback_data: `user_t_amt_${symbolId}_${side}_100` }, { text: "$500", callback_data: `user_t_amt_${symbolId}_${side}_500` }],
+      [{ text: "🔙 رجوع", callback_data: `user_t_select_${symbolId}` }]
+    ];
+  }
+
+  else if (action.startsWith('user_t_amt_')) {
+    const [, , , symbolId, side, amt] = action.split('_');
+    text = `⏱️ *نافذة التنفيذ الزمنية*\n\nحدد المدة المطلوبة لإغلاق الصفقة وتسوية الأرباح:`;
+    keyboard.inline_keyboard = [
+      [{ text: "1 دقيقة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_60` }, { text: "5 دقائق", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_300` }],
+      [{ text: "15 دقيقة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_900` }, { text: "1 ساعة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_3600` }],
+      [{ text: "🔙 تغيير المبلغ", callback_data: `user_t_side_${symbolId}_${side}` }]
+    ];
+  }
+
+  else if (action.startsWith('user_t_dur_')) {
+    const [, , , symbolId, side, amt, dur] = action.split('_');
+    const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
+    const sym = symSnap.data();
+    text = `📝 *تأكيد أمر التداول*\n\n• السوق: ${sym.code}\n• النوع: ${side === 'buy' ? 'شراء' : 'بيع'}\n• المبلغ: $${amt}\n• المدة: ${Number(dur) < 3600 ? Number(dur)/60 + ' دقائق' : '1 ساعة'}\n\n_هل ترغب في إرسال الأمر لمحرك التنفيذ الآن؟_`;
+    keyboard.inline_keyboard = [
+      [{ text: "⚡ تأكيد وتنفيذ الصفقة", callback_data: `user_t_exec_${symbolId}_${side}_${amt}_${dur}` }],
+      [{ text: "❌ إلغاء", callback_data: `user_t_select_${symbolId}` }]
+    ];
+  }
+
+  else if (action.startsWith('user_t_exec_')) {
+    const [, , , symbolId, side, amt, dur] = action.split('_');
+    const amount = Number(amt);
+    if (user.totalBalance < amount) {
+      text = `⚠️ *عجز في السيولة*\n\nرصيدك الحالي ($${user.totalBalance}) لا يكفي لتنفيذ صفقة بقيمة $${amount}. يرجى شحن الرصيد أولاً.`;
+    } else {
+      // جلب السعر الحالي (محاكاة أو من API)
+      const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
+      const sym = symSnap.data();
+      const entryPrice = sym.currentPrice || 100;
+      
+      const startTime = new Date();
+      const endTime = new Date(startTime.getTime() + Number(dur) * 1000);
+
+      await addDoc(collection(firestore, "trades"), {
+        userId: user.id, userName: user.displayName, symbolId, symbolCode: sym.code,
+        tradeType: side, amount, entryPrice, status: "open", result: "pending",
+        startTime: startTime.toISOString(), endTime: endTime.toISOString(),
+        createdAt: startTime.toISOString(), expectedProfit: amount * 0.8
+      });
+
+      await updateDoc(userDoc.ref, { totalBalance: increment(-amount) });
+
+      text = `✅ *تم إرسال الأمر بنجاح !!*\n\nلقد بدأت صفقة ${side === 'buy' ? 'شراء' : 'بيع'} على ${sym.code} بمبلغ $${amount}. سيتم إخطارك بالنتيجة فور التسوية.\n\n💰 الرصيد الجديد: *$${(user.totalBalance - amount).toLocaleString()}*`;
+    }
+  }
+
+  else if (action === 'user_logout') {
+    await updateDoc(userDoc.ref, { telegramChatId: "" });
+    await fetch(`https://api.telegram.org/bot${botToken}/unpinChatMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId }) });
+    await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        caption: "🔐 تم تسجيل الخروج بنجاح. نأمل رؤيتك قريباً في NAMIX.",
+        reply_markup: { inline_keyboard: [[{ text: "🔑 دخول مؤمن", callback_data: "user_login" }, { text: "💎 فتح حساب", callback_data: "user_signup" }]] }
+      })
+    });
+    return;
+  }
+
+  // تنفيذ التعديل الديناميكي للرسالة
   await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
