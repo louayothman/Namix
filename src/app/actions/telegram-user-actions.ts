@@ -1,13 +1,13 @@
 
-'use client';
+'use server';
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit, deleteDoc } from 'firebase/firestore';
 import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v35.0 - Persistant Dashboard Update
- * تم توثيق نظام التبديل البصري للرسالة المثبتة لتعمل كقمرة قيادة ثابتة.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v36.0 - Partner Insight Update
+ * تم تطوير قسم الشركاء ليقوم بجرد الشبكة لحظياً وعرض العمولات المحققة.
  */
 
 async function getActiveBotToken() {
@@ -110,8 +110,6 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   let image = "account.png";
   let keyboard: any = { inline_keyboard: [[{ text: "🔙 رجوع للقائمة الرئيسية", callback_data: "user_home" }]] };
 
-  // --- نظام التبديل البصري (Dashboard Persistent Node) ---
-
   if (action === 'user_home') {
     text = `👋 *مرحباً ${user.displayName} !!*\nأهلاً بك مجدداً في لوحة تحكم ناميكس الاستراتيجية.\n\n📌 *بيانات حسابك:*\n• 👤 الاسم: ${user.displayName}\n• 📧 البريد: ${user.email}\n• 🆔 المعرف: \`${user.namixId}\``;
     image = "account.png";
@@ -130,7 +128,13 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   }
 
   else if (action === 'user_partners') {
-    text = `👥 *مركز الشركاء والسفراء*\n\nعدد الإحالات النشطة: ${user.referralCount || 0}\nعمولات الشبكة: *$${user.referralEarnings || 0}*\nكود الدعوة: \`${user.referralCode}\`\n\n_شارك هويتك لتنمية محفظتك الاستراتيجية._`;
+    // جرد الشركاء لحظياً من قاعدة البيانات
+    const referralsQuery = query(collection(firestore, "users"), where("referredBy", "==", userDoc.id));
+    const referralsSnap = await getDocs(referralsQuery);
+    const referralCount = referralsSnap.size;
+    const referralEarnings = user.referralEarnings || 0;
+
+    text = `👥 *مركز الشركاء والسفراء*\n\n• عدد الشركاء المباشرين: *${referralCount}*\n• عمولات الشبكة المحققة: *$${referralEarnings.toLocaleString()}*\n• كود الدعوة الخاص بك: \`${user.referralCode}\`\n\n_شارك رابط إحالتك لتنمية شبكتك وزيادة عوائد محفظتك الجارية._`;
     image = "share.png";
   }
 
@@ -159,23 +163,10 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     ];
   }
 
-  else if (action === 'user_set_signals') {
-    text = `📊 *تخصيص رادار الإشارات*\n\nقم بتحديد الفلاتر التي تضمن استلامك للإشارات الأكثر دقة وتوافقاً مع استراتيجيتك:`;
-    image = "setting.png";
-    keyboard.inline_keyboard = [
-      [{ text: "🎯 تحديد الأسواق المفضلة", callback_data: "set_sig_symbols" }],
-      [{ text: "⚡ الحد الأدنى للثقة", callback_data: "set_sig_conf" }],
-      [{ text: "⏳ فترات النبض", callback_data: "set_sig_freq" }],
-      [{ text: "📉 نوع الإشارة (بيع/شراء)", callback_data: "set_sig_type" }],
-      [{ text: "🔙 رجوع", callback_data: "user_settings" }]
-    ];
-  }
-
   else if (action === 'user_logout') {
     if (userDoc) await updateDoc(userDoc.ref, { telegramChatId: "" });
     await fetch(`https://api.telegram.org/bot${botToken}/unpinChatMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId }) });
     
-    // تسجيل الخروج يفتح رسالة جديدة بصورة منفصلة
     await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -191,4 +182,114 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   }
 
   await editBotMessageMedia(chatId, messageId, image, text, keyboard);
+}
+
+export async function sendWelcomeMessage(botToken: string, chatId: string) {
+  const text = "💎 *مرحباً بك في ناميكس نكسوس*\n\nأنت الآن في قلب المحرك الأكثر تقدماً لإدارة الأصول الرقمية. يرجى تفعيل هويتك الرقمية للوصول لقمرة القيادة الموحدة.";
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "🔑 تسجيل الدخول", callback_data: "user_login" }],
+      [{ text: "⚡ تفعيل حساب جديد", callback_data: "user_signup" }]
+    ]
+  };
+
+  await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      photo: `${SITE_CONFIG.url}/signin.png`,
+      caption: text,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    })
+  });
+}
+
+export async function loginTelegramUser(data: { email: string, password: string, chatId: string }) {
+  const { firestore } = initializeFirebase();
+  const q = query(collection(firestore, "users"), where("email", "==", data.email.toLowerCase()), limit(1));
+  const snap = await getDocs(q);
+  
+  if (snap.empty) return { success: false, error: "المستخدم غير موجود." };
+  const userDoc = snap.docs[0];
+  const user = userDoc.data();
+  
+  if (user.password !== data.password) return { success: false, error: "كلمة المرور خاطئة." };
+  
+  await updateDoc(userDoc.ref, { telegramChatId: data.chatId.toString() });
+  return { success: true, user: { id: userDoc.id, ...user } };
+}
+
+export async function registerTelegramUser(data: any) {
+  const { firestore } = initializeFirebase();
+  const q = query(collection(firestore, "users"), where("email", "==", data.email.toLowerCase()), limit(1));
+  const snap = await getDocs(q);
+  
+  if (!snap.empty) return { success: false, error: "البريد مسجل مسبقاً." };
+
+  const userId = Math.random().toString(36).substr(2, 9);
+  const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+  const referralCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+
+  const onboardSnap = await getDoc(doc(firestore, "system_settings", "onboarding"));
+  const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
+
+  const newUser = {
+    id: userId,
+    namixId,
+    referralCode,
+    email: data.email.toLowerCase(),
+    displayName: data.fullName,
+    password: data.password,
+    telegramChatId: data.chatId.toString(),
+    totalBalance: trialAmount,
+    welcomeBonus: trialAmount,
+    totalProfits: 0,
+    activeInvestmentsTotal: 0,
+    role: "user",
+    createdAt: new Date().toISOString()
+  };
+
+  await setDoc(doc(firestore, "users", userId), newUser);
+  return { success: true, user: newUser };
+}
+
+export async function sendTelegramOTP(email: string) {
+  const { firestore } = initializeFirebase();
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  await setDoc(doc(firestore, "otp_verifications", email.toLowerCase()), {
+    code: otpCode,
+    expiresAt: new Date(Date.now() + 300000).toISOString()
+  });
+  
+  // نفترض وجود دالة إرسال بريد حقيقية هنا
+  console.log(`[OTP DEBUG] Code for ${email}: ${otpCode}`);
+  return { success: true };
+}
+
+export async function verifyTelegramOTP(email: string, code: string) {
+  const { firestore } = initializeFirebase();
+  const snap = await getDoc(doc(firestore, "otp_verifications", email.toLowerCase()));
+  if (!snap.exists() || snap.data().code !== code) return { success: false };
+  return { success: true };
+}
+
+export async function notifyTelegramUser(userId: string, message: string) {
+  const { firestore } = initializeFirebase();
+  const userSnap = await getDoc(doc(firestore, "users", userId));
+  if (!userSnap.exists() || !userSnap.data().telegramChatId) return;
+
+  const botToken = await getActiveBotToken();
+  if (!botToken) return;
+
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: userSnap.data().telegramChatId,
+      text: message,
+      parse_mode: 'Markdown'
+    })
+  });
 }
