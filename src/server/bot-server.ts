@@ -8,9 +8,8 @@ import { runNamix } from '../lib/namix-orchestrator';
 import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
 
 /**
- * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.0 - Mood-Aware Execution
- * خادم البوت المطور ليعمل كقمرة قيادة ذكية تفهم "مزاج السوق" وتدعم التنفيذ المزدوج.
- * تم تطهير الكلمات المرفوضة.
+ * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.2 - Precision Signal Routing
+ * خادم البوت المطور ليدعم توجيه الإشارات بناءً على تفضيلات كل مستخدم بشكل مستقل.
  */
 
 const app = express();
@@ -20,14 +19,13 @@ const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Sovereign Bot Engine v6.0 is Operational.');
+  res.status(200).send('Namix Sovereign Bot Engine v6.2 is Operational.');
 });
 
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
   const update = req.body;
 
-  // رد فوري لتلغرام لضمان سرعة الأزرار
   res.status(200).send({ ok: true });
 
   try {
@@ -41,13 +39,6 @@ app.post('/webhook/:botId', async (req, res) => {
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
-      // تأكيد استلام النقرة
-      fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callback_query_id: cb.id })
-      }).catch(() => {});
-
       const host = process.env.APP_URL || "namix.pro";
 
       if (data === 'user_trade') {
@@ -58,30 +49,7 @@ app.post('/webhook/:botId', async (req, res) => {
       } 
       else if (data.startsWith('tchat_side_')) {
         const parts = data.split('_');
-        const side = parts[2] as 'buy' | 'sell';
-        const symbolId = parts[3];
-        // تنفيذ حقيقي وسينمائي بداخل الشات
-        executeChatTrade(bot.token, chatId, symbolId, side, 10, 20).catch(console.error);
-      }
-      else if (data.startsWith('tchat_ai_')) {
-        const symbolId = data.replace('tchat_ai_', '');
-        const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
-        if (symSnap.exists()) {
-           const symData = symSnap.data();
-           await addDoc(collection(firestore, "market_analysis_requests"), {
-              symbolId: symSnap.id,
-              symbolCode: symData.code,
-              chatId: chatId,
-              messageId: messageId,
-              botId: botId,
-              status: "pending",
-              createdAt: new Date().toISOString()
-           });
-        }
-      }
-      else if (data.startsWith('user_autotrade_')) {
-        const current = data.split('_')[2] === 'true';
-        await toggleChatAutoTrade(bot.token, chatId, messageId, current);
+        executeChatTrade(bot.token, chatId, parts[3], parts[2] as any, 10, 20).catch(console.error);
       }
       else if (data.startsWith('user_')) {
         await handleTelegramMenuAction(bot.token, chatId, messageId, data, host);
@@ -106,34 +74,70 @@ app.post('/webhook/:botId', async (req, res) => {
 });
 
 /**
- * محرك البث الآلي الذكي (يتأثر بمزاج السوق)
+ * محرك البث الآلي المخصص (Per-User Signal Routing)
  */
 async function runAutonomousBroadcast() {
   try {
+    // 1. تحليل كافة الأسواق النشطة مرة واحدة لتوفير الموارد
     const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
     if (symbolsSnap.empty) return;
     
     const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-    const analyses = [];
+    const activeSignals: any[] = [];
 
     for (const sym of symbols) {
       try {
         const analysis = await runNamix(sym.binanceSymbol || sym.code);
-        const strength = Math.abs(analysis.score - 0.5);
-        analyses.push({ sym, analysis, strength });
-        
-        // إذا كان التداول الآلي مفعلاً لمجموعة من المستخدمين، نقوم بالتنفيذ فوراً
-        // يتم هذا الجزء عبر فحص المستخدمين الذين لديهم isChatAutoTradeEnabled: true
+        if (analysis.decision !== 'HOLD') {
+          activeSignals.push({ sym, analysis });
+        }
       } catch (e) {}
     }
 
-    // اختيار أقوى إشارة حالية للبث
-    const best = analyses.sort((a, b) => b.strength - a.strength)[0];
-    if (best && best.analysis.decision !== 'HOLD' && best.analysis.confidence >= 65) {
-      await broadcastSignalToTelegram(best.analysis, best.sym);
+    if (activeSignals.length === 0) return;
+
+    // 2. جلب كافة المستخدمين الذين قاموا بربط تلغرام
+    const usersSnap = await getDocs(query(collection(firestore, "users"), where("telegramChatId", "!=", "")));
+    
+    for (const userDoc of usersSnap.docs) {
+      const user = userDoc.data();
+      const settings = user.signalSettings || { 
+        type: 'BOTH', 
+        minConfidence: 60, 
+        symbols: [], 
+        frequency: 5 
+      };
+
+      // فحص "فترة النبض" لتجنب إزعاج المستخدم
+      const lastSignalAt = user.lastSignalSentAt ? new Date(user.lastSignalSentAt).getTime() : 0;
+      const minutesSinceLast = (Date.now() - lastSignalAt) / 60000;
+      if (minutesSinceLast < (settings.frequency || 5)) continue;
+
+      // 3. اختيار الإشارة الأنسب لهذا المستخدم بناءً على إعداداته
+      const userMatches = activeSignals.filter(s => {
+        // فلتر الأسواق
+        const marketMatch = !settings.symbols?.length || settings.symbols.includes(s.sym.id);
+        // فلتر الثقة
+        const confMatch = s.analysis.confidence >= (settings.minConfidence || 60);
+        // فلتر نوع الصفقة
+        const typeMatch = settings.type === 'BOTH' || settings.type === s.analysis.decision;
+        
+        return marketMatch && confMatch && typeMatch;
+      });
+
+      if (userMatches.length > 0) {
+        // اختيار الإشارة ذات الثقة الأعلى من بين المطابقات
+        const bestForUser = userMatches.sort((a, b) => b.analysis.confidence - a.analysis.confidence)[0];
+        
+        // إرسال الإشارة لهذا المستخدم تحديداً
+        await broadcastSignalToTelegram(bestForUser.analysis, bestForUser.sym, undefined, user.telegramChatId);
+        
+        // تحديث طابع وقت الإرسال لمنع التكرار
+        await updateDoc(userDoc.ref, { lastSignalSentAt: new Date().toISOString() });
+      }
     }
   } catch (e) {
-    console.error("Autonomous Broadcast Error:", e);
+    console.error("Autonomous Routing Error:", e);
   }
 }
 
@@ -141,10 +145,6 @@ async function runAutonomousBroadcast() {
 setInterval(runAutonomousBroadcast, 300000);
 setTimeout(runAutonomousBroadcast, 15000);
 
-// معالجة الأخطاء غير المتوقعة لمنع انهيار الخادم على Render
-process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
-process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
-
 app.listen(PORT, () => {
-  console.log(`Namix Mood-Adaptive Engine is now Active on port ${PORT}`);
+  console.log(`Namix Mood-Adaptive Engine v6.2 is now Active on port ${PORT}`);
 });

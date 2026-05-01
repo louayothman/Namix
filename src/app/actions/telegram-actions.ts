@@ -3,11 +3,9 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from 'firebase/firestore';
-import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v40.0 - Executable Signal Cards
- * تم تطوير الإشارات لتصبح "بطاقات تفاعلية" تدعم التنفيذ المباشر أو الفتح في TMA.
+ * @fileOverview محرك عمليات تلغرام المطور v41.0 - Targeted Messaging Support
  */
 
 interface TelegramBot {
@@ -18,7 +16,7 @@ interface TelegramBot {
   botUsername: string;
 }
 
-export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string) {
+export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string, targetChatId?: string) {
   try {
     const { firestore } = initializeFirebase();
     const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true)));
@@ -27,7 +25,6 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
 
     const isLong = signal.type === 'LONG';
     const trendIcon = isLong ? '📈' : '📉';
-    const moodColor = isLong ? 'Emerald' : 'Rose';
     
     let dialogueText = "";
     if (signal.dialogue && Array.isArray(signal.dialogue)) {
@@ -56,12 +53,8 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
 
     const keyboard = {
       inline_keyboard: [
-        [
-          { text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, callback_data: `tchat_side_${isLong ? 'buy' : 'sell'}_${symbol.id}` },
-        ],
-        [
-          { text: `🔍 اكتشاف السوق (TMA)`, web_app: { url: tmaUrl } }
-        ]
+        [{ text: `🚀 تنفيذ صفقة ${isLong ? 'شراء' : 'بيع'}`, callback_data: `tchat_side_${isLong ? 'buy' : 'sell'}_${symbol.id}` }],
+        [{ text: `🔍 اكتشاف السوق (TMA)`, web_app: { url: tmaUrl } }]
       ]
     };
 
@@ -73,10 +66,18 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
 
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
-      const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
       
-      const botOps = subsSnap.docs.map(subDoc => {
-        const chatId = subDoc.id;
+      // إذا كان هناك chatId مستهدف (إرسال فردي)، نرسل له فقط
+      // وإلا نرسل لكافة المشتركين (بث عام)
+      let targetIds: string[] = [];
+      if (targetChatId) {
+        targetIds = [targetChatId];
+      } else {
+        const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
+        targetIds = subsSnap.docs.map(d => d.id);
+      }
+      
+      const botOps = targetIds.map(chatId => {
         const formData = new FormData();
         formData.append('chat_id', chatId);
         
@@ -138,13 +139,7 @@ export async function addNewTelegramBot(name: string, token: string) {
   }
 }
 
-export async function sendImageToChat(
-  botId: string, 
-  chatId: string, 
-  caption: string, 
-  imageUri?: string,
-  symbolId?: string
-) {
+export async function sendImageToChat(botId: string, chatId: string, caption: string, imageUri?: string, symbolId?: string) {
   try {
     const { firestore } = initializeFirebase();
     const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
@@ -174,7 +169,7 @@ export async function sendImageToChat(
     if (symbolId) {
       formData.append('reply_markup', JSON.stringify({
         inline_keyboard: [
-          [{ text: `🚀 تنفيذ صفقة فورية`, callback_data: `tchat_sym_${symbolId}` }],
+          [{ text: `🚀 تنفيذ صفقة فورية`, callback_data: `tchat_side_buy_${symbolId}` }],
           [{ text: `🔍 اكتشاف السوق (TMA)`, web_app: { url: tmaUrl } }]
         ]
       }));

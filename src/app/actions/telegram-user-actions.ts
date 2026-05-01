@@ -3,12 +3,11 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit, deleteDoc } from 'firebase/firestore';
-import { sendOTPEmail } from './auth-actions';
 import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v32.0 - Dynamic Media Engine
- * يدير البوت كلوحة تحكم ثابتة مع تبديل الصور حسب نوع الإجراء بداخل الرسالة المثبتة.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v33.0 - Settings & Filtering
+ * تم إضافة منطق إدارة إعدادات الإشارات (الأسواق، الفترات، الثقة) المخصصة للمستخدم.
  */
 
 async function getActiveBotToken() {
@@ -18,10 +17,7 @@ async function getActiveBotToken() {
   return botsSnap.docs[0].data().token;
 }
 
-/**
- * تحديث الوسائط المتعددة (صورة + نص) في رسالة تليجرام موجودة
- */
-async function editBotMessageMedia(chatId: string, messageId: string, imageKey: string, caption: string, replyMarkup: any) {
+async function editBotMessageMedia(chatId: string, message_id: string, imageKey: string, caption: string, replyMarkup: any) {
   const botToken = await getActiveBotToken();
   if (!botToken) return;
 
@@ -32,7 +28,7 @@ async function editBotMessageMedia(chatId: string, messageId: string, imageKey: 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: chatId,
-      message_id: messageId,
+      message_id: message_id,
       media: {
         type: 'photo',
         media: imageUrl,
@@ -40,58 +36,6 @@ async function editBotMessageMedia(chatId: string, messageId: string, imageKey: 
         parse_mode: 'Markdown'
       },
       reply_markup: replyMarkup
-    })
-  });
-}
-
-export async function notifyTelegramUser(userId: string, message: string) {
-  try {
-    const { firestore } = initializeFirebase();
-    const userSnap = await getDoc(doc(firestore, "users", userId));
-    const user = userSnap.data();
-    if (!user?.telegramChatId) return;
-
-    const botToken = await getActiveBotToken();
-    if (!botToken) return;
-
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: user.telegramChatId,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
-  } catch (e) {}
-}
-
-export async function sendWelcomeMessage(botToken: string, chatId: string) {
-  const text = `
-🔐 *أهلاً بك في NAMIX || قمرة القيادة الاستثمارية*
-
-مكان مخصص لمن يفضل التداول برؤية أوضح وقرارات أكثر دقة عبر محركات الذكاء الاصطناعي.
-
-افتح حساباً مجانياً أو سجل دخولك بحساب ناميكس الحالي لبدء رحلة النمو.
-  `.trim();
-
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: "💎 فتح حساب مجاني", callback_data: "user_signup" }, { text: "🔑 تسجيل الدخول", callback_data: "user_login" }]
-    ]
-  };
-
-  const photoUrl = `${SITE_CONFIG.url}/telegram_bot.png`;
-
-  await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      photo: photoUrl,
-      caption: text,
-      parse_mode: 'Markdown',
-      reply_markup: keyboard
     })
   });
 }
@@ -111,7 +55,7 @@ export async function sendUserSuccessBriefing(chatId: string, user: any, imageUr
 • 🆔 المعرف: \`${user.namixId}\`
 
 🚀 *إدارة الأصول والنمو اللحظي:*
-  `.trim();
+    `.trim();
 
     const keyboard = {
       inline_keyboard: [
@@ -154,7 +98,7 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId.toString()), limit(1));
   const userSnap = await getDocs(userQuery);
   
-  if (userSnap.empty && action !== 'user_logout' && action !== 'user_login' && action !== 'user_signup') return;
+  if (userSnap.empty && !['user_logout', 'user_login', 'user_signup'].includes(action)) return;
   
   const userDoc = userSnap.docs[0];
   const user = userDoc?.data();
@@ -175,59 +119,57 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     ];
   } 
   
-  else if (action === 'user_account') {
-    text = `👤 *تفاصيل المركز المالي*\n\n💰 الرصيد الجاري: *$${user.totalBalance?.toLocaleString()}*\n📈 صافي الأرباح: *$${user.totalProfits?.toLocaleString()}*\n🛡️ العقود النشطة: *$${user.activeInvestmentsTotal?.toLocaleString()}*\n\n_يتم تحديث البيانات لحظياً عبر محركات ناميكس._`;
-    image = "account.png";
-    keyboard.inline_keyboard.push([{ text: "📈 عرض السجلات المالية", web_app: { url: `https://${host}/profile` } }]);
-  }
-
-  else if (action === 'user_partners') {
-    const refLink = `https://${host}/login?ref=${user.referralCode}`;
-    text = `👥 *مركز الشركاء والقادة*\n\n🔗 رابط الدعوة الخاص بك:\n\`${refLink}\`\n\n🎁 نظام العمولات يمنحك مكافآت فورية عند نشاط شبكتك المباشرة.`;
-    image = "share.png";
-    keyboard.inline_keyboard = [
-      [{ text: "📤 مشاركة الرابط", url: `https://t.me/share/url?url=${encodeURIComponent(refLink)}` }],
-      [{ text: "🔙 رجوع", callback_data: "user_home" }]
-    ];
-  }
-
-  else if (action === 'user_deposit') {
-    const depCats = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
-    text = `📥 *بوابات الإيداع والتدفق*\n\nاختر وسيلة الشحن المناسبة لفتح بوابة الدفع الموثقة بلمسة واحدة:`;
-    image = "deposit.png";
-    keyboard.inline_keyboard = depCats.docs.map(d => ([{ text: `💳 ${d.data().name}`, web_app: { url: `https://${host}/deposit/${d.id}` } }]));
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
-  else if (action === 'user_withdraw') {
-    const withCats = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
-    text = `📤 *بوابات السحب المعتمدة*\n\nحدد وجهة تحويل الأرباح المستحقة لفتح نافذة الصرف الموثقة:`;
-    image = "withdrawal.png";
-    keyboard.inline_keyboard = withCats.docs.map(d => ([{ text: `🏧 ${d.data().name}`, web_app: { url: `https://${host}/withdraw/${d.id}` } }]));
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
-  else if (action === 'user_invest') {
-    const plans = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
-    text = `🔬 *مختبر العقود الاستراتيجية*\n\nاختر خطة النمو المناسبة لتفعيلها في محفظتك عبر النافذة الموثقة:`;
-    image = "invest.png";
-    keyboard.inline_keyboard = plans.docs.map(d => {
-      const p = d.data();
-      const label = p.isPopular ? `💎 ${p.title} (%${p.profitPercent})` : `${p.title} (%${p.profitPercent})`;
-      return [{ text: label, web_app: { url: `https://${host}/invest?planId=${d.id}` } }];
-    });
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
   else if (action === 'user_settings') {
-    const isAuto = !!user.isChatAutoTradeEnabled;
-    text = `⚙️ *إعدادات المنظومة والنبض*\n\nتحكم في بروتوكولات التداول الآلي وإشعارات الإشارات بأسلوب مخصص:`;
+    text = `⚙️ *إعدادات المنظومة والنبض*\n\nتحكم في بروتوكولات التداول الآلي وتخصيص إشارات الأسواق التي تود استلامها بأسلوب مخصص:`;
     image = "setting.png";
     keyboard.inline_keyboard = [
-      [{ text: isAuto ? "⚪ إيقاف التداول الآلي" : "🤖 تفعيل التداول الآلي (Chat)", callback_data: `user_autotrade_${isAuto}` }],
-      [{ text: "📊 تخصيص إشارات الأسواق", callback_data: "user_set_signals" }],
+      [{ text: "🤖 التداول الآلي (Auto-Pilot)", callback_data: "user_set_autopilot" }],
+      [{ text: "📊 تخصيص رادار الإشارات", callback_data: "user_set_signals" }],
       [{ text: "🔙 رجوع", callback_data: "user_home" }]
     ];
+  }
+
+  else if (action === 'user_set_signals') {
+    text = `📊 *تخصيص رادار الإشارات*\n\nقم بتحديد الفلاتر التي تضمن استلامك للإشارات الأكثر دقة وتوافقاً مع استراتيجيتك:`;
+    image = "setting.png";
+    keyboard.inline_keyboard = [
+      [{ text: "🎯 تحديد الأسواق المفضلة", callback_data: "set_sig_symbols" }],
+      [{ text: "⚡ الحد الأدنى للثقة", callback_data: "set_sig_conf" }],
+      [{ text: "⏳ فترات النبض", callback_data: "set_sig_freq" }],
+      [{ text: "📉 نوع الإشارة (بيع/شراء)", callback_data: "set_sig_type" }],
+      [{ text: "🔙 رجوع", callback_data: "user_settings" }]
+    ];
+  }
+
+  else if (action === 'set_sig_type') {
+    text = `📉 *تحديد نوع الإشارات المستلمة*\n\nاختر نوع العمليات التي تود أن يقوم الرادار بتنبيهك إليها بداخل الدردشة:`;
+    keyboard.inline_keyboard = [
+      [{ text: "🟢 شراء فقط (LONG)", callback_data: "save_sig_type_BUY" }],
+      [{ text: "🔴 بيع فقط (SHORT)", callback_data: "save_sig_type_SELL" }],
+      [{ text: "🔄 الكل (BUY & SELL)", callback_data: "save_sig_type_BOTH" }],
+      [{ text: "🔙 رجوع", callback_data: "user_set_signals" }]
+    ];
+  }
+
+  else if (action.startsWith('save_sig_type_')) {
+    const type = action.replace('save_sig_type_', '');
+    await updateDoc(userDoc.ref, { 'signalSettings.type': type });
+    text = `✅ *تم تحديث بروتوكول الإشارات*\n\nستصلك الآن إشارات الـ ${type === 'BOTH' ? 'شراء والبيع' : type === 'BUY' ? 'شراء' : 'بيع'} فقط.`;
+  }
+
+  else if (action === 'set_sig_conf') {
+    text = `⚡ *تحديد عتبة الثقة (Min Confidence)*\n\nلن تصلك أي إشارة إلا إذا تجاوزت نسبة الثقة التي حددتها أدناه لضمان جودة الدخول:`;
+    keyboard.inline_keyboard = [
+      [{ text: "%60+ (عالي)", callback_data: "save_sig_conf_60" }, { text: "%75+ (مؤكد)", callback_data: "save_sig_conf_75" }],
+      [{ text: "%85+ (نخبوي)", callback_data: "save_sig_conf_85" }, { text: "%95+ (فائق)", callback_data: "save_sig_conf_95" }],
+      [{ text: "🔙 رجوع", callback_data: "user_set_signals" }]
+    ];
+  }
+
+  else if (action.startsWith('save_sig_conf_')) {
+    const conf = Number(action.replace('save_sig_conf_', ''));
+    await updateDoc(userDoc.ref, { 'signalSettings.minConfidence': conf });
+    text = `✅ *تم ضبط عتبة الثقة لـ %${conf}*\n\nسيقوم الرادار الآن بحجب كافة الإشارات التي لا تستوفي هذا المعيار التقني.`;
   }
 
   else if (action === 'user_logout') {
@@ -246,23 +188,5 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     return;
   }
 
-  if (action === 'user_login' || action === 'user_signup') {
-    const route = action === 'user_login' ? 'telegram-login' : 'telegram-signup';
-    const img = action === 'user_login' ? 'signin.png' : 'signin.png';
-    const msg = action === 'user_login' ? "🔑 *بوابة الدخول الموثق*" : "💎 *تفعيل الهوية الرقمية*";
-    
-    await fetch(`https://api.telegram.org/bot${botToken}/editMessageMedia`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId, message_id: messageId,
-        media: { type: 'photo', media: `${SITE_CONFIG.url}/${img}`, caption: `${msg}\n\nيرجى فتح النافذة أدناه لإتمام العملية بشكل مؤمن.`, parse_mode: 'Markdown' },
-        reply_markup: { inline_keyboard: [[{ text: "⚡ فتح البوابة", web_app: { url: `https://${host}/auth/${route}?chatId=${chatId}` } }], [{ text: "🔙 رجوع", callback_data: "user_logout" }]] }
-      })
-    });
-    return;
-  }
-
-  // تنفيذ تحديث الرسالة المثبتة بالوسائط الجديدة
   await editBotMessageMedia(chatId, messageId, image, text, keyboard);
 }
