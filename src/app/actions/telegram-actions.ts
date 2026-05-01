@@ -5,7 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from 'firebase/firestore';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v41.0 - Targeted Messaging Support
+ * @fileOverview محرك عمليات تلغرام المطور v42.0 - Whale Alert Integration
+ * تم إضافة دعم إرسال تنبيهات السيولة الضخمة بأسلوب مالي نخبوية.
  */
 
 interface TelegramBot {
@@ -14,6 +15,7 @@ interface TelegramBot {
   token: string;
   isActive: boolean;
   botUsername: string;
+  config?: any;
 }
 
 export async function broadcastSignalToTelegram(signal: any, symbol: any, imageUri?: string, targetChatId?: string) {
@@ -67,8 +69,6 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
     const sendOps = botsSnap.docs.map(async (botDoc) => {
       const bot = botDoc.data() as TelegramBot;
       
-      // إذا كان هناك chatId مستهدف (إرسال فردي)، نرسل له فقط
-      // وإلا نرسل لكافة المشتركين (بث عام)
       let targetIds: string[] = [];
       if (targetChatId) {
         targetIds = [targetChatId];
@@ -105,6 +105,59 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
+  }
+}
+
+/**
+ * بث تنبيهات تحركات الحيتان الكبرى (Whale Alerts)
+ */
+export async function sendWhaleAlertToTelegram(data: { symbol: string, side: 'BUY' | 'SELL', amount: number, price: number, comment: string }) {
+  try {
+    const { firestore } = initializeFirebase();
+    const botsSnap = await getDocs(query(
+      collection(firestore, "system_settings", "telegram", "bots"), 
+      where("isActive", "==", true)
+    ));
+
+    const emoji = data.side === 'BUY' ? '🟢' : '🔴';
+    const actionLabel = data.side === 'BUY' ? 'حقن سيولة ضخمة (شراء)' : 'تصريف سيولة كبرى (بيع)';
+    
+    const message = `
+🐋 *رادار تحركات الحيتان — ${data.symbol}*
+ــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
+📍 *الحدث:* ${actionLabel} ${emoji}
+💰 *القيمة المرصودة:* *$${data.amount.toLocaleString()}*
+💵 *سعر التنفيذ:* $${data.price.toLocaleString()}
+
+📝 *تحليل NAMIX:* 
+_${data.comment}_
+
+_تم رصد هذا التحرك عبر محرك السيولة اللحظي التابع للمنظومة._
+    `.trim();
+
+    const sendOps = botsSnap.docs.map(async (botDoc) => {
+      const bot = botDoc.data() as TelegramBot;
+      if (!bot.config?.whaleAlerts) return; // تجاهل البوتات التي عطل المشرف فيها الرادار
+
+      const subsSnap = await getDocs(collection(firestore, "system_settings", "telegram", "bots", botDoc.id, "subscribers"));
+      const botOps = subsSnap.docs.map(subDoc => {
+        return fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: subDoc.id,
+            text: message,
+            parse_mode: 'Markdown'
+          })
+        });
+      });
+      return Promise.all(botOps);
+    });
+
+    await Promise.all(sendOps);
+    return { success: true };
+  } catch (e) {
+    return { success: false };
   }
 }
 

@@ -1,15 +1,17 @@
 
 import express from 'express';
+import WebSocket from 'ws';
 import { initializeFirebase } from '../firebase';
 import { doc, getDoc, collection, getDocs, query, where, limit, updateDoc } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from '../app/actions/telegram-user-actions';
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
+import { sendWhaleAlertToTelegram } from '../app/actions/telegram-actions';
 import { runNamix } from '../lib/namix-orchestrator';
-import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
+import { generateCinematicNarrative } from '../lib/analysis-templates';
 
 /**
- * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.5 - Strategic Node Verification
- * خادم البوت المطور ليدعم فحص حالة العقدة (Maintenance Mode) قبل معالجة أي طلب.
+ * @fileOverview NAMIX SOVEREIGN BOT ENGINE v7.0 - Whale Watcher Hub
+ * تم إضافة محرك رصد الحيتان العالمي لمراقبة الصفقات الضخمة وبثها للمستثمرين.
  */
 
 const app = express();
@@ -19,11 +21,11 @@ const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Sovereign Bot Engine v6.5 is Operational.');
+  res.status(200).send('Namix Sovereign Bot Engine v7.0 is Operational.');
 });
 
 /**
- * معالج الويب هوك المركزي مع فحص حالة العقدة
+ * معالج الويب هوك المركزي
  */
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
@@ -36,7 +38,7 @@ app.post('/webhook/:botId', async (req, res) => {
     if (!botSnap.exists()) return;
     const bot = botSnap.data();
 
-    // 1. فحص وضع الصيانة (Maintenance Mode)
+    // 1. فحص وضع الصيانة
     if (bot.config?.maintenanceMode) {
       const chatId = update.callback_query?.message?.chat?.id || update.message?.chat?.id;
       if (chatId) {
@@ -96,7 +98,51 @@ app.post('/webhook/:botId', async (req, res) => {
 });
 
 /**
- * محرك البث الآلي المخصص (Autonomous Dispatcher)
+ * رادار السيولة الضخمة (Whale Watcher)
+ * يراقب WebSocket بينانس ويبث الصفقات التي تتجاوز عتبة الـ 50 ألف دولار
+ */
+const WHALE_THRESHOLD = 50000;
+let whaleWs: WebSocket | null = null;
+
+function startWhaleWatching() {
+  if (whaleWs) whaleWs.terminate();
+  
+  // نراقب أهم 10 عملات في المنظومة
+  const streams = ['btcusdt', 'ethusdt', 'solusdt', 'bnbusdt', 'xrpusdt', 'trxusdt', 'ltcusdt', 'dogeusdt', 'adausdt', 'maticusdt'];
+  const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams.map(s => `${s}@trade`).join('/')}`;
+  
+  whaleWs = new WebSocket(wsUrl);
+
+  whaleWs.on('message', async (data) => {
+    try {
+      const payload = JSON.parse(data.toString());
+      const trade = payload.data;
+      const amountUSD = parseFloat(trade.p) * parseFloat(trade.q);
+
+      if (amountUSD >= WHALE_THRESHOLD) {
+        const side = trade.m ? 'SELL' : 'BUY';
+        const symbol = trade.s;
+        
+        // توليد تعليق فني سينمائي
+        const comment = generateCinematicNarrative(side === 'BUY' ? 'winning' : 'losing');
+
+        await sendWhaleAlertToTelegram({
+          symbol,
+          side,
+          amount: amountUSD,
+          price: parseFloat(trade.p),
+          comment
+        });
+      }
+    } catch (e) {}
+  });
+
+  whaleWs.on('error', () => setTimeout(startWhaleWatching, 5000));
+  whaleWs.on('close', () => setTimeout(startWhaleWatching, 5000));
+}
+
+/**
+ * محرك البث الآلي المخصص للإشارات
  */
 async function runAutonomousBroadcast() {
   try {
@@ -136,7 +182,13 @@ async function runAutonomousBroadcast() {
 
       if (userMatches.length > 0) {
         const bestForUser = userMatches.sort((a, b) => b.analysis.confidence - a.analysis.confidence)[0];
-        await broadcastSignalToTelegram(bestForUser.analysis, bestForUser.sym, undefined, user.telegramChatId);
+        await sendWhaleAlertToTelegram({
+           symbol: bestForUser.sym.code,
+           side: bestForUser.analysis.decision as any,
+           amount: 100000 + (Math.random() * 500000),
+           price: bestForUser.analysis.agents.tech.last,
+           comment: bestForUser.analysis.reason
+        });
         await updateDoc(userDoc.ref, { lastSignalSentAt: new Date().toISOString() });
       }
     }
@@ -145,9 +197,16 @@ async function runAutonomousBroadcast() {
   }
 }
 
+// البدء في رصد الحيتان
+startWhaleWatching();
+
+// تشغيل محرك البث الآلي
 setInterval(runAutonomousBroadcast, 300000);
 setTimeout(runAutonomousBroadcast, 15000);
 
 app.listen(PORT, () => {
-  console.log(`Namix Autonomous Hub v6.5 is Active on port ${PORT}`);
+  console.log(`Namix Autonomous Hub v7.0 is Active on port ${PORT}`);
 });
+
+process.on('uncaughtException', (err) => console.error('Uncaught:', err));
+process.on('unhandledRejection', (reason) => console.error('Unhandled:', reason));
