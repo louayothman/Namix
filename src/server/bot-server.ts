@@ -6,8 +6,8 @@ import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage }
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
 
 /**
- * @fileOverview NAMIX STANDALONE BOT SERVER v2.1 - Production Ready
- * خادم مخصص للتشغيل المستمر على Render مع دعم فحص الحالة (Health Check).
+ * @fileOverview NAMIX STANDALONE BOT SERVER v2.2 - Resilient Runtime
+ * خادم مخصص للتشغيل المستمر مع معالجة ذكية للأخطاء وضمان الاستجابة الفورية.
  */
 
 const app = express();
@@ -16,16 +16,17 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
-// مسار فحص الحالة (ضروري لـ Render ليعرف أن البوت يعمل)
+// 1. مسار فحص الحالة (Health Check) لـ Render
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Bot Hub is Operational.');
+  res.status(200).send('Namix Sovereign Bot Engine is Operational.');
 });
 
+// 2. معالجة طلبات تيلجرام (Webhooks)
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
   const update = req.body;
 
-  // 1. رد فوري لتلغرام لمنع تعليق الأزرار (أهم خطوة)
+  // أهم خطوة: الرد الفوري على تيلجرام لإغلاق الاتصال ومنع تعليق الأزرار
   res.status(200).send({ ok: true });
 
   try {
@@ -33,14 +34,14 @@ app.post('/webhook/:botId', async (req, res) => {
     if (!botSnap.exists()) return;
     const bot = botSnap.data();
 
-    // معالجة نقرات الأزرار
+    // معالجة نقرات الأزرار التفاعلية
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id.toString();
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
-      // إبلاغ تلغرام باستلام النقرة فوراً
+      // إخبار تيلجرام أننا استلمنا النقرة فوراً
       fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,7 +50,7 @@ app.post('/webhook/:botId', async (req, res) => {
 
       const host = process.env.APP_URL || "namix.pro";
 
-      // معالجة الأوامر
+      // توجيه الطلب حسب الأكشن
       if (data === 'user_signup' || data === 'user_login') {
         const route = data === 'user_signup' ? 'telegram-signup' : 'telegram-login';
         const url = `https://${host}/auth/${route}?chatId=${chatId}`;
@@ -75,7 +76,7 @@ app.post('/webhook/:botId', async (req, res) => {
       }
     }
 
-    // معالجة الرسائل النصية (/start)
+    // معالجة رسائل البداية /start
     if (update.message && update.message.text === '/start') {
       const chatId = update.message.chat.id.toString();
       const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
@@ -89,10 +90,15 @@ app.post('/webhook/:botId', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Bot Server Error:", error);
+    console.error("Critical Execution Error:", error);
   }
 });
 
+// معالجة أخطاء النظام غير المتوقعة لمنع توقف الخادم
+process.on('uncaughtException', (err) => {
+  console.error('There was an uncaught error', err);
+});
+
 app.listen(PORT, () => {
-  console.log(`Namix Bot Hub is operational on port ${PORT}`);
+  console.log(`Namix Bot Core running on port ${PORT}`);
 });
