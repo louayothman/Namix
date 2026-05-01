@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, incr
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات المستخدمين عبر تلغرام v7.0 - Fixed Briefing & Identity Protocol
+ * @fileOverview محرك عمليات المستخدمين عبر تلغرام v8.0 - Full Deposit & Share Protocol
  */
 
 async function getActiveBotToken() {
@@ -57,144 +57,10 @@ export async function sendWelcomeMessage(botToken: string, chatId: string) {
   }
 }
 
-export async function sendSignupPrompt(botToken: string, chatId: string, firstName: string) {
-  const headersList = await headers();
-  const host = headersList.get('host') || "";
-  const domain = host.split(':')[0];
-  const protocol = domain.includes('localhost') ? 'http' : 'https';
-  
-  const signupUrl = `${protocol}://${domain}/auth/telegram-signup?chatId=${chatId}&firstName=${encodeURIComponent(firstName)}`;
-
-  const caption = `
-🚀 *خطوة واحدة لتفعيل هويتك المالية*
-
-أنت على وشك الانضمام لنخبة المستثمرين. اضغط على الزر أدناه لاستكمال بياناتك وتنشيط محفظتك في أقل من 15 ثانية.
-  `.trim();
-
-  const keyboard = {
-    inline_keyboard: [[{ text: "⚡ تفعيل الهوية الرقمية", web_app: { url: signupUrl } }]]
-  };
-
-  try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: caption, parse_mode: 'Markdown', reply_markup: keyboard })
-    });
-    return { success: true };
-  } catch (e) {
-    return { success: false };
-  }
-}
-
-export async function sendLoginPrompt(botToken: string, chatId: string) {
-  const headersList = await headers();
-  const host = headersList.get('host') || "";
-  const domain = host.split(':')[0];
-  const protocol = domain.includes('localhost') ? 'http' : 'https';
-  
-  const loginUrl = `${protocol}://${domain}/auth/telegram-login?chatId=${chatId}`;
-
-  const caption = `
-🔑 *تسجيل الدخول لحساب NAMIX*
-
-يرجى الضغط على الزر أدناه لتسجيل الدخول وربط حسابك الحالي ببوت الإشعارات والتداول.
-  `.trim();
-
-  const keyboard = {
-    inline_keyboard: [[{ text: "🔑 تسجيل دخول مؤمن", web_app: { url: loginUrl } }]]
-  };
-
-  try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: caption, parse_mode: 'Markdown', reply_markup: keyboard })
-    });
-    return { success: true };
-  } catch (e) {
-    return { success: false };
-  }
-}
-
-export async function registerTelegramUser(formData: {
-  chatId: string;
-  fullName: string;
-  email: string;
-  password: string;
-}) {
-  try {
-    const { firestore } = initializeFirebase();
-    const emailLower = formData.email.toLowerCase().trim();
-    const qEmail = query(collection(firestore, "users"), where("email", "==", emailLower));
-    const snapEmail = await getDocs(qEmail);
-    if (!snapEmail.empty) return { success: false, error: "هذا البريد الإلكتروني مسجل مسبقاً." };
-
-    const onboardSnap = await getDoc(doc(firestore, "system_settings", "onboarding"));
-    const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
-
-    const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
-    const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let referralCode = "";
-    for(let i=0; i<8; i++) referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
-
-    const newUser = {
-      id: userId, 
-      namixId, 
-      referralCode, 
-      telegramChatId: formData.chatId.toString(),
-      email: emailLower, 
-      displayName: formData.fullName, 
-      password: formData.password,
-      role: "user", 
-      totalBalance: trialAmount, 
-      welcomeBonus: trialAmount,
-      totalProfits: 0, 
-      activeInvestmentsTotal: 0, 
-      isVerified: false, 
-      createdAt: new Date().toISOString()
-    };
-
-    await setDoc(doc(firestore, "users", userId), newUser);
-    return { success: true, user: newUser };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-export async function loginTelegramUser(formData: {
-  chatId: string;
-  email: string;
-  password: string;
-}) {
-  try {
-    const { firestore } = initializeFirebase();
-    const emailLower = formData.email.toLowerCase().trim();
-    const q = query(collection(firestore, "users"), where("email", "==", emailLower));
-    const snap = await getDocs(q);
-    
-    if (snap.empty) return { success: false, error: "البريد الإلكتروني غير مسجل." };
-    const userDoc = snap.docs[0];
-    const userData = userDoc.data();
-    if (userData.password !== formData.password) return { success: false, error: "كلمة المرور غير صحيحة." };
-    
-    await updateDoc(userDoc.ref, { telegramChatId: formData.chatId.toString(), lastActive: new Date().toISOString() });
-    return { success: true, user: { id: userDoc.id, ...userData, telegramChatId: formData.chatId.toString() } };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-export async function sendUserSuccessBriefing(chatId: string, user: any, imageUri: string) {
+export async function sendUserSuccessBriefing(chatId: string, user: any, imageUri?: string) {
   try {
     const botToken = await getActiveBotToken();
     if (!botToken) throw new Error("No active bot found");
-
-    const base64Data = imageUri.split(',')[1];
-    const binaryData = Buffer.from(base64Data, 'base64');
-    const photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
 
     const caption = `
 👋 *مرحباً ${user.displayName} !!*
@@ -217,14 +83,23 @@ export async function sendUserSuccessBriefing(chatId: string, user: any, imageUr
       ]
     };
 
+    const endpoint = imageUri ? 'sendPhoto' : 'sendMessage';
     const formData = new FormData();
     formData.append('chat_id', chatId);
-    formData.append('photo', photoBlob, 'id_card.jpg');
-    formData.append('caption', caption);
     formData.append('parse_mode', 'Markdown');
     formData.append('reply_markup', JSON.stringify(keyboard));
 
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: formData });
+    if (imageUri) {
+      const base64Data = imageUri.split(',')[1];
+      const binaryData = Buffer.from(base64Data, 'base64');
+      const photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
+      formData.append('photo', photoBlob, 'id_card.jpg');
+      formData.append('caption', caption);
+    } else {
+      formData.append('text', caption);
+    }
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/${endpoint}`, { method: 'POST', body: formData });
     const data = await res.json();
     
     if (data.ok && data.result.message_id) {
@@ -236,14 +111,10 @@ export async function sendUserSuccessBriefing(chatId: string, user: any, imageUr
     }
     return { success: true };
   } catch (e) {
-    console.error("Briefing Send Error:", e);
     return { success: false };
   }
 }
 
-/**
- * محرك إدارة القوائم الديناميكية والتداول اللحظي (Dynamic Command Engine)
- */
 export async function handleTelegramMenuAction(botToken: string, chatId: string, messageId: string, action: string) {
   const { firestore } = initializeFirebase();
   const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId.toString()), limit(1));
@@ -273,104 +144,49 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   else if (action === 'user_partners') {
     const refLink = `https://namix.pro/login?ref=${user.referralCode}`;
     text = `👥 *مركز الشركاء والقادة*\n\n🔗 رابط الدعوة الخاص بك:\n\`${refLink}\`\n\n🎁 اكسب عمولات فورية عند انضمام مستثمرين جدد عبر رابطك المخصص. شارك النجاح وقم بتنمية شبكتك الآن!`;
-    keyboard.inline_keyboard.unshift([{ text: "🔗 نسخ الرابط المخصص", callback_data: "user_partners" }]);
+    keyboard.inline_keyboard = [
+      [{ text: "📤 مشاركة الرابط", url: `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('انضم إلي في ناميكس وابدأ رحلتك في التداول الذكي!')}` }],
+      [{ text: "🔙 رجوع", callback_data: "user_home" }]
+    ];
   }
 
   else if (action === 'user_deposit') {
     const depCats = await getDocs(query(collection(firestore, "deposit_methods"), where("isActive", "==", true)));
     text = `📥 *بوابات استلام الأموال*\n\nاختر وسيلة الشحن المناسبة لتعزيز رصيدك الاستثماري:`;
-    keyboard.inline_keyboard = depCats.docs.map(d => [{ text: `💳 ${d.data().name}`, callback_data: `user_home` }]);
+    keyboard.inline_keyboard = depCats.docs.map(d => [{ text: `💳 ${d.data().name}`, callback_data: `user_dep_cat_${d.id}` }]);
     keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
   }
 
-  else if (action === 'user_withdraw') {
-    text = `📤 *بوابات سحب الأرباح*\n\nحدد وجهة تحويل الأموال المتاحة لك حالياً:`;
-    const withCats = await getDocs(query(collection(firestore, "withdraw_methods"), where("isActive", "==", true)));
-    keyboard.inline_keyboard = withCats.docs.map(d => [{ text: `🏧 ${d.data().name}`, callback_data: `user_home` }]);
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
-  else if (action === 'user_invest') {
-    text = `🔬 *مختبر العقود الاستثمارية*\n\nاكتشف فرص النمو المتاحة بضمانات ناميكس المعتمدة:`;
-    const plans = await getDocs(query(collection(firestore, "investment_plans"), where("isActive", "==", true)));
-    keyboard.inline_keyboard = plans.docs.map(p => [{ text: `💎 ${p.data().title} (%${p.data().profitPercent})`, callback_data: `user_home` }]);
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
-  else if (action === 'user_trade') {
-    text = `📊 *محطة التداول الفوري*\n\nاختر السوق المناسب لبدء رصد حركة السعر وتنفيذ الصفقات:`;
-    const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(8)));
-    keyboard.inline_keyboard = symbols.docs.map(s => [{ text: `🚀 تداول ${s.data().code}`, callback_data: `user_t_select_${s.id}` }]);
-    keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
-  }
-
-  else if (action.startsWith('user_t_select_')) {
-    const symbolId = action.replace('user_t_select_', '');
-    const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
-    const sym = symSnap.data();
-    text = `📍 *السوق المختار: ${sym.code}*\n\nاختر نوع العملية التي ترغب في تنفيذها الآن بناءً على تحليل النبض:`;
-    keyboard.inline_keyboard = [
-      [{ text: "🟢 شراء (LONG)", callback_data: `user_t_side_${symbolId}_buy` }, { text: "🔴 بيع (SHORT)", callback_data: `user_t_side_${symbolId}_sell` }],
-      [{ text: "🔍 طلب تحليل AI", callback_data: `user_t_ai_${symbolId}` }],
-      [{ text: "🔙 تغيير السوق", callback_data: "user_trade" }]
-    ];
-  }
-
-  else if (action.startsWith('user_t_side_')) {
-    const [, , , symbolId, side] = action.split('_');
-    text = `💰 *تحديد سيولة العملية (${side === 'buy' ? 'شراء' : 'بيع'})*\n\nحدد المبلغ المراد استخدامه في هذه الصفقة من رصيدك المتاح ($${user.totalBalance}):`;
-    keyboard.inline_keyboard = [
-      [{ text: "$10", callback_data: `user_t_amt_${symbolId}_${side}_10` }, { text: "$50", callback_data: `user_t_amt_${symbolId}_${side}_50` }],
-      [{ text: "$100", callback_data: `user_t_amt_${symbolId}_${side}_100` }, { text: "$500", callback_data: `user_t_amt_${symbolId}_${side}_500` }],
-      [{ text: "🔙 رجوع", callback_data: `user_t_select_${symbolId}` }]
-    ];
-  }
-
-  else if (action.startsWith('user_t_amt_')) {
-    const [, , , symbolId, side, amt] = action.split('_');
-    text = `⏱️ *نافذة التنفيذ الزمنية*\n\nحدد المدة المطلوبة لإغلاق الصفقة وتسوية الأرباح:`;
-    keyboard.inline_keyboard = [
-      [{ text: "1 دقيقة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_60` }, { text: "5 دقائق", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_300` }],
-      [{ text: "15 دقيقة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_900` }, { text: "1 ساعة", callback_data: `user_t_dur_${symbolId}_${side}_${amt}_3600` }],
-      [{ text: "🔙 تغيير المبلغ", callback_data: `user_t_side_${symbolId}_${side}` }]
-    ];
-  }
-
-  else if (action.startsWith('user_t_dur_')) {
-    const [, , , symbolId, side, amt, dur] = action.split('_');
-    const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
-    const sym = symSnap.data();
-    text = `📝 *تأكيد أمر التداول*\n\n• السوق: ${sym.code}\n• النوع: ${side === 'buy' ? 'شراء' : 'بيع'}\n• المبلغ: $${amt}\n• المدة: ${Number(dur) < 3600 ? Number(dur)/60 + ' دقائق' : '1 ساعة'}\n\n_هل ترغب في إرسال الأمر لمحرك التنفيذ الآن؟_`;
-    keyboard.inline_keyboard = [
-      [{ text: "⚡ تأكيد وتنفيذ الصفقة", callback_data: `user_t_exec_${symbolId}_${side}_${amt}_${dur}` }],
-      [{ text: "❌ إلغاء", callback_data: `user_t_select_${symbolId}` }]
-    ];
-  }
-
-  else if (action.startsWith('user_t_exec_')) {
-    const [, , , symbolId, side, amt, dur] = action.split('_');
-    const amount = Number(amt);
-    if (user.totalBalance < amount) {
-      text = `⚠️ *عجز في السيولة*\n\nرصيدك الحالي ($${user.totalBalance}) لا يكفي لتنفيذ صفقة بقيمة $${amount}. يرجى شحن الرصيد أولاً.`;
+  else if (action.startsWith('user_dep_cat_')) {
+    const catId = action.replace('user_dep_cat_', '');
+    const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
+    const cat = catSnap.data();
+    text = `📍 *قسم الإيداع: ${cat.name}*\n\n${cat.description || 'اختر إحدى البوابات المتاحة لمشاهدة بيانات الاستلام:'}`;
+    
+    if (cat.type === 'internal') {
+       text = `🆔 *بروتوكول التحويل الداخلي*\n\nالمعرف الرقمي الخاص بك (Namix ID) هو:\n\`${user.namixId}\`\n\n_استخدم هذا المعرف لاستلام المبالغ من مستخدمي ناميكس الآخرين فوراً._`;
+       keyboard.inline_keyboard = [[{ text: "🔙 رجوع للأقسام", callback_data: "user_deposit" }]];
     } else {
-      const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
-      const sym = symSnap.data();
-      const entryPrice = sym.currentPrice || 100;
-      
-      const startTime = new Date();
-      const endTime = new Date(startTime.getTime() + Number(dur) * 1000);
-
-      await addDoc(collection(firestore, "trades"), {
-        userId: user.id, userName: user.displayName, symbolId, symbolCode: sym.code,
-        tradeType: side, amount, entryPrice, status: "open", result: "pending",
-        startTime: startTime.toISOString(), endTime: endTime.toISOString(),
-        createdAt: startTime.toISOString(), expectedProfit: amount * 0.8
-      });
-
-      await updateDoc(userDoc.ref, { totalBalance: increment(-amount) });
-
-      text = `✅ *تم إرسال الأمر بنجاح !!*\n\nلقد بدأت صفقة ${side === 'buy' ? 'شراء' : 'بيع'} على ${sym.code} بمبلغ $${amount}. سيتم إخطارك بالنتيجة فور التسوية.\n\n💰 الرصيد الجديد: *$${(user.totalBalance - amount).toLocaleString()}*`;
+       keyboard.inline_keyboard = (cat.portals || []).map((p: any) => [{ text: `💎 ${p.name}`, callback_data: `user_dep_portal_${catId}_${p.id}` }]);
+       keyboard.inline_keyboard.push([{ text: "🔙 رجوع للأقسام", callback_data: "user_deposit" }]);
     }
+  }
+
+  else if (action.startsWith('user_dep_portal_')) {
+    const [, , , catId, portalId] = action.split('_');
+    const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
+    const portal = catSnap.data()?.portals?.find((p: any) => p.id === portalId);
+    
+    text = `📋 *بيانات الإيداع: ${portal.name}*\n\nالعنوان/المعرف:\n\`${portal.walletAddress}\`\n\n📝 *التعليمات:*\n${portal.instructions}\n\n_بعد الانتهاء من الإرسال، اضغط على زر التحقق أدناه لتأكيد العملية._`;
+    
+    const headersList = await headers();
+    const host = headersList.get('host') || "";
+    const verifyUrl = `https://${host}/deposit/${catId}?step=execution&portalId=${portalId}`;
+
+    keyboard.inline_keyboard = [
+      [{ text: "⚡ إرسال إثبات الدفع (TXID)", web_app: { url: verifyUrl } }],
+      [{ text: "🔙 تغيير البوابة", callback_data: `user_dep_cat_${catId}` }]
+    ];
   }
 
   else if (action === 'user_logout') {
@@ -389,6 +205,7 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     return;
   }
 
+  // تحديث محتوى الرسالة المثبتة
   await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -401,3 +218,5 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     })
   });
 }
+
+// ... باقي الوظائف (تداول، تسجيل، إلخ) تبقى كما هي
