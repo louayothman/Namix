@@ -5,8 +5,8 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, incr
 import { sendOTPEmail } from './auth-actions';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v16.0 - Integrated TMA Flow
- * تم تحديث الترحيب ليستخدم الصور الرسمية وربط كافة الخدمات بالتطبيق المصغر.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v17.0 - Visual Identity Hub
+ * تم تحديث الترحيب والتوثيق ليعكس الهوية البصرية الفخمة لناميكس وتفعيل الربط الوميضي.
  */
 
 async function getActiveBotToken() {
@@ -14,6 +14,31 @@ async function getActiveBotToken() {
   const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
   if (botsSnap.empty) return null;
   return botsSnap.docs[0].data().token;
+}
+
+/**
+ * وظيفة مركزية لإرسال إشعارات تلغرام من أجزاء النظام المختلفة
+ */
+export async function notifyTelegramUser(userId: string, message: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const userSnap = await getDoc(doc(firestore, "users", userId));
+    const user = userSnap.data();
+    if (!user?.telegramChatId) return;
+
+    const botToken = await getActiveBotToken();
+    if (!botToken) return;
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: user.telegramChatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (e) {}
 }
 
 export async function sendTelegramOTP(email: string) {
@@ -100,7 +125,7 @@ export async function registerTelegramUser(data: any) {
       activeInvestmentsTotal: 0, totalProfits: 0, role: "user", createdAt: new Date().toISOString()
     };
 
-    await setDoc(doc(firestore, "users", userId), newUser);
+    await setDoc(doc(db, "users", userId), newUser);
     return { success: true, user: newUser };
   } catch (e: any) {
     return { success: false, error: e.message };

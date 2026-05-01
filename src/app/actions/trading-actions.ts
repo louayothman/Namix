@@ -5,30 +5,8 @@
  */
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc, increment, addDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
-
-async function notifyTelegramUser(userId: string, message: string) {
-  try {
-    const { firestore } = initializeFirebase();
-    const userSnap = await getDoc(doc(firestore, "users", userId));
-    const user = userSnap.data();
-    if (!user?.telegramChatId) return;
-
-    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
-    if (botsSnap.empty) return;
-    const botToken = botsSnap.docs[0].data().token;
-
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: user.telegramChatId,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
-  } catch (e) {}
-}
+import { doc, getDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
+import { notifyTelegramUser } from './telegram-user-actions';
 
 export async function settleTrade(tradeId: string, finalPrice: number) {
   try {

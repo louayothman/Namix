@@ -2,33 +2,11 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, addDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { notifyTelegramUser } from '@/app/actions/telegram-user-actions';
 
 /**
  * @fileOverview مراقب الإيداع الآلي v12.2 - Bot Notification Update
  */
-
-async function notifyTelegramUser(userId: string, message: string) {
-  try {
-    const { firestore } = initializeFirebase();
-    const userSnap = await getDoc(doc(firestore, "users", userId));
-    const user = userSnap.data();
-    if (!user?.telegramChatId) return;
-
-    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
-    if (botsSnap.empty) return;
-    const botToken = botsSnap.docs[0].data().token;
-
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: user.telegramChatId,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
-  } catch (e) {}
-}
 
 export async function POST(req: Request) {
   const { firestore } = initializeFirebase();
