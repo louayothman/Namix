@@ -13,13 +13,19 @@ import {
   History, 
   Bot, 
   Settings2,
-  Loader2 
+  Loader2,
+  Activity,
+  Zap,
+  Cpu,
+  Layout,
+  Bell,
+  Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مركز إدارة أوركسترا تلغرام v4.0 - Individual Bot Customization
- * تم إصلاح خطأ Activity وتمكين المشرف من تخصيص كل بوت بشكل مستقل تماماً.
+ * @fileOverview مركز إدارة أوركسترا تلغرام v5.0 - Strategic Node Calibration
+ * قمرة القيادة المركزية التي تدير كافة عقد التواصل المستقلة.
  */
 
 type ViewState = 'inventory' | 'history' | 'bot_settings';
@@ -50,12 +56,12 @@ export default function AdminTelegramHub() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] justify-end">
               <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              Telegram Matrix Command v4.0
+              Telegram Command System v5.0
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">
-              {view === 'inventory' ? "مصفوفة البوتات" : view === 'history' ? "سجل البث" : "تخصيص العقدة المستقلة"}
+              {view === 'inventory' ? "مصفوفة البوتات" : view === 'history' ? "سجل البث العالمي" : "تخصيص العقدة المستقلة"}
             </h1>
-            <p className="text-muted-foreground font-bold text-xs">إدارة البوتات بشكل فردي، معايرة التوكنات، وهندسة النبض الاستباقي لكل محطة.</p>
+            <p className="text-muted-foreground font-bold text-xs">إدارة البوتات بشكل فردي، معايرة التوكنات، وهندسة النبض الاستباقي لكل محطة بشكل مستقل.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -63,17 +69,18 @@ export default function AdminTelegramHub() {
                <Button 
                  onClick={handleBack}
                  variant="ghost" 
-                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3"
+                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 group"
                >
-                  <ChevronRight className="h-5 w-5" /> العودة للمصفوفة
+                  <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  العودة للمصفوفة العامة
                </Button>
              )}
              {view === 'inventory' && (
                <button 
                  onClick={() => setView('history')}
-                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 flex items-center transition-all"
+                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 flex items-center transition-all active:scale-95 group"
                >
-                  <History className="h-5 w-5 text-orange-500" />
+                  <History className="h-5 w-5 text-orange-500 transition-transform group-hover:rotate-[-12deg]" />
                   سجل البث العالمي
                </button>
              )}
@@ -103,7 +110,7 @@ export default function AdminTelegramHub() {
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v4.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v5.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
@@ -114,3 +121,4 @@ export default function AdminTelegramHub() {
     </Shell>
   );
 }
+
