@@ -5,8 +5,8 @@ import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, addDoc, updateDoc, increment, query, where, getDocs, limit } from 'firebase/firestore';
 
 /**
- * @fileOverview محرك التداول السينمائي v2.0 - Cinematic Trading Engine
- * يدير الصفقات اللحظية، التحديثات السعرية، والتفاعل البصري بداخل الدردشة.
+ * @fileOverview محرك التداول السينمائي v3.0 - Optimized Cinematic Engine
+ * تم تقليل مدد الانتظار لضمان تنفيذ العملية بداخل نافذة الـ Webhook دون تعليق.
  */
 
 async function getActiveBotToken() {
@@ -27,7 +27,7 @@ export async function showChatMarkets(botToken: string, chatId: string, messageI
   
   const keyboard = {
     inline_keyboard: symbolsSnap.docs.map(d => ([
-      { text: `📈 ${d.data().name}`, callback_data: `tchat_sym_${d.id}` }
+      { text: `📈 ${d.data().name} (${d.data().code})`, callback_data: `tchat_sym_${d.id}` }
     ]))
   };
   keyboard.inline_keyboard.push([{ text: "🔙 العودة للقائمة الرئيسية", callback_data: "user_home" }]);
@@ -90,6 +90,7 @@ export async function toggleChatAutoTrade(botToken: string, chatId: string, mess
 
 /**
  * محاكي تنفيذ الصفقة بداخل الدردشة مع التحديث اللحظي السينمائي
+ * تم تحسين المدد الزمنية لتفادي الـ Timeout
  */
 export async function executeChatTrade(botToken: string, chatId: string, symbolId: string, side: 'buy' | 'sell', amount: number, duration: number) {
   const { firestore } = initializeFirebase();
@@ -110,7 +111,7 @@ export async function executeChatTrade(botToken: string, chatId: string, symbolI
 
   const msgId = initMsg.result.message_id;
 
-  // 2. شريط تقدم وميضي
+  // 2. شريط تقدم وميضي سريع (3 خطوات)
   for (let i = 1; i <= 3; i++) {
     const bars = "█".repeat(i * 3) + "░".repeat(10 - i * 3);
     await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
@@ -122,18 +123,17 @@ export async function executeChatTrade(botToken: string, chatId: string, symbolI
         parse_mode: 'Markdown'
       })
     });
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 400));
   }
 
   // 3. التقاط سعر الدخول وتحديد وقت الانتهاء
   const entryPrice = asset.currentPrice || 64231.50;
   const endTime = new Date(Date.now() + duration * 1000);
   
-  // 4. حلقة التحديث اللحظي التفاعلية (5 تحديثات قبل التسوية)
-  const totalTicks = 5;
+  // 4. حلقة التحديث اللحظي التفاعلية (مضغوطة لـ 4 تحديثات)
+  const totalTicks = 4;
   for (let i = 1; i <= totalTicks; i++) {
-    // محاكاة تحرك السعر بناءً على الاتجاه المختار
-    const currentPrice = entryPrice + (side === 'buy' ? (Math.random() * 120 - 40) : (Math.random() * 40 - 120));
+    const currentPrice = entryPrice + (side === 'buy' ? (Math.random() * 80 - 20) : (Math.random() * 20 - 80));
     const isWinning = side === 'buy' ? currentPrice > entryPrice : currentPrice < entryPrice;
     const statusEmoji = isWinning ? "🟢" : "🔴";
     const statusText = isWinning ? "ربح مؤقت" : "تصحيح مؤقت";
@@ -155,11 +155,11 @@ export async function executeChatTrade(botToken: string, chatId: string, symbolI
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, message_id: msgId, text: liveText, parse_mode: 'Markdown' })
     });
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 1500));
   }
 
   // 5. رسالة التسوية النهائية والنتيجة المالية
-  const finalPrice = entryPrice + (Math.random() * 150 - 50);
+  const finalPrice = entryPrice + (Math.random() * 100 - 30);
   const isWin = side === 'buy' ? finalPrice > entryPrice : finalPrice < entryPrice;
   
   const finalResultText = `

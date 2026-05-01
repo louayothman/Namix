@@ -6,8 +6,8 @@ import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage }
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from "@/app/actions/telegram-trading-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v16.0 - Visual Analysis & Cinematic Trading
- * تم ربط زر التحليل بنظام التوليد المرئي وتفعيل محرك الصفقات السينمائي.
+ * @fileOverview محرك الاستجابة التفاعلي v18.0 - Resilient Response & Visual Integration
+ * تم تأمين الرد الفوري على تلغرام لمنع تعليق الأزرار وربط محرك التحليل المرئي.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -17,16 +17,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
   try {
     const update = await req.json();
     
+    // جلب بيانات البوت النشط
     const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
+    // 1. معالجة نقرات الأزرار (Callback Queries)
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id.toString();
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
+      // رد فوري لتلغرام لإيقاف حالة التحميل (Loading Spinner)
       await fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,6 +38,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
       const host = req.headers.get('host') || "";
 
+      // مسارات الهوية (نوافذ TMA)
       if (data === 'user_signup') {
         const url = `https://${host}/auth/telegram-signup?chatId=${chatId}&firstName=${encodeURIComponent(cb.from.first_name)}`;
         await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -60,6 +64,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           })
         });
       } 
+      
+      // مسار التداول والأسواق
       else if (data === 'user_trade') {
         await showChatMarkets(bot.token, chatId, messageId);
       }
@@ -71,15 +77,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         const parts = data.split('_');
         const side = parts[2] as 'buy' | 'sell';
         const symbolId = parts[3];
-        // تنفيذ صفقة افتراضية بـ 10$ لمدة 60 ثانية بتجربة سينمائية
-        await executeChatTrade(bot.token, chatId, symbolId, side, 10, 60);
+        // تشغيل محرك الصفقات السينمائي (يستغرق 15 ثانية)
+        executeChatTrade(bot.token, chatId, symbolId, side, 10, 15).catch(console.error);
       }
+      
+      // رادار التحليل المرئي (يرتبط بمكون Reactor في المتصفح)
       else if (data.startsWith('tchat_ai_')) {
         const symbolId = data.replace('tchat_ai_', '');
         const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
         if (symSnap.exists()) {
            const symData = symSnap.data();
-           // إنشاء طلب تحليل مرئي لتشغيل المفاعل (Reactor)
            await addDoc(collection(firestore, "market_analysis_requests"), {
               symbolId: symSnap.id,
               symbolCode: symData.code,
@@ -91,6 +98,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
            });
         }
       }
+      
+      // القائمة الموحدة والتداول الآلي
       else if (data.startsWith('user_autotrade_')) {
         const current = data.split('_')[2] === 'true';
         await toggleChatAutoTrade(bot.token, chatId, messageId, current);
@@ -102,18 +111,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       return NextResponse.json({ ok: true });
     }
 
+    // 2. معالجة الرسائل النصية
     const message = update.message;
     if (!message || !message.chat) return NextResponse.json({ ok: true });
 
     const chatId = message.chat.id.toString();
     const text = message.text;
 
+    // بروتوكول البدء الذكي (استعادة الجلسة)
     if (text === '/start') {
       const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
       const userSnap = await getDocs(userQuery);
 
       if (!userSnap.empty) {
         const userData = userSnap.docs[0].data();
+        // إرسال التقرير الترحيبي وبطاقة الهوية فوراً
         await sendUserSuccessBriefing(chatId, { ...userData, id: userSnap.docs[0].id }); 
       } else {
         await sendWelcomeMessage(bot.token, chatId);
@@ -122,7 +134,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    console.error("Webhook Error:", e);
+    console.error("Telegram Webhook Error:", e);
+    // نرسل دائماً OK لتلغرام لمنع تكرار المحاولات في حال وجود خطأ عابر
     return NextResponse.json({ ok: true });
   }
 }
