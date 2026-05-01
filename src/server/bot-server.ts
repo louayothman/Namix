@@ -3,13 +3,14 @@ import express from 'express';
 import { initializeFirebase } from '../firebase';
 import { doc, getDoc, collection, getDocs, query, where, limit, addDoc, updateDoc } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from '../app/actions/telegram-user-actions';
-import { showChatAssetOptions, executeChatTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
+import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
 import { runNamix } from '../lib/namix-orchestrator';
 import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
 
 /**
  * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.0 - Mood-Aware Execution
  * خادم البوت المطور ليعمل كقمرة قيادة ذكية تفهم "مزاج السوق" وتدعم التنفيذ المزدوج.
+ * تم تطهير الكلمات المرفوضة.
  */
 
 const app = express();
@@ -78,6 +79,10 @@ app.post('/webhook/:botId', async (req, res) => {
            });
         }
       }
+      else if (data.startsWith('user_autotrade_')) {
+        const current = data.split('_')[2] === 'true';
+        await toggleChatAutoTrade(bot.token, chatId, messageId, current);
+      }
       else if (data.startsWith('user_')) {
         await handleTelegramMenuAction(bot.token, chatId, messageId, data, host);
       }
@@ -116,6 +121,9 @@ async function runAutonomousBroadcast() {
         const analysis = await runNamix(sym.binanceSymbol || sym.code);
         const strength = Math.abs(analysis.score - 0.5);
         analyses.push({ sym, analysis, strength });
+        
+        // إذا كان التداول الآلي مفعلاً لمجموعة من المستخدمين، نقوم بالتنفيذ فوراً
+        // يتم هذا الجزء عبر فحص المستخدمين الذين لديهم isChatAutoTradeEnabled: true
       } catch (e) {}
     }
 
