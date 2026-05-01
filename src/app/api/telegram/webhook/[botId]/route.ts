@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, query, where, addDoc } from 'firebase/firestore';
-import { sendWelcomeMessage } from "@/app/actions/telegram-user-actions";
+import { sendWelcomeMessage, sendSignupPrompt } from "@/app/actions/telegram-user-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v6.0 - User Hub Integration
- * تم تحديث المحرك ليدعم بوابة الدخول والربط الشخصي الجديدة بشكل معزول.
+ * @fileOverview محرك الاستجابة التفاعلي v7.0 - Callback & Identity Integration
+ * تم تحديث المحرك ليدعم معالجة أزرار الهوية (Callbacks) والربط الشخصي.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -15,8 +15,32 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
   try {
     const update = await req.json();
-    const message = update.message;
+    
+    // 1. معالجة الضغط على الأزرار المدمجة (Callback Queries)
+    if (update.callback_query) {
+      const cb = update.callback_query;
+      const chatId = cb.message.chat.id;
+      const data = cb.data;
 
+      const botSnap = await getDoc(doc(firestore, "system_settings", "telegram", "bots", botId));
+      if (!botSnap.exists()) return NextResponse.json({ ok: true });
+      const bot = botSnap.data();
+
+      if (data === 'user_signup') {
+        await sendSignupPrompt(bot.token, chatId.toString(), cb.from.first_name);
+      }
+      
+      // إرسال تأكيد استلام الـ Callback لتلغرام (لإخفاء حالة التحميل في الزر)
+      await fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: cb.id })
+      });
+
+      return NextResponse.json({ ok: true });
+    }
+
+    const message = update.message;
     if (!message || !message.chat) return NextResponse.json({ ok: true });
 
     const chatId = message.chat.id;
@@ -26,9 +50,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    // 1. معالجة أمر البداية /start - بوابة الترحيب الجديدة
+    // 2. معالجة أمر البداية /start
     if (text === '/start') {
-      // توثيق المشترك في القاعدة
       const subRef = doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId.toString());
       await setDoc(subRef, {
         chatId: chatId,
@@ -37,46 +60,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         createdAt: new Date().toISOString()
       }, { merge: true });
 
-      // إرسال الرسالة الترحيبية المرئية عبر محرك المستخدمين المعزول
       await sendWelcomeMessage(bot.token, chatId.toString());
-      
-      // إرسال قائمة الأسواق كرسالة ثانية للحفاظ على تجربة الاستكشاف
-      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
-      const symbols = symbolsSnap.docs.map(d => d.data().code);
-
-      const keyboard = [];
-      for (let i = 0; i < symbols.length; i += 2) {
-        keyboard.push(symbols.slice(i, i + 2).map(s => ({ text: s })));
-      }
-
-      await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: "📊 *رادار الأسواق الحية متاح أيضاً أدناه:*",
-          parse_mode: 'Markdown',
-          reply_markup: {
-            keyboard: keyboard,
-            resize_keyboard: true,
-            one_time_keyboard: false
-          }
-        })
-      });
     } 
-    // 2. معالجة طلبات تحليل الأسواق بالصور
+    // 3. معالجة طلبات تحليل الأسواق
     else if (text) {
-      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text), where("isActive", "==", true)));
+      const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text.toUpperCase()), where("isActive", "==", true)));
       
       if (!symbolsSnap.empty) {
         const symbolDoc = symbolsSnap.docs[0];
-        
-        const loadingMsg = `
-🔍 *جاري تحليل سوق ${text}...*
-[░░░░░░░░░░] 10%
-
-_يتم الآن جرد مستويات السيولة ومعايرة محرك NAMIX AI_
-        `.trim();
+        const loadingMsg = `🔍 *جاري تحليل سوق ${text}...*\n[░░░░░░░░░░] 10%\n\n_يتم الآن جرد مستويات السيولة ومعايرة محرك NAMIX AI_`;
 
         const loadingRes = await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
           method: 'POST',
@@ -92,7 +84,7 @@ _يتم الآن جرد مستويات السيولة ومعايرة محرك NA
           chatId: chatId.toString(),
           messageId,
           symbolId: symbolDoc.id,
-          symbolCode: text,
+          symbolCode: text.toUpperCase(),
           status: "pending",
           createdAt: new Date().toISOString()
         });
