@@ -5,9 +5,15 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, incr
 import { headers } from 'next/headers';
 
 /**
- * @fileOverview محرك عمليات المستخدمين عبر تلغرام v6.0 - Integrated Trading Engine
- * يدير الهوية، الترحيب، ونظام التداول اللحظي الموحد بداخل تلغرام.
+ * @fileOverview محرك عمليات المستخدمين عبر تلغرام v7.0 - Fixed Briefing & Identity Protocol
  */
+
+async function getActiveBotToken() {
+  const { firestore } = initializeFirebase();
+  const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true), limit(1)));
+  if (botsSnap.empty) return null;
+  return botsSnap.docs[0].data().token;
+}
 
 export async function sendWelcomeMessage(botToken: string, chatId: string) {
   const ogImageUrl = "https://namix.pro/og-image.png";
@@ -135,10 +141,20 @@ export async function registerTelegramUser(formData: {
     for(let i=0; i<8; i++) referralCode += chars.charAt(Math.floor(Math.random() * chars.length));
 
     const newUser = {
-      id: userId, namixId, referralCode, telegramChatId: formData.chatId,
-      email: emailLower, displayName: formData.fullName, password: formData.password,
-      role: "user", totalBalance: trialAmount, welcomeBonus: trialAmount,
-      totalProfits: 0, activeInvestmentsTotal: 0, isVerified: false, createdAt: new Date().toISOString()
+      id: userId, 
+      namixId, 
+      referralCode, 
+      telegramChatId: formData.chatId.toString(),
+      email: emailLower, 
+      displayName: formData.fullName, 
+      password: formData.password,
+      role: "user", 
+      totalBalance: trialAmount, 
+      welcomeBonus: trialAmount,
+      totalProfits: 0, 
+      activeInvestmentsTotal: 0, 
+      isVerified: false, 
+      createdAt: new Date().toISOString()
     };
 
     await setDoc(doc(firestore, "users", userId), newUser);
@@ -164,15 +180,18 @@ export async function loginTelegramUser(formData: {
     const userData = userDoc.data();
     if (userData.password !== formData.password) return { success: false, error: "كلمة المرور غير صحيحة." };
     
-    await updateDoc(userDoc.ref, { telegramChatId: formData.chatId, lastActive: new Date().toISOString() });
-    return { success: true, user: { id: userDoc.id, ...userData, telegramChatId: formData.chatId } };
+    await updateDoc(userDoc.ref, { telegramChatId: formData.chatId.toString(), lastActive: new Date().toISOString() });
+    return { success: true, user: { id: userDoc.id, ...userData, telegramChatId: formData.chatId.toString() } };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
 }
 
-export async function sendUserSuccessBriefing(botToken: string, chatId: string, user: any, imageUri: string) {
+export async function sendUserSuccessBriefing(chatId: string, user: any, imageUri: string) {
   try {
+    const botToken = await getActiveBotToken();
+    if (!botToken) throw new Error("No active bot found");
+
     const base64Data = imageUri.split(',')[1];
     const binaryData = Buffer.from(base64Data, 'base64');
     const photoBlob = new Blob([binaryData], { type: 'image/jpeg' });
@@ -207,6 +226,7 @@ export async function sendUserSuccessBriefing(botToken: string, chatId: string, 
 
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: formData });
     const data = await res.json();
+    
     if (data.ok && data.result.message_id) {
       await fetch(`https://api.telegram.org/bot${botToken}/pinChatMessage`, {
         method: 'POST',
@@ -216,6 +236,7 @@ export async function sendUserSuccessBriefing(botToken: string, chatId: string, 
     }
     return { success: true };
   } catch (e) {
+    console.error("Briefing Send Error:", e);
     return { success: false };
   }
 }
@@ -235,7 +256,6 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   let text = "";
   let keyboard: any = { inline_keyboard: [[{ text: "🔙 رجوع للقائمة الرئيسية", callback_data: "user_home" }]] };
 
-  // --- معالجة القائمة الرئيسية ---
   if (action === 'user_home') {
     text = `👋 *مرحباً ${user.displayName} !!*\nتم تسجيل دخولك بنجاح إلى NAMIX ::\n\n📌 *بيانات حسابك:*\n• 👤 الاسم: ${user.displayName}\n• 📧 البريد الالكتروني: ${user.email}\n• 🆔 المعرف الرقمي: \`${user.namixId}\`\n\n🚀 *يمكنك الآن إدارة أصولك مباشرة من هنا:*`;
     keyboard.inline_keyboard = [
@@ -277,7 +297,6 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
   }
 
-  // --- محرك التداول اللحظي بداخل البوت ---
   else if (action === 'user_trade') {
     text = `📊 *محطة التداول الفوري*\n\nاختر السوق المناسب لبدء رصد حركة السعر وتنفيذ الصفقات:`;
     const symbols = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true), limit(8)));
@@ -334,7 +353,6 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     if (user.totalBalance < amount) {
       text = `⚠️ *عجز في السيولة*\n\nرصيدك الحالي ($${user.totalBalance}) لا يكفي لتنفيذ صفقة بقيمة $${amount}. يرجى شحن الرصيد أولاً.`;
     } else {
-      // جلب السعر الحالي (محاكاة أو من API)
       const symSnap = await getDoc(doc(firestore, "trading_symbols", symbolId));
       const sym = symSnap.data();
       const entryPrice = sym.currentPrice || 100;
@@ -371,7 +389,6 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     return;
   }
 
-  // تنفيذ التعديل الديناميكي للرسالة
   await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, Suspense } from "react";
@@ -19,6 +18,7 @@ function SignupContent() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idCardRef = useRef<HTMLDivElement>(null);
+  const [userDataForCard, setUserDataForCard] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     chatId: searchParams.get("chatId") || "",
@@ -41,24 +41,24 @@ function SignupContent() {
       const res = await registerTelegramUser(formData);
       if (res.success) {
         setSuccess(true);
+        setUserDataForCard(res.user);
         localStorage.setItem("namix_user", JSON.stringify(res.user));
         
         // التقاط صورة الهوية وإرسال التقرير النهائي للبوت
         setTimeout(async () => {
           if (idCardRef.current) {
-            const dataUrl = await htmlToImage.toJpeg(idCardRef.current, { quality: 0.95, pixelRatio: 2 });
-            // نفترض وجود معرف بوت افتراضي أو تمريره، هنا سنستخدم القيمة من الرابط أو التوكن
-            // للتبسيط في الـ MVP سنحتاج لمعرفة الـ botId، سنفترض أنه يتم جلبه من إعدادات تلغرام
-            // كحل سريع سنمرر طلب البث لمسار عام يجد البوت النشط
-            const botId = window.location.pathname.split('/').pop() || ""; // يمكن تحسين جلب الـ ID
-            // سنفترض أننا نستخدم أول بوت نشط في النظام
-            await sendUserSuccessBriefing("default", formData.chatId, res.user, dataUrl);
+            try {
+              const dataUrl = await htmlToImage.toJpeg(idCardRef.current, { quality: 0.95, pixelRatio: 2 });
+              await sendUserSuccessBriefing(formData.chatId, res.user, dataUrl);
+            } catch (captureErr) {
+              console.error("Card capture failed:", captureErr);
+            }
           }
           
           if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
           }
-        }, 2000);
+        }, 2500);
       } else {
         setError(res.error || "فشل إنشاء الحساب.");
       }
@@ -71,10 +71,13 @@ function SignupContent() {
 
   return (
     <div className="min-h-screen bg-white font-body p-8 flex flex-col items-center justify-start text-right" dir="rtl">
-      {/* نسخة مخفية للتقاط الصورة */}
       <div className="fixed left-[-9999px] top-[-9999px]">
          <div ref={idCardRef}>
-            <IdentityCardPreview user={{ displayName: formData.fullName, namixId: "0000000000" }} />
+            {userDataForCard ? (
+               <IdentityCardPreview user={userDataForCard} calculatedTier={null} invitationLink="" />
+            ) : (
+               <IdentityCardPreview user={{ displayName: formData.fullName, namixId: "0000000000" }} calculatedTier={null} invitationLink="" />
+            )}
          </div>
       </div>
 
@@ -120,7 +123,7 @@ function SignupContent() {
                     <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-2">كلمة المرور</Label>
                     <div className="relative">
                        <Input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="h-14 rounded-2xl bg-gray-50/50 border-none font-black text-xs px-10 shadow-inner text-center tracking-widest" placeholder="••••••••" />
-                       <Lock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                       <Lock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                     </div>
                  </div>
               </div>

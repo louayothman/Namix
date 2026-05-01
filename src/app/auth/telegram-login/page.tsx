@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, Suspense } from "react";
@@ -46,14 +45,18 @@ function LoginContent() {
         
         setTimeout(async () => {
           if (idCardRef.current) {
-            const dataUrl = await htmlToImage.toJpeg(idCardRef.current, { quality: 0.95, pixelRatio: 2 });
-            await sendUserSuccessBriefing("default", formData.chatId, res.user, dataUrl);
+            try {
+              const dataUrl = await htmlToImage.toJpeg(idCardRef.current, { quality: 0.95, pixelRatio: 2 });
+              await sendUserSuccessBriefing(formData.chatId, res.user, dataUrl);
+            } catch (captureErr) {
+              console.error("Card capture failed:", captureErr);
+            }
           }
           
           if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
           }
-        }, 2000);
+        }, 2500);
       } else {
         setError(res.error || "فشل تسجيل الدخول.");
       }
@@ -66,10 +69,9 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-white font-body p-8 flex flex-col items-center justify-start text-right" dir="rtl">
-      {/* نسخة مخفية للتقاط الصورة */}
       <div className="fixed left-[-9999px] top-[-9999px]">
          <div ref={idCardRef}>
-            {userDataForCard && <IdentityCardPreview user={userDataForCard} />}
+            {userDataForCard && <IdentityCardPreview user={userDataForCard} calculatedTier={null} invitationLink="" />}
          </div>
       </div>
 
@@ -101,14 +103,14 @@ function LoginContent() {
                     <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-2">البريد الإلكتروني</Label>
                     <div className="relative">
                        <Input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="h-14 rounded-2xl bg-gray-50/50 border-none font-black text-xs px-10 shadow-inner text-left" dir="ltr" placeholder="name@example.com" />
-                       <Mail size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                       <Mail size={16} className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                     </div>
                  </div>
                  <div className="space-y-2 px-2">
                     <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-2">كلمة المرور</Label>
                     <div className="relative">
                        <Input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="h-14 rounded-2xl bg-gray-50/50 border-none font-black text-xs px-10 shadow-inner text-center tracking-widest" placeholder="••••••••" />
-                       <Lock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                       <Lock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                     </div>
                  </div>
               </div>
