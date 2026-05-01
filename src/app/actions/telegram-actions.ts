@@ -6,8 +6,8 @@ import { doc, getDoc, collection, addDoc, getDocs, query, where, setDoc } from '
 import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات تلغرام المطور v44.0 - Serverless Webhook Redirection
- * تم تحديث عنوان الويب هوك ليوجه الطلبات لـ Vercel بدلاً من Render.
+ * @fileOverview محرك عمليات تلغرام الموحد v50.0 - Vercel Native Edition
+ * تم حصر كافة العمليات لتعمل بداخل بيئة Vercel بنسبة 100%.
  */
 
 interface TelegramBot {
@@ -31,7 +31,7 @@ export async function broadcastSignalToTelegram(signal: any, symbol: any, imageU
     
     let dialogueText = "";
     if (signal.dialogue && Array.isArray(signal.dialogue)) {
-      dialogueText = "\n\n🗳️ *مناقشة محركات NAMIX:* \n" + signal.dialogue.map((d: any) => `• _${d.agent}:_ ${d.message}`).join('\n');
+      dialogueText = "\n\n🗳️ *مناقشة المحركات:* \n" + signal.dialogue.map((d: any) => `• _${d.agent}:_ ${d.message}`).join('\n');
     }
 
     const caption = `
@@ -48,7 +48,7 @@ ${trendIcon} *اتجاه النبض:* ${signal.trend}${dialogueText}
 📝 *التحليل الاستراتيجي:*
 _${signal.reason}_
 
-_تم استخلاص البيانات عبر أوركسترا NAMIX للتحليل اللحظي._
+_تم استخلاص البيانات عبر أوركسترا ناميكس للتحليل اللحظي._
     `.trim();
 
     const domain = process.env.NEXT_PUBLIC_APP_URL || "namix.pro";
@@ -103,6 +103,16 @@ _تم استخلاص البيانات عبر أوركسترا NAMIX للتحلي
     });
 
     await Promise.all(sendOps);
+
+    // توثيق عملية البث في السجلات
+    await addDoc(collection(firestore, "telegram_broadcast_logs"), {
+      symbolCode: symbol.code,
+      decision: signal.decision,
+      confidence: signal.confidence,
+      botCount: botsSnap.size,
+      createdAt: new Date().toISOString()
+    });
+
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -122,7 +132,7 @@ export async function sendWhaleAlertToTelegram(data: { symbol: string, side: 'BU
 💰 *القيمة:* *$${data.amount.toLocaleString()}*
 💵 *السعر:* $${data.price.toLocaleString()}
 
-📝 *تحليل NAMIX:* 
+📝 *تحليل ناميكس:* 
 _${data.comment}_
     `.trim();
 
@@ -136,7 +146,7 @@ _${data.comment}_
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: botDoc.id, // This should be targeting subscribers or specific groups
+          chat_id: botDoc.id, 
           photo: imageUrl,
           caption: message,
           parse_mode: 'Markdown'
@@ -159,7 +169,6 @@ export async function addNewTelegramBot(name: string, token: string) {
     const botId = Math.random().toString(36).substr(2, 9);
     const botUsername = data.result.username;
 
-    // توجيه الويب هوك لـ Vercel للحصول على استجابة فورية
     const domain = process.env.NEXT_PUBLIC_APP_URL || "namix.pro";
     const webhookUrl = `https://${domain}/api/telegram/webhook/${botId}`;
 

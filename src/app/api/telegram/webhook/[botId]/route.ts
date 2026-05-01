@@ -6,9 +6,8 @@ import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage }
 import { executeChatTrade, toggleChatAutoTrade, showChatMarkets } from "@/app/actions/telegram-trading-actions";
 
 /**
- * @fileOverview محرك الاستجابة السيادي الموحد v20.0 - Vercel Serverless Optimized
- * تم نقل المعالج ليعمل كـ Serverless Function لضمان استجابة لحظية (Zero Latency).
- * هذا المسار مسؤول عن كافة التفاعلات المباشرة مع المستثمر.
+ * @fileOverview محرك الاستجابة الوميضي (Vercel API) v21.0
+ * المركز السيادي الوحيد لاستلام ومعالجة كافة تفاعلات البوت بداخل Vercel.
  */
 
 export const dynamic = 'force-dynamic';
@@ -20,20 +19,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
   try {
     const update = await req.json();
     
-    // 1. جلب بيانات البوت من العقدة المخصصة
     const botRef = doc(firestore, "system_settings", "telegram", "bots", botId);
     const botSnap = await getDoc(botRef);
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    // 2. معالجة نقرات الأزرار (التفاعل اللحظي)
+    // معالجة نقرات الأزرار
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id.toString();
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
-      // الرد الفوري لتلغرام لمنع التحميل (Spinning)
+      // الرد الفوري لتلغرام لمنع تعليق الواجهة
       await fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
       const host = req.headers.get('host') || "namix.pro";
 
-      // بوابات الهوية
+      // 1. بوابات الهوية
       if (data === 'user_signup' || data === 'user_login') {
         const route = data === 'user_signup' ? 'telegram-signup' : 'telegram-login';
         const url = `https://${host}/auth/${route}?chatId=${chatId}`;
@@ -57,7 +55,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
           })
         });
       } 
-      // أوامر التداول
+      // 2. أوامر التداول
       else if (data === 'user_trade') {
         await showChatMarkets(bot.token, chatId, messageId);
       }
@@ -68,7 +66,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
         // تشغيل العملية في الخلفية لضمان عدم تجاوز توقيت الـ API
         executeChatTrade(bot.token, chatId, symbolId, side, 10, 15).catch(console.error);
       }
-      // التداول الآلي والمنيو الموحد
+      // 3. التداول الآلي والمنيو الموحد
       else if (data.startsWith('user_autotrade_')) {
         const current = data.split('_')[2] === 'true';
         await toggleChatAutoTrade(bot.token, chatId, messageId, current);
@@ -80,9 +78,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       return NextResponse.json({ ok: true });
     }
 
-    // 3. معالجة الرسائل النصية (/start)
+    // معالجة الرسائل النصية (/start)
     const message = update.message;
-    if (message && message.text === '/start') {
+    if (message && message.text?.startsWith('/start')) {
       const chatId = message.chat.id.toString();
       
       // توثيق الحضور في مصفوفة البوت
@@ -105,6 +103,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("Critical Webhook Fault:", e);
-    return NextResponse.json({ ok: true }); // Always return 200 to Telegram
+    return NextResponse.json({ ok: true }); 
   }
 }
