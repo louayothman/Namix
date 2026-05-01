@@ -7,30 +7,30 @@ import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Lock, ShieldCheck, Loader2, Zap, Sparkles } from "lucide-react";
-import { registerTelegramUser, sendUserSuccessBriefing } from "@/app/actions/telegram-user-actions";
+import { Mail, Lock, ShieldCheck, Loader2, Zap, Sparkles } from "lucide-react";
+import { loginTelegramUser, sendUserSuccessBriefing } from "@/app/actions/telegram-user-actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { IdentityCardPreview } from "@/components/profile/IdentityCardPreview";
 import * as htmlToImage from 'html-to-image';
 
-function SignupContent() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idCardRef = useRef<HTMLDivElement>(null);
+  const [userDataForCard, setUserDataForCard] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     chatId: searchParams.get("chatId") || "",
-    fullName: searchParams.get("firstName") || "",
     email: "",
     password: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password || !formData.fullName) {
-      setError("يرجى استكمال كافة الحقول.");
+    if (!formData.email || !formData.password) {
+      setError("يرجى إدخال البريد وكلمة المرور.");
       return;
     }
 
@@ -38,20 +38,15 @@ function SignupContent() {
     setError(null);
 
     try {
-      const res = await registerTelegramUser(formData);
+      const res = await loginTelegramUser(formData);
       if (res.success) {
         setSuccess(true);
+        setUserDataForCard(res.user);
         localStorage.setItem("namix_user", JSON.stringify(res.user));
         
-        // التقاط صورة الهوية وإرسال التقرير النهائي للبوت
         setTimeout(async () => {
           if (idCardRef.current) {
             const dataUrl = await htmlToImage.toJpeg(idCardRef.current, { quality: 0.95, pixelRatio: 2 });
-            // نفترض وجود معرف بوت افتراضي أو تمريره، هنا سنستخدم القيمة من الرابط أو التوكن
-            // للتبسيط في الـ MVP سنحتاج لمعرفة الـ botId، سنفترض أنه يتم جلبه من إعدادات تلغرام
-            // كحل سريع سنمرر طلب البث لمسار عام يجد البوت النشط
-            const botId = window.location.pathname.split('/').pop() || ""; // يمكن تحسين جلب الـ ID
-            // سنفترض أننا نستخدم أول بوت نشط في النظام
             await sendUserSuccessBriefing("default", formData.chatId, res.user, dataUrl);
           }
           
@@ -60,7 +55,7 @@ function SignupContent() {
           }
         }, 2000);
       } else {
-        setError(res.error || "فشل إنشاء الحساب.");
+        setError(res.error || "فشل تسجيل الدخول.");
       }
     } catch (e) {
       setError("خطأ في الاتصال بالشبكة.");
@@ -74,7 +69,7 @@ function SignupContent() {
       {/* نسخة مخفية للتقاط الصورة */}
       <div className="fixed left-[-9999px] top-[-9999px]">
          <div ref={idCardRef}>
-            <IdentityCardPreview user={{ displayName: formData.fullName, namixId: "0000000000" }} />
+            {userDataForCard && <IdentityCardPreview user={userDataForCard} />}
          </div>
       </div>
 
@@ -82,8 +77,8 @@ function SignupContent() {
         <div className="flex flex-col items-center gap-8 text-center pt-8">
            <Logo size="md" />
            <div className="space-y-1">
-              <h2 className="text-2xl font-black text-[#002d4d]">تفعيل الهوية الرقمية</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] opacity-60">Telegram Identity Node</p>
+              <h2 className="text-2xl font-black text-[#002d4d]">تسجيل الدخول</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] opacity-60">Secure Access Node</p>
            </div>
         </div>
 
@@ -95,20 +90,13 @@ function SignupContent() {
                   <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-emerald-400/20 rounded-[40px] blur-3xl -z-10" />
                </div>
                <div className="space-y-3">
-                  <h3 className="text-2xl font-black text-[#002d4d]">تم التفعيل بنجاح</h3>
-                  <p className="text-sm text-gray-500 font-bold leading-loose px-6">لقد تم إنشاء هويتك المالية وربطها بـ تلغرام. جاري إرسال بياناتك وبطاقة الهوية لدردشة البوت...</p>
+                  <h3 className="text-2xl font-black text-[#002d4d]">تم تسجيل الدخول</h3>
+                  <p className="text-sm text-gray-500 font-bold leading-loose px-6">جاري ربط حسابك بـ تلغرام وتحديث بطاقة هويتك في الدردشة...</p>
                </div>
             </motion.div>
           ) : (
             <motion.form key="form" onSubmit={handleSubmit} className="space-y-8" exit={{ opacity: 0, y: -20 }}>
               <div className="space-y-5">
-                 <div className="space-y-2 px-2">
-                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-2">الاسم الكامل</Label>
-                    <div className="relative">
-                       <Input value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="h-14 rounded-2xl bg-gray-50/50 border-none font-black text-xs px-10 shadow-inner" placeholder="أدخل اسمك الكريم..." />
-                       <User size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                    </div>
-                 </div>
                  <div className="space-y-2 px-2">
                     <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pr-2">البريد الإلكتروني</Label>
                     <div className="relative">
@@ -126,7 +114,7 @@ function SignupContent() {
               </div>
               {error && <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-center animate-shake"><p className="text-[10px] font-black text-red-600">{error}</p></div>}
               <Button type="submit" disabled={loading} className="w-full h-16 rounded-full bg-[#002d4d] hover:bg-[#001d33] text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 group">
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <><span className="relative z-10">إنشاء الحساب الموثق</span><Zap className="h-5 w-5 text-[#f9a885] fill-current group-hover:scale-125 transition-transform" /></>}
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <><span className="relative z-10">دخول مؤمن</span><Zap className="h-5 w-5 text-[#f9a885] fill-current group-hover:scale-125 transition-transform" /></>}
               </Button>
             </motion.form>
           )}
@@ -136,10 +124,10 @@ function SignupContent() {
   );
 }
 
-export default function TelegramSignupPage() {
+export default function TelegramLoginPage() {
   return (
     <Suspense fallback={<div className="h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-[#002d4d] opacity-20" /></div>}>
-       <SignupContent />
+       <LoginContent />
     </Suspense>
   );
 }

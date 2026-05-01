@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, query, where, addDoc } from 'firebase/firestore';
-import { sendWelcomeMessage, sendSignupPrompt } from "@/app/actions/telegram-user-actions";
+import { sendWelcomeMessage, sendSignupPrompt, sendLoginPrompt } from "@/app/actions/telegram-user-actions";
 
 /**
- * @fileOverview محرك الاستجابة التفاعلي v7.0 - Callback & Identity Integration
- * تم تحديث المحرك ليدعم معالجة أزرار الهوية (Callbacks) والربط الشخصي.
+ * @fileOverview محرك الاستجابة التفاعلي v8.0 - Full Identity Logic
+ * تم إضافة دعم تسجيل الدخول والربط الشخصي عبر تلغرام.
  */
 
 export async function POST(req: Request, { params }: { params: Promise<{ botId: string }> }) {
@@ -16,7 +16,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
   try {
     const update = await req.json();
     
-    // 1. معالجة الضغط على الأزرار المدمجة (Callback Queries)
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id;
@@ -28,9 +27,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
 
       if (data === 'user_signup') {
         await sendSignupPrompt(bot.token, chatId.toString(), cb.from.first_name);
+      } else if (data === 'user_login') {
+        await sendLoginPrompt(bot.token, chatId.toString());
       }
       
-      // إرسال تأكيد استلام الـ Callback لتلغرام (لإخفاء حالة التحميل في الزر)
       await fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,7 +50,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
     if (!botSnap.exists()) return NextResponse.json({ ok: true });
     const bot = botSnap.data();
 
-    // 2. معالجة أمر البداية /start
     if (text === '/start') {
       const subRef = doc(firestore, "system_settings", "telegram", "bots", botId, "subscribers", chatId.toString());
       await setDoc(subRef, {
@@ -61,9 +60,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ botId: 
       }, { merge: true });
 
       await sendWelcomeMessage(bot.token, chatId.toString());
-    } 
-    // 3. معالجة طلبات تحليل الأسواق
-    else if (text) {
+    } else if (text) {
       const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("code", "==", text.toUpperCase()), where("isActive", "==", true)));
       
       if (!symbolsSnap.empty) {
