@@ -3,10 +3,11 @@
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit, deleteDoc } from 'firebase/firestore';
 import { sendOTPEmail } from './auth-actions';
+import { SITE_CONFIG } from '@/lib/site-config';
 
 /**
- * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v17.0 - Visual Identity Hub
- * تم تحديث الترحيب والتوثيق ليعكس الهوية البصرية الفخمة لناميكس وتفعيل الربط الوميضي.
+ * @fileOverview محرك عمليات الهوية والتدفقات المباشرة v18.0 - Visual Identity Hub
+ * تم تحديث الترحيب ليستخدم الصورة المخصصة telegram_bot.png وتثبيت بروتوكولات الربط الوميضي.
  */
 
 async function getActiveBotToken() {
@@ -88,8 +89,8 @@ export async function sendWelcomeMessage(botToken: string, chatId: string) {
     ]
   };
 
-  // استخدام صورة الهوية العامة (OG Image)
-  const photoUrl = "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop";
+  // استخدام صورة الترحيب المخصصة من ملفات النظام (Public Folder)
+  const photoUrl = `${SITE_CONFIG.url}/telegram_bot.png`;
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
     method: 'POST',
@@ -125,7 +126,7 @@ export async function registerTelegramUser(data: any) {
       activeInvestmentsTotal: 0, totalProfits: 0, role: "user", createdAt: new Date().toISOString()
     };
 
-    await setDoc(doc(db, "users", userId), newUser);
+    await setDoc(doc(firestore, "users", userId), newUser);
     return { success: true, user: newUser };
   } catch (e: any) {
     return { success: false, error: e.message };
