@@ -16,12 +16,8 @@ import {
   Loader2, 
   Bot, 
   KeyRound, 
-  Activity, 
-  Globe,
   Settings2,
   X,
-  ChevronLeft,
-  Layers,
   Cpu
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -32,11 +28,15 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * @fileOverview جرد مصفوفة البوتات v2.0 - Inline Forge Edition
- * تم تحويل نموذج الإضافة ليكون مضمناً بالكامل في الصفحة بدلاً من النوافذ المنبثقة.
+ * @fileOverview جرد مصفوفة البوتات v3.0 - Individual Settings Trigger
+ * تم إضافة زر الإعدادات لكل بوت لتمكين الخصخصة الفردية.
  */
 
-export function BotsInventory() {
+interface BotsInventoryProps {
+  onOpenSettings: (botId: string) => void;
+}
+
+export function BotsInventory({ onOpenSettings }: BotsInventoryProps) {
   const db = useFirestore();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,14 +73,13 @@ export function BotsInventory() {
   return (
     <div className="space-y-12 font-body text-right" dir="rtl">
       
-      {/* 1. The Inline Bot Forge - مفاعل صهر البوتات المضمن */}
+      {/* 1. The Inline Bot Forge */}
       <AnimatePresence>
         {isAddOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0, y: -20 }}
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
-            transition={{ duration: 0.5, ease: "circOut" }}
             className="overflow-hidden"
           >
             <Card className="rounded-[56px] border-none shadow-2xl bg-white overflow-hidden mb-10 group">
@@ -159,9 +158,7 @@ export function BotsInventory() {
         )}
       </AnimatePresence>
 
-      {/* 2. Grid of Active Bots & Trigger Card */}
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {/* The Action Trigger Card */}
         {!isAddOpen && (
           <motion.button 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -208,9 +205,19 @@ export function BotsInventory() {
                 </div>
 
                 <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                   <Badge className={cn("text-[8px] font-black border-none px-4 py-1.5 rounded-full shadow-sm", bot.isActive ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400")}>
-                      {bot.isActive ? "OPERATIONAL" : "HIBERNATING"}
-                   </Badge>
+                   <div className="flex items-center gap-2">
+                      <Button 
+                        onClick={() => onOpenSettings(bot.id)}
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-11 w-11 rounded-2xl bg-gray-50 text-[#002d4d] hover:bg-[#002d4d] hover:text-[#f9a885] transition-all"
+                      >
+                         <Settings2 size={20} />
+                      </Button>
+                      <Badge className={cn("text-[8px] font-black border-none px-4 py-1.5 rounded-full shadow-sm", bot.isActive ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400")}>
+                        {bot.isActive ? "OPERATIONAL" : "HIBERNATING"}
+                      </Badge>
+                   </div>
                    <Button onClick={() => handleRemove(bot.id)} variant="ghost" size="icon" className="h-11 w-11 rounded-2xl bg-red-50 text-red-400 hover:bg-red-100">
                       <Trash2 size={20} />
                    </Button>

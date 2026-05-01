@@ -1,54 +1,44 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Shell } from "@/components/layout/Shell";
 import { BotsInventory } from "@/components/admin/telegram/BotsInventory";
 import { SignalHistory } from "@/components/admin/telegram/SignalHistory";
+import { BotSettingsView } from "@/components/admin/telegram/BotSettingsView";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  ChevronRight, History, Sparkles, Zap, Bot, 
-  Settings2, MessageSquare, ShieldCheck, Timer, Bell, 
-  Layout, Cpu, Save, Loader2 
+  ChevronRight, 
+  History, 
+  Bot, 
+  Settings2,
+  Loader2 
 } from "lucide-react";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { toast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 /**
- * @fileOverview مركز إدارة أوركسترا تلغرام v3.0 - Fixed & Enhanced
+ * @fileOverview مركز إدارة أوركسترا تلغرام v4.0 - Individual Bot Customization
+ * تم إصلاح خطأ Activity وتمكين المشرف من تخصيص كل بوت بشكل مستقل تماماً.
  */
 
-type ViewState = 'inventory' | 'history' | 'customization';
+type ViewState = 'inventory' | 'history' | 'bot_settings';
 
 export default function AdminTelegramHub() {
   const [view, setView] = useState<ViewState>('inventory');
-  const db = useFirestore();
-  const [saving, setSaving] = useState(false);
+  const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
 
-  const botConfigRef = useMemoFirebase(() => doc(db, "system_settings", "telegram_global"), [db]);
-  const { data: remoteConfig, isLoading: loadingConfig } = useDoc(botConfigRef);
-  const [config, setConfig] = useState<any>({});
+  const handleOpenBotSettings = (botId: string) => {
+    setSelectedBotId(botId);
+    setView('bot_settings');
+  };
 
-  useEffect(() => {
-    if (remoteConfig) setConfig(remoteConfig);
-  }, [remoteConfig]);
-
-  const handleSaveConfig = async () => {
-    setSaving(true);
-    try {
-      await setDoc(botConfigRef, { ...config, updatedAt: new Date().toISOString() }, { merge: true });
-      toast({ title: "تم تحديث مصفوفة البوت" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "فشل الحفظ" });
-    } finally {
-      setSaving(false);
+  const handleBack = () => {
+    if (view === 'bot_settings') {
+      setView('inventory');
+      setSelectedBotId(null);
+    } else {
+      setView('inventory');
     }
   };
 
@@ -60,28 +50,33 @@ export default function AdminTelegramHub() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] justify-end">
               <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              Telegram Matrix Command v3.0
+              Telegram Matrix Command v4.0
             </div>
             <h1 className="text-4xl font-black text-[#002d4d] tracking-tight">
-              {view === 'inventory' ? "مصفوفة البوتات" : view === 'history' ? "سجل البث" : "تخصيص الهوية والنبض"}
+              {view === 'inventory' ? "مصفوفة البوتات" : view === 'history' ? "سجل البث" : "تخصيص العقدة المستقلة"}
             </h1>
-            <p className="text-muted-foreground font-bold text-xs">التحكم في البوتات، إدارة التوكنات، وهندسة الإشارات الاستباقية.</p>
+            <p className="text-muted-foreground font-bold text-xs">إدارة البوتات بشكل فردي، معايرة التوكنات، وهندسة النبض الاستباقي لكل محطة.</p>
           </div>
           
           <div className="flex items-center gap-3">
-             <button 
-               onClick={() => setView('customization')}
-               className={cn("rounded-full h-14 px-8 border shadow-sm font-black text-[11px] gap-3 transition-all flex items-center", view === 'customization' ? "bg-[#002d4d] text-[#f9a885] border-[#002d4d]" : "bg-white text-[#002d4d] border-gray-100")}
-             >
-                <Settings2 className="h-5 w-5" /> تخصيص البوت
-             </button>
-             <button 
-               onClick={() => setView(view === 'inventory' ? 'history' : 'inventory')}
-               className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 flex items-center"
-             >
-                {view === 'inventory' ? <History className="h-5 w-5 text-orange-500" /> : <Bot className="h-5 w-5 text-blue-500" />}
-                {view === 'inventory' ? "سجل البث" : "المصفوفة"}
-             </button>
+             {view !== 'inventory' && (
+               <Button 
+                 onClick={handleBack}
+                 variant="ghost" 
+                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3"
+               >
+                  <ChevronRight className="h-5 w-5" /> العودة للمصفوفة
+               </Button>
+             )}
+             {view === 'inventory' && (
+               <button 
+                 onClick={() => setView('history')}
+                 className="rounded-full h-14 px-8 bg-white border border-gray-100 shadow-sm hover:shadow-md font-black text-[11px] text-[#002d4d] gap-3 flex items-center transition-all"
+               >
+                  <History className="h-5 w-5 text-orange-500" />
+                  سجل البث العالمي
+               </button>
+             )}
           </div>
         </div>
 
@@ -89,7 +84,7 @@ export default function AdminTelegramHub() {
           <AnimatePresence mode="wait">
             {view === 'inventory' && (
               <motion.div key="inv" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
-                <BotsInventory />
+                <BotsInventory onOpenSettings={handleOpenBotSettings} />
               </motion.div>
             )}
 
@@ -99,80 +94,16 @@ export default function AdminTelegramHub() {
               </motion.div>
             )}
 
-            {view === 'customization' && (
-              <motion.div key="cust" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="max-w-5xl mx-auto space-y-12">
-                 <div className="grid gap-8 md:grid-cols-2">
-                    <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
-                       <div className="flex items-center gap-3">
-                          <MessageSquare className="h-5 w-5 text-blue-500" />
-                          <Label className="font-black text-sm">رسالة الترحيب المخصصة</Label>
-                       </div>
-                       <textarea 
-                         value={config.welcomeText || ""} 
-                         onChange={e => setConfig({...config, welcomeText: e.target.value})}
-                         className="w-full min-h-[120px] rounded-3xl bg-gray-50 border-none p-6 font-bold text-xs leading-loose" 
-                       />
-                    </Card>
-
-                    <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
-                       <div className="flex items-center gap-3">
-                          <Zap className="h-5 w-5 text-orange-500" />
-                          <Label className="font-black text-sm">توقيع إشارات التداول</Label>
-                       </div>
-                       <Input value={config.signalSignature || ""} onChange={e => setConfig({...config, signalSignature: e.target.value})} className="h-14 rounded-2xl bg-gray-50 border-none font-black px-6" />
-                    </Card>
-
-                    <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
-                       <div className="flex items-center gap-3">
-                          <Timer className="h-5 w-5 text-emerald-500" />
-                          <Label className="font-black text-sm">فترة البث الآلي (دقائق)</Label>
-                       </div>
-                       <Input type="number" value={config.broadcastFreq || 5} onChange={e => setConfig({...config, broadcastFreq: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl" />
-                    </Card>
-
-                    <Card className="rounded-[40px] border-none shadow-sm p-8 space-y-6 bg-white">
-                       <div className="flex items-center gap-3">
-                          <ShieldCheck className="h-5 w-5 text-purple-500" />
-                          <Label className="font-black text-sm">أدنى حد للثقة بالبث الآلي (%)</Label>
-                       </div>
-                       <Input type="number" value={config.minConfidence || 60} onChange={e => setConfig({...config, minConfidence: Number(e.target.value)})} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-center text-xl" />
-                    </Card>
-                 </div>
-
-                 <Card className="rounded-[56px] border-none shadow-xl bg-[#002d4d] text-white p-12 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-10 opacity-5"><Cpu size={200} /></div>
-                    <div className="relative z-10 grid gap-10 md:grid-cols-2">
-                       {[
-                         { id: 'whaleAlerts', label: 'رادار تحركات الحيتان (Whale Alerts)', icon: Activity },
-                         { id: 'autoPinSignals', label: 'تثبيت الإشارات الهامة تلقائياً', icon: Bell },
-                         { id: 'showCharts', label: 'إرفاق الرسوم البيانية مع الإشارات', icon: Layout },
-                         { id: 'maintenanceMode', label: 'وضع الصيانة الشامل للبوت', icon: Zap },
-                         { id: 'strictMode', label: 'تعطيل أوامر التداول أثناء التقلب', icon: Cpu },
-                         { id: 'hapticAlerts', label: 'تفعيل التنبيهات اللمسية (TMA)', icon: Sparkles },
-                       ].map(feat => (
-                         <div key={feat.id} className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all">
-                            <div className="flex items-center gap-4">
-                               <feat.icon className="h-6 w-6 text-[#f9a885]" />
-                               <span className="text-[11px] font-black">{feat.label}</span>
-                            </div>
-                            <Switch checked={!!config[feat.id]} onCheckedChange={val => setConfig({...config, [feat.id]: val})} className="data-[state=checked]:bg-[#f9a885]" />
-                         </div>
-                       ))}
-                    </div>
-                    
-                    <div className="pt-12 flex justify-center relative z-10">
-                       <Button onClick={handleSaveConfig} disabled={saving} className="h-20 px-20 rounded-full bg-[#f9a885] text-[#002d4d] font-black text-xl shadow-2xl active:scale-95 transition-all">
-                          {saving ? <Loader2 className="animate-spin" /> : <div className="flex items-center gap-4"><span>حفظ التعديلات المعتمدة</span> <Save size={24}/></div>}
-                       </Button>
-                    </div>
-                 </Card>
+            {view === 'bot_settings' && selectedBotId && (
+              <motion.div key="cust" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+                <BotSettingsView botId={selectedBotId} onBack={handleBack} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-24 opacity-20 select-none">
-           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v3.0</p>
+           <p className="text-[10px] font-black text-[#002d4d] uppercase tracking-[0.8em]">Namix Telegram Infrastructure v4.0</p>
            <div className="flex gap-3">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-1.5 w-1.5 rounded-full bg-gray-300" />
