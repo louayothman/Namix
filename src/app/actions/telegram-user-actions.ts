@@ -1,11 +1,12 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit } from 'firebase/firestore';
-import { headers } from 'next/headers';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, increment, addDoc, limit, deleteDoc } from 'firebase/firestore';
+import { sendOTPEmail } from './auth-actions';
 
 /**
- * @fileOverview محرك عمليات المستخدمين عبر تلغرام v8.0 - Full Deposit & Share Protocol
+ * @fileOverview محرك عمليات المستخدمين عبر تلغرام v12.0 - Advanced Security & UI Fix
+ * تم إصلاح تعطل الأزرار وإضافة نظام التحقق المزدوج (OTP) للتسجيل.
  */
 
 async function getActiveBotToken() {
@@ -15,45 +16,103 @@ async function getActiveBotToken() {
   return botsSnap.docs[0].data().token;
 }
 
-export async function sendWelcomeMessage(botToken: string, chatId: string) {
-  const ogImageUrl = "https://namix.pro/og-image.png";
-  
-  const caption = `
-🔐 *أهلاً بك في NAMIX* || بوت تداول بالذكاء الاصطناعي الأقوى على الإطلاق
-
-مكان مخصص لمن يفضل التداول برؤية أوضح وقرارات أكثر دقة.
-
-📊 *إشارات مدروسة وتحليل احترافي*
-⚡ *تنفيذ مباشر من داخل البوت*
-🎯 *فرص مختارة بعناية بدل الضجيج*
-
-افتح حساباً مجانياً أو سجل دخولك بحساب ناميكس.
-  `.trim();
-
-  const keyboard = {
-    inline_keyboard: [
-      [
-        { text: "💎 فتح حساب مجاني", callback_data: "user_signup" },
-        { text: "🔑 تسجيل الدخول", callback_data: "user_login" }
-      ]
-    ]
-  };
-
+export async function sendTelegramOTP(email: string) {
   try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        photo: ogImageUrl,
-        caption: caption,
-        parse_mode: 'Markdown',
-        reply_markup: keyboard
-      })
+    const { firestore } = initializeFirebase();
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 300000).toISOString();
+    
+    await setDoc(doc(firestore, "otp_verifications", email), { 
+      code: otpCode, 
+      expiresAt 
     });
+    
+    await sendOTPEmail(email, otpCode);
     return { success: true };
-  } catch (e) {
-    return { success: false };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function verifyTelegramOTP(email: string, code: string) {
+  try {
+    const { firestore } = initializeFirebase();
+    const snap = await getDoc(doc(firestore, "otp_verifications", email));
+    if (snap.exists() && snap.data().code === code) {
+      await deleteDoc(doc(firestore, "otp_verifications", email));
+      return { success: true };
+    }
+    return { success: false, error: "رمز التحقق غير صحيح." };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function registerTelegramUser(data: any) {
+  try {
+    const { firestore } = initializeFirebase();
+    
+    // منع تكرار البريد
+    const dupQuery = query(collection(firestore, "users"), where("email", "==", data.email.toLowerCase()), limit(1));
+    const dupSnap = await getDocs(dupQuery);
+    if (!dupSnap.empty) return { success: false, error: "هذا البريد مسجل مسبقاً في النظام." };
+
+    const onboardSnap = await getDoc(doc(firestore, "system_settings", "onboarding"));
+    const trialAmount = onboardSnap.exists() ? (onboardSnap.data().trialCreditAmount || 0) : 0;
+    
+    const userId = Math.floor(1000000 + Math.random() * 9000000).toString();
+    const namixId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+    
+    // توليد كود إحالة
+    const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    let referredBy = "";
+    if (data.invitationCode) {
+      const refQuery = query(collection(firestore, "users"), where("referralCode", "==", data.invitationCode.trim().toUpperCase()));
+      const refSnap = await getDocs(refQuery);
+      if (!refSnap.empty) referredBy = refSnap.docs[0].id;
+    }
+
+    const newUser = {
+      id: userId,
+      namixId,
+      email: data.email.toLowerCase(),
+      displayName: data.fullName,
+      password: data.password,
+      telegramChatId: data.chatId.toString(),
+      totalBalance: trialAmount,
+      welcomeBonus: trialAmount,
+      referralCode,
+      referredBy,
+      activeInvestmentsTotal: 0,
+      totalProfits: 0,
+      role: "user",
+      createdAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(firestore, "users", userId), newUser);
+    return { success: true, user: newUser };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function loginTelegramUser(data: any) {
+  try {
+    const { firestore } = initializeFirebase();
+    const q = query(collection(firestore, "users"), where("email", "==", data.email.toLowerCase()), limit(1));
+    const snap = await getDocs(q);
+    
+    if (snap.empty) return { success: false, error: "المستخدم غير موجود." };
+    const userDoc = snap.docs[0];
+    const user = userDoc.data();
+
+    if (user.password !== data.password) return { success: false, error: "كلمة المرور غير صحيحة." };
+
+    await updateDoc(userDoc.ref, { telegramChatId: data.chatId.toString(), lastActive: new Date().toISOString() });
+    return { success: true, user: { ...user, id: userDoc.id } };
+  } catch (e: any) {
+    return { success: false, error: e.message };
   }
 }
 
@@ -78,8 +137,8 @@ export async function sendUserSuccessBriefing(chatId: string, user: any, imageUr
       inline_keyboard: [
         [{ text: "👤 حسابي", callback_data: "user_account" }, { text: "👥 الشركاء", callback_data: "user_partners" }],
         [{ text: "📥 إيداع", callback_data: "user_deposit" }, { text: "📤 سحب", callback_data: "user_withdraw" }],
-        [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول", callback_data: "user_trade" }],
-        [{ text: "🚪 خروج", callback_data: "user_logout" }]
+        [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول الفوري", callback_data: "user_trade" }],
+        [{ text: "🚪 تسجيل الخروج", callback_data: "user_logout" }]
       ]
     };
 
@@ -119,6 +178,7 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
   const { firestore } = initializeFirebase();
   const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId.toString()), limit(1));
   const userSnap = await getDocs(userQuery);
+  
   if (userSnap.empty && action !== 'user_logout') return;
   
   const userDoc = userSnap.docs[0];
@@ -132,8 +192,8 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     keyboard.inline_keyboard = [
       [{ text: "👤 حسابي", callback_data: "user_account" }, { text: "👥 الشركاء", callback_data: "user_partners" }],
       [{ text: "📥 إيداع", callback_data: "user_deposit" }, { text: "📤 سحب", callback_data: "user_withdraw" }],
-      [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول", callback_data: "user_trade" }],
-      [{ text: "🚪 خروج", callback_data: "user_logout" }]
+      [{ text: "🔬 مختبر العقود", callback_data: "user_invest" }, { text: "📊 التداول الفوري", callback_data: "user_trade" }],
+      [{ text: "🚪 تسجيل الخروج", callback_data: "user_logout" }]
     ];
   } 
   
@@ -157,40 +217,8 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     keyboard.inline_keyboard.push([{ text: "🔙 رجوع", callback_data: "user_home" }]);
   }
 
-  else if (action.startsWith('user_dep_cat_')) {
-    const catId = action.replace('user_dep_cat_', '');
-    const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
-    const cat = catSnap.data();
-    text = `📍 *قسم الإيداع: ${cat.name}*\n\n${cat.description || 'اختر إحدى البوابات المتاحة لمشاهدة بيانات الاستلام:'}`;
-    
-    if (cat.type === 'internal') {
-       text = `🆔 *بروتوكول التحويل الداخلي*\n\nالمعرف الرقمي الخاص بك (Namix ID) هو:\n\`${user.namixId}\`\n\n_استخدم هذا المعرف لاستلام المبالغ من مستخدمي ناميكس الآخرين فوراً._`;
-       keyboard.inline_keyboard = [[{ text: "🔙 رجوع للأقسام", callback_data: "user_deposit" }]];
-    } else {
-       keyboard.inline_keyboard = (cat.portals || []).map((p: any) => [{ text: `💎 ${p.name}`, callback_data: `user_dep_portal_${catId}_${p.id}` }]);
-       keyboard.inline_keyboard.push([{ text: "🔙 رجوع للأقسام", callback_data: "user_deposit" }]);
-    }
-  }
-
-  else if (action.startsWith('user_dep_portal_')) {
-    const [, , , catId, portalId] = action.split('_');
-    const catSnap = await getDoc(doc(firestore, "deposit_methods", catId));
-    const portal = catSnap.data()?.portals?.find((p: any) => p.id === portalId);
-    
-    text = `📋 *بيانات الإيداع: ${portal.name}*\n\nالعنوان/المعرف:\n\`${portal.walletAddress}\`\n\n📝 *التعليمات:*\n${portal.instructions}\n\n_بعد الانتهاء من الإرسال، اضغط على زر التحقق أدناه لتأكيد العملية._`;
-    
-    const headersList = await headers();
-    const host = headersList.get('host') || "";
-    const verifyUrl = `https://${host}/deposit/${catId}?step=execution&portalId=${portalId}`;
-
-    keyboard.inline_keyboard = [
-      [{ text: "⚡ إرسال إثبات الدفع (TXID)", web_app: { url: verifyUrl } }],
-      [{ text: "🔙 تغيير البوابة", callback_data: `user_dep_cat_${catId}` }]
-    ];
-  }
-
   else if (action === 'user_logout') {
-    await updateDoc(userDoc.ref, { telegramChatId: "" });
+    if (userDoc) await updateDoc(userDoc.ref, { telegramChatId: "" });
     await fetch(`https://api.telegram.org/bot${botToken}/unpinChatMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId }) });
     await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
       method: 'POST',
@@ -199,7 +227,7 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
         chat_id: chatId,
         message_id: messageId,
         caption: "🔐 تم تسجيل الخروج بنجاح. نأمل رؤيتك قريباً في NAMIX.",
-        reply_markup: { inline_keyboard: [[{ text: "🔑 دخول مؤمن", callback_data: "user_login" }, { text: "💎 فتح حساب", callback_data: "user_signup" }]] }
+        reply_markup: { inline_keyboard: [[{ text: "🔑 تسجيل الدخول", callback_data: "user_login" }, { text: "💎 فتح حساب مجاني", callback_data: "user_signup" }]] }
       })
     });
     return;
@@ -218,5 +246,3 @@ export async function handleTelegramMenuAction(botToken: string, chatId: string,
     })
   });
 }
-
-// ... باقي الوظائف (تداول، تسجيل، إلخ) تبقى كما هي
