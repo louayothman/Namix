@@ -8,8 +8,8 @@ import { runNamix } from '../lib/namix-orchestrator';
 import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
 
 /**
- * @fileOverview NAMIX SOVEREIGN BOT ENGINE v5.0 - Multi-Platform Adaptive Core
- * خادم البوت المطور ليعمل كقمرة قيادة 24/7 مع دعم التبديل البصري للرسائل المثبتة.
+ * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.0 - Mood-Aware Execution
+ * خادم البوت المطور ليعمل كقمرة قيادة ذكية تفهم "مزاج السوق" وتدعم التنفيذ المزدوج.
  */
 
 const app = express();
@@ -19,13 +19,14 @@ const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Sovereign Bot Engine is Operational and Synced.');
+  res.status(200).send('Namix Sovereign Bot Engine v6.0 is Operational.');
 });
 
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
   const update = req.body;
 
+  // رد فوري لتلغرام لضمان سرعة الأزرار
   res.status(200).send({ ok: true });
 
   try {
@@ -39,6 +40,7 @@ app.post('/webhook/:botId', async (req, res) => {
       const messageId = cb.message.message_id.toString();
       const data = cb.data;
 
+      // تأكيد استلام النقرة
       fetch(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +57,10 @@ app.post('/webhook/:botId', async (req, res) => {
       } 
       else if (data.startsWith('tchat_side_')) {
         const parts = data.split('_');
-        executeChatTrade(bot.token, chatId, parts[3], parts[2] as any, 10, 15).catch(console.error);
+        const side = parts[2] as 'buy' | 'sell';
+        const symbolId = parts[3];
+        // تنفيذ حقيقي وسينمائي بداخل الشات
+        executeChatTrade(bot.token, chatId, symbolId, side, 10, 20).catch(console.error);
       }
       else if (data.startsWith('tchat_ai_')) {
         const symbolId = data.replace('tchat_ai_', '');
@@ -95,6 +100,9 @@ app.post('/webhook/:botId', async (req, res) => {
   }
 });
 
+/**
+ * محرك البث الآلي الذكي (يتأثر بمزاج السوق)
+ */
 async function runAutonomousBroadcast() {
   try {
     const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
@@ -111,8 +119,9 @@ async function runAutonomousBroadcast() {
       } catch (e) {}
     }
 
+    // اختيار أقوى إشارة حالية للبث
     const best = analyses.sort((a, b) => b.strength - a.strength)[0];
-    if (best && best.analysis.decision !== 'HOLD') {
+    if (best && best.analysis.decision !== 'HOLD' && best.analysis.confidence >= 65) {
       await broadcastSignalToTelegram(best.analysis, best.sym);
     }
   } catch (e) {
@@ -120,9 +129,14 @@ async function runAutonomousBroadcast() {
   }
 }
 
+// تشغيل محرك البث كل 5 دقائق
 setInterval(runAutonomousBroadcast, 300000);
-setTimeout(runAutonomousBroadcast, 10000);
+setTimeout(runAutonomousBroadcast, 15000);
+
+// معالجة الأخطاء غير المتوقعة لمنع انهيار الخادم على Render
+process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection at:', promise, 'reason:', reason));
 
 app.listen(PORT, () => {
-  console.log(`Namix Autonomous Engine is now Active on port ${PORT}`);
+  console.log(`Namix Mood-Adaptive Engine is now Active on port ${PORT}`);
 });
