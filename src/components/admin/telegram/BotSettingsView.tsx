@@ -27,7 +27,10 @@ import {
   LineChart,
   Repeat,
   FileText,
-  Globe
+  Globe,
+  Volume2,
+  ShieldAlert,
+  Target
 } from "lucide-react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -40,11 +43,6 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-/**
- * @fileOverview قمرة قيادة البوت المستقلة v5.0 - Individual Node Control
- * تم تطهير اللغة وتزويد المحرك بـ 30 قالب ترحيب استراتيجي وتفعيل تعديل التوكن والاسم.
- */
 
 const GREETING_TEMPLATES = [
   "مرحباً بك في ناميكس نكسوس، رفيقك التقني في رحلة الأصول الرقمية.",
@@ -76,7 +74,7 @@ const GREETING_TEMPLATES = [
   "أهلاً بك في قمرة ناميكس المركزية. تحكم في مستقبلك المالي بلمسة واحدة.",
   "مرحباً بك! ناميكس يجمع لك قوة البيانات وسهولة التنفيذ في مكان واحد.",
   "أهلاً بك يا مستثمر ناميكس المتميز. استعد لتجربة تداول مليئة بالفرص.",
-  "مرحباً بك في ناميكس نكسوس. بوابتك السيادية للنمو في اقتصاد المستقبل."
+  "مرحباً بك في ناميكس نكسوس. بوابتك الشاملة للنمو في اقتصاد المستقبل."
 ];
 
 interface BotSettingsViewProps {
@@ -100,26 +98,24 @@ export function BotSettingsView({ botId, onBack }: BotSettingsViewProps) {
         name: botData.name || "",
         token: botData.token || ""
       });
-      if (botData.config) {
-        setConfig(botData.config);
-      } else {
-        setConfig({
-          welcomeText: GREETING_TEMPLATES[0],
-          signalSignature: "Powered by NAMIX AI",
-          broadcastFreq: 5,
-          minConfidence: 60,
-          whaleAlerts: true,
-          autoPinSignals: false,
-          showCharts: true,
-          maintenanceMode: false,
-          strictMode: true,
-          hapticAlerts: true,
-          narrativeEnabled: true,
-          autoPilotSupport: true,
-          adminReports: false,
-          allowGlobalBroadcast: true
-        });
-      }
+      setConfig(botData.config || {
+        welcomeText: GREETING_TEMPLATES[0],
+        signalSignature: "Powered by NAMIX",
+        broadcastFreq: 5,
+        minConfidence: 60,
+        whaleAlerts: true,
+        autoPinSignals: false,
+        showCharts: true,
+        maintenanceMode: false,
+        strictMode: true,
+        hapticAlerts: true,
+        narrativeEnabled: true,
+        autoPilotSupport: true,
+        adminReports: false,
+        allowGlobalBroadcast: true,
+        voiceBriefing: false,
+        antiSpam: true
+      });
     }
   }, [botData]);
 
@@ -150,7 +146,7 @@ export function BotSettingsView({ botId, onBack }: BotSettingsViewProps) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 text-right font-body pb-32" dir="rtl">
+    <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in duration-700 text-right font-body pb-32" dir="rtl">
        
        <div className="grid gap-8 lg:grid-cols-12">
           {/* Identity & Token Matrix */}
@@ -190,7 +186,6 @@ export function BotSettingsView({ botId, onBack }: BotSettingsViewProps) {
                          />
                          <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                       </div>
-                      <p className="text-[8px] text-orange-400 font-bold pr-4">تحذير: تغيير التوكن يتطلب تحديث الـ Webhook يدوياً بإعادة إضافة البوت.</p>
                    </div>
                 </div>
              </Card>
@@ -278,22 +273,24 @@ export function BotSettingsView({ botId, onBack }: BotSettingsViewProps) {
           </div>
        </div>
 
-       {/* 10 Advanced Dynamic Toggles */}
+       {/* 12 Advanced Dynamic Toggles */}
        <Card className="rounded-[64px] border-none shadow-2xl bg-[#002d4d] text-white p-12 overflow-hidden relative group">
           <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none transition-transform group-hover:rotate-12 duration-1000"><Cpu size={250} /></div>
           
           <div className="grid gap-6 md:grid-cols-2 relative z-10">
              {[
-               { id: 'whaleAlerts', label: 'رادار تحركات الحيتان (Whale Alerts)', icon: Activity, c: 'text-orange-400' },
+               { id: 'whaleAlerts', label: 'رادار تحركات الحيتان الكبرى', icon: Activity, c: 'text-orange-400' },
                { id: 'autoPinSignals', label: 'تثبيت الإشارات الهامة تلقائياً', icon: Bell, c: 'text-blue-400' },
                { id: 'showCharts', label: 'إرفاق الرسوم البيانية مع الإشارات', icon: LineChart, c: 'text-emerald-400' },
                { id: 'maintenanceMode', label: 'وضع الصيانة الشامل لهذا البوت', icon: Zap, c: 'text-red-400' },
-               { id: 'strictMode', label: 'حماية: تعطيل الأوامر أثناء التقلب', icon: Cpu, c: 'text-purple-400' },
-               { id: 'hapticAlerts', label: 'تفعيل التنبيهات اللمسية (TMA)', icon: Sparkles, c: 'text-[#f9a885]' },
-               { id: 'narrativeEnabled', label: 'تفعيل محرك السرد التوليدي', icon: FileText, c: 'text-cyan-400' },
+               { id: 'strictMode', label: 'حماية: تعطيل الأوامر أثناء التقلب', icon: ShieldAlert, c: 'text-purple-400' },
+               { id: 'hapticAlerts', label: 'تفعيل التنبيهات اللمسية والوميضية', icon: Sparkles, c: 'text-[#f9a885]' },
+               { id: 'narrativeEnabled', label: 'تفعيل محرك السرد التوليدي الحي', icon: FileText, c: 'text-cyan-400' },
                { id: 'autoPilotSupport', label: 'دعم محرك التداول الآلي للمستثمرين', icon: Repeat, c: 'text-blue-500' },
-               { id: 'adminReports', label: 'إرسال تقرير إحصائي يومي للمشرف', icon: LineChart, c: 'text-emerald-300' },
-               { id: 'allowGlobalBroadcast', label: 'السماح باستلام رسائل البث العام', icon: Globe, c: 'text-blue-200' },
+               { id: 'adminReports', label: 'إرسال تقرير إحصائي دوري للمشرف', icon: Target, c: 'text-emerald-300' },
+               { id: 'allowGlobalBroadcast', label: 'السماح باستلام رسائل البث الموحد', icon: Globe, c: 'text-blue-200' },
+               { id: 'voiceBriefing', label: 'تفعيل الموجز الصوتي الذكي (TTS)', icon: Volume2, c: 'text-pink-400' },
+               { id: 'antiSpam', label: 'تفعيل فلتر الحماية من الطلبات المتكررة', icon: ShieldCheck, c: 'text-emerald-500' },
              ].map(feat => (
                <div key={feat.id} className="flex items-center justify-between p-5 bg-white/5 rounded-[28px] border border-white/5 hover:bg-white/10 transition-all group/feat">
                   <div className="flex items-center gap-4">
@@ -330,4 +327,3 @@ export function BotSettingsView({ botId, onBack }: BotSettingsViewProps) {
     </div>
   );
 }
-

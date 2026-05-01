@@ -1,15 +1,15 @@
 
 import express from 'express';
 import { initializeFirebase } from '../firebase';
-import { doc, getDoc, collection, getDocs, query, where, limit, addDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, limit, updateDoc } from 'firebase/firestore';
 import { handleTelegramMenuAction, sendUserSuccessBriefing, sendWelcomeMessage } from '../app/actions/telegram-user-actions';
 import { showChatAssetOptions, executeChatTrade, toggleChatAutoTrade, showChatMarkets } from '../app/actions/telegram-trading-actions';
 import { runNamix } from '../lib/namix-orchestrator';
 import { broadcastSignalToTelegram } from '../app/actions/telegram-actions';
 
 /**
- * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.2 - Precision Signal Routing
- * خادم البوت المطور ليدعم توجيه الإشارات بناءً على تفضيلات كل مستخدم بشكل مستقل.
+ * @fileOverview NAMIX SOVEREIGN BOT ENGINE v6.5 - Strategic Node Verification
+ * خادم البوت المطور ليدعم فحص حالة العقدة (Maintenance Mode) قبل معالجة أي طلب.
  */
 
 const app = express();
@@ -19,9 +19,12 @@ const PORT = process.env.PORT || 3000;
 const { firestore } = initializeFirebase();
 
 app.get('/', (req, res) => {
-  res.status(200).send('Namix Sovereign Bot Engine v6.2 is Operational.');
+  res.status(200).send('Namix Sovereign Bot Engine v6.5 is Operational.');
 });
 
+/**
+ * معالج الويب هوك المركزي مع فحص حالة العقدة
+ */
 app.post('/webhook/:botId', async (req, res) => {
   const { botId } = req.params;
   const update = req.body;
@@ -33,6 +36,24 @@ app.post('/webhook/:botId', async (req, res) => {
     if (!botSnap.exists()) return;
     const bot = botSnap.data();
 
+    // 1. فحص وضع الصيانة (Maintenance Mode)
+    if (bot.config?.maintenanceMode) {
+      const chatId = update.callback_query?.message?.chat?.id || update.message?.chat?.id;
+      if (chatId) {
+        await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: "⚪ *تنبيه النظام*\n\nتخضع هذه العقدة حالياً لأعمال صيانة وتحديث دورية. يرجى المحاولة لاحقاً أو استخدام بوابة الويب المعتمدة.",
+            parse_mode: 'Markdown'
+          })
+        });
+      }
+      return;
+    }
+
+    // 2. معالجة نقرات الأزرار
     if (update.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message.chat.id.toString();
@@ -56,6 +77,7 @@ app.post('/webhook/:botId', async (req, res) => {
       }
     }
 
+    // 3. معالجة الرسائل النصية (/start)
     if (update.message && update.message.text === '/start') {
       const chatId = update.message.chat.id.toString();
       const userQuery = query(collection(firestore, "users"), where("telegramChatId", "==", chatId), limit(1));
@@ -69,22 +91,22 @@ app.post('/webhook/:botId', async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Critical Bot Server Execution Error:", error);
+    console.error("Critical Bot Server Error:", error);
   }
 });
 
 /**
- * محرك البث الآلي المخصص (Per-User Signal Routing)
+ * محرك البث الآلي المخصص (Autonomous Dispatcher)
  */
 async function runAutonomousBroadcast() {
   try {
-    // 1. تحليل كافة الأسواق النشطة مرة واحدة لتوفير الموارد
-    const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
-    if (symbolsSnap.empty) return;
-    
-    const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-    const activeSignals: any[] = [];
+    const botsSnap = await getDocs(query(collection(firestore, "system_settings", "telegram", "bots"), where("isActive", "==", true)));
+    if (botsSnap.empty) return;
 
+    const symbolsSnap = await getDocs(query(collection(firestore, "trading_symbols"), where("isActive", "==", true)));
+    const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+    
+    const activeSignals: any[] = [];
     for (const sym of symbols) {
       try {
         const analysis = await runNamix(sym.binanceSymbol || sym.code);
@@ -96,55 +118,36 @@ async function runAutonomousBroadcast() {
 
     if (activeSignals.length === 0) return;
 
-    // 2. جلب كافة المستخدمين الذين قاموا بربط تلغرام
     const usersSnap = await getDocs(query(collection(firestore, "users"), where("telegramChatId", "!=", "")));
     
     for (const userDoc of usersSnap.docs) {
       const user = userDoc.data();
-      const settings = user.signalSettings || { 
-        type: 'BOTH', 
-        minConfidence: 60, 
-        symbols: [], 
-        frequency: 5 
-      };
+      const settings = user.signalSettings || { type: 'BOTH', minConfidence: 60, symbols: [], frequency: 5 };
 
-      // فحص "فترة النبض" لتجنب إزعاج المستخدم
       const lastSignalAt = user.lastSignalSentAt ? new Date(user.lastSignalSentAt).getTime() : 0;
-      const minutesSinceLast = (Date.now() - lastSignalAt) / 60000;
-      if (minutesSinceLast < (settings.frequency || 5)) continue;
+      if ((Date.now() - lastSignalAt) / 60000 < (settings.frequency || 5)) continue;
 
-      // 3. اختيار الإشارة الأنسب لهذا المستخدم بناءً على إعداداته
       const userMatches = activeSignals.filter(s => {
-        // فلتر الأسواق
         const marketMatch = !settings.symbols?.length || settings.symbols.includes(s.sym.id);
-        // فلتر الثقة
         const confMatch = s.analysis.confidence >= (settings.minConfidence || 60);
-        // فلتر نوع الصفقة
         const typeMatch = settings.type === 'BOTH' || settings.type === s.analysis.decision;
-        
         return marketMatch && confMatch && typeMatch;
       });
 
       if (userMatches.length > 0) {
-        // اختيار الإشارة ذات الثقة الأعلى من بين المطابقات
         const bestForUser = userMatches.sort((a, b) => b.analysis.confidence - a.analysis.confidence)[0];
-        
-        // إرسال الإشارة لهذا المستخدم تحديداً
         await broadcastSignalToTelegram(bestForUser.analysis, bestForUser.sym, undefined, user.telegramChatId);
-        
-        // تحديث طابع وقت الإرسال لمنع التكرار
         await updateDoc(userDoc.ref, { lastSignalSentAt: new Date().toISOString() });
       }
     }
   } catch (e) {
-    console.error("Autonomous Routing Error:", e);
+    console.error("Autonomous Dispatcher Error:", e);
   }
 }
 
-// تشغيل محرك البث كل 5 دقائق
 setInterval(runAutonomousBroadcast, 300000);
 setTimeout(runAutonomousBroadcast, 15000);
 
 app.listen(PORT, () => {
-  console.log(`Namix Mood-Adaptive Engine v6.2 is now Active on port ${PORT}`);
+  console.log(`Namix Autonomous Hub v6.5 is Active on port ${PORT}`);
 });
