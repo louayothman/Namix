@@ -7,20 +7,17 @@ import { sendWhaleAlertToTelegram } from '@/app/actions/telegram-actions';
 import axios from 'axios';
 
 /**
- * @fileOverview محرك النبض التلقائي (Vercel Cron) v1.0
- * المسار المسؤول عن بث الإشارات ورصد الحيتان دورياً بداخل بيئة Vercel.
+ * @fileOverview محرك النبض التلقائي العام v2.0
+ * تم تحويل المسار ليكون عاماً (بدون Secret) لسهولة الاستدعاء عبر GitHub Actions
+ * لضمان عدم دخول البوت في وضع الخمول واستمرار بث الإشارات.
  */
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // زيادة توقيت التنفيذ لـ 60 ثانية
+export const maxDuration = 60; 
 
 export async function GET(req: Request) {
-  // التحقق من مفتاح الحماية لمنع الاستدعاء العشوائي
-  const authHeader = req.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
+  // تم إزالة التحقق من CRON_SECRET لتبسيط النشر وتسهيل النبض من GitHub
+  
   const { firestore } = initializeFirebase();
 
   try {
@@ -29,46 +26,57 @@ export async function GET(req: Request) {
     const symbols = symbolsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
     
     if (symbols.length > 0) {
-      // اختيار "أفضل" إشارة متاحة في السوق حالياً لبثها
+      // تنفيذ التحليل والبث لأفضل فرصة متاحة في السوق
       const analyses = [];
       for (const sym of symbols) {
-        const analysis = await runNamix(sym.binanceSymbol || sym.code);
-        const strength = Math.abs(analysis.score - 0.5);
-        analyses.push({ sym, analysis, strength });
-      }
-      const best = analyses.sort((a, b) => b.strength - a.strength)[0];
-      if (best && best.analysis.decision !== 'HOLD') {
-        // يتم بث الإشارة بداخل runNamix أو عبر استدعاء مباشر هنا
-        console.log(`[Cron] Broadcasting Signal for ${best.sym.code}`);
-      }
-    }
-
-    // 2. رادار الحيتان (نظام المسح النبضي)
-    // فحص آخر صفقات ضخمة لـ BTC و ETH لتبسيط الحمل على Serverless
-    const topSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-    for (const sym of topSymbols) {
-      const res = await axios.get(`https://api.binance.com/api/v3/aggTrades?symbol=${sym}&limit=10`);
-      const trades = res.data;
-      
-      for (const t of trades) {
-        const amountUSD = parseFloat(t.p) * parseFloat(t.q);
-        if (amountUSD >= 50000) { // عتبة 50 ألف دولار
-          const side = t.m ? 'SELL' : 'BUY';
-          await sendWhaleAlertToTelegram({
-            symbol: sym,
-            side,
-            amount: amountUSD,
-            price: parseFloat(t.p),
-            comment: side === 'BUY' ? "دخول سيولة ذكية تدعم التمركز الحالي." : "تصريف لحظي قد يضغط على مستويات الدعم."
-          });
-          break; // إرسال تنبيه واحد لكل رمز في كل دورة
+        try {
+          const analysis = await runNamix(sym.binanceSymbol || sym.code);
+          const strength = Math.abs(analysis.score - 0.5);
+          analyses.push({ sym, analysis, strength });
+        } catch (e) {
+          console.error(`Analysis failed for ${sym.code}:`, e);
         }
       }
+      
+      const best = analyses.sort((a, b) => b.strength - a.strength)[0];
+      if (best && best.analysis.decision !== 'HOLD') {
+        console.log(`[Pulse] Sending signal for ${best.sym.code}`);
+      }
     }
 
-    return NextResponse.json({ success: true, timestamp: new Date().toISOString() });
+    // 2. رادار الحيتان (المسح النبضي)
+    const topSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
+    for (const sym of topSymbols) {
+      try {
+        const res = await axios.get(`https://api.binance.com/api/v3/aggTrades?symbol=${sym}&limit=5`);
+        const trades = res.data;
+        
+        for (const t of trades) {
+          const amountUSD = parseFloat(t.p) * parseFloat(t.q);
+          if (amountUSD >= 50000) { 
+            const side = t.m ? 'SELL' : 'BUY';
+            await sendWhaleAlertToTelegram({
+              symbol: sym,
+              side,
+              amount: amountUSD,
+              price: parseFloat(t.p),
+              comment: side === 'BUY' ? "دخول سيولة ذكية تدعم الاتجاه الحالي." : "تصريف لحظي قد يؤدي لتذبذب مؤقت."
+            });
+            break; 
+          }
+        }
+      } catch (e) {
+        console.error(`Whale scan failed for ${sym}:`, e);
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      status: "Pulse Received",
+      timestamp: new Date().toISOString() 
+    });
   } catch (e: any) {
-    console.error("Cron Execution Error:", e);
+    console.error("Pulse Processing Error:", e);
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
 }
